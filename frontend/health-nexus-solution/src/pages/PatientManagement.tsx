@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useClinic } from '@/contexts/ClinicContext';
@@ -16,19 +15,20 @@ const PatientManagement = () => {
   const { toast } = useToast();
   const { patients, updatePatient } = useClinic();
   const [isEditing, setIsEditing] = useState(false);
-  
+  const [activeTab, setActiveTab] = useState<'personal' | 'medical'>('personal'); // Track active tab
+
   // Find the patient from the context
-  const patient = patients.find(p => p.id === id);
-  
+  const patient = patients.find((p) => p.id === id);
+
   // Create a state to track changes to the patient data
   const [patientData, setPatientData] = useState<Patient | null>(patient || null);
-  
+
   if (!patient || !patientData) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8">
         <div className="text-xl font-bold">Patient not found</div>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className="mt-4"
           onClick={() => navigate('/patients')}
         >
@@ -38,33 +38,37 @@ const PatientManagement = () => {
       </div>
     );
   }
-  
+
   const handleSave = () => {
     if (!patientData) return;
-    
+
     updatePatient(patientData.id, patientData);
     setIsEditing(false);
     toast({
-      title: "Patient record updated",
-      description: "Patient information has been successfully updated.",
+      title: 'Patient record updated',
+      description: 'Patient information has been successfully updated.',
     });
   };
-  
+
   const handleCancel = () => {
     setPatientData(patient);
     setIsEditing(false);
   };
-  
+
   const handleDelete = () => {
     // Implement delete functionality here
     toast({
-      title: "Patient record deleted",
-      description: "Patient information has been successfully deleted.",
-      variant: "destructive"
+      title: 'Patient record deleted',
+      description: 'Patient information has been successfully deleted.',
+      variant: 'destructive',
     });
     navigate('/patients');
   };
-  
+
+  const handleNext = () => {
+    setActiveTab('medical'); // Switch to the medical information tab
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -100,24 +104,35 @@ const PatientManagement = () => {
           )}
         </div>
       </div>
-      
-      <Tabs defaultValue="personal" className="w-full">
+
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as 'personal' | 'medical')}
+        className="w-full"
+      >
         <TabsList className="mb-4">
           <TabsTrigger value="personal">Personal Information</TabsTrigger>
           <TabsTrigger value="medical">Medical Information</TabsTrigger>
         </TabsList>
         <TabsContent value="personal">
-          <PatientPersonalInfo 
-            patient={patientData} 
+          <PatientPersonalInfo
+            patient={patientData}
             isEditing={isEditing}
-            onUpdate={(updatedData) => setPatientData({...patientData, ...updatedData})}
+            onUpdate={(updatedData) => setPatientData({ ...patientData, ...updatedData })}
           />
+          {isEditing && (
+            <div className="mt-4 flex justify-end">
+              <Button onClick={handleNext}>
+                Next: Medical Information
+              </Button>
+            </div>
+          )}
         </TabsContent>
         <TabsContent value="medical">
-          <PatientMedicalInfo 
-            patient={patientData} 
+          <PatientMedicalInfo
+            patient={patientData}
             isEditing={isEditing}
-            onUpdate={(updatedData) => setPatientData({...patientData, ...updatedData})}
+            onUpdate={(updatedData) => setPatientData({ ...patientData, ...updatedData })}
           />
         </TabsContent>
       </Tabs>
