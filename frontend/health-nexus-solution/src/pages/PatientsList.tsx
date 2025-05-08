@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useClinic } from '@/contexts/ClinicContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -11,11 +11,15 @@ import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import AddPatientModal from '@/components/patients/AddPatientModal';
 import { Patient } from '@/lib/mock-data';
+import axios from 'axios';
+
+axios.defaults.baseURL = 'http://127.0.0.1:8000/api/'; // Correct backend URL
 
 const PatientsList = () => {
   const { patients, updatePatient, addPatient } = useClinic();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [patientsList, setPatientsList] = useState<Patient[]>([]); 
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
   
@@ -26,23 +30,57 @@ const PatientsList = () => {
     patient.phone.includes(searchQuery) ||
     (patient.maritalStatus || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const handleAddPatient = (patient: Patient) => {
-    const newPatient = {
-      ...patient,
-      id: Date.now().toString(), // Generate a unique ID
+  // Fetch patients from the backend
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const response = await axios.get<Patient[]>('/api/patients'); // Replace with your backend URL
+        setPatientsList(response.data);
+      } catch (error) {
+        console.error('Error fetching patients:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to fetch patients. Please try again later.',
+          variant: 'destructive',
+        });
+      }
     };
-  
-    if (addPatient) {
-      addPatient(newPatient);
-    } else {
-      updatePatient(newPatient.id, newPatient);
+
+    fetchPatients();
+  }, []);
+  const handleAddPatient = async (patient: Patient) => {
+    // Map dateOfBirth to date_of_birth for the backend
+    const formattedPatient = {
+      ...patient,
+      date_of_birth: format(new Date(patient.dateOfBirth), 'yyyy-MM-dd'), // Format the date
+    };
+
+    console.log('Patient data being sent:', formattedPatient); // Debugging log
+
+    try {
+      const response = await axios.post('/patients/', formattedPatient);
+      console.log('Patient added successfully:', response.data);
+      toast({
+        title: 'Patient Added',
+        description: `${patient.name} has been successfully added.`,
+      });
+    } catch (error: any) {
+      if (error.response && error.response.status === 400) {
+        console.error('Validation errors:', error.response.data);
+        toast({
+          title: 'Validation Error',
+          description: 'Please check the input fields and try again.',
+          variant: 'destructive',
+        });
+      } else {
+        console.error('Error adding patient:', error.response || error.message);
+        toast({
+          title: 'Error',
+          description: 'Failed to add patient. Please try again later.',
+          variant: 'destructive',
+        });
+      }
     }
-  
-    toast({
-      title: "Patient Added",
-      description: `${newPatient.name} has been successfully added.`,
-    });
   };
 
   return (

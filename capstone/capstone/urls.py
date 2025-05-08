@@ -24,4 +24,5 @@ urlpatterns = [
     path('api/login/', login_view),
      path('api/', include('accounts.urls')),
     path('create/', AppointmentCreateView.as_view(), name='create-appointment'),
+     path('api/', include('patients.urls')),
 ]
