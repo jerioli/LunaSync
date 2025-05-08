@@ -20,7 +20,14 @@ import { ClinicContextType, ClinicCustomization } from '@/types/clinic';
 import { defaultClinicCustomization } from '@/constants/clinicDefaults';
 
 export const ClinicContext = createContext<ClinicContextType | undefined>(undefined);
-
+// Add the useClinic hook
+export const useClinic = () => {
+  const context = useContext(ClinicContext);
+  if (!context) {
+    throw new Error('useClinic must be used within a ClinicProvider');
+  }
+  return context;
+};
 export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUserState] = useState<User | null>(null);
 

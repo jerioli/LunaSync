@@ -49,25 +49,6 @@ const Login = () => {
 
   
 
-  // Quick access demo credentials
-  const handleDemoLogin = (role: 'doctor' | 'receptionist' | 'admin') => {
-    setIsLoading(true);
-    const demoUsers = {
-      doctor: users.find(u => u.role === 'doctor'),
-      receptionist: users.find(u => u.role === 'receptionist'),
-      admin: users.find(u => u.role === 'admin')
-    };
-
-    const user = demoUsers[role];
-    if (user) {
-      setTimeout(() => {
-        setCurrentUser(user);
-        toast.success(`Welcome, ${user.name} (Demo ${role} account)`);
-        navigate('/');
-        setIsLoading(false);
-      }, 1000);
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-clinic-gray relative">
@@ -116,42 +97,8 @@ const Login = () => {
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <div className="w-full border-t pt-4 mt-2">
-              <p className="text-sm text-center mb-2 text-muted-foreground">Quick access for demo</p>
-              <div className="grid grid-cols-3 gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  disabled={isLoading}
-                  onClick={() => handleDemoLogin('doctor')}
-                >
-                  Doctor
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  disabled={isLoading}
-                  onClick={() => handleDemoLogin('receptionist')}
-                >
-                  Receptionist
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  disabled={isLoading}
-                  onClick={() => handleDemoLogin('admin')}
-                >
-                  Admin
-                </Button>
-              </div>
-            </div>
-            <div className="w-full text-center mt-4">
-              <Link to="/portal" className="text-sm text-clinic-blue hover:underline">
-                Return to Patient Portal
-              </Link>
-            </div>
-          </CardFooter>
+          
+     
         </Card>
       </div>
     </div>
