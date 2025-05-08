@@ -28,6 +28,7 @@ export type ClinicContextType = {
   appointments: Appointment[];
   prescriptions: Prescription[];
   labResults: LabResult[];
+  deletePatient: (id: string) => void;
   inventory: Inventory[];
   payments: Payment[];
   addPatient: (patient: Patient) => void;

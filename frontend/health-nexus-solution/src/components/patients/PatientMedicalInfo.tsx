@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Patient } from '@/lib/mock-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,34 +40,36 @@ const PatientMedicalInfo: React.FC<PatientMedicalInfoProps> = ({
 }) => {
   const [newAllergy, setNewAllergy] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  
+
+  const allergies = patient.medicalInfo?.allergies || [];
+
   const addAllergy = () => {
     if (!newAllergy.trim()) return;
-    
-    const updatedAllergies = [...(patient.allergies || []), newAllergy.trim()];
-    onUpdate({ allergies: updatedAllergies });
+
+    const updatedAllergies = [...allergies, newAllergy.trim()];
+    onUpdate({ medicalInfo: { ...patient.medicalInfo, allergies: updatedAllergies } });
     setNewAllergy("");
   };
-  
+
   const removeAllergy = (allergy: string) => {
-    const updatedAllergies = (patient.allergies || []).filter(a => a !== allergy);
-    onUpdate({ allergies: updatedAllergies });
+    const updatedAllergies = allergies.filter((a) => a !== allergy);
+    onUpdate({ medicalInfo: { ...patient.medicalInfo, allergies: updatedAllergies } });
   };
-  
+
   const toggleAllergy = (allergy: string, checked: boolean) => {
-    let updatedAllergies = [...(patient.allergies || [])];
-    
+    let updatedAllergies = [...allergies];
+
     if (checked) {
       if (!updatedAllergies.includes(allergy)) {
         updatedAllergies.push(allergy);
       }
     } else {
-      updatedAllergies = updatedAllergies.filter(a => a !== allergy);
+      updatedAllergies = updatedAllergies.filter((a) => a !== allergy);
     }
-    
-    onUpdate({ allergies: updatedAllergies });
+
+    onUpdate({ medicalInfo: { ...patient.medicalInfo, allergies: updatedAllergies } });
   };
-  
+
   return (
     <Card>
       <CardHeader>
@@ -84,8 +85,8 @@ const PatientMedicalInfo: React.FC<PatientMedicalInfoProps> = ({
             <select 
               id="bloodType" 
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-              value={patient.bloodType || ""}
-              onChange={(e) => onUpdate({ bloodType: e.target.value })}
+              value={patient.medicalInfo?.bloodType || ""}
+              onChange={(e) => onUpdate({ medicalInfo: { ...patient.medicalInfo, bloodType: e.target.value } })}
             >
               <option value="">Unknown</option>
               <option value="A+">A+</option>
@@ -99,7 +100,7 @@ const PatientMedicalInfo: React.FC<PatientMedicalInfoProps> = ({
             </select>
           ) : (
             <div className="p-2 border rounded-md bg-muted/20">
-              {patient.bloodType || "Not specified"}
+              {patient.medicalInfo?.bloodType || "Not specified"}
             </div>
           )}
         </div>
@@ -109,9 +110,9 @@ const PatientMedicalInfo: React.FC<PatientMedicalInfoProps> = ({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <Label>Allergies</Label>
-            {patient.allergies && patient.allergies.length > 0 && !isEditing && (
+            {allergies.length > 0 && !isEditing && (
               <div className="text-sm text-muted-foreground">
-                {patient.allergies.length} {patient.allergies.length === 1 ? 'allergy' : 'allergies'} recorded
+                {allergies.length} {allergies.length === 1 ? 'allergy' : 'allergies'} recorded
               </div>
             )}
           </div>
@@ -123,7 +124,7 @@ const PatientMedicalInfo: React.FC<PatientMedicalInfoProps> = ({
                   <div key={allergy} className="flex items-center space-x-2">
                     <Checkbox
                       id={`allergy-${allergy}`}
-                      checked={(patient.allergies || []).includes(allergy)}
+                      checked={allergies.includes(allergy)}
                       onCheckedChange={(checked) => 
                         toggleAllergy(allergy, checked as boolean)
                       }
@@ -164,8 +165,8 @@ const PatientMedicalInfo: React.FC<PatientMedicalInfoProps> = ({
                     </Button>
                   </div>
                   
-                  {(patient.allergies || [])
-                    .filter(allergy => !commonAllergies.includes(allergy))
+                  {allergies
+                    .filter((allergy) => !commonAllergies.includes(allergy))
                     .map((allergy) => (
                       <div key={allergy} className="flex items-center justify-between p-2 border rounded-md">
                         <span>{allergy}</span>
@@ -183,9 +184,9 @@ const PatientMedicalInfo: React.FC<PatientMedicalInfoProps> = ({
             </div>
           ) : (
             <div className="space-y-2">
-              {patient.allergies && patient.allergies.length > 0 ? (
+              {allergies.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
-                  {patient.allergies.map((allergy) => (
+                  {allergies.map((allergy) => (
                     <div key={allergy} className="px-3 py-1 bg-muted text-muted-foreground rounded-full text-sm">
                       {allergy}
                     </div>
@@ -208,13 +209,13 @@ const PatientMedicalInfo: React.FC<PatientMedicalInfoProps> = ({
             <Textarea 
               id="medicalHistory" 
               rows={6}
-              value={patient.medicalHistory || ""}
-              onChange={(e) => onUpdate({ medicalHistory: e.target.value })}
+              value={patient.medicalInfo?.medicalHistory || ""}
+              onChange={(e) => onUpdate({ medicalInfo: { ...patient.medicalInfo, medicalHistory: e.target.value } })}
               placeholder="Enter patient medical history, past surgeries, chronic conditions, etc."
             />
           ) : (
             <div className="p-2 border rounded-md bg-muted/20 min-h-[100px] whitespace-pre-wrap">
-              {patient.medicalHistory || "No medical history recorded"}
+              {patient.medicalInfo?.medicalHistory || "No medical history recorded"}
             </div>
           )}
         </div>

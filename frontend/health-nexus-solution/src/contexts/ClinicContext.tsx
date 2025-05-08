@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { 
   User, 
@@ -116,6 +115,11 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
   };
 
+  // Add deletePatient function
+  const deletePatient = (id: string) => {
+    setPatientsList((prevPatients) => prevPatients.filter((patient) => patient.id !== id));
+  };
+
   // New function to update clinic customization
   const updateClinicCustomization = (data: Partial<ClinicCustomization>) => {
     setClinicCustomization({
@@ -146,6 +150,7 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         addPayment,
         updatePayment,
         updatePatient,
+        deletePatient, // Add deletePatient to the context value
         clinicCustomization,
         updateClinicCustomization,
       }}

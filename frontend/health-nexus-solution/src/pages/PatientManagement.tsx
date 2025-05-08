@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useClinic } from '@/contexts/ClinicContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,17 +13,25 @@ const PatientManagement = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { patients, updatePatient } = useClinic();
+  const { patients, updatePatient, deletePatient } = useClinic();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'personal' | 'medical'>('personal'); // Track active tab
+  const [patientData, setPatientData] = useState<Patient | null>(null);
 
-  // Find the patient from the context
-  const patient = patients.find((p) => p.id === id);
+  // Fetch the patient data when the component mounts or when the `id` changes
+  useEffect(() => {
+    console.log("Fetching patient data...");
+    console.log("Patient ID from route:", id);
+    console.log("Patients array:", patients);
+    const patient = patients.find((p) => p.id === id);
+    if (patient) {
+      setPatientData(patient);
+    } else {
+      setPatientData(null);
+    }
+  }, [id, patients]);
 
-  // Create a state to track changes to the patient data
-  const [patientData, setPatientData] = useState<Patient | null>(patient || null);
-
-  if (!patient || !patientData) {
+  if (!patientData) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8">
         <div className="text-xl font-bold">Patient not found</div>
@@ -51,12 +59,16 @@ const PatientManagement = () => {
   };
 
   const handleCancel = () => {
-    setPatientData(patient);
+    const originalPatient = patients.find((p) => p.id === id);
+    if (originalPatient) {
+      setPatientData(originalPatient);
+    }
     setIsEditing(false);
   };
 
   const handleDelete = () => {
     // Implement delete functionality here
+    deletePatient(patientData.id); 
     toast({
       title: 'Patient record deleted',
       description: 'Patient information has been successfully deleted.',
@@ -77,7 +89,7 @@ const PatientManagement = () => {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
-          <h1 className="text-3xl font-bold">{patient.name}</h1>
+          <h1 className="text-3xl font-bold">{patientData.name}</h1>
         </div>
         <div className="flex space-x-2">
           {isEditing ? (
@@ -137,7 +149,9 @@ const PatientManagement = () => {
         </TabsContent>
       </Tabs>
     </div>
+    
   );
+  
 };
 
 export default PatientManagement;

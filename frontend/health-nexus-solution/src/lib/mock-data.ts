@@ -17,8 +17,12 @@ export type Patient = {
   dateOfBirth: string;
   gender: 'male' | 'female' | 'other';
   address: string;
-  bloodType?: string;
-  allergies?: string[];
+  maritalStatus?: 'single' | 'married' | 'divorced' | 'widowed';
+  medicalInfo?: {
+    bloodType?: string;
+    allergies?: string[];
+    medicalHistory?: string;
+  };
   medicalHistory?: string;
   registrationDate: string;
   image?: string;
@@ -129,9 +133,12 @@ export const patients: Patient[] = [
     dateOfBirth: "1985-06-15",
     gender: "male",
     address: "123 Main St, Anytown, AN 12345",
-    bloodType: "O+",
-    allergies: ["Penicillin", "Peanuts"],
-    medicalHistory: "Hypertension, diagnosed in 2018",
+    maritalStatus: "married",
+    medicalInfo: {
+      bloodType: "O+",
+      allergies: ["Penicillin", "Peanuts"],
+      medicalHistory: "Hypertension, diagnosed in 2018",
+    },
     registrationDate: "2020-03-10",
   },
   {
@@ -142,12 +149,14 @@ export const patients: Patient[] = [
     dateOfBirth: "1992-09-22",
     gender: "female",
     address: "456 Oak Ave, Somewhere, SW 67890",
-    bloodType: "A-",
-    allergies: ["Latex"],
-    medicalHistory: "Asthma since childhood",
+    maritalStatus: "single",
+    medicalInfo: {
+      bloodType: "A-",
+      allergies: ["Latex"],
+      medicalHistory: "Asthma since childhood",
+    },
     registrationDate: "2019-11-05",
-  },
-  {
+  },{
     id: "3",
     name: "Robert Williams",
     email: "robert.williams@example.com",
@@ -155,36 +164,13 @@ export const patients: Patient[] = [
     dateOfBirth: "1978-01-30",
     gender: "male",
     address: "789 Pine Rd, Elsewhere, EL 10112",
-    bloodType: "B+",
-    allergies: [],
-    medicalHistory: "Type 2 diabetes, diagnosed in 2015",
+    maritalStatus: "divorced",
+    medicalInfo: {
+      bloodType: "B+",
+      allergies: [],
+      medicalHistory: "Type 2 diabetes, diagnosed in 2015",
+    },
     registrationDate: "2020-07-22",
-  },
-  {
-    id: "4",
-    name: "Jennifer Davis",
-    email: "jennifer.davis@example.com",
-    phone: "555-321-7654",
-    dateOfBirth: "1990-12-15",
-    gender: "female",
-    address: "101 Elm St, Nowhere, NW 13579",
-    bloodType: "AB+",
-    allergies: ["Sulfa drugs"],
-    medicalHistory: "",
-    registrationDate: "2021-01-14",
-  },
-  {
-    id: "5",
-    name: "Michael Brown",
-    email: "michael.brown@example.com",
-    phone: "555-789-0123",
-    dateOfBirth: "1965-04-08",
-    gender: "male",
-    address: "202 Cedar Ln, Anyplace, AP 24680",
-    bloodType: "O-",
-    allergies: ["Shellfish"],
-    medicalHistory: "Heart attack in 2019, High cholesterol",
-    registrationDate: "2019-06-30",
   },
 ];
 
