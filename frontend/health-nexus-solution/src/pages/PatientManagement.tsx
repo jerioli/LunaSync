@@ -8,6 +8,7 @@ import PatientPersonalInfo from '@/components/patients/PatientPersonalInfo';
 import PatientMedicalInfo from '@/components/patients/PatientMedicalInfo';
 import { Patient } from '@/lib/mock-data';
 import { useToast } from '@/hooks/use-toast';
+import axios from 'axios';
 
 const PatientManagement = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,18 +19,78 @@ const PatientManagement = () => {
   const [activeTab, setActiveTab] = useState<'personal' | 'medical'>('personal'); // Track active tab
   const [patientData, setPatientData] = useState<Patient | null>(null);
 
-  // Fetch the patient data when the component mounts or when the `id` changes
   useEffect(() => {
-    console.log("Fetching patient data...");
-    console.log("Patient ID from route:", id);
-    console.log("Patients array:", patients);
-    const patient = patients.find((p) => p.id === id);
-    if (patient) {
-      setPatientData(patient);
-    } else {
-      setPatientData(null);
+    const fetchPatientData = async () => {
+      try {
+        // First try to get from context
+        if (patients && patients.length > 0) {
+          const patient = patients.find((p) => String(p.id) === String(id));
+          if (patient) {
+            setPatientData(patient);
+            return;
+          }
+        }
+
+        // If not in context, try localStorage
+        const stored = localStorage.getItem('patientsList');
+        if (stored) {
+          const storedPatients = JSON.parse(stored);
+          const patient = storedPatients.find((p: Patient) => String(p.id) === String(id));
+          if (patient) {
+            setPatientData(patient);
+            return;
+          }
+        }
+
+        // If still not found, try API
+        const response = await axios.get(`/patients/${id}/`);
+        if (response.data) {
+          setPatientData(response.data);
+          // Update localStorage with the fetched data
+          const stored = localStorage.getItem('patientsList');
+          let updated = [];
+          if (stored) {
+            updated = JSON.parse(stored);
+            const existingIndex = updated.findIndex((p: Patient) => String(p.id) === String(id));
+            if (existingIndex >= 0) {
+              updated[existingIndex] = response.data;
+            } else {
+              updated.push(response.data);
+            }
+          } else {
+            updated = [response.data];
+          }
+          localStorage.setItem('patientsList', JSON.stringify(updated));
+        }
+      } catch (error) {
+        console.error('Error fetching patient data:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load patient data. Please try again.',
+          variant: 'destructive',
+        });
+      }
+    };
+
+    fetchPatientData();
+  }, [id, patients, toast]);
+
+  // Add loading state
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (patientData) {
+      setIsLoading(false);
     }
-  }, [id, patients]);
+  }, [patientData]);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-8">
+        <div className="text-xl">Loading patient data...</div>
+      </div>
+    );
+  }
 
   if (!patientData) {
     return (
@@ -47,15 +108,29 @@ const PatientManagement = () => {
     );
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!patientData) return;
-
-    updatePatient(patientData.id, patientData);
-    setIsEditing(false);
-    toast({
-      title: 'Patient record updated',
-      description: 'Patient information has been successfully updated.',
-    });
+    try {
+      const response = await axios.put(`/patients/${patientData.id}/`, patientData);
+      // Optionally update localStorage
+      const stored = localStorage.getItem('patientsList');
+      let updated = [];
+      if (stored) {
+        updated = JSON.parse(stored).map((p: Patient) => String(p.id) === String(patientData.id) ? response.data : p);
+        localStorage.setItem('patientsList', JSON.stringify(updated));
+      }
+      setIsEditing(false);
+      toast({
+        title: 'Patient record updated',
+        description: 'Patient information has been successfully updated.',
+      });
+    } catch (e) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update patient. Please try again later.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleCancel = () => {
@@ -66,15 +141,31 @@ const PatientManagement = () => {
     setIsEditing(false);
   };
 
-  const handleDelete = () => {
-    // Implement delete functionality here
-    deletePatient(patientData.id); 
-    toast({
-      title: 'Patient record deleted',
-      description: 'Patient information has been successfully deleted.',
-      variant: 'destructive',
-    });
-    navigate('/patients');
+  const handleDelete = async () => {
+    if (!patientData) return;
+    try {
+      await axios.delete(`/patients/${patientData.id}/`); // Use leading slash for correct baseURL
+      // Remove from localStorage
+      const stored = localStorage.getItem('patientsList');
+      let updated = [];
+      if (stored) {
+        updated = JSON.parse(stored).filter((p: Patient) => String(p.id) !== String(patientData.id));
+        localStorage.setItem('patientsList', JSON.stringify(updated));
+      }
+      setPatientData(null);
+      toast({
+        title: 'Patient record deleted',
+        description: 'Patient information has been successfully deleted.',
+        variant: 'destructive',
+      });
+      navigate('/patients');
+    } catch (e) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete patient. Please try again later.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleNext = () => {
@@ -146,6 +237,19 @@ const PatientManagement = () => {
             isEditing={isEditing}
             onUpdate={(updatedData) => setPatientData({ ...patientData, ...updatedData })}
           />
+          {/* Display medical info summary as in PatientsList */}
+          <div className="mt-4 p-4 border rounded bg-gray-50">
+            <h2 className="text-lg font-semibold mb-2">Medical Information</h2>
+            {patientData.medical_info ? (
+              <div className="space-y-1">
+                <div><span className="font-medium">Blood Type:</span> {patientData.medical_info.bloodType || 'N/A'}</div>
+                <div><span className="font-medium">Allergies:</span> {patientData.medical_info.allergies?.join(', ') || 'None'}</div>
+                <div><span className="font-medium">History:</span> {patientData.medical_info.medicalHistory || 'None'}</div>
+              </div>
+            ) : (
+              <div className="text-muted-foreground">No medical info available.</div>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
     </div>

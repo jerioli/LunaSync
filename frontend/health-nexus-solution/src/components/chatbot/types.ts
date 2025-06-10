@@ -1,9 +1,9 @@
-
 export type MessageType = {
   id: string;
   sender: 'user' | 'bot';
   text: string;
-  options?: { label: string; value: string }[];
+  type?: 'text' | 'options' | 'date' | 'doctor' | 'slot';
+  options?: { value: string; label: string }[];
   dateSelector?: boolean;
   timeSelector?: boolean;
   times?: string[];
@@ -12,15 +12,28 @@ export type MessageType = {
   fileUploadAccept?: string;
 };
 
-export type AppointmentForm = {
-  date: Date | undefined;
+export type Doctor = {
+  id: string;
+  name: string;
+  specialization: string;
+  availableDays: string[]; // ['Monday', 'Tuesday', etc.]
+  maxAppointmentsPerDay: number;
+};
+
+export interface AppointmentForm {
+  date?: Date;
   time: string;
   type: string;
+  doctorId: string;
   name: string;
   email: string;
   phone: string;
   notes: string;
-};
+  dateOfBirth: string;
+  gender: string;
+  address: string;
+  maritalStatus: string;
+}
 
 export type MedicalRecordRequestForm = {
   requestType: string;
@@ -30,6 +43,19 @@ export type MedicalRecordRequestForm = {
   phone: string;
   idVerification: File | null;
   additionalInfo: string;
+};
+
+export type PrescriptionRequestForm = {
+  medicationName: string;
+  dosage: string;
+  frequency: string;
+  duration: string;
+  patientName: string;
+  dateOfBirth: string;
+  email: string;
+  phone: string;
+  prescriptionImage: File | null;
+  additionalNotes: string;
 };
 
 // Define time slot type for doctor availability

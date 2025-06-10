@@ -31,17 +31,17 @@ const AddPatientModal = ({ open, onOpenChange, onAddPatient }) => {
   const [patientData, setPatientData] = useState({
     name: '',
     gender: '',
-    dateOfBirth: '',
+    date_of_birth: '',
     email: '',
     phone: '',
-    address: '', // Added address field
-    maritalStatus: '',
-    medicalInfo: {
+    address: '',
+    marital_status: '',
+    medical_info: {
       allergies: [],
       medicalHistory: '',
       bloodType: '',
-    },
-    registrationDate: new Date().toISOString(),
+    }
+    
   });
   const [newAllergy, setNewAllergy] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -53,26 +53,24 @@ const AddPatientModal = ({ open, onOpenChange, onAddPatient }) => {
   const handleMedicalInfoChange = (field, value) => {
     setPatientData((prev) => ({
       ...prev,
-      medicalInfo: { ...prev.medicalInfo, [field]: value },
+      medical_info: { ...prev.medical_info, [field]: value },
     }));
   };
 
   const addAllergy = () => {
     if (!newAllergy.trim()) return;
-
-    const updatedAllergies = [...(patientData.medicalInfo.allergies || []), newAllergy.trim()];
+    const updatedAllergies = [...(patientData.medical_info.allergies || []), newAllergy.trim()];
     handleMedicalInfoChange('allergies', updatedAllergies);
     setNewAllergy('');
   };
 
   const removeAllergy = (allergy) => {
-    const updatedAllergies = (patientData.medicalInfo.allergies || []).filter((a) => a !== allergy);
+    const updatedAllergies = (patientData.medical_info.allergies || []).filter((a) => a !== allergy);
     handleMedicalInfoChange('allergies', updatedAllergies);
   };
 
   const toggleAllergy = (allergy, checked) => {
-    let updatedAllergies = [...(patientData.medicalInfo.allergies || [])];
-
+    let updatedAllergies = [...(patientData.medical_info.allergies || [])];
     if (checked) {
       if (!updatedAllergies.includes(allergy)) {
         updatedAllergies.push(allergy);
@@ -80,17 +78,23 @@ const AddPatientModal = ({ open, onOpenChange, onAddPatient }) => {
     } else {
       updatedAllergies = updatedAllergies.filter((a) => a !== allergy);
     }
-
     handleMedicalInfoChange('allergies', updatedAllergies);
   };
 
   const handleSave = () => {
+    // Remove id and registration_date from payload, ensure correct field names
     const newPatient = {
-      id: Date.now().toString(), // Generate a unique ID
-      ...patientData,
+      name: patientData.name,
+      gender: patientData.gender,
+      date_of_birth: patientData.date_of_birth,
+      email: patientData.email,
+      phone: patientData.phone,
+      address: patientData.address,
+      marital_status: patientData.marital_status,
+      medical_info: patientData.medical_info,
     };
-    onAddPatient(newPatient); // Pass the new patient data to the parent component
-    onOpenChange(false); // Close the modal
+    onAddPatient(newPatient);
+    onOpenChange(false);
   };
 
   return (
@@ -136,8 +140,8 @@ const AddPatientModal = ({ open, onOpenChange, onAddPatient }) => {
                 <Input
                   id="dateOfBirth"
                   type="date"
-                  value={patientData.dateOfBirth}
-                  onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                  value={patientData.date_of_birth}
+                  onChange={(e) => handleInputChange('date_of_birth', e.target.value)}
                 />
               </div>
               <div>
@@ -172,8 +176,8 @@ const AddPatientModal = ({ open, onOpenChange, onAddPatient }) => {
               <div>
                 <Label htmlFor="maritalStatus">Marital Status</Label>
                 <Select
-                  onValueChange={(value) => handleInputChange('maritalStatus', value)}
-                  value={patientData.maritalStatus}
+                  onValueChange={(value) => handleInputChange('marital_status', value)}
+                  value={patientData.marital_status}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select marital status" />
@@ -197,7 +201,7 @@ const AddPatientModal = ({ open, onOpenChange, onAddPatient }) => {
                 <Label htmlFor="bloodType">Blood Type</Label>
                 <Select
                   onValueChange={(value) => handleMedicalInfoChange('bloodType', value)}
-                  value={patientData.medicalInfo.bloodType}
+                  value={patientData.medical_info.bloodType}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select blood type" />
@@ -219,7 +223,7 @@ const AddPatientModal = ({ open, onOpenChange, onAddPatient }) => {
                 <textarea
                   id="medicalHistory"
                   rows={4}
-                  value={patientData.medicalInfo.medicalHistory}
+                  value={patientData.medical_info.medicalHistory}
                   onChange={(e) => handleMedicalInfoChange('medicalHistory', e.target.value)}
                   placeholder="Enter patient medical history, past surgeries, chronic conditions, etc."
                   className="w-full p-2 border rounded-md"
@@ -232,7 +236,7 @@ const AddPatientModal = ({ open, onOpenChange, onAddPatient }) => {
                     <div key={allergy} className="flex items-center space-x-2">
                       <Checkbox
                         id={`allergy-${allergy}`}
-                        checked={(patientData.medicalInfo.allergies || []).includes(allergy)}
+                        checked={(patientData.medical_info.allergies || []).includes(allergy)}
                         onCheckedChange={(checked) => toggleAllergy(allergy, checked as boolean)}
                       />
                       <label
@@ -265,7 +269,7 @@ const AddPatientModal = ({ open, onOpenChange, onAddPatient }) => {
                         Add
                       </Button>
                     </div>
-                    {(patientData.medicalInfo.allergies || [])
+                    {(patientData.medical_info.allergies || [])
                       .filter((allergy) => !commonAllergies.includes(allergy))
                       .map((allergy) => (
                         <div key={allergy} className="flex items-center justify-between p-2 border rounded-md">

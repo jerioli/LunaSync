@@ -23,6 +23,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/login/', login_view),
      path('api/', include('accounts.urls')),
-    path('create/', AppointmentCreateView.as_view(), name='create-appointment'),
+   path('api/appointments/', include('appointments.urls')),  # Include appointments URLs
      path('api/', include('patients.urls')),
+    path('api/availability/', include('doctor_availability.urls')),
 ]
