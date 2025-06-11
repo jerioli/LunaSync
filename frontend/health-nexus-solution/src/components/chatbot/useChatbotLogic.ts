@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { MessageType, AppointmentForm, MedicalRecordRequestForm, PrescriptionRequestForm } from './types';
 import { generateTimeSlots, appointmentTypes } from './utils';
 import { api, Doctor } from '@/services/api';
+import { Appointment } from '@/lib/mock-data';
 import axios from 'axios';
 
 export const useChatbotLogic = () => {
@@ -66,7 +67,7 @@ export const useChatbotLogic = () => {
   useEffect(() => {
     if (showChat) {
       setTimeout(() => {
-        addMessage('bot', "Hello! I'm MedySync, your healthcare assistant. How can I help you today?");
+        addMessage('bot', "Hello! I'm Dr.MedySync, your healthcare assistant. Say hi to start conversation?");
       }, 500);
     }
   }, [showChat]);
@@ -96,6 +97,12 @@ export const useChatbotLogic = () => {
     const digitsOnly = phone.replace(/\D/g, '');
     // Check if the result is exactly 11 digits
     return digitsOnly.length === 11;
+  };
+
+  const validateDateOfBirth = (dob: string) => {
+    const date = new Date(dob);
+    const today = new Date();
+    return date < today;
   };
 
   const handleSendMessage = () => {
@@ -177,7 +184,23 @@ export const useChatbotLogic = () => {
           }, 500);
           return;
         }
-        
+
+        // Validate date range (between 1 and 100 years ago)
+        const today = new Date();
+        const minDate = new Date();
+        minDate.setFullYear(today.getFullYear() - 100);
+        const maxDate = new Date();
+        maxDate.setFullYear(today.getFullYear() - 1);
+
+        if (dob < minDate || dob > maxDate) {
+          addMessage('user', input);
+          setInput('');
+          setTimeout(() => {
+            addMessage('bot', 'Please enter a valid date of birth (between 1 and 100 years ago):');
+          }, 500);
+          return;
+        }
+
         addMessage('user', input);
         setAppointmentForm(prev => ({ ...prev, dateOfBirth: input }));
         setInput('');
@@ -569,119 +592,109 @@ export const useChatbotLogic = () => {
         if (value === 'confirm') {
           addMessage('user', 'Confirm appointment');
           
-          // Find patient by email
-          const patient = users.find(user => 
-            user.role === 'patient' && 
-            user.email === appointmentForm.email
-          );
-          
-          // Find selected doctor
-          const selectedDoctor = doctors.find(doctor => 
-            doctor.id.toString() === appointmentForm.doctorId
-          );
-          
-          if (appointmentForm.date && selectedDoctor) {
-            // Format the date to YYYY-MM-DD string
-            const formattedDate = appointmentForm.date.toISOString().split('T')[0];
-
-            // Format time to 24-hour format with seconds
-            const [time, period] = appointmentForm.time.split(' ');
-            const [hours, minutes] = time.split(':');
-            let hour = parseInt(hours);
-            if (period === 'PM' && hour !== 12) hour += 12;
-            if (period === 'AM' && hour === 12) hour = 0;
-            const formattedTime = `${hour.toString().padStart(2, '0')}:${minutes}:00`;
-
-            // Create appointment data
-            const appointmentData = {
-              patient_name: appointmentForm.name,
-              patient_email: appointmentForm.email,
-              patient_phone: appointmentForm.phone,
-              appointment_type: appointmentForm.type === 'Regular Checkup' ? 'Routine Check-up' : appointmentForm.type,
-              date: formattedDate,
-              time: formattedTime,
-              notes: appointmentForm.notes || '',
-              doctor_id: parseInt(appointmentForm.doctorId),
-              date_of_birth: appointmentForm.dateOfBirth ? new Date(appointmentForm.dateOfBirth).toISOString().split('T')[0] : null,
-              gender: appointmentForm.gender ? appointmentForm.gender.toLowerCase() : null,
-              address: appointmentForm.address || null,
-              marital_status: appointmentForm.maritalStatus ? appointmentForm.maritalStatus.toLowerCase() : null
-            };
-
-            // Log the data being sent
-            console.log('Appointment form state:', appointmentForm);
-            console.log('Submitting appointment data:', JSON.stringify(appointmentData, null, 2));
-
-            // Validate required fields before submission
-            if (!appointmentData.date_of_birth || !appointmentData.gender || !appointmentData.address || !appointmentData.marital_status) {
-              console.error('Missing required fields:', {
-                date_of_birth: appointmentData.date_of_birth,
-                gender: appointmentData.gender,
-                address: appointmentData.address,
-                marital_status: appointmentData.marital_status
-              });
-              toast({
-                title: "Error",
-                description: "Please fill in all required fields before submitting.",
-                variant: "destructive"
-              });
-              return;
-            }
-
-            // Submit appointment to API
-            api.appointments.create(appointmentData)
-              .then(response => {
-                console.log('Appointment created:', response.data);
-                const newAppointment = {
-                  id: response.data.id || uuidv4(),
-                  patientId: patient?.id || '5',
-                  doctorId: selectedDoctor.id.toString(),
-                  date: formattedDate,
-                  time: formattedTime,
-                  status: 'pending' as 'pending' | 'scheduled' | 'completed' | 'cancelled' | 'no-show',
-                  type: appointmentForm.type,
-                  notes: appointmentForm.notes,
-                  patientName: appointmentForm.name,
-                  patientEmail: appointmentForm.email,
-                  patientPhone: appointmentForm.phone
-                };
-                
-                addAppointment(newAppointment);
-                
-                setTimeout(() => {
-                  addMessage('bot', 'Your appointment request has been submitted! A staff member will review and confirm your appointment shortly. You will receive a confirmation email once it\'s approved.');
-                  
-                  toast({
-                    title: "Appointment Requested",
-                    description: `Your appointment request for ${appointmentForm.date.toLocaleDateString()} at ${appointmentForm.time} has been submitted for review`,
-                  });
-                  
-                  setTimeout(() => {
-                    addMessage('bot', 'Is there anything else I can help you with?', [
-                      { label: 'Schedule Another Appointment', value: 'appointment' },
-                      { label: 'Request Medical Records', value: 'medicalRecord' },
-                      { label: 'No, Thank You', value: 'end' }
-                    ]);
-                    setChatStep(1);
-                    resetForms();
-                  }, 1000);
-                }, 500);
-              })
-              .catch(error => {
-                console.error('Error creating appointment:', error);
-                toast({
-                  title: "Error",
-                  description: "Failed to submit appointment. Please try again.",
-                  variant: "destructive"
-                });
-              });
-          } else {
+          // Validate date of birth
+          if (!validateDateOfBirth(appointmentForm.dateOfBirth)) {
             toast({
-              title: "Error",
-              description: "Unable to submit appointment. Please try again.",
+              title: "Invalid Date of Birth",
+              description: "Date of birth cannot be in the future.",
               variant: "destructive"
             });
+            return;
           }
+
+          // Format the date to YYYY-MM-DD string
+          const formattedDate = appointmentForm.date.toISOString().split('T')[0];
+
+          // Format time to 24-hour format with seconds
+          const [time, period] = appointmentForm.time.split(' ');
+          const [hours, minutes] = time.split(':');
+          let hour = parseInt(hours);
+          if (period === 'PM' && hour !== 12) hour += 12;
+          if (period === 'AM' && hour === 12) hour = 0;
+          const formattedTime = `${hour.toString().padStart(2, '0')}:${minutes}:00`;
+
+          // Create appointment data
+          const appointmentData = {
+            patient_name: appointmentForm.name,
+            patient_email: appointmentForm.email,
+            patient_phone: appointmentForm.phone,
+            appointment_type: appointmentForm.type === 'Regular Checkup' ? 'Routine Check-up' : appointmentForm.type,
+            date: formattedDate,
+            time: formattedTime,
+            notes: `Patient Details (Pending): ${JSON.stringify({
+              name: appointmentForm.name,
+              email: appointmentForm.email,
+              phone: appointmentForm.phone,
+              dateOfBirth: appointmentForm.dateOfBirth,
+              gender: appointmentForm.gender,
+              address: appointmentForm.address,
+              maritalStatus: appointmentForm.maritalStatus
+            })}`,
+            doctor_id: parseInt(appointmentForm.doctorId),
+            date_of_birth: appointmentForm.dateOfBirth ? new Date(appointmentForm.dateOfBirth).toISOString().split('T')[0] : null,
+            gender: appointmentForm.gender ? appointmentForm.gender.toLowerCase() : null,
+            address: appointmentForm.address || null,
+            marital_status: appointmentForm.maritalStatus ? appointmentForm.maritalStatus.toLowerCase() : null,
+            status: 'pending'  // Explicitly set status to pending
+          };
+
+          // Log the data being sent
+          console.log('Submitting appointment data:', appointmentData);
+
+          // Submit appointment to API
+          api.appointments.create(appointmentData)
+            .then(response => {
+              console.log('Appointment created:', response);
+              
+              // Create the new appointment object using the response data directly
+              const newAppointment: Appointment = {
+                id: response.id.toString(),
+                patientId: '5', // Default patient ID since we're creating a new patient
+                doctorId: response.doctor_id.toString(),
+                date: response.date,
+                time: response.time,
+                status: response.status || 'pending',
+                type: response.appointment_type,
+                notes: response.notes || undefined
+              };
+              
+              console.log('New appointment object:', newAppointment);
+              
+              addAppointment(newAppointment);
+              
+              setTimeout(() => {
+                addMessage('bot', 'Your appointment request has been submitted! A staff member will review and confirm your appointment shortly. You will receive a confirmation email once it\'s approved.');
+                
+                toast({
+                  title: "Appointment Requested",
+                  description: `Your appointment request for ${appointmentForm.date.toLocaleDateString()} at ${appointmentForm.time} has been submitted for review`,
+                });
+                
+                setTimeout(() => {
+                  addMessage('bot', 'Is there anything else I can help you with?', [
+                    { label: 'Schedule Another Appointment', value: 'appointment' },
+                    { label: 'Request Medical Records', value: 'medicalRecord' },
+                    { label: 'No, Thank You', value: 'end' }
+                  ]);
+                  setChatStep(1);
+                  resetForms();
+                }, 1000);
+              }, 500);
+            })
+            .catch(error => {
+              console.error('Error creating appointment:', error);
+              console.error('Error details:', {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status
+              });
+              
+              toast({
+                title: "Error",
+                description: "Failed to submit appointment. Please try again.",
+                variant: "destructive"
+              });
+            });
         } else if (value === 'cancel') {
           addMessage('user', 'Cancel');
           
@@ -750,6 +763,7 @@ export const useChatbotLogic = () => {
     } else if (chatStep === 4) {
       // Date selected (both flows)
       const selectedDate = new Date(value);
+      console.log('Selected date:', selectedDate);
       addMessage('user', `I want an appointment on ${selectedDate.toLocaleDateString()}`);
       setAppointmentForm(prev => ({ ...prev, date: selectedDate }));
       
@@ -763,33 +777,45 @@ export const useChatbotLogic = () => {
         });
       } else {
         // Date first flow - show available doctors
-        fetchDoctors().then(async () => {
-          try {
-            const availableDoctors = await getAvailableDoctorsForDate(selectedDate);
-            if (availableDoctors.length === 0) {
-              setTimeout(() => {
-                addMessage('bot', 'I apologize, but there are no doctors available on this date. Please select a different date.');
-                setChatStep(4);
-              }, 500);
-              return;
-            }
+        console.log('Starting to fetch available doctors for date:', selectedDate);
+        getAvailableDoctorsForDate(selectedDate).then(availableDoctors => {
+          console.log('Received available doctors:', availableDoctors);
+          
+          if (!availableDoctors || availableDoctors.length === 0) {
+            console.log('No doctors available, showing error message');
             setTimeout(() => {
-              addMessage('bot', 'The following doctors are available on this date:', 
-                availableDoctors.map(doctor => ({
-                  label: `Dr. ${doctor.first_name} ${doctor.last_name}`,
-                  value: doctor.id.toString()
+              addMessage('bot', 'I apologize, but there are no doctors available on this date. Please select a different date.');
+              // Show available dates again
+              const availableDates = getAvailableDates();
+              addMessage('bot', 'Please select a different date:', 
+                availableDates.map(date => ({
+                  label: date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
+                  value: date.toISOString()
                 }))
               );
-              setChatStep(5);
+              setChatStep(4);
             }, 500);
-          } catch (error) {
-            console.error('Error getting available doctors:', error);
-            toast({
-              title: "Error",
-              description: "Failed to fetch available doctors. Please try again.",
-              variant: "destructive"
-            });
+            return;
           }
+
+          console.log('Displaying available doctors:', availableDoctors);
+          setTimeout(() => {
+            const doctorOptions = availableDoctors.map(doctor => ({
+              label: `Dr. ${doctor.first_name} ${doctor.last_name}`,
+              value: doctor.id.toString()
+            }));
+            console.log('Doctor options for display:', doctorOptions);
+            
+            addMessage('bot', 'The following doctors are available on this date:', doctorOptions);
+            setChatStep(5);
+          }, 500);
+        }).catch(error => {
+          console.error('Error getting available doctors:', error);
+          toast({
+            title: "Error",
+            description: "Failed to fetch available doctors. Please try again.",
+            variant: "destructive"
+          });
         });
       }
     } else if (chatStep === 5) {
@@ -888,7 +914,23 @@ export const useChatbotLogic = () => {
         }, 500);
         return;
       }
-      
+
+      // Validate date range (between 1 and 100 years ago)
+      const today = new Date();
+      const minDate = new Date();
+      minDate.setFullYear(today.getFullYear() - 100);
+      const maxDate = new Date();
+      maxDate.setFullYear(today.getFullYear() - 1);
+
+      if (dob < minDate || dob > maxDate) {
+        addMessage('user', input);
+        setInput('');
+        setTimeout(() => {
+          addMessage('bot', 'Please enter a valid date of birth (between 1 and 100 years ago):');
+        }, 500);
+        return;
+      }
+
       addMessage('user', input);
       setAppointmentForm(prev => ({ ...prev, dateOfBirth: input }));
       setInput('');
@@ -1134,33 +1176,63 @@ export const useChatbotLogic = () => {
   };
 
   const getAvailableDoctorsForDate = async (date: Date) => {
-    const dateString = date.toISOString().split('T')[0];
-    
-    // Filter doctors who have availability for the selected date
-    const availableDoctors = await Promise.all(
-      doctors.map(async (doctor) => {
-        try {
-          const response = await api.availability.getTimeSlots(doctor.id.toString(), dateString);
-          // Check if doctor has any availability for this date
-          if (Array.isArray(response) && response.length > 0) {
-            const availability = response[0];
-            if (availability && availability.is_available && availability.time_slots) {
-              const availableSlots = availability.time_slots.filter(slot => !slot.is_booked);
-              if (availableSlots.length > 0) {
-                return doctor;
+    try {
+      const dateString = date.toISOString().split('T')[0];
+      console.log('Checking availability for date:', dateString);
+      
+      // First, get all doctors
+      const allDoctors = await fetchDoctors();
+      console.log('All doctors fetched:', allDoctors);
+      
+      if (!allDoctors || allDoctors.length === 0) {
+        console.error('No doctors found in the response');
+        return [];
+      }
+
+      // For now, let's return all doctors to test the display
+      // We'll add availability check later
+      console.log('Returning all doctors for testing:', allDoctors);
+      return allDoctors;
+
+      /* Comment out the availability check for now
+      const availableDoctors = await Promise.all(
+        allDoctors.map(async (doctor) => {
+          try {
+            console.log(`Checking availability for doctor ${doctor.id} on ${dateString}`);
+            const response = await api.availability.getTimeSlots(doctor.id.toString(), dateString);
+            console.log(`Availability response for doctor ${doctor.id}:`, response);
+
+            if (response && Array.isArray(response) && response.length > 0) {
+              const availability = response[0];
+              if (availability && availability.time_slots) {
+                const availableSlots = availability.time_slots.filter(slot => !slot.is_booked);
+                if (availableSlots.length > 0) {
+                  console.log(`Doctor ${doctor.id} has ${availableSlots.length} available slots`);
+                  return doctor;
+                }
               }
             }
+            return null;
+          } catch (error) {
+            console.error(`Error checking availability for doctor ${doctor.id}:`, error);
+            return null;
           }
-          return null;
-        } catch (error) {
-          console.error(`Error checking availability for doctor ${doctor.id}:`, error);
-          return null;
-        }
-      })
-    );
+        })
+      );
 
-    // Filter out null values (doctors without availability)
-    return availableDoctors.filter((doctor): doctor is Doctor => doctor !== null);
+      const filteredDoctors = availableDoctors.filter((doctor): doctor is Doctor => doctor !== null);
+      console.log('Available doctors after filtering:', filteredDoctors);
+      return filteredDoctors;
+      */
+    } catch (error) {
+      console.error('Error in getAvailableDoctorsForDate:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch available doctors. Please try again.",
+        variant: "destructive"
+      });
+      return [];
+    }
   };
 
   const getAvailableTimeSlotsForDoctor = async (doctorId: string, date: Date) => {

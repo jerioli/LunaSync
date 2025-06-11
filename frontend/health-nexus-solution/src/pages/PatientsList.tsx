@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import AddPatientModal from '@/components/patients/AddPatientModal';
 import { Patient } from '@/lib/mock-data';
+import { useClinic } from '@/contexts/ClinicContext';
 import axios from 'axios';
 
 axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
@@ -17,67 +18,31 @@ axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
 const PatientsList = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [patientsList, setPatientsList] = useState<Patient[]>([]);
+  const { patients, addPatient, fetchPatients } = useClinic();
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
 
-  // Fetch patients from the backend
+  // Fetch patients when component mounts
   useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        const response = await axios.get<Patient[]>('patients/list/');
-        console.log('Fetched patients:', response.data);
-        setPatientsList(response.data);
-      } catch (error) {
-        console.error('Error fetching patients:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to fetch patients. Please try again later.',
-          variant: 'destructive',
-        });
-      }
-    };
-
     fetchPatients();
-  }, []);
+  }, [fetchPatients]);
 
   // Filter patients based on search query
-  const filteredPatients = patientsList.filter((patient) =>
+  const filteredPatients = patients.filter((patient) =>
     patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     patient.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     patient.phone.includes(searchQuery) ||
     (patient.marital_status || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
+
   const handleAddPatient = async (patient: Patient) => {
-    // Defensive: only format date if valid
-    let formattedDate = patient.date_of_birth;
-    if (patient.date_of_birth && !isNaN(new Date(patient.date_of_birth).getTime())) {
-      formattedDate = format(new Date(patient.date_of_birth), 'yyyy-MM-dd');
-    }
-    const formattedPatient = {
-      ...patient,
-      date_of_birth: formattedDate, // Format the date if valid, else pass as is
-      marital_status: patient.marital_status, // Map maritalStatus to backend field
-      medical_info: patient.medical_info, // Map medicalInfo to backend field
-    };
-
-    console.log('Patient data being sent:', formattedPatient); // Debugging log
-
     try {
-      const response = await axios.post('/patients/', formattedPatient); // Use correct endpoint with api prefix
-      console.log('Patient added successfully:', response.data);
-
-      // Add the new patient to the list
-      setPatientsList((prev: Patient[]) => {
-        const updated = [...prev, response.data];
-        localStorage.setItem('patientsList', JSON.stringify(updated));
-        return updated;
-      });
-
+      await addPatient(patient);
       toast({
         title: 'Patient Added',
         description: `${patient.name} has been successfully added.`,
       });
+      setIsAddPatientModalOpen(false);
     } catch (error: any) {
       if (error.response && error.response.status === 400) {
         console.error('Validation errors:', error.response.data);

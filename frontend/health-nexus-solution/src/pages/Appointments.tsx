@@ -105,7 +105,7 @@ const Appointments = () => {
     if (activeTab === "upcoming") {
       return appointmentDate >= today && appointment.status === "scheduled";
     } else if (activeTab === "pending" && isReceptionist) {
-      return appointment.status === "pending";
+      return appointment.status === "pending" && appointmentDate >= today;
     } else if (activeTab === "completed") {
       return appointment.status === "completed";
     } else if (activeTab === "cancelled") {

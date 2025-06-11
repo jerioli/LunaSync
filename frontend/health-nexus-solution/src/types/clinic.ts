@@ -1,4 +1,3 @@
-
 import { User, Patient, Appointment, Prescription, LabResult, Inventory, Payment } from '@/lib/mock-data';
 
 // Define clinic branding and customization types
@@ -20,7 +19,7 @@ export type ClinicCustomization = {
   }[];
 };
 
-export type ClinicContextType = {
+export interface ClinicContextType {
   currentUser: User | null;
   setCurrentUser: (user: User | null) => void;
   users: User[];
@@ -28,18 +27,19 @@ export type ClinicContextType = {
   appointments: Appointment[];
   prescriptions: Prescription[];
   labResults: LabResult[];
-  deletePatient: (id: string) => void;
-  inventory: Inventory[];
-  payments: Payment[];
-  addPatient: (patient: Patient) => void;
+  addPatient: (patient: Patient) => Promise<void>;
   addAppointment: (appointment: Appointment) => void;
   updateAppointment: (id: string, updatedData: Partial<Appointment>) => void;
   addPrescription: (prescription: Prescription) => void;
   addLabResult: (labResult: LabResult) => void;
-  updateInventory: (id: string, updatedData: Partial<Inventory>) => void;
-  addPayment: (payment: Payment) => void;
-  updatePayment: (id: string, updatedData: Partial<Payment>) => void;
   updatePatient: (id: string, updatedData: Partial<Patient>) => void;
+  deletePatient: (id: string) => void;
   clinicCustomization: ClinicCustomization;
   updateClinicCustomization: (data: Partial<ClinicCustomization>) => void;
-};
+  inventory: Inventory[];
+  payments: Payment[];
+  updateInventory: (id: string, updatedData: Partial<Inventory>) => void;
+  addPayment: (payment: Payment) => void;
+  updatePayment: (id: string, data: Partial<Payment>) => void;
+  fetchPatients: () => Promise<void>;
+}

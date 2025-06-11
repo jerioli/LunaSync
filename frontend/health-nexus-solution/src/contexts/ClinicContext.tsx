@@ -17,6 +17,9 @@ import {
 } from '@/lib/mock-data';
 import { ClinicContextType, ClinicCustomization } from '@/types/clinic';
 import { defaultClinicCustomization } from '@/constants/clinicDefaults';
+import axios from 'axios';
+
+axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
 
 export const ClinicContext = createContext<ClinicContextType | undefined>(undefined);
 // Add the useClinic hook
@@ -29,6 +32,28 @@ export const useClinic = () => {
 };
 export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUserState] = useState<User | null>(null);
+  const [patientsList, setPatientsList] = useState<Patient[]>([]);
+  const [appointmentsList, setAppointmentsList] = useState<Appointment[]>(appointments);
+  const [prescriptionsList, setPrescriptionsList] = useState<Prescription[]>(prescriptions);
+  const [labResultsList, setLabResultsList] = useState<LabResult[]>(labResults);
+  const [clinicCustomization, setClinicCustomization] = useState<ClinicCustomization>(defaultClinicCustomization);
+  const [inventory, setInventory] = useState<Inventory[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
+
+  // Fetch patients from backend
+  const fetchPatients = async () => {
+    try {
+      const response = await axios.get('patients/list/');
+      setPatientsList(response.data);
+    } catch (error) {
+      console.error('Error fetching patients:', error);
+    }
+  };
+
+  // Fetch patients on component mount
+  useEffect(() => {
+    fetchPatients();
+  }, []);
 
   const setCurrentUser = (user: User | null) => {
     setCurrentUserState(user);
@@ -46,18 +71,36 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
   }, []);
 
-  const [patientsList, setPatientsList] = useState<Patient[]>(patients);
-  const [appointmentsList, setAppointmentsList] = useState<Appointment[]>(appointments);
-  const [prescriptionsList, setPrescriptionsList] = useState<Prescription[]>(prescriptions);
-  const [labResultsList, setLabResultsList] = useState<LabResult[]>(labResults);
+  const addPatient = async (patient: Patient) => {
+    try {
+      // Format the patient data to match backend expectations
+      const formattedPatient = {
+        ...patient,
+        medical_info: patient.medical_info || {
+          bloodType: '',
+          allergies: [],
+          medicalHistory: ''
+        }
+      };
 
-  const [clinicCustomization, setClinicCustomization] = useState<ClinicCustomization>(defaultClinicCustomization);
+      const response = await axios.post('patients/', formattedPatient);
+      
+      // Ensure the response data has the correct structure
+      const newPatient = {
+        ...response.data,
+        medical_info: response.data.medical_info || {
+          bloodType: '',
+          allergies: [],
+          medicalHistory: ''
+        }
+      };
 
-  const [inventory, setInventory] = useState<Inventory[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
-
-  const addPatient = (patient: Patient) => {
-    setPatientsList([...patientsList, patient]);
+      setPatientsList(prev => [...prev, newPatient]);
+      return newPatient;
+    } catch (error) {
+      console.error('Error adding patient:', error);
+      throw error;
+    }
   };
 
   const addAppointment = (appointment: Appointment) => {
@@ -152,7 +195,8 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         payments,
         updateInventory,
         addPayment,
-        updatePayment
+        updatePayment,
+        fetchPatients
       }}
     >
       {children}
