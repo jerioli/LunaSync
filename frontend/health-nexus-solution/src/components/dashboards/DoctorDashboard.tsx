@@ -1,5 +1,5 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { useClinic } from '@/contexts/ClinicContext';
 import { Calendar, Clock, Users, Bell, FileText } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,34 +9,104 @@ import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 
 const DoctorDashboard = () => {
-  const { appointments, patients } = useClinic();
+  const { patients } = useClinic();
+  const [appointments, setAppointments] = useState([]);
+  const [patientsCount, setPatientsCount] = useState(0);
+  const [patientDetails, setPatientDetails] = useState({});
   const navigate = useNavigate();
+
+  // Fetch appointments from backend
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        const response = await axios.get('/appointments/list/');
+        setAppointments(response.data);
+      } catch (error) {
+        console.error('Error fetching appointments:', error);
+      }
+    };
+    fetchAppointments();
+  }, []);
+
+  // Fetch patients count from backend
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const response = await axios.get('/patients/');
+        setPatientsCount(Array.isArray(response.data) ? response.data.length : 0);
+      } catch (error) {
+        setPatientsCount(0);
+        console.error('Error fetching patients:', error);
+      }
+    };
+    fetchPatients();
+  }, []);
+
+  // Helper to fetch patient details by ID if not found in local patients
+  const fetchPatientById = async (id) => {
+    if (!id || patientDetails[id]) return;
+    try {
+      const response = await axios.get(`/patients/${id}/`);
+      setPatientDetails(prev => ({ ...prev, [id]: response.data }));
+    } catch (error) {
+      setPatientDetails(prev => ({ ...prev, [id]: { name: 'Unknown Patient' } }));
+    }
+  };
   
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];
   
   // Filter today's appointments
   const todaysAppointments = appointments
-    .filter(appointment => appointment.date === today && appointment.status === 'scheduled')
+    .filter(appointment => appointment.date === today)
     .sort((a, b) => a.time.localeCompare(b.time));
   
   // Filter patients with upcoming follow-up appointments
   const upcomingFollowUps = appointments
     .filter(appointment => 
       appointment.status === 'scheduled' && 
-      appointment.type.toLowerCase().includes('follow') &&
+      (appointment.appointment_type?.toLowerCase().includes('follow') || appointment.type?.toLowerCase().includes('follow')) &&
       new Date(appointment.date) > new Date()
     )
     .slice(0, 3);
   
+  // Filter general upcoming appointments (future dates)
+  const upcomingAppointments = appointments
+    .filter(appointment => {
+      const appointmentDate = new Date(appointment.date);
+      const currentDate = new Date();
+      return appointment.status === 'scheduled' && appointmentDate > currentDate;
+    })
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, 5); // Show next 5 upcoming appointments
+  
   // Count total patients
-  const totalPatients = patients.length;
+  const totalPatients = patientsCount;
   
   // Count today's appointments
   const totalTodaysAppointments = todaysAppointments.length;
   
   // Count pending lab results
   const pendingLabResults = 2; // Mock number for prototype
+
+  useEffect(() => {
+    // For each appointment today, ensure we have the patient name
+    todaysAppointments.forEach(appt => {
+      const patientId = appt.patientId || appt.patient;
+      if (patientId && !patients.find(p => String(p.id) === String(patientId)) && !patientDetails[patientId]) {
+        fetchPatientById(patientId);
+      }
+    });
+    
+    // For each upcoming appointment, ensure we have the patient name
+    upcomingAppointments.forEach(appt => {
+      const patientId = appt.patientId || appt.patient;
+      if (patientId && !patients.find(p => String(p.id) === String(patientId)) && !patientDetails[patientId]) {
+        fetchPatientById(patientId);
+      }
+    });
+    // eslint-disable-next-line
+  }, [todaysAppointments, upcomingAppointments]);
   
   return (
     <div className="space-y-6">
@@ -64,7 +134,9 @@ const DoctorDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalTodaysAppointments}</div>
-            <p className="text-xs text-muted-foreground">{totalTodaysAppointments === 0 ? 'No appointments today' : `First at ${todaysAppointments[0]?.time || 'N/A'}`}</p>
+            <p className="text-xs text-muted-foreground">
+              {todaysAppointments.filter(a => a.status === 'scheduled').length} awaiting consultation
+            </p>
           </CardContent>
         </Card>
         
@@ -95,23 +167,27 @@ const DoctorDashboard = () => {
         <Card className="col-span-1">
           <CardHeader>
             <CardTitle>Today's Appointments</CardTitle>
-            <CardDescription>You have {totalTodaysAppointments} appointments scheduled for today</CardDescription>
+            <CardDescription>Manage today's patient consultations</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y">
               {todaysAppointments.length > 0 ? (
                 todaysAppointments.map((appointment) => {
-                  const patient = patients.find(p => p.id === appointment.patientId);
-                  
+                  const patientId = appointment.patientId || appointment.patient;
+                  let patient = patients.find(p => String(p.id) === String(patientId));
+                  if (!patient && patientDetails[patientId]) {
+                    patient = patientDetails[patientId];
+                  }
+                  const consultationType = appointment.appointment_type || appointment.type || 'Consultation';
                   return (
                     <div key={appointment.id} className="flex items-center justify-between p-4">
                       <div className="flex items-center gap-3">
                         <Avatar>
-                          <AvatarFallback>{patient?.name.charAt(0)}</AvatarFallback>
+                          <AvatarFallback>{patient?.name ? patient.name.charAt(0) : '?'}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{patient?.name}</div>
-                          <div className="text-sm text-muted-foreground">{appointment.type}</div>
+                          <div className="font-medium">{patient?.name || 'Unknown Patient'}</div>
+                          <div className="text-sm text-muted-foreground">{consultationType}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
@@ -120,9 +196,15 @@ const DoctorDashboard = () => {
                             <Clock className="h-3 w-3" />
                             <span className="text-sm">{appointment.time}</span>
                           </div>
+                          <Badge 
+                            variant={appointment.status === 'scheduled' ? 'outline' : 'secondary'}
+                            className="mt-1"
+                          >
+                            {appointment.status === 'scheduled' ? 'Awaiting consultation' : 'Completed'}
+                          </Badge>
                         </div>
                         <Button size="sm" variant="outline" onClick={() => navigate(`/patients/${patient?.id}`)}>
-                          View
+                          View Patient
                         </Button>
                       </div>
                     </div>
@@ -144,32 +226,37 @@ const DoctorDashboard = () => {
         
         <Card className="col-span-1">
           <CardHeader>
-            <CardTitle>Follow-up Reminders</CardTitle>
-            <CardDescription>Upcoming follow-up appointments</CardDescription>
+            <CardTitle>Upcoming Appointments</CardTitle>
+            <CardDescription>Next scheduled appointments</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y">
-              {upcomingFollowUps.length > 0 ? (
-                upcomingFollowUps.map((appointment) => {
-                  const patient = patients.find(p => p.id === appointment.patientId);
-                  
+              {upcomingAppointments.length > 0 ? (
+                upcomingAppointments.map((appointment) => {
+                  const patientId = appointment.patientId || appointment.patient;
+                  let patient = patients.find(p => String(p.id) === String(patientId));
+                  if (!patient && patientDetails[patientId]) {
+                    patient = patientDetails[patientId];
+                  }
+                  const consultationType = appointment.type || appointment.appointment_type || 'Consultation';
                   return (
                     <div key={appointment.id} className="flex items-center justify-between p-4">
                       <div className="flex items-center gap-3">
                         <Avatar>
-                          <AvatarFallback>{patient?.name.charAt(0)}</AvatarFallback>
+                          <AvatarFallback>{patient?.name ? patient.name.charAt(0) : '?'}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{patient?.name}</div>
-                          <div className="text-sm text-muted-foreground">{appointment.type}</div>
+                          <div className="font-medium">{patient?.name || 'Unknown Patient'}</div>
+                          <div className="text-sm text-muted-foreground">{consultationType}</div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge>
-                          {new Date(appointment.date).toLocaleDateString()}
-                        </Badge>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="font-medium">{new Date(appointment.date).toLocaleDateString()}</div>
+                          <div className="text-sm text-muted-foreground">{appointment.time}</div>
+                        </div>
                         <Button size="sm" variant="outline" onClick={() => navigate(`/patients/${patient?.id}`)}>
-                          View
+                          View Patient
                         </Button>
                       </div>
                     </div>
@@ -177,14 +264,14 @@ const DoctorDashboard = () => {
                 })
               ) : (
                 <div className="py-8 text-center text-muted-foreground">
-                  No upcoming follow-up appointments
+                  No upcoming appointments
                 </div>
               )}
             </div>
           </CardContent>
           <CardFooter className="border-t bg-muted/50 px-6 py-3">
             <Button variant="ghost" className="w-full" onClick={() => navigate('/appointments')}>
-              View all follow-ups
+              View all appointments
             </Button>
           </CardFooter>
         </Card>
@@ -194,3 +281,4 @@ const DoctorDashboard = () => {
 };
 
 export default DoctorDashboard;
+

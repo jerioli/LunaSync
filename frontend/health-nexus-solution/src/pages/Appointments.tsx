@@ -95,10 +95,6 @@ const Appointments = () => {
 
   // Filtered appointments logic
   const filteredAppointments = appointments.filter(appointment => {
-    if (isDoctor && appointment.doctorId !== currentUser?.id) {
-      return false;
-    }
-
     const appointmentDate = new Date(appointment.date + 'T' + appointment.time);
     const today = new Date();
     
@@ -450,11 +446,11 @@ const Appointments = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="flex items-center">
                           <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                          <span>{new Date(appointment.date).toLocaleDateString()}</span>
+                          <span>{appointment.display_date || new Date(appointment.date).toLocaleDateString()}</span>
                         </div>
                         <div className="flex items-center">
                           <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                          <span>{appointment.time}</span>
+                          <span>{appointment.display_time || appointment.time}</span>
                         </div>
                       </div>
                     </CardContent>

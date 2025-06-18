@@ -61,6 +61,16 @@ const ReceptionistDashboard = () => {
     .filter(appointment => appointment.date === today)
     .sort((a, b) => a.time.localeCompare(b.time));
   
+  // Filter upcoming appointments (future dates)
+  const upcomingAppointments = appointments
+    .filter(appointment => {
+      const appointmentDate = new Date(appointment.date);
+      const currentDate = new Date();
+      return appointment.status === 'scheduled' && appointmentDate > currentDate;
+    })
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, 5); // Show next 5 upcoming appointments
+  
   useEffect(() => {
     // For each appointment today, ensure we have the patient name
     todaysAppointments.forEach(appt => {
@@ -69,8 +79,16 @@ const ReceptionistDashboard = () => {
         fetchPatientById(patientId);
       }
     });
+    
+    // For each upcoming appointment, ensure we have the patient name
+    upcomingAppointments.forEach(appt => {
+      const patientId = appt.patientId || appt.patient;
+      if (patientId && !patients.find(p => String(p.id) === String(patientId)) && !patientDetails[patientId]) {
+        fetchPatientById(patientId);
+      }
+    });
     // eslint-disable-next-line
-  }, [todaysAppointments]);
+  }, [todaysAppointments, upcomingAppointments]);
   
   return (
     <div className="space-y-6">
@@ -169,7 +187,57 @@ const ReceptionistDashboard = () => {
           </CardFooter>
         </Card>
         
-       
+        <Card className="col-span-1">
+          <CardHeader>
+            <CardTitle>Upcoming Appointments</CardTitle>
+            <CardDescription>Next scheduled appointments</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y">
+              {upcomingAppointments.length > 0 ? (
+                upcomingAppointments.map((appointment) => {
+                  const patientId = appointment.patientId || appointment.patient;
+                  let patient = patients.find(p => String(p.id) === String(patientId));
+                  if (!patient && patientDetails[patientId]) {
+                    patient = patientDetails[patientId];
+                  }
+                  const consultationType = appointment.appointment_type || appointment.type || 'Consultation';
+                  return (
+                    <div key={appointment.id} className="flex items-center justify-between p-4">
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarFallback>{patient?.name ? patient.name.charAt(0) : '?'}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{patient?.name || 'Unknown Patient'}</div>
+                          <div className="text-sm text-muted-foreground">{consultationType}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="font-medium">{new Date(appointment.date).toLocaleDateString()}</div>
+                          <div className="text-sm text-muted-foreground">{appointment.time}</div>
+                        </div>
+                        <Button size="sm" variant="outline" onClick={() => navigate(`/patients/${patient?.id}`)}>
+                          View Patient
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="py-8 text-center text-muted-foreground">
+                  No upcoming appointments
+                </div>
+              )}
+            </div>
+          </CardContent>
+          <CardFooter className="border-t bg-muted/50 px-6 py-3">
+            <Button variant="ghost" className="w-full" onClick={() => navigate('/appointments')}>
+              View all appointments
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
       
       
