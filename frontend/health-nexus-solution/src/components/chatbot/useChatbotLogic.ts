@@ -539,7 +539,7 @@ export const useChatbotLogic = () => {
     }
   };
 
-  const handleOptionSelect = (value: string) => {
+  const handleOptionSelect = async (value: string) => {
     if (value === 'appointment') {
       setChatMode('appointment');
       addMessage('user', 'Schedule Appointment');
@@ -621,7 +621,7 @@ export const useChatbotLogic = () => {
             appointment_type: appointmentForm.type === 'Regular Checkup' ? 'Routine Check-up' : appointmentForm.type,
             date: formattedDate,
             time: formattedTime,
-            notes: `Patient Details (Pending): ${JSON.stringify({
+            notes: `${appointmentForm.notes || ''}\n\nPatient Details (Pending): ${JSON.stringify({
               name: appointmentForm.name,
               email: appointmentForm.email,
               phone: appointmentForm.phone,
@@ -635,7 +635,8 @@ export const useChatbotLogic = () => {
             gender: appointmentForm.gender ? appointmentForm.gender.toLowerCase() : null,
             address: appointmentForm.address || null,
             marital_status: appointmentForm.maritalStatus ? appointmentForm.maritalStatus.toLowerCase() : null,
-            status: 'pending'  // Explicitly set status to pending
+            status: 'pending',  // Explicitly set status to pending
+            is_pending_confirmation: true  // Flag to indicate this needs receptionist confirmation
           };
 
           // Log the data being sent
@@ -648,14 +649,14 @@ export const useChatbotLogic = () => {
               
               // Create the new appointment object using the response data directly
               const newAppointment: Appointment = {
-                id: response.id.toString(),
-                patientId: '5', // Default patient ID since we're creating a new patient
-                doctorId: response.doctor_id.toString(),
-                date: response.date,
-                time: response.time,
-                status: response.status || 'pending',
-                type: response.appointment_type,
-                notes: response.notes || undefined
+                id: response?.id?.toString() || '',
+                patientId: appointmentForm.name, // Use patient name as temporary identifier until receptionist confirms
+                doctorId: response?.doctor_id?.toString() || '',
+                date: response?.date || '',
+                time: response?.time || '',
+                status: 'pending', // Always set to pending for chatbot appointments
+                type: response?.appointment_type || '',
+                notes: appointmentForm.notes || ''  // Only use the user's note, not the patient details
               };
               
               console.log('New appointment object:', newAppointment);
@@ -663,11 +664,11 @@ export const useChatbotLogic = () => {
               addAppointment(newAppointment);
               
               setTimeout(() => {
-                addMessage('bot', 'Your appointment request has been submitted! A staff member will review and confirm your appointment shortly. You will receive a confirmation email once it\'s approved.');
+                addMessage('bot', 'Your appointment request has been submitted and is pending review. Our reception team will review your request and send you a confirmation email once approved. A patient record will be created after the appointment is confirmed.');
                 
                 toast({
-                  title: "Appointment Requested",
-                  description: `Your appointment request for ${appointmentForm.date.toLocaleDateString()} at ${appointmentForm.time} has been submitted for review`,
+                  title: "Appointment Request Submitted",
+                  description: "Your appointment request is pending review. You will receive a confirmation email once approved.",
                 });
                 
                 setTimeout(() => {

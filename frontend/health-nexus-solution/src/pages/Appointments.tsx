@@ -135,6 +135,11 @@ const Appointments = () => {
       }
     }
 
+    // For confirmed appointments, use display_patient_name if available
+    if (appointment?.display_patient_name) {
+      return appointment.display_patient_name;
+    }
+
     // Fallback to patient lookup
     const patient = localPatients.find(p => String(p.id) === String(patientId));
     if (patient && patient.name) return patient.name;
@@ -150,6 +155,19 @@ const Appointments = () => {
     }
     const doctor = users.find(u => u.id === doctorId && u.role === 'doctor');
     return doctor ? doctor.name : "Unassigned Doctor";
+  };
+
+  // Helper function to extract only user notes from appointment notes
+  const getUserNotes = (notes) => {
+    if (!notes) return null;
+    
+    // If notes contain patient details section, extract only the user notes part
+    if (notes.includes('Patient Details (Pending):')) {
+      const parts = notes.split('Patient Details (Pending):');
+      return parts[0].trim() || null;
+    }
+    
+    return notes;
   };
 
   // Local handler for status updates
@@ -237,20 +255,20 @@ const Appointments = () => {
                         <div className="grid grid-cols-2 gap-1 md:gap-2 text-sm">
                           <div className="flex items-center min-h-0 py-1">
                             <Calendar className="mr-1 h-3.5 w-3.5 text-muted-foreground" />
-                            <span>{new Date(appointment.date).toLocaleDateString()}</span>
+                            <span>{appointment.display_date || new Date(appointment.date).toLocaleDateString()}</span>
                           </div>
                           <div className="flex items-center min-h-0 py-1">
                             <Clock className="mr-1 h-3.5 w-3.5 text-muted-foreground" />
-                            <span>{appointment.time}</span>
+                            <span>{appointment.display_time || appointment.time}</span>
                           </div>
                           <div className="col-span-2 min-h-0 py-1">
                             <p className="text-xs font-medium leading-tight">Doctor:</p>
                             <p className="text-xs text-muted-foreground leading-tight">{getDoctorName(appointment.doctorId, appointment)}</p>
                           </div>
-                          {appointment.notes && (
+                          {getUserNotes(appointment.notes) && (
                             <div className="col-span-2 min-h-0 py-1">
                               <p className="text-xs font-medium leading-tight">Notes:</p>
-                              <p className="text-xs text-muted-foreground leading-tight">{appointment.notes}</p>
+                              <p className="text-xs text-muted-foreground leading-tight">{getUserNotes(appointment.notes)}</p>
                             </div>
                           )}
                         </div>
@@ -351,11 +369,11 @@ const Appointments = () => {
                               {getDoctorName(appointment.doctorId, appointment)}
                             </p>
                           </div>
-                          {appointment.display_notes && (
+                          {getUserNotes(appointment.display_notes) && (
                             <div className="col-span-2">
                               <p className="text-xs font-medium leading-tight">Notes:</p>
                               <p className="text-xs text-muted-foreground leading-tight whitespace-pre-line">
-                                {appointment.display_notes}
+                                {getUserNotes(appointment.display_notes)}
                               </p>
                             </div>
                           )}
@@ -451,11 +469,11 @@ const Appointments = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="flex items-center">
                           <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                          <span>{new Date(appointment.date).toLocaleDateString()}</span>
+                          <span>{appointment.display_date || new Date(appointment.date).toLocaleDateString()}</span>
                         </div>
                         <div className="flex items-center">
                           <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                          <span>{appointment.time}</span>
+                          <span>{appointment.display_time || appointment.time}</span>
                         </div>
                       </div>
                     </CardContent>
