@@ -71,6 +71,16 @@ const ReceptionistDashboard = () => {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 5); // Show next 5 upcoming appointments
   
+  // Filter pending appointments from chatbot
+  const pendingAppointments = appointments
+    .filter(appointment => appointment.status === 'pending')
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  
+  // Store pending count in localStorage for TopBar to access
+  useEffect(() => {
+    localStorage.setItem('pendingAppointmentsCount', pendingAppointments.length.toString());
+  }, [pendingAppointments.length]);
+  
   useEffect(() => {
     // For each appointment today, ensure we have the patient name
     todaysAppointments.forEach(appt => {

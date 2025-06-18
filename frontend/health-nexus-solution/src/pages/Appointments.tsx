@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Calendar, Clock, User, CalendarCheck } from 'lucide-react';
+import { Calendar, Clock, User, CalendarCheck, MessageSquare, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import axios from 'axios';
@@ -18,6 +18,7 @@ axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
 
 const Appointments = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { currentUser, patients, users } = useClinic();
   const [appointments, setAppointments] = useState([]);
   const [activeTab, setActiveTab] = useState("upcoming");
@@ -57,7 +58,12 @@ const Appointments = () => {
       const response = await axios.get('appointments/list/');
       console.log('Fetched appointments:', response.data);
       if (Array.isArray(response.data)) {
-        setAppointments(mapAppointments(response.data));
+        const mappedAppointments = mapAppointments(response.data);
+        setAppointments(mappedAppointments);
+        
+        // Update pending count for notifications
+        const pendingCount = mappedAppointments.filter(appt => appt.status === 'pending').length;
+        localStorage.setItem('pendingAppointmentsCount', pendingCount.toString());
       } else {
         console.error('Invalid response format:', response.data);
         toast.error('Invalid response format from server');
@@ -77,6 +83,23 @@ const Appointments = () => {
   useEffect(() => {
     fetchAppointments();
   }, []);
+
+  // Handle URL parameters for tab navigation
+  useEffect(() => {
+    if (location.search) {
+      const params = new URLSearchParams(location.search);
+      const tab = params.get('tab');
+      if (tab && ['upcoming', 'pending', 'completed', 'cancelled'].includes(tab)) {
+        setActiveTab(tab);
+      }
+    }
+  }, [location.search]);
+
+  // Update pending count whenever appointments change
+  useEffect(() => {
+    const pendingCount = appointments.filter(appt => appt.status === 'pending').length;
+    localStorage.setItem('pendingAppointmentsCount', pendingCount.toString());
+  }, [appointments]);
 
   // Fetch patients for local state
   useEffect(() => {
@@ -209,6 +232,13 @@ const Appointments = () => {
       };
 
       toast.success(statusMessages[newStatus]);
+      
+      // Update pending count for notifications
+      const updatedAppointments = appointments.map(appt => 
+        appt.id === appointmentId ? { ...appt, status: newStatus } : appt
+      );
+      const pendingCount = updatedAppointments.filter(appt => appt.status === 'pending').length;
+      localStorage.setItem('pendingAppointmentsCount', pendingCount.toString());
     } catch (error) {
       console.error('Error updating appointment status:', error);
       toast.error(error.response?.data?.error || error.response?.data?.message || 'Failed to update appointment status');
