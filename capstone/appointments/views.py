@@ -13,6 +13,9 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from accounts.permissions import IsReceptionist
 from datetime import datetime
+from django.core.mail import send_mail
+from django.conf import settings
+from .email_utils import send_appointment_confirmation_email
 
 logger = logging.getLogger(__name__)
 
@@ -239,6 +242,11 @@ class AppointmentApproveView(APIView):
                         appointment.notes = appointment.notes.split('Patient Details (Pending):')[0].strip()
                     
                     appointment.save()
+                    
+                    # Send confirmation email to patient
+                    email_sent = send_appointment_confirmation_email(appointment, patient)
+                    if not email_sent:
+                        logger.warning(f"Failed to send confirmation email for appointment {appointment.id}")
                     
                     return Response({
                         'message': 'Appointment approved and patient record created successfully!',

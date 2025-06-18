@@ -205,7 +205,7 @@ const Appointments = () => {
       }
 
       const statusMessages = {
-        'scheduled': "Appointment has been confirmed",
+        'scheduled': "Appointment has been confirmed and confirmation email sent to patient",
         'completed': "Appointment marked as completed",
         'cancelled': "Appointment has been cancelled",
         'no-show': "Patient marked as no-show",
