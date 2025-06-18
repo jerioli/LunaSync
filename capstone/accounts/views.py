@@ -29,6 +29,18 @@ class DoctorListView(APIView):
         serializer = CustomUserSerializer(doctors, many=True)
         return Response(serializer.data)
 
+class ReceptionistListView(APIView):
+    def get(self, request):
+        receptionists = CustomUser.objects.filter(role='receptionist')
+        serializer = CustomUserSerializer(receptionists, many=True)
+        return Response(serializer.data)
+
+class AdminListView(APIView):
+    def get(self, request):
+        admins = CustomUser.objects.filter(role='admin')
+        serializer = CustomUserSerializer(admins, many=True)
+        return Response(serializer.data)
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_view(request):

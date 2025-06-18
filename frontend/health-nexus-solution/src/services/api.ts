@@ -11,6 +11,25 @@ const axiosInstance = axios.create({
 });
 
 export interface Doctor {
+  image: string;
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: string;
+}
+
+export interface Receptionist {
+  image: string;
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: string;
+}
+
+export interface Admin {
+  image: string;
   id: number;
   first_name: string;
   last_name: string;
@@ -46,6 +65,18 @@ export const api = {
   doctors: {
     getAll: async (): Promise<Doctor[]> => {
       const response = await axiosInstance.get('/doctors/');
+      return response.data;
+    },
+  },
+  receptionists: {
+    getAll: async (): Promise<Receptionist[]> => {
+      const response = await axiosInstance.get('/receptionists/');
+      return response.data;
+    },
+  },
+  admins: {
+    getAll: async (): Promise<Admin[]> => {
+      const response = await axiosInstance.get('/admins/');
       return response.data;
     },
   },

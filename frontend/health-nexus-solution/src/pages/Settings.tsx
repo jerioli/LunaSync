@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -76,7 +75,9 @@ const Settings = () => {
       <Tabs defaultValue="general">
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="branding">Branding</TabsTrigger>
           <TabsTrigger value="appointments">Appointments</TabsTrigger>
+          <TabsTrigger value="faqs">FAQs</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
         </TabsList>
@@ -177,6 +178,42 @@ const Settings = () => {
                 <Button>Save Changes</Button>
               </CardFooter>
             </form>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="branding">
+          <Card>
+            <CardHeader>
+              <CardTitle>Branding</CardTitle>
+              <CardDescription>
+                Set your clinic's primary color and logo.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="primary_color">Primary Color</Label>
+                <Input
+                  id="primary_color"
+                  type="color"
+                  value={"#1976d2"}
+                  style={{ width: 60, height: 40, padding: 0, border: 'none', background: 'none' }}
+                  readOnly
+                />
+              </div>
+              <div>
+                <Label htmlFor="logo">Logo</Label>
+                <Input
+                  id="logo"
+                  type="file"
+                  accept="image/*"
+                  disabled
+                />
+                {/* Logo preview placeholder */}
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-end">
+              <Button disabled>Save Branding</Button>
+            </CardFooter>
           </Card>
         </TabsContent>
         
@@ -315,6 +352,65 @@ const Settings = () => {
                 <Button>Save Changes</Button>
               </CardFooter>
             </form>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="faqs">
+          <Card>
+            <CardHeader>
+              <CardTitle>Frequently Asked Questions</CardTitle>
+              <CardDescription>
+                Add and manage FAQs that will be displayed to your patients
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* FAQ #1 */}
+              <div className="border rounded p-4 bg-muted/50">
+                <div className="font-semibold mb-2">FAQ #1</div>
+                <div className="mb-1">
+                  <Label>Question</Label>
+                  <Input value="What are your clinic hours?" readOnly />
+                </div>
+                <div>
+                  <Label>Answer</Label>
+                  <textarea className="w-full rounded border p-2" rows={2} readOnly>
+Our clinic is open Monday through Friday from 9:00 AM to 5:00 PM, and Saturday from 10:00 AM to 2:00 PM. We are closed on Sundays and holidays.
+                  </textarea>
+                </div>
+              </div>
+              {/* FAQ #2 */}
+              <div className="border rounded p-4 bg-muted/50">
+                <div className="font-semibold mb-2">FAQ #2</div>
+                <div className="mb-1">
+                  <Label>Question</Label>
+                  <Input value="How do I schedule an appointment?" readOnly />
+                </div>
+                <div>
+                  <Label>Answer</Label>
+                  <textarea className="w-full rounded border p-2" rows={2} readOnly>
+You can schedule an appointment by calling our office, using the online patient portal, or by visiting us in person. We recommend booking at least 24 hours in advance for routine visits.
+                  </textarea>
+                </div>
+              </div>
+              {/* FAQ #3 */}
+              <div className="border rounded p-4 bg-muted/50">
+                <div className="font-semibold mb-2">FAQ #3</div>
+                <div className="mb-1">
+                  <Label>Question</Label>
+                  <Input value="What insurance plans do you accept?" readOnly />
+                </div>
+                <div>
+                  <Label>Answer</Label>
+                  <textarea className="w-full rounded border p-2" rows={2} readOnly>
+We accept most major insurance plans including Medicare, Blue Cross Blue Shield, Aetna, Cigna, and United Healthcare. Please call our office to verify your specific insurance coverage.
+                  </textarea>
+                </div>
+              </div>
+              <Button className="mt-4" variant="outline">Add New FAQ</Button>
+            </CardContent>
+            <CardFooter className="flex justify-end">
+              <Button>Save FAQs</Button>
+            </CardFooter>
           </Card>
         </TabsContent>
         
