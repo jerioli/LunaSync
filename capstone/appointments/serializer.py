@@ -201,22 +201,42 @@ class AppointmentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Create a new appointment"""
         try:
-            # Extract patient details
-            patient_data = {
-                'name': validated_data.pop('patient_name'),
-                'email': validated_data.pop('patient_email'),
-                'phone': validated_data.pop('patient_phone'),
-                'date_of_birth': validated_data.pop('date_of_birth'),
-                'gender': validated_data.pop('gender'),
-                'address': validated_data.pop('address'),
-                'marital_status': validated_data.pop('marital_status')
-            }
+            status = validated_data.get('status', 'pending')
+            notes = validated_data.get('notes', '')
             
-            # Create or get patient
-            patient, created = Patient.objects.get_or_create(
-                email=patient_data['email'],
-                defaults=patient_data
-            )
+            # Check if this is a pending appointment with patient details in notes
+            if status == 'pending' and 'Patient Details (Pending):' in notes:
+                # For pending appointments, don't create patient record
+                # Extract patient details from notes and store them there
+                patient_data = {
+                    'name': validated_data.pop('patient_name'),
+                    'email': validated_data.pop('patient_email'),
+                    'phone': validated_data.pop('patient_phone'),
+                    'date_of_birth': validated_data.pop('date_of_birth'),
+                    'gender': validated_data.pop('gender'),
+                    'address': validated_data.pop('address'),
+                    'marital_status': validated_data.pop('marital_status')
+                }
+                
+                # Patient details are already in notes, so set patient to null
+                patient = None
+            else:
+                # For non-pending appointments, create or get patient record
+                patient_data = {
+                    'name': validated_data.pop('patient_name'),
+                    'email': validated_data.pop('patient_email'),
+                    'phone': validated_data.pop('patient_phone'),
+                    'date_of_birth': validated_data.pop('date_of_birth'),
+                    'gender': validated_data.pop('gender'),
+                    'address': validated_data.pop('address'),
+                    'marital_status': validated_data.pop('marital_status')
+                }
+                
+                # Create or get patient
+                patient, created = Patient.objects.get_or_create(
+                    email=patient_data['email'],
+                    defaults=patient_data
+                )
 
             # Get the doctor
             doctor_id = validated_data.pop('doctor_id')
@@ -227,13 +247,13 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
             # Create the appointment
             appointment = Appointment.objects.create(
-                patient=patient,
+                patient=patient,  # Will be null for pending appointments
                 doctor=doctor,
                 date=validated_data.get('date'),
                 time=validated_data.get('time'),
                 appointment_type=validated_data.pop('appointment_type'),  # Use appointment_type instead of type
                 notes=validated_data.get('notes', ''),
-                status=validated_data.get('status', 'pending')
+                status=status
             )
 
             return appointment

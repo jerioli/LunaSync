@@ -196,17 +196,48 @@ class AppointmentApproveView(APIView):
                     patient_details_str = notes.split('Patient Details (Pending):')[1].strip()
                     patient_details = json.loads(patient_details_str)
                     
-                    # Create new patient record
+                    # Convert date format from DD/MM/YYYY or MM/DD/YYYY to YYYY-MM-DD
+                    date_of_birth = patient_details.get('dateOfBirth') or patient_details.get('date_of_birth')
+                    if date_of_birth:
+                        try:
+                            # Try to parse different date formats
+                            if '/' in str(date_of_birth):
+                                date_str = str(date_of_birth)
+                                # Try MM/DD/YYYY format first (American format)
+                                try:
+                                    date_obj = datetime.strptime(date_str, '%m/%d/%Y')
+                                    date_of_birth = date_obj.strftime('%Y-%m-%d')
+                                except ValueError:
+                                    # If that fails, try DD/MM/YYYY format (European format)
+                                    try:
+                                        date_obj = datetime.strptime(date_str, '%d/%m/%Y')
+                                        date_of_birth = date_obj.strftime('%Y-%m-%d')
+                                    except ValueError:
+                                        # If both fail, try to use as is (might already be in YYYY-MM-DD)
+                                        pass
+                        except Exception:
+                            # If any conversion fails, try to use as is
+                            pass
+                    
+                    # Create new patient record with all required fields
                     patient = Patient.objects.create(
                         name=patient_details['name'],
                         email=patient_details['email'],
                         phone=patient_details['phone'],
-                        date_of_birth=patient_details['date_of_birth']
+                        date_of_birth=date_of_birth,
+                        gender=patient_details.get('gender'),
+                        address=patient_details.get('address'),
+                        marital_status=patient_details.get('maritalStatus') or patient_details.get('marital_status')
                     )
                     
-                    # Update appointment with patient reference
+                    # Update appointment with patient reference and clean up notes
                     appointment.patient = patient
                     appointment.status = 'scheduled'
+                    
+                    # Remove patient details from notes, keep only user notes
+                    if 'Patient Details (Pending):' in appointment.notes:
+                        appointment.notes = appointment.notes.split('Patient Details (Pending):')[0].strip()
+                    
                     appointment.save()
                     
                     return Response({

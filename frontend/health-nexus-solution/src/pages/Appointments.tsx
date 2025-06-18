@@ -173,14 +173,36 @@ const Appointments = () => {
   // Local handler for status updates
   const handleStatusUpdate = async (appointmentId, newStatus) => {
     try {
-      const response = await axios.post(`appointments/update-status/${appointmentId}/`, {
-        status: newStatus
-      });
-
-      // Update local state with the updated appointment
-      setAppointments(prev => prev.map(appt => 
-        appt.id === appointmentId ? { ...appt, status: newStatus } : appt
-      ));
+      let response;
+      
+      // For pending appointments being confirmed, use the approve endpoint
+      if (newStatus === 'scheduled') {
+        // Check if this is a pending appointment that needs patient creation
+        const appointment = appointments.find(appt => appt.id === appointmentId);
+        if (appointment && appointment.status === 'pending') {
+          response = await axios.post(`appointments/approve/${appointmentId}/`);
+          // Refresh appointments list to get updated patient information
+          await fetchAppointments();
+        } else {
+          // For non-pending appointments, use the regular update-status endpoint
+          response = await axios.post(`appointments/update-status/${appointmentId}/`, {
+            status: newStatus
+          });
+          // Update local state with the updated appointment
+          setAppointments(prev => prev.map(appt => 
+            appt.id === appointmentId ? { ...appt, status: newStatus } : appt
+          ));
+        }
+      } else {
+        // For other status updates, use the regular update-status endpoint
+        response = await axios.post(`appointments/update-status/${appointmentId}/`, {
+          status: newStatus
+        });
+        // Update local state with the updated appointment
+        setAppointments(prev => prev.map(appt => 
+          appt.id === appointmentId ? { ...appt, status: newStatus } : appt
+        ));
+      }
 
       const statusMessages = {
         'scheduled': "Appointment has been confirmed",
@@ -193,7 +215,7 @@ const Appointments = () => {
       toast.success(statusMessages[newStatus]);
     } catch (error) {
       console.error('Error updating appointment status:', error);
-      toast.error(error.response?.data?.error || 'Failed to update appointment status');
+      toast.error(error.response?.data?.error || error.response?.data?.message || 'Failed to update appointment status');
     }
   };
 
