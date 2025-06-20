@@ -9,9 +9,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Search, UserPlus, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import AddPatientModal from '@/components/patients/AddPatientModal';
+import AddPatient from '@/components/patients/AddPatient';
 import { Patient } from '@/lib/mock-data';
 import axios from 'axios';
+
 
 axios.defaults.baseURL = 'http://127.0.0.1:8000/api/'; // Correct backend URL
 
@@ -19,12 +20,12 @@ const PatientsList = () => {
   const { patients, updatePatient, addPatient } = useClinic();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [patientsList, setPatientsList] = useState<Patient[]>([]); 
+  const [patientsList, setPatientsList] = useState<Patient[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
+  const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
   
   // Filter patients based on search query
-  const filteredPatients = patients.filter(patient => 
+  const filteredPatients = patients.filter(patient =>
     patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     patient.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     patient.phone.includes(searchQuery) ||
@@ -87,7 +88,7 @@ const PatientsList = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Patients</h1>
-        <Button onClick={() => setIsAddPatientModalOpen(true)}>
+        <Button onClick={() => navigate('/patients/add')}>
           <UserPlus className="mr-2 h-4 w-4" />
           Add New Patient
         </Button>
@@ -165,13 +166,6 @@ const PatientsList = () => {
           </Table>
         </CardContent>
       </Card>
-
-      {/* Add Patient Modal */}
-      <AddPatientModal 
-        open={isAddPatientModalOpen}
-        onOpenChange={setIsAddPatientModalOpen}
-        onAddPatient={handleAddPatient}
-      />
     </div>
   );
 };
