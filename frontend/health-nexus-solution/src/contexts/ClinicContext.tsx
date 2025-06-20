@@ -40,21 +40,6 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [inventory, setInventory] = useState<Inventory[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
 
-  // Fetch patients from backend
-  const fetchPatients = async () => {
-    try {
-      const response = await axios.get('patients/list/');
-      setPatientsList(response.data);
-    } catch (error) {
-      console.error('Error fetching patients:', error);
-    }
-  };
-
-  // Fetch patients on component mount
-  useEffect(() => {
-    fetchPatients();
-  }, []);
-
   const setCurrentUser = (user: User | null) => {
     setCurrentUserState(user);
     if (user) {
@@ -196,7 +181,6 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         updateInventory,
         addPayment,
         updatePayment,
-        fetchPatients
       }}
     >
       {children}

@@ -1,6 +1,7 @@
 from django.urls import path
-from .views import ClinicBrandingView
+from .views import ClinicBrandingView, ReviewCreateView
 
 urlpatterns = [
-    path('branding/', ClinicBrandingView.as_view(), name='clinic-branding'),
+    path('', ClinicBrandingView.as_view(), name='clinic-settings'),
+    path('reviews/', ReviewCreateView.as_view(), name='review-create'),
 ] 

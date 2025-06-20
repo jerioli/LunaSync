@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from '@/components/ui/navigation-menu';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,19 +7,89 @@ import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, MessageSquare, Users, FileText, BotMessageSquare } from 'lucide-react';
 import { AppointmentChatbot } from '@/components/chatbot/AppointmentChatbot';
-import { useState } from 'react';
+import axios from 'axios';
 
 const PatientPortal = () => {
   const navigate = useNavigate();
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
-  
+  const [clinic, setClinic] = useState({
+    clinic_name: '',
+    address: '',
+    city: '',
+    state: '',
+    zip: '',
+    phone: '',
+    email: '',
+    website: '',
+    hero_title: '',
+    hero_subtitle: '',
+    about_title: '',
+    about_text: '',
+    services: [],
+    faqs: [],
+    reviews: [],
+    logo: '',
+    healthcare_professionals_image: '',
+    clinic_building_image: '',
+  });
+  const [loading, setLoading] = useState(true);
+  const [reviewForm, setReviewForm] = useState({ name: '', email: '', rating: 5, comment: '' });
+  const [submitting, setSubmitting] = useState(false);
+
+  // Move fetchClinic outside useEffect
+  const fetchClinic = async () => {
+    try {
+      const res = await axios.get('/api/clinic/');
+      setClinic(res.data || {});
+    } catch (err) {
+      // fallback: keep default empty values
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchClinic();
+  }, []);
+
+  const getLogoUrl = (logo) => {
+    if (!logo) return null;
+    if (logo.startsWith('http')) return logo;
+    if (logo.startsWith('/media/')) return `http://127.0.0.1:8000${logo}`;
+    if (logo.startsWith('branding/')) return `http://127.0.0.1:8000/media/${logo}`;
+    return `http://127.0.0.1:8000${logo}`;
+  };
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const reviewData = {
+        ...reviewForm,
+        date: new Date().toISOString().slice(0, 10),
+      };
+      await axios.post('/api/clinic/reviews/', reviewData);
+      setReviewForm({ name: '', email: '', rating: 5, comment: '' });
+      await fetchClinic(); // Refresh reviews
+      alert('Thank you for your review!');
+    } catch (err) {
+      alert('Failed to submit review.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center text-xl">Loading clinic info...</div>;
+  }
+
   return (
     <div className="min-h-screen flex flex-col relative">
       {/* Header */}
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="text-xl font-bold text-clinic-blue">MedSync</div>
+            <div className="text-xl font-bold text-clinic-blue">{clinic.clinic_name || 'Clinic'}</div>
           </div>
           
           <NavigationMenu>
@@ -53,9 +123,7 @@ const PatientPortal = () => {
           </NavigationMenu>
           
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate('/login')}>
-              Staff Login
-            </Button>
+       
           </div>
         </div>
       </header>
@@ -79,11 +147,17 @@ const PatientPortal = () => {
       <section id="home" className="py-20 bg-gradient-to-b from-clinic-gray to-white">
         <div className="container mx-auto flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1 space-y-6">
+            {clinic.logo && (
+              <img src={getLogoUrl(clinic.logo)} alt="Clinic Logo" className="h-16 mb-4" />
+            )}
+            {clinic.healthcare_professionals_image && (
+              <img src={getLogoUrl(clinic.healthcare_professionals_image)} alt="Healthcare Professionals" className="w-full h-auto rounded-lg shadow-lg mb-4" />
+            )}
             <h1 className="text-4xl md:text-5xl font-bold text-clinic-blue">
-              Your Health Is Our Priority
+              {clinic.hero_title || 'Your Health Is Our Priority'}
             </h1>
             <p className="text-lg text-gray-600">
-              HealthNexus is dedicated to providing exceptional healthcare services with a patient-centered approach. Schedule your appointment today.
+              {clinic.hero_subtitle || `${clinic.clinic_name || 'Our clinic'} is dedicated to providing exceptional healthcare services with a patient-centered approach. Schedule your appointment today.`}
             </p>
             <div className="flex gap-4">
               <Button size="lg" className="rounded-full">
@@ -107,19 +181,27 @@ const PatientPortal = () => {
       {/* About Section */}
       <section id="about" className="py-20 bg-white">
         <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-clinic-blue">About Our Clinic</h2>
+          <h2 className="text-3xl font-bold text-center mb-12 text-clinic-blue">{clinic.about_title || `About ${clinic.clinic_name || 'Our Clinic'}`}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
-              <img 
-                src="https://images.unsplash.com/photo-1579684288361-5c1a2b4d1528?q=80&w=1974&auto=format&fit=crop" 
-                alt="Clinic building" 
-                className="w-full h-auto rounded-lg shadow-lg"
-              />
+              {clinic.clinic_building_image ? (
+                <img 
+                  src={getLogoUrl(clinic.clinic_building_image)} 
+                  alt="Clinic building" 
+                  className="w-full h-auto rounded-lg shadow-lg"
+                />
+              ) : (
+                <img 
+                  src="https://images.unsplash.com/photo-1579684288361-5c1a2b4d1528?q=80&w=1974&auto=format&fit=crop" 
+                  alt="Clinic building" 
+                  className="w-full h-auto rounded-lg shadow-lg"
+                />
+              )}
             </div>
             <div className="space-y-6">
               <h3 className="text-2xl font-semibold text-clinic-blue">Our Story</h3>
               <p className="text-gray-600">
-                Founded in 2010, HealthNexus has grown to become one of the leading healthcare providers in the region. Our mission is to deliver accessible, high-quality healthcare services in a compassionate environment.
+                {clinic.about_text || 'Founded in 2010, HealthNexus has grown to become one of the leading healthcare providers in the region. Our mission is to deliver accessible, high-quality healthcare services in a compassionate environment.'}
               </p>
               <h3 className="text-2xl font-semibold text-clinic-blue">Our Values</h3>
               <ul className="space-y-2 text-gray-600">
@@ -150,50 +232,27 @@ const PatientPortal = () => {
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12 text-clinic-blue">Our Services</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card>
-              <CardHeader>
-                <div className="h-12 w-12 rounded-full bg-clinic-blue/10 flex items-center justify-center mb-4">
-                  <Users className="h-6 w-6 text-clinic-blue" />
-                </div>
-                <CardTitle>General Consultation</CardTitle>
-                <CardDescription>Comprehensive health assessments and personalized care plans</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Our experienced physicians provide thorough examinations and personalized treatment plans for a wide range of health concerns, from routine check-ups to chronic condition management.
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <div className="h-12 w-12 rounded-full bg-clinic-blue/10 flex items-center justify-center mb-4">
-                  <Calendar className="h-6 w-6 text-clinic-blue" />
-                </div>
-                <CardTitle>Specialized Care</CardTitle>
-                <CardDescription>Expert care in various medical specialties</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  We offer specialized medical services in cardiology, dermatology, pediatrics, and more, ensuring that all your healthcare needs are met under one roof.
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <div className="h-12 w-12 rounded-full bg-clinic-blue/10 flex items-center justify-center mb-4">
-                  <FileText className="h-6 w-6 text-clinic-blue" />
-                </div>
-                <CardTitle>Diagnostic Services</CardTitle>
-                <CardDescription>State-of-the-art laboratory and imaging services</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Our clinic is equipped with modern diagnostic facilities for blood tests, X-rays, ultrasounds, and other imaging services, providing accurate and timely results.
-                </p>
-              </CardContent>
-            </Card>
+            {clinic.services && clinic.services.length > 0 ? clinic.services.map((service, index) => (
+              <Card key={index}>
+                <CardHeader>
+                  <CardTitle>{service.title}</CardTitle>
+                  <CardDescription>{service.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">{service.details}</p>
+                </CardContent>
+              </Card>
+            )) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>General Consultation</CardTitle>
+                  <CardDescription>Comprehensive health assessments and personalized care plans</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">Our experienced physicians provide thorough examinations and personalized treatment plans for a wide range of health concerns, from routine check-ups to chronic condition management.</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </section>
@@ -203,31 +262,12 @@ const PatientPortal = () => {
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12 text-clinic-blue">Patient Reviews</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Sarah Johnson",
-                rating: 5,
-                comment: "The doctors at HealthNexus are exceptional. They take the time to listen and provide personalized care. Highly recommend!",
-                date: "March 15, 2024"
-              },
-              {
-                name: "Michael Brown",
-                rating: 5,
-                comment: "I've been a patient for over 3 years, and the quality of care is consistently excellent. The staff is friendly and professional.",
-                date: "February 28, 2024"
-              },
-              {
-                name: "Emily Wilson",
-                rating: 4,
-                comment: "Great experience with the pediatric department. The doctors are patient with children and explain everything thoroughly.",
-                date: "April 2, 2024"
-              }
-            ].map((review, index) => (
+            {clinic.reviews && clinic.reviews.length > 0 ? clinic.reviews.slice(0, 3).map((review, index) => (
               <Card key={index}>
                 <CardHeader>
                   <div className="flex items-center gap-4">
                     <Avatar>
-                      <AvatarFallback>{review.name.charAt(0)}</AvatarFallback>
+                      <AvatarFallback>{review.name?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>
                       <CardTitle className="text-lg">{review.name}</CardTitle>
@@ -246,7 +286,7 @@ const PatientPortal = () => {
                   <p className="text-sm text-gray-400 mt-4">{review.date}</p>
                 </CardContent>
               </Card>
-            ))}
+            )) : null}
           </div>
         </div>
       </section>
@@ -256,28 +296,7 @@ const PatientPortal = () => {
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12 text-clinic-blue">Frequently Asked Questions</h2>
           <div className="max-w-3xl mx-auto space-y-6">
-            {[
-              {
-                question: "What are your clinic hours?",
-                answer: "Our clinic is open Monday to Friday from 8:00 AM to 6:00 PM, and Saturday from 9:00 AM to 2:00 PM. We are closed on Sundays and public holidays."
-              },
-              {
-                question: "How do I schedule an appointment?",
-                answer: "You can schedule an appointment by calling our clinic, using our online appointment request form, or visiting us in person. We strive to accommodate urgent cases on the same day."
-              },
-              {
-                question: "What insurance plans do you accept?",
-                answer: "We accept most major insurance plans. Please contact our reception for specific information about your insurance coverage."
-              },
-              {
-                question: "Can I get my prescription refilled without an appointment?",
-                answer: "In many cases, yes. For routine medication refills, you can contact our clinic, and a doctor will review your request. However, some medications may require a check-up before renewal."
-              },
-              {
-                question: "How can I access my medical records?",
-                answer: "You can request access to your medical records by submitting a written request to our clinic. We process these requests within 48 hours."
-              }
-            ].map((faq, index) => (
+            {clinic.faqs && clinic.faqs.length > 0 ? clinic.faqs.map((faq, index) => (
               <Card key={index}>
                 <CardHeader>
                   <CardTitle className="text-lg">{faq.question}</CardTitle>
@@ -286,7 +305,7 @@ const PatientPortal = () => {
                   <p className="text-gray-600">{faq.answer}</p>
                 </CardContent>
               </Card>
-            ))}
+            )) : null}
           </div>
         </div>
       </section>
@@ -299,13 +318,13 @@ const PatientPortal = () => {
             <div className="space-y-8">
               <div>
                 <h3 className="text-xl font-semibold mb-4">Our Location</h3>
-                <p>123 Health Avenue, Medical District</p>
-                <p>Cityville, State 12345</p>
+                <p>{clinic.address}</p>
+                <p>{clinic.city}{clinic.state ? `, ${clinic.state}` : ''} {clinic.zip}</p>
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-4">Contact Information</h3>
-                <p>Phone: (123) 456-7890</p>
-                <p>Email: info@healthnexus.com</p>
+                <p>Phone: {clinic.phone}</p>
+                <p>Email: {clinic.email}</p>
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-4">Hours of Operation</h3>
@@ -315,22 +334,50 @@ const PatientPortal = () => {
               </div>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-lg">
-              <h3 className="text-xl font-semibold mb-4 text-clinic-blue">Send Us a Message</h3>
-              <form className="space-y-4">
+              <h3 className="text-xl font-semibold mb-4 text-black">Leave a Review</h3>
+              <form className="space-y-4 text-black" onSubmit={handleReviewSubmit}>
                 <div>
-                  <Input placeholder="Your Name" className="bg-white" />
+                  <Input
+                    placeholder="Your Name"
+                    className="bg-white text-black"
+                    value={reviewForm.name}
+                    onChange={e => setReviewForm({ ...reviewForm, name: e.target.value })}
+                  />
                 </div>
                 <div>
-                  <Input placeholder="Your Email" type="email" className="bg-white" />
+                  <Input
+                    placeholder="Your Email"
+                    type="email"
+                    className="bg-white text-black"
+                    value={reviewForm.email}
+                    onChange={e => setReviewForm({ ...reviewForm, email: e.target.value })}
+                  />
                 </div>
                 <div>
-                  <Input placeholder="Subject" className="bg-white" />
+                  <label className="block mb-1 font-medium text-black">Rating</label>
+                  <div className="flex gap-1">
+                    {[1,2,3,4,5].map(star => (
+                      <span
+                        key={star}
+                        style={{ cursor: 'pointer', color: reviewForm.rating >= star ? '#FFD700' : '#E5E7EB', fontSize: 28 }}
+                        onClick={() => setReviewForm({ ...reviewForm, rating: star })}
+                        role="button"
+                        aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+                      >★</span>
+                    ))}
+                  </div>
                 </div>
                 <div>
-                  <textarea placeholder="Your Message" className="w-full p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-clinic-blue min-h-[120px]"></textarea>
+                  <textarea
+                    placeholder="Your Review"
+                    className="w-full p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-clinic-blue min-h-[120px] text-black"
+                    value={reviewForm.comment}
+                    onChange={e => setReviewForm({ ...reviewForm, comment: e.target.value })}
+                    required
+                  />
                 </div>
-                <Button className="w-full bg-clinic-blue hover:bg-clinic-blue/90 text-white">
-                  Send Message
+                <Button className="w-full bg-clinic-blue hover:bg-clinic-blue/90 text-white" type="submit" disabled={submitting}>
+                  {submitting ? 'Submitting...' : 'Submit Review'}
                 </Button>
               </form>
             </div>
@@ -343,7 +390,7 @@ const PatientPortal = () => {
         <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <h3 className="text-xl font-bold mb-4 text-clinic-blue">HealthNexus</h3>
+              <h3 className="text-xl font-bold mb-4 text-clinic-blue">{clinic.clinic_name || 'Clinic'}</h3>
               <p className="text-gray-400">
                 Providing quality healthcare services since 2010. Dedicated to improving the health and wellbeing of our community.
               </p>
@@ -383,7 +430,7 @@ const PatientPortal = () => {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-6 text-center text-gray-400">
-            <p>&copy; 2024 HealthNexus. All rights reserved.</p>
+            <p>&copy; 2024 {clinic.clinic_name || 'Clinic'}. All rights reserved.</p>
           </div>
         </div>
       </footer>

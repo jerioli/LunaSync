@@ -9,7 +9,7 @@ import { Appointment } from '@/lib/mock-data';
 import axios from 'axios';
 
 export const useChatbotLogic = () => {
-  const { users, appointments, addAppointment, currentUser } = useClinic();
+  const { users, appointments, addAppointment, currentUser, clinicCustomization } = useClinic();
   const { toast } = useToast();
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [input, setInput] = useState('');
@@ -61,8 +61,24 @@ export const useChatbotLogic = () => {
     additionalNotes: ''
   });
 
-  // For tracking whether we're in appointment, medical record, or prescription flow
-  const [chatMode, setChatMode] = useState<'appointment' | 'medicalRecord' | 'prescription' | null>(null);
+  // Add FAQ chat mode
+  const [chatMode, setChatMode] = useState<'appointment' | 'medicalRecord' | 'prescription' | 'faq' | null>(null);
+
+  const faqs = clinicCustomization.faqs || [];
+
+  // Helper: Find best matching FAQ (simple substring match, case-insensitive)
+  const findBestFaq = (question: string) => {
+    const q = question.toLowerCase();
+    // Try exact match first
+    let found = faqs.find(faq => faq.question.toLowerCase() === q);
+    if (found) return found;
+    // Try substring match
+    found = faqs.find(faq => q.includes(faq.question.toLowerCase()) || faq.question.toLowerCase().includes(q));
+    if (found) return found;
+    // Try answer match
+    found = faqs.find(faq => faq.answer.toLowerCase().includes(q));
+    return found;
+  };
 
   useEffect(() => {
     if (showChat) {
@@ -113,12 +129,35 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'How can I assist you with your healthcare needs?', [
-          { label: 'Schedule Appointment', value: 'appointment' },
-          { label: 'Request Medical Records', value: 'medicalRecord' },
-          { label: 'Request Prescription', value: 'prescription' }
+        addMessage('bot', 'How can I assist you today?', [
+          { label: 'Schedule an Appointment', value: 'appointment' },
+          { label: 'Request a Medical Certificate', value: 'medicalRecord' },
+          { label: 'Request E-Prescription', value: 'prescription' },
         ]);
         setChatStep(1);
+      }, 500);
+      return;
+    }
+    
+    // FAQ chat mode
+    if (chatMode === 'faq') {
+      addMessage('user', input);
+      const match = findBestFaq(input);
+      setInput('');
+      setTimeout(() => {
+        if (match) {
+          addMessage('bot', match.answer);
+        } else {
+          addMessage('bot', "Sorry, I couldn't find an answer to that question. Please try rephrasing or select from the list below.");
+        }
+        // Show FAQ options again or allow return
+        setTimeout(() => {
+          addMessage('bot', 'Would you like to ask another question or return to the main menu?', [
+            ...faqs.map((faq, i) => ({ label: faq.question, value: `faq_${i}` })),
+            { label: 'Back to Main Menu', value: 'main' },
+          ]);
+          setChatStep(2);
+        }, 500);
       }, 500);
       return;
     }
@@ -540,6 +579,53 @@ export const useChatbotLogic = () => {
   };
 
   const handleOptionSelect = async (value: string) => {
+    if (value === 'faq') {
+      setChatMode('faq');
+      addMessage('user', 'FAQs');
+      setTimeout(() => {
+        addMessage('bot', 'Here are some frequently asked questions. Please select one or type your own:',
+          [
+            ...faqs.map((faq, i) => ({ label: faq.question, value: `faq_${i}` })),
+            { label: 'Back to Main Menu', value: 'main' },
+          ]
+        );
+        setChatStep(2);
+      }, 500);
+      return;
+    }
+    // FAQ mode: handle question selection or back
+    if (chatMode === 'faq' && chatStep === 2) {
+      if (value === 'main') {
+        setChatMode(null);
+        setTimeout(() => {
+          addMessage('bot', 'How can I assist you today?', [
+            { label: 'Schedule an Appointment', value: 'appointment' },
+            { label: 'Request a Medical Certificate', value: 'medicalRecord' },
+            { label: 'Request E-Prescription', value: 'prescription' },
+          ]);
+          setChatStep(1);
+        }, 500);
+        return;
+      }
+      if (value.startsWith('faq_')) {
+        const idx = parseInt(value.replace('faq_', ''));
+        const faq = faqs[idx];
+        if (faq) {
+          addMessage('user', faq.question);
+          setTimeout(() => {
+            addMessage('bot', faq.answer);
+            setTimeout(() => {
+              addMessage('bot', 'Would you like to ask another question or return to the main menu?', [
+                ...faqs.map((faq, i) => ({ label: faq.question, value: `faq_${i}` })),
+                { label: 'Back to Main Menu', value: 'main' },
+              ]);
+              setChatStep(2);
+            }, 500);
+          }, 500);
+        }
+        return;
+      }
+    }
     if (value === 'appointment') {
       setChatMode('appointment');
       addMessage('user', 'Schedule Appointment');

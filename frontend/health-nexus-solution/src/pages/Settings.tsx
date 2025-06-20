@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,20 +9,26 @@ import { Separator } from '@/components/ui/separator';
 import { useClinic } from '@/contexts/ClinicContext';
 import { toast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import axios from 'axios';
+import { Textarea } from '@/components/ui/textarea';
 
 const Settings = () => {
   const { currentUser } = useClinic();
   const [generalSettings, setGeneralSettings] = useState({
-    clinicName: 'HealthNexus Medical Center',
-    address: '123 Health Avenue, Medical District',
-    city: 'Cityville',
-    state: 'California',
-    zip: '12345',
-    phone: '(123) 456-7890',
-    email: 'info@healthnexus.com',
-    website: 'www.healthnexus.com'
+    clinicName: '',
+    address: '',
+    city: '',
+    state: '',
+    zip: '',
+    phone: '',
+    email: '',
+    website: ''
   });
-  
+  const [hero, setHero] = useState({ title: '', subtitle: '' });
+  const [about, setAbout] = useState({ title: '', text: '' });
+  const [services, setServices] = useState([{ title: '', description: '', details: '' }]);
+  const [faqs, setFaqs] = useState([{ question: '', answer: '' }]);
+  const [reviews, setReviews] = useState([{ name: '', rating: 5, comment: '', date: '' }]);
   const [appointmentSettings, setAppointmentSettings] = useState({
     defaultDuration: '30',
     bufferTime: '10',
@@ -33,7 +39,57 @@ const Settings = () => {
     sendReminders: true,
     reminderTime: '24'
   });
-  
+  const [loading, setLoading] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [healthcareProfessionalsPreview, setHealthcareProfessionalsPreview] = useState<string | null>(null);
+  const [clinicBuildingPreview, setClinicBuildingPreview] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isEditingAppointments, setIsEditingAppointments] = useState(false);
+  const [isEditingFaqs, setIsEditingFaqs] = useState(false);
+  const [isEditingHero, setIsEditingHero] = useState(false);
+  const [isEditingAbout, setIsEditingAbout] = useState(false);
+  const [isEditingServices, setIsEditingServices] = useState(false);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get('/api/clinic/');
+        if (res.data) {
+          setGeneralSettings({
+            clinicName: res.data.clinic_name || '',
+            address: res.data.address || '',
+            city: res.data.city || '',
+            state: res.data.state || '',
+            zip: res.data.zip || '',
+            phone: res.data.phone || '',
+            email: res.data.email || '',
+            website: res.data.website || ''
+          });
+          setHero({
+            title: res.data.hero_title || '',
+            subtitle: res.data.hero_subtitle || ''
+          });
+          setAbout({
+            title: res.data.about_title || '',
+            text: res.data.about_text || ''
+          });
+          setServices(res.data.services && res.data.services.length ? res.data.services : [{ title: '', description: '', details: '' }]);
+          setFaqs(res.data.faqs && res.data.faqs.length ? res.data.faqs : [{ question: '', answer: '' }]);
+          setReviews(res.data.reviews && res.data.reviews.length ? res.data.reviews : [{ name: '', rating: 5, comment: '', date: '' }]);
+          setLogoPreview(res.data.logo || null);
+          setHealthcareProfessionalsPreview(res.data.healthcare_professionals_image || null);
+          setClinicBuildingPreview(res.data.clinic_building_image || null);
+        }
+      } catch (err) {
+        toast({ title: 'Error', description: 'Failed to fetch clinic settings', variant: 'destructive' });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSettings();
+  }, []);
+
   if (currentUser?.role !== 'admin') {
     return (
       <div className="flex items-center justify-center h-full">
@@ -47,12 +103,30 @@ const Settings = () => {
     );
   }
   
-  const handleGeneralSubmit = (e: React.FormEvent) => {
+  const handleGeneralSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Settings Saved",
-      description: "Your general clinic settings have been updated successfully."
-    });
+    setLoading(true);
+    try {
+      await axios.put('/api/clinic/', {
+        clinic_name: generalSettings.clinicName,
+        address: generalSettings.address,
+        city: generalSettings.city,
+        state: generalSettings.state,
+        zip: generalSettings.zip,
+        phone: generalSettings.phone,
+        email: generalSettings.email,
+        website: generalSettings.website
+      });
+      toast({
+        title: 'Settings Saved',
+        description: 'Your general clinic settings have been updated successfully.'
+      });
+      setIsEditing(false);
+    } catch (err) {
+      toast({ title: 'Error', description: 'Failed to save clinic settings', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
   };
   
   const handleAppointmentSubmit = (e: React.FormEvent) => {
@@ -61,8 +135,95 @@ const Settings = () => {
       title: "Settings Saved",
       description: "Your appointment settings have been updated successfully."
     });
+    setIsEditingAppointments(false);
   };
-  
+
+  // Add handlers for hero, about, services, faqs, reviews
+  const handleHeroSave = async () => {
+    setLoading(true);
+    try {
+      await axios.put('/api/clinic/', {
+        hero_title: hero.title,
+        hero_subtitle: hero.subtitle
+      });
+      toast({ title: 'Hero Section Saved', description: 'Hero section updated.' });
+      setIsEditingHero(false);
+    } catch (err) {
+      toast({ title: 'Error', description: 'Failed to save hero section', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleAboutSave = async () => {
+    setLoading(true);
+    try {
+      await axios.put('/api/clinic/', {
+        about_title: about.title,
+        about_text: about.text
+      });
+      toast({ title: 'About Section Saved', description: 'About section updated.' });
+      setIsEditingAbout(false);
+    } catch (err) {
+      toast({ title: 'Error', description: 'Failed to save about section', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleServicesSave = async () => {
+    setLoading(true);
+    try {
+      await axios.put('/api/clinic/', { services });
+      toast({ title: 'Services Saved', description: 'Services updated.' });
+      setIsEditingServices(false);
+    } catch (err) {
+      toast({ title: 'Error', description: 'Failed to save services', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleFaqsSave = async () => {
+    setLoading(true);
+    try {
+      await axios.put('/api/clinic/', { faqs });
+      toast({ title: 'FAQs Saved', description: 'FAQs updated.' });
+      setIsEditingFaqs(false);
+    } catch (err) {
+      toast({ title: 'Error', description: 'Failed to save FAQs', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleReviewsSave = async () => {
+    setLoading(true);
+    try {
+      await axios.put('/api/clinic/', { reviews });
+      toast({ title: 'Reviews Saved', description: 'Reviews updated.' });
+    } catch (err) {
+      toast({ title: 'Error', description: 'Failed to save reviews', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>, field: string, setPreview: (url: string) => void) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    setPreview(URL.createObjectURL(file));
+    const formData = new FormData();
+    formData.append(field, file);
+    setLoading(true);
+    try {
+      await axios.put('/api/clinic/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      toast({ title: 'Image Updated', description: `${field.replace(/_/g, ' ')} updated successfully.` });
+    } catch (err) {
+      toast({ title: 'Error', description: `Failed to update ${field.replace(/_/g, ' ')}`, variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -78,6 +239,7 @@ const Settings = () => {
           <TabsTrigger value="branding">Branding</TabsTrigger>
           <TabsTrigger value="appointments">Appointments</TabsTrigger>
           <TabsTrigger value="faqs">FAQs</TabsTrigger>
+          <TabsTrigger value="homepage">Homepage</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
         </TabsList>
@@ -99,6 +261,7 @@ const Settings = () => {
                       id="clinicName" 
                       value={generalSettings.clinicName}
                       onChange={(e) => setGeneralSettings({...generalSettings, clinicName: e.target.value})}
+                      disabled={!isEditing}
                     />
                   </div>
                 </div>
@@ -113,6 +276,7 @@ const Settings = () => {
                       id="phone" 
                       value={generalSettings.phone}
                       onChange={(e) => setGeneralSettings({...generalSettings, phone: e.target.value})}
+                      disabled={!isEditing}
                     />
                   </div>
                   <div>
@@ -122,6 +286,7 @@ const Settings = () => {
                       type="email"
                       value={generalSettings.email}
                       onChange={(e) => setGeneralSettings({...generalSettings, email: e.target.value})}
+                      disabled={!isEditing}
                     />
                   </div>
                 </div>
@@ -132,6 +297,7 @@ const Settings = () => {
                     id="website" 
                     value={generalSettings.website}
                     onChange={(e) => setGeneralSettings({...generalSettings, website: e.target.value})}
+                    disabled={!isEditing}
                   />
                 </div>
                 
@@ -144,6 +310,7 @@ const Settings = () => {
                     id="address" 
                     value={generalSettings.address}
                     onChange={(e) => setGeneralSettings({...generalSettings, address: e.target.value})}
+                    disabled={!isEditing}
                   />
                 </div>
                 
@@ -154,6 +321,7 @@ const Settings = () => {
                       id="city" 
                       value={generalSettings.city}
                       onChange={(e) => setGeneralSettings({...generalSettings, city: e.target.value})}
+                      disabled={!isEditing}
                     />
                   </div>
                   <div>
@@ -162,6 +330,7 @@ const Settings = () => {
                       id="state" 
                       value={generalSettings.state}
                       onChange={(e) => setGeneralSettings({...generalSettings, state: e.target.value})}
+                      disabled={!isEditing}
                     />
                   </div>
                   <div>
@@ -170,12 +339,18 @@ const Settings = () => {
                       id="zip" 
                       value={generalSettings.zip}
                       onChange={(e) => setGeneralSettings({...generalSettings, zip: e.target.value})}
+                      disabled={!isEditing}
                     />
                   </div>
                 </div>
               </CardContent>
               <CardFooter className="flex justify-end">
-                <Button>Save Changes</Button>
+                {!isEditing && (
+                  <Button type="button" onClick={() => setIsEditing(true)}>Edit</Button>
+                )}
+                {isEditing && (
+                  <Button type="submit">Save Changes</Button>
+                )}
               </CardFooter>
             </form>
           </Card>
@@ -206,9 +381,35 @@ const Settings = () => {
                   id="logo"
                   type="file"
                   accept="image/*"
-                  disabled
+                  onChange={e => handleImageChange(e, 'logo', setLogoPreview)}
                 />
-                {/* Logo preview placeholder */}
+                {logoPreview && (
+                  <img src={logoPreview} alt="Logo Preview" className="mt-2 h-16" />
+                )}
+              </div>
+              <div>
+                <Label htmlFor="healthcare_professionals_image">Healthcare Professionals Image</Label>
+                <Input
+                  id="healthcare_professionals_image"
+                  type="file"
+                  accept="image/*"
+                  onChange={e => handleImageChange(e, 'healthcare_professionals_image', setHealthcareProfessionalsPreview)}
+                />
+                {healthcareProfessionalsPreview && (
+                  <img src={healthcareProfessionalsPreview} alt="Healthcare Professionals Preview" className="mt-2 h-16" />
+                )}
+              </div>
+              <div>
+                <Label htmlFor="clinic_building_image">Clinic Building Image</Label>
+                <Input
+                  id="clinic_building_image"
+                  type="file"
+                  accept="image/*"
+                  onChange={e => handleImageChange(e, 'clinic_building_image', setClinicBuildingPreview)}
+                />
+                {clinicBuildingPreview && (
+                  <img src={clinicBuildingPreview} alt="Clinic Building Preview" className="mt-2 h-16" />
+                )}
               </div>
             </CardContent>
             <CardFooter className="flex justify-end">
@@ -236,6 +437,7 @@ const Settings = () => {
                       type="time"
                       value={appointmentSettings.startTime}
                       onChange={(e) => setAppointmentSettings({...appointmentSettings, startTime: e.target.value})}
+                      disabled={!isEditingAppointments}
                     />
                   </div>
                   <div>
@@ -245,6 +447,7 @@ const Settings = () => {
                       type="time"
                       value={appointmentSettings.endTime}
                       onChange={(e) => setAppointmentSettings({...appointmentSettings, endTime: e.target.value})}
+                      disabled={!isEditingAppointments}
                     />
                   </div>
                 </div>
@@ -255,6 +458,7 @@ const Settings = () => {
                     <Select 
                       value={appointmentSettings.defaultDuration}
                       onValueChange={(value) => setAppointmentSettings({...appointmentSettings, defaultDuration: value})}
+                      disabled={!isEditingAppointments}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select duration" />
@@ -272,6 +476,7 @@ const Settings = () => {
                     <Select 
                       value={appointmentSettings.bufferTime}
                       onValueChange={(value) => setAppointmentSettings({...appointmentSettings, bufferTime: value})}
+                      disabled={!isEditingAppointments}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select buffer time" />
@@ -298,6 +503,7 @@ const Settings = () => {
                     id="allowWeekends" 
                     checked={appointmentSettings.allowWeekends}
                     onCheckedChange={(checked) => setAppointmentSettings({...appointmentSettings, allowWeekends: checked})}
+                    disabled={!isEditingAppointments}
                   />
                 </div>
                 
@@ -310,6 +516,7 @@ const Settings = () => {
                     id="autoConfirm" 
                     checked={appointmentSettings.autoConfirm}
                     onCheckedChange={(checked) => setAppointmentSettings({...appointmentSettings, autoConfirm: checked})}
+                    disabled={!isEditingAppointments}
                   />
                 </div>
                 
@@ -325,6 +532,7 @@ const Settings = () => {
                     id="sendReminders" 
                     checked={appointmentSettings.sendReminders}
                     onCheckedChange={(checked) => setAppointmentSettings({...appointmentSettings, sendReminders: checked})}
+                    disabled={!isEditingAppointments}
                   />
                 </div>
                 
@@ -334,6 +542,7 @@ const Settings = () => {
                     <Select 
                       value={appointmentSettings.reminderTime}
                       onValueChange={(value) => setAppointmentSettings({...appointmentSettings, reminderTime: value})}
+                      disabled={!isEditingAppointments}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select reminder time" />
@@ -349,7 +558,12 @@ const Settings = () => {
                 )}
               </CardContent>
               <CardFooter className="flex justify-end">
-                <Button>Save Changes</Button>
+                {!isEditingAppointments && (
+                  <Button type="button" onClick={() => setIsEditingAppointments(true)}>Edit</Button>
+                )}
+                {isEditingAppointments && (
+                  <Button type="submit">Save Changes</Button>
+                )}
               </CardFooter>
             </form>
           </Card>
@@ -363,53 +577,44 @@ const Settings = () => {
                 Add and manage FAQs that will be displayed to your patients
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {/* FAQ #1 */}
-              <div className="border rounded p-4 bg-muted/50">
-                <div className="font-semibold mb-2">FAQ #1</div>
-                <div className="mb-1">
-                  <Label>Question</Label>
-                  <Input value="What are your clinic hours?" readOnly />
+            <CardContent className="space-y-4">
+              {faqs.map((faq, index) => (
+                <div key={index} className="flex items-center justify-between gap-2">
+                  <div className="space-y-1">
+                    <Label htmlFor={`faqQuestion${index}`}>Question</Label>
+                    <Input 
+                      id={`faqQuestion${index}`} 
+                      value={faq.question}
+                      onChange={(e) => setFaqs(prevFaqs => prevFaqs.map((f, i) => i === index ? { ...f, question: e.target.value } : f))}
+                      disabled={!isEditingFaqs}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor={`faqAnswer${index}`}>Answer</Label>
+                    <Textarea 
+                      id={`faqAnswer${index}`} 
+                      value={faq.answer}
+                      onChange={(e) => setFaqs(prevFaqs => prevFaqs.map((f, i) => i === index ? { ...f, answer: e.target.value } : f))}
+                      disabled={!isEditingFaqs}
+                    />
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => setFaqs(prevFaqs => prevFaqs.filter((_, i) => i !== index))} disabled={!isEditingFaqs}>
+                    <span className="sr-only">Remove</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-6 w-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </Button>
                 </div>
-                <div>
-                  <Label>Answer</Label>
-                  <textarea className="w-full rounded border p-2" rows={2} readOnly>
-Our clinic is open Monday through Friday from 9:00 AM to 5:00 PM, and Saturday from 10:00 AM to 2:00 PM. We are closed on Sundays and holidays.
-                  </textarea>
-                </div>
-              </div>
-              {/* FAQ #2 */}
-              <div className="border rounded p-4 bg-muted/50">
-                <div className="font-semibold mb-2">FAQ #2</div>
-                <div className="mb-1">
-                  <Label>Question</Label>
-                  <Input value="How do I schedule an appointment?" readOnly />
-                </div>
-                <div>
-                  <Label>Answer</Label>
-                  <textarea className="w-full rounded border p-2" rows={2} readOnly>
-You can schedule an appointment by calling our office, using the online patient portal, or by visiting us in person. We recommend booking at least 24 hours in advance for routine visits.
-                  </textarea>
-                </div>
-              </div>
-              {/* FAQ #3 */}
-              <div className="border rounded p-4 bg-muted/50">
-                <div className="font-semibold mb-2">FAQ #3</div>
-                <div className="mb-1">
-                  <Label>Question</Label>
-                  <Input value="What insurance plans do you accept?" readOnly />
-                </div>
-                <div>
-                  <Label>Answer</Label>
-                  <textarea className="w-full rounded border p-2" rows={2} readOnly>
-We accept most major insurance plans including Medicare, Blue Cross Blue Shield, Aetna, Cigna, and United Healthcare. Please call our office to verify your specific insurance coverage.
-                  </textarea>
-                </div>
-              </div>
-              <Button className="mt-4" variant="outline">Add New FAQ</Button>
+              ))}
+              <Button onClick={() => setFaqs([...faqs, { question: '', answer: '' }])} disabled={!isEditingFaqs}>Add New FAQ</Button>
             </CardContent>
             <CardFooter className="flex justify-end">
-              <Button>Save FAQs</Button>
+              {!isEditingFaqs && (
+                <Button type="button" onClick={() => setIsEditingFaqs(true)}>Edit</Button>
+              )}
+              {isEditingFaqs && (
+                <Button onClick={handleFaqsSave}>Save FAQs</Button>
+              )}
             </CardFooter>
           </Card>
         </TabsContent>
@@ -442,6 +647,123 @@ We accept most major insurance plans including Medicare, Blue Cross Blue Shield,
               <p className="text-center py-10 text-muted-foreground">
                 Integration settings will be implemented in the future.
               </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="homepage">
+          <Card>
+            <CardHeader>
+              <CardTitle>Homepage Content</CardTitle>
+              <CardDescription>
+                Manage the main content of your clinic's homepage (Hero, About, Services)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              {/* Hero Section */}
+              <div className="space-y-4 border-b pb-6">
+                <h3 className="text-xl font-semibold">Hero Section</h3>
+                <div>
+                  <Label htmlFor="heroTitle">Title</Label>
+                  <Input 
+                    id="heroTitle" 
+                    value={hero.title}
+                    onChange={(e) => setHero({...hero, title: e.target.value})}
+                    disabled={!isEditingHero}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="heroSubtitle">Subtitle</Label>
+                  <Input 
+                    id="heroSubtitle" 
+                    value={hero.subtitle}
+                    onChange={(e) => setHero({...hero, subtitle: e.target.value})}
+                    disabled={!isEditingHero}
+                  />
+                </div>
+                {!isEditingHero && (
+                  <Button className="mt-2" type="button" onClick={() => setIsEditingHero(true)}>Edit</Button>
+                )}
+                {isEditingHero && (
+                  <Button className="mt-2" onClick={handleHeroSave}>Save Hero Section</Button>
+                )}
+              </div>
+              {/* About Section */}
+              <div className="space-y-4 border-b pb-6">
+                <h3 className="text-xl font-semibold">About Section</h3>
+                <div>
+                  <Label htmlFor="aboutTitle">Title</Label>
+                  <Input 
+                    id="aboutTitle" 
+                    value={about.title}
+                    onChange={(e) => setAbout({...about, title: e.target.value})}
+                    disabled={!isEditingAbout}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="aboutText">Text</Label>
+                  <Textarea 
+                    id="aboutText" 
+                    value={about.text}
+                    onChange={(e) => setAbout({...about, text: e.target.value})}
+                    disabled={!isEditingAbout}
+                  />
+                </div>
+                {!isEditingAbout && (
+                  <Button className="mt-2" type="button" onClick={() => setIsEditingAbout(true)}>Edit</Button>
+                )}
+                {isEditingAbout && (
+                  <Button className="mt-2" onClick={handleAboutSave}>Save About Section</Button>
+                )}
+              </div>
+              {/* Services Section */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Services</h3>
+                {services.map((service, index) => (
+                  <div key={index} className="flex items-center justify-between gap-2">
+                    <div className="space-y-1">
+                      <Label htmlFor={`serviceTitle${index}`}>Title</Label>
+                      <Input 
+                        id={`serviceTitle${index}`} 
+                        value={service.title}
+                        onChange={(e) => setServices(prevServices => prevServices.map((s, i) => i === index ? { ...s, title: e.target.value } : s))}
+                        disabled={!isEditingServices}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor={`serviceDescription${index}`}>Description</Label>
+                      <Textarea 
+                        id={`serviceDescription${index}`} 
+                        value={service.description}
+                        onChange={(e) => setServices(prevServices => prevServices.map((s, i) => i === index ? { ...s, description: e.target.value } : s))}
+                        disabled={!isEditingServices}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor={`serviceDetails${index}`}>Details</Label>
+                      <Textarea 
+                        id={`serviceDetails${index}`} 
+                        value={service.details}
+                        onChange={(e) => setServices(prevServices => prevServices.map((s, i) => i === index ? { ...s, details: e.target.value } : s))}
+                        disabled={!isEditingServices}
+                      />
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => setServices(prevServices => prevServices.filter((_, i) => i !== index))} disabled={!isEditingServices}>
+                      <span className="sr-only">Remove</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-6 w-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </Button>
+                  </div>
+                ))}
+                <Button onClick={() => setServices([...services, { title: '', description: '', details: '' }])} disabled={!isEditingServices}>Add New Service</Button>
+                {!isEditingServices && (
+                  <Button className="mt-2" type="button" onClick={() => setIsEditingServices(true)}>Edit</Button>
+                )}
+                {isEditingServices && (
+                  <Button className="mt-2" onClick={handleServicesSave}>Save Services</Button>
+                )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

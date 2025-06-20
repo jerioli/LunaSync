@@ -41,5 +41,4 @@ export interface ClinicContextType {
   updateInventory: (id: string, updatedData: Partial<Inventory>) => void;
   addPayment: (payment: Payment) => void;
   updatePayment: (id: string, data: Partial<Payment>) => void;
-  fetchPatients: () => Promise<void>;
 }

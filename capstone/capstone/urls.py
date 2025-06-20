@@ -19,6 +19,9 @@ from django.urls import path
 from appointments.views import AppointmentCreateView
 from .api.views import login_view
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/login/', login_view),
@@ -26,5 +29,8 @@ urlpatterns = [
    path('api/appointments/', include('appointments.urls')),  # Include appointments URLs
      path('api/', include('patients.urls')),
     path('api/availability/', include('doctor_availability.urls')),
-    
+    path('api/clinic/', include('clinic.urls')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
