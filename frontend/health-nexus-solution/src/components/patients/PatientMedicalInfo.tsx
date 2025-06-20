@@ -41,19 +41,19 @@ const PatientMedicalInfo: React.FC<PatientMedicalInfoProps> = ({
   const [newAllergy, setNewAllergy] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
-  const allergies = patient.medicalInfo?.allergies || [];
+  const allergies = patient.medical_info?.allergies || [];
 
   const addAllergy = () => {
     if (!newAllergy.trim()) return;
 
     const updatedAllergies = [...allergies, newAllergy.trim()];
-    onUpdate({ medicalInfo: { ...patient.medicalInfo, allergies: updatedAllergies } });
+    onUpdate({ medical_info: { ...patient.medical_info, allergies: updatedAllergies } });
     setNewAllergy("");
   };
 
   const removeAllergy = (allergy: string) => {
     const updatedAllergies = allergies.filter((a) => a !== allergy);
-    onUpdate({ medicalInfo: { ...patient.medicalInfo, allergies: updatedAllergies } });
+    onUpdate({ medical_info: { ...patient.medical_info, allergies: updatedAllergies } });
   };
 
   const toggleAllergy = (allergy: string, checked: boolean) => {
@@ -67,7 +67,7 @@ const PatientMedicalInfo: React.FC<PatientMedicalInfoProps> = ({
       updatedAllergies = updatedAllergies.filter((a) => a !== allergy);
     }
 
-    onUpdate({ medicalInfo: { ...patient.medicalInfo, allergies: updatedAllergies } });
+    onUpdate({ medical_info: { ...patient.medical_info, allergies: updatedAllergies } });
   };
 
   return (
@@ -85,8 +85,8 @@ const PatientMedicalInfo: React.FC<PatientMedicalInfoProps> = ({
             <select 
               id="bloodType" 
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-              value={patient.medicalInfo?.bloodType || ""}
-              onChange={(e) => onUpdate({ medicalInfo: { ...patient.medicalInfo, bloodType: e.target.value } })}
+              value={patient.medical_info?.bloodType || ""}
+              onChange={(e) => onUpdate({ medical_info: { ...patient.medical_info, bloodType: e.target.value } })}
             >
               <option value="">Unknown</option>
               <option value="A+">A+</option>
@@ -100,7 +100,7 @@ const PatientMedicalInfo: React.FC<PatientMedicalInfoProps> = ({
             </select>
           ) : (
             <div className="p-2 border rounded-md bg-muted/20">
-              {patient.medicalInfo?.bloodType || "Not specified"}
+              {patient.medical_info?.bloodType || "Not specified"}
             </div>
           )}
         </div>
@@ -209,13 +209,13 @@ const PatientMedicalInfo: React.FC<PatientMedicalInfoProps> = ({
             <Textarea 
               id="medicalHistory" 
               rows={6}
-              value={patient.medicalInfo?.medicalHistory || ""}
-              onChange={(e) => onUpdate({ medicalInfo: { ...patient.medicalInfo, medicalHistory: e.target.value } })}
+              value={patient.medical_info?.medicalHistory || ""}
+              onChange={(e) => onUpdate({ medical_info: { ...patient.medical_info, medicalHistory: e.target.value } })}
               placeholder="Enter patient medical history, past surgeries, chronic conditions, etc."
             />
           ) : (
             <div className="p-2 border rounded-md bg-muted/20 min-h-[100px] whitespace-pre-wrap">
-              {patient.medicalInfo?.medicalHistory || "No medical history recorded"}
+              {patient.medical_info?.medicalHistory || "No medical history recorded"}
             </div>
           )}
         </div>

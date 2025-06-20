@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -19,6 +18,8 @@ import Settings from "./pages/Settings";
 import { AppLayout } from "./components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 // Auth route guard component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -39,6 +40,11 @@ const StaffRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/" replace />;
   }
   
+  return <>{children}</>;
+};
+
+// Public route for password reset
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
@@ -64,6 +70,20 @@ const App = () => {
               <StaffRoute>
                 <Login />
               </StaffRoute>
+            } />
+            
+            {/* Forgot password */}
+            <Route path="/forgot-password" element={
+              <StaffRoute>
+                <ForgotPassword />
+              </StaffRoute>
+            } />
+            
+            {/* Reset password */}
+            <Route path="/reset-password/:uidb64/:token" element={
+              <PublicRoute>
+                <ResetPassword />
+              </PublicRoute>
             } />
             
             {/* Staff protected routes */}

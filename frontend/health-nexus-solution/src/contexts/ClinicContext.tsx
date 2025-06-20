@@ -7,16 +7,19 @@ import {
   LabResult,
   Inventory,
   Payment,
+
   users,
   patients,
   appointments,
   prescriptions,
   labResults,
-  inventory,
-  payments
+  
 } from '@/lib/mock-data';
 import { ClinicContextType, ClinicCustomization } from '@/types/clinic';
 import { defaultClinicCustomization } from '@/constants/clinicDefaults';
+import axios from 'axios';
+
+axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
 
 export const ClinicContext = createContext<ClinicContextType | undefined>(undefined);
 // Add the useClinic hook
@@ -29,6 +32,13 @@ export const useClinic = () => {
 };
 export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUserState] = useState<User | null>(null);
+  const [patientsList, setPatientsList] = useState<Patient[]>([]);
+  const [appointmentsList, setAppointmentsList] = useState<Appointment[]>(appointments);
+  const [prescriptionsList, setPrescriptionsList] = useState<Prescription[]>(prescriptions);
+  const [labResultsList, setLabResultsList] = useState<LabResult[]>(labResults);
+  const [clinicCustomization, setClinicCustomization] = useState<ClinicCustomization>(defaultClinicCustomization);
+  const [inventory, setInventory] = useState<Inventory[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
 
   const setCurrentUser = (user: User | null) => {
     setCurrentUserState(user);
@@ -46,16 +56,36 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
   }, []);
 
-  const [patientsList, setPatientsList] = useState<Patient[]>(patients);
-  const [appointmentsList, setAppointmentsList] = useState<Appointment[]>(appointments);
-  const [prescriptionsList, setPrescriptionsList] = useState<Prescription[]>(prescriptions);
-  const [labResultsList, setLabResultsList] = useState<LabResult[]>(labResults);
-  const [inventoryList, setInventoryList] = useState<Inventory[]>(inventory);
-  const [paymentsList, setPaymentsList] = useState<Payment[]>(payments);
-  const [clinicCustomization, setClinicCustomization] = useState<ClinicCustomization>(defaultClinicCustomization);
+  const addPatient = async (patient: Patient) => {
+    try {
+      // Format the patient data to match backend expectations
+      const formattedPatient = {
+        ...patient,
+        medical_info: patient.medical_info || {
+          bloodType: '',
+          allergies: [],
+          medicalHistory: ''
+        }
+      };
 
-  const addPatient = (patient: Patient) => {
-    setPatientsList([...patientsList, patient]);
+      const response = await axios.post('patients/', formattedPatient);
+      
+      // Ensure the response data has the correct structure
+      const newPatient = {
+        ...response.data,
+        medical_info: response.data.medical_info || {
+          bloodType: '',
+          allergies: [],
+          medicalHistory: ''
+        }
+      };
+
+      setPatientsList(prev => [...prev, newPatient]);
+      return newPatient;
+    } catch (error) {
+      console.error('Error adding patient:', error);
+      throw error;
+    }
   };
 
   const addAppointment = (appointment: Appointment) => {
@@ -76,26 +106,6 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const addLabResult = (labResult: LabResult) => {
     setLabResultsList([...labResultsList, labResult]);
-  };
-
-  const updateInventory = (id: string, updatedData: Partial<Inventory>) => {
-    setInventoryList(
-      inventoryList.map((item) =>
-        item.id === id ? { ...item, ...updatedData } : item
-      )
-    );
-  };
-
-  const addPayment = (payment: Payment) => {
-    setPaymentsList([...paymentsList, payment]);
-  };
-
-  const updatePayment = (id: string, updatedData: Partial<Payment>) => {
-    setPaymentsList(
-      paymentsList.map((payment) =>
-        payment.id === id ? { ...payment, ...updatedData } : payment
-      )
-    );
   };
 
   const updatePatient = (id: string, updatedData: Partial<Patient>) => {
@@ -128,6 +138,22 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     });
   };
 
+  const updateInventory = (id: string, updatedData: Partial<Inventory>) => {
+    setInventory(inventory.map(item => 
+      item.id === id ? { ...item, ...updatedData } : item
+    ));
+  };
+
+  const addPayment = (payment: Payment) => {
+    setPayments([...payments, payment]);
+  };
+
+  const updatePayment = (id: string, data: Partial<Payment>) => {
+    setPayments(payments.map(payment => 
+      payment.id === id ? { ...payment, ...data } : payment
+    ));
+  };
+
   return (
     <ClinicContext.Provider
       value={{
@@ -139,20 +165,22 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         appointments: appointmentsList,
         prescriptions: prescriptionsList,
         labResults: labResultsList,
-        inventory: inventoryList,
-        payments: paymentsList,
+     
         addPatient,
         addAppointment,
         updateAppointment,
         addPrescription,
         addLabResult,
+     
+        updatePatient,
+        deletePatient,
+        clinicCustomization,
+        updateClinicCustomization,
+        inventory,
+        payments,
         updateInventory,
         addPayment,
         updatePayment,
-        updatePatient,
-        deletePatient, // Add deletePatient to the context value
-        clinicCustomization,
-        updateClinicCustomization,
       }}
     >
       {children}

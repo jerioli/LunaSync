@@ -1,17 +1,58 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { useClinic } from '@/contexts/ClinicContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback,  } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, Users, Package, CreditCard, Bell } from 'lucide-react';
+import { Calendar, Clock, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const ReceptionistDashboard = () => {
-  const { appointments, patients, payments, inventory } = useClinic();
+  const { patients } = useClinic();
+  const [appointments, setAppointments] = useState([]);
+  const [patientsCount, setPatientsCount] = useState(0);
+  const [patientDetails, setPatientDetails] = useState({});
   const navigate = useNavigate();
-  
+
+  // Fetch appointments from backend
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        const response = await axios.get('/appointments/list/');
+        setAppointments(response.data);
+      } catch (error) {
+        console.error('Error fetching appointments:', error);
+      }
+    };
+    fetchAppointments();
+  }, []);
+
+  // Fetch patients count from backend
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const response = await axios.get('/patients/');
+        setPatientsCount(Array.isArray(response.data) ? response.data.length : 0);
+      } catch (error) {
+        setPatientsCount(0);
+        console.error('Error fetching patients:', error);
+      }
+    };
+    fetchPatients();
+  }, []);
+
+  // Helper to fetch patient details by ID if not found in local patients
+  const fetchPatientById = async (id) => {
+    if (!id || patientDetails[id]) return;
+    try {
+      const response = await axios.get(`/patients/${id}/`);
+      setPatientDetails(prev => ({ ...prev, [id]: response.data }));
+    } catch (error) {
+      setPatientDetails(prev => ({ ...prev, [id]: { name: 'Unknown Patient' } }));
+    }
+  };
+
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];
   
@@ -20,11 +61,44 @@ const ReceptionistDashboard = () => {
     .filter(appointment => appointment.date === today)
     .sort((a, b) => a.time.localeCompare(b.time));
   
-  // Get pending payments
-  const pendingPayments = payments.filter(payment => payment.status === 'pending');
+  // Filter upcoming appointments (future dates)
+  const upcomingAppointments = appointments
+    .filter(appointment => {
+      const appointmentDate = new Date(appointment.date);
+      const currentDate = new Date();
+      return appointment.status === 'scheduled' && appointmentDate > currentDate;
+    })
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, 5); // Show next 5 upcoming appointments
   
-  // Get low stock items
-  const lowStockItems = inventory.filter(item => item.quantity <= item.threshold);
+  // Filter pending appointments from chatbot
+  const pendingAppointments = appointments
+    .filter(appointment => appointment.status === 'pending')
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  
+  // Store pending count in localStorage for TopBar to access
+  useEffect(() => {
+    localStorage.setItem('pendingAppointmentsCount', pendingAppointments.length.toString());
+  }, [pendingAppointments.length]);
+  
+  useEffect(() => {
+    // For each appointment today, ensure we have the patient name
+    todaysAppointments.forEach(appt => {
+      const patientId = appt.patientId || appt.patient;
+      if (patientId && !patients.find(p => String(p.id) === String(patientId)) && !patientDetails[patientId]) {
+        fetchPatientById(patientId);
+      }
+    });
+    
+    // For each upcoming appointment, ensure we have the patient name
+    upcomingAppointments.forEach(appt => {
+      const patientId = appt.patientId || appt.patient;
+      if (patientId && !patients.find(p => String(p.id) === String(patientId)) && !patientDetails[patientId]) {
+        fetchPatientById(patientId);
+      }
+    });
+    // eslint-disable-next-line
+  }, [todaysAppointments, upcomingAppointments]);
   
   return (
     <div className="space-y-6">
@@ -53,32 +127,13 @@ const ReceptionistDashboard = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{patients.length}</div>
+            <div className="text-2xl font-bold">{patientsCount}</div>
             <p className="text-xs text-muted-foreground">Total patient records</p>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{pendingPayments.length}</div>
-            <p className="text-xs text-muted-foreground">Awaiting processing</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{lowStockItems.length}</div>
-            <p className="text-xs text-muted-foreground">Need reordering</p>
-          </CardContent>
-        </Card>
+       
+       
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -91,17 +146,21 @@ const ReceptionistDashboard = () => {
             <div className="divide-y">
               {todaysAppointments.length > 0 ? (
                 todaysAppointments.map((appointment) => {
-                  const patient = patients.find(p => p.id === appointment.patientId);
-                  
+                  const patientId = appointment.patientId || appointment.patient;
+                  let patient = patients.find(p => String(p.id) === String(patientId));
+                  if (!patient && patientDetails[patientId]) {
+                    patient = patientDetails[patientId];
+                  }
+                  const consultationType = appointment.type || appointment.appointment_type || 'Consultation';
                   return (
                     <div key={appointment.id} className="flex items-center justify-between p-4">
                       <div className="flex items-center gap-3">
                         <Avatar>
-                          <AvatarFallback>{patient?.name.charAt(0)}</AvatarFallback>
+                          <AvatarFallback>{patient?.name ? patient.name.charAt(0) : '?'}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{patient?.name}</div>
-                          <div className="text-sm text-muted-foreground">{appointment.type}</div>
+                          <div className="font-medium">{patient?.name || 'Unknown Patient'}</div>
+                          <div className="text-sm text-muted-foreground">{consultationType}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
@@ -140,101 +199,58 @@ const ReceptionistDashboard = () => {
         
         <Card className="col-span-1">
           <CardHeader>
-            <CardTitle>Pending Payments</CardTitle>
-            <CardDescription>Process outstanding payments</CardDescription>
+            <CardTitle>Upcoming Appointments</CardTitle>
+            <CardDescription>Next scheduled appointments</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y">
-              {pendingPayments.length > 0 ? (
-                pendingPayments.map((payment) => {
-                  const patient = patients.find(p => p.id === payment.patientId);
-                  const appointment = appointments.find(a => a.id === payment.appointmentId);
-                  
+              {upcomingAppointments.length > 0 ? (
+                upcomingAppointments.map((appointment) => {
+                  const patientId = appointment.patientId || appointment.patient;
+                  let patient = patients.find(p => String(p.id) === String(patientId));
+                  if (!patient && patientDetails[patientId]) {
+                    patient = patientDetails[patientId];
+                  }
+                  const consultationType = appointment.appointment_type || appointment.type || 'Consultation';
                   return (
-                    <div key={payment.id} className="flex items-center justify-between p-4">
+                    <div key={appointment.id} className="flex items-center justify-between p-4">
                       <div className="flex items-center gap-3">
                         <Avatar>
-                          <AvatarFallback>{patient?.name.charAt(0)}</AvatarFallback>
+                          <AvatarFallback>{patient?.name ? patient.name.charAt(0) : '?'}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{patient?.name}</div>
-                          <div className="text-sm text-muted-foreground">{appointment?.type}</div>
+                          <div className="font-medium">{patient?.name || 'Unknown Patient'}</div>
+                          <div className="text-sm text-muted-foreground">{consultationType}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-right">
-                          <div className="font-medium">${payment.amount.toFixed(2)}</div>
-                          <div className="text-sm text-muted-foreground">{payment.method}</div>
+                          <div className="font-medium">{new Date(appointment.date).toLocaleDateString()}</div>
+                          <div className="text-sm text-muted-foreground">{appointment.time}</div>
                         </div>
-                        <Button size="sm">Process</Button>
+                        <Button size="sm" variant="outline" onClick={() => navigate(`/patients/${patient?.id}`)}>
+                          View Patient
+                        </Button>
                       </div>
                     </div>
                   );
                 })
               ) : (
                 <div className="py-8 text-center text-muted-foreground">
-                  No pending payments
+                  No upcoming appointments
                 </div>
               )}
             </div>
           </CardContent>
           <CardFooter className="border-t bg-muted/50 px-6 py-3">
-            <Button variant="ghost" className="w-full" onClick={() => navigate('/payments')}>
-              View all payments
+            <Button variant="ghost" className="w-full" onClick={() => navigate('/appointments')}>
+              View all appointments
             </Button>
           </CardFooter>
         </Card>
       </div>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Low Stock Inventory</CardTitle>
-          <CardDescription>Items that need to be restocked</CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="divide-y">
-            {lowStockItems.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-muted/50">
-                      <th className="text-left py-3 px-6">Item</th>
-                      <th className="text-left py-3 px-6">Category</th>
-                      <th className="text-left py-3 px-6">Quantity</th>
-                      <th className="text-left py-3 px-6">Threshold</th>
-                      <th className="text-left py-3 px-6">Last Restocked</th>
-                      <th className="text-left py-3 px-6"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {lowStockItems.map((item) => (
-                      <tr key={item.id} className="hover:bg-muted/30">
-                        <td className="py-3 px-6">{item.name}</td>
-                        <td className="py-3 px-6">{item.category}</td>
-                        <td className="py-3 px-6 font-medium">{item.quantity} {item.unit}</td>
-                        <td className="py-3 px-6">{item.threshold} {item.unit}</td>
-                        <td className="py-3 px-6">{item.lastRestocked}</td>
-                        <td className="py-3 px-6">
-                          <Button size="sm" variant="outline">Restock</Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="py-8 text-center text-muted-foreground">
-                No items with low stock
-              </div>
-            )}
-          </div>
-        </CardContent>
-        <CardFooter className="border-t bg-muted/50 px-6 py-3">
-          <Button variant="ghost" className="w-full" onClick={() => navigate('/inventory')}>
-            Manage inventory
-          </Button>
-        </CardFooter>
-      </Card>
+      
     </div>
   );
 };

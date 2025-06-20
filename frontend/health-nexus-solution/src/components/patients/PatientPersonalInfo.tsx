@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Patient } from '@/lib/mock-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -48,12 +47,14 @@ const PatientPersonalInfo: React.FC<PatientPersonalInfoProps> = ({
               <Input 
                 id="dateOfBirth" 
                 type="date" 
-                value={patient.dateOfBirth} 
-                onChange={(e) => onUpdate({ dateOfBirth: e.target.value })}
+                value={patient.date_of_birth} 
+                onChange={(e) => onUpdate({ date_of_birth: e.target.value })}
               />
             ) : (
               <div className="p-2 border rounded-md bg-muted/20">
-                {format(new Date(patient.dateOfBirth), 'PPP')}
+                {patient.date_of_birth && !isNaN(new Date(patient.date_of_birth).getTime())
+                  ? format(new Date(patient.date_of_birth), 'PPP')
+                  : 'N/A'}
               </div>
             )}
           </div>
@@ -123,7 +124,9 @@ const PatientPersonalInfo: React.FC<PatientPersonalInfoProps> = ({
           <div className="flex items-center justify-between">
             <Label>Registration Date</Label>
             <div className="text-sm text-muted-foreground">
-              {format(new Date(patient.registrationDate), 'PPP')}
+              {patient.registrationDate && !isNaN(new Date(patient.registrationDate).getTime())
+                ? format(new Date(patient.registrationDate), 'PPP')
+                : 'N/A'}
             </div>
           </div>
         </div>

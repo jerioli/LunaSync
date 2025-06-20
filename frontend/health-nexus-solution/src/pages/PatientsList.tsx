@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useClinic } from '@/contexts/ClinicContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,60 +10,35 @@ import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import AddPatient from '@/components/patients/AddPatient';
 import { Patient } from '@/lib/mock-data';
+import { useClinic } from '@/contexts/ClinicContext';
 import axios from 'axios';
 
 
-axios.defaults.baseURL = 'http://127.0.0.1:8000/api/'; // Correct backend URL
+axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
 
 const PatientsList = () => {
-  const { patients, updatePatient, addPatient } = useClinic();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [patientsList, setPatientsList] = useState<Patient[]>([]);
+  const [patientsList, setPatientsList] = useState<Patient[]>([]); 
   const [searchQuery, setSearchQuery] = useState('');
-  const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
+  const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
   
   // Filter patients based on search query
-  const filteredPatients = patients.filter(patient =>
+  const filteredPatients = patients.filter(patient => 
     patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     patient.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     patient.phone.includes(searchQuery) ||
-    (patient.maritalStatus || '').toLowerCase().includes(searchQuery.toLowerCase())
+    (patient.marital_status || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
-  // Fetch patients from the backend
-  useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        const response = await axios.get<Patient[]>('/api/patients'); // Replace with your backend URL
-        setPatientsList(response.data);
-      } catch (error) {
-        console.error('Error fetching patients:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to fetch patients. Please try again later.',
-          variant: 'destructive',
-        });
-      }
-    };
 
-    fetchPatients();
-  }, []);
   const handleAddPatient = async (patient: Patient) => {
-    // Map dateOfBirth to date_of_birth for the backend
-    const formattedPatient = {
-      ...patient,
-      date_of_birth: format(new Date(patient.dateOfBirth), 'yyyy-MM-dd'), // Format the date
-    };
-
-    console.log('Patient data being sent:', formattedPatient); // Debugging log
-
     try {
-      const response = await axios.post('/patients/', formattedPatient);
-      console.log('Patient added successfully:', response.data);
+      await addPatient(patient);
       toast({
         title: 'Patient Added',
         description: `${patient.name} has been successfully added.`,
       });
+      setIsAddPatientModalOpen(false);
     } catch (error: any) {
       if (error.response && error.response.status === 400) {
         console.error('Validation errors:', error.response.data);
@@ -93,7 +67,7 @@ const PatientsList = () => {
           Add New Patient
         </Button>
       </div>
-      
+
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -137,15 +111,18 @@ const PatientsList = () => {
                       </div>
                     </TableCell>
                     <TableCell className="capitalize">{patient.gender}</TableCell>
-                    <TableCell>{format(new Date(patient.dateOfBirth), 'MMM d, yyyy')}</TableCell>
+                    <TableCell>
+                      {patient.date_of_birth ? format(new Date(patient.date_of_birth), 'MMM d, yyyy') : 'N/A'}
+                    </TableCell>
                     <TableCell>
                       <div>{patient.email}</div>
                       <div className="text-sm text-muted-foreground">{patient.phone}</div>
                     </TableCell>
-                    <TableCell className="capitalize">{patient.maritalStatus || 'N/A'}</TableCell>
+                    <TableCell className="capitalize">{patient.marital_status || 'N/A'}</TableCell>
+                    
                     <TableCell className="text-right">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => navigate(`/patients/${patient.id}`)}
                       >
@@ -157,7 +134,7 @@ const PatientsList = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     No patients found. Try a different search term.
                   </TableCell>
                 </TableRow>
@@ -166,6 +143,13 @@ const PatientsList = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Add Patient Modal */}
+      <AddPatientModal 
+        open={isAddPatientModalOpen}
+        onOpenChange={setIsAddPatientModalOpen}
+        onAddPatient={handleAddPatient}
+      />
     </div>
   );
 };

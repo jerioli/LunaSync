@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,8 +14,11 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Search, UserPlus, Mail, Phone } from 'lucide-react';
 import axios from 'axios';
 import { PassThrough } from 'stream';
+import { api, Doctor, Receptionist, Admin } from '@/services/api';
+
 const StaffPage = () => {
-  const { users, currentUser } = useClinic();
+  const { currentUser } = useClinic();
+  const [staff, setStaff] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [newStaff, setNewStaff] = useState({
     name: "",
@@ -28,6 +30,70 @@ const StaffPage = () => {
     status: "active",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [doctorsList, setDoctorsList] = useState<Doctor[]>([]);
+  const [isLoadingDoctors, setIsLoadingDoctors] = useState(false);
+  const [receptionistsList, setReceptionistsList] = useState<Receptionist[]>([]);
+  const [isLoadingReceptionists, setIsLoadingReceptionists] = useState(false);
+  const [adminsList, setAdminsList] = useState<Admin[]>([]);
+  const [isLoadingAdmins, setIsLoadingAdmins] = useState(false);
+
+  // Fetch staff from backend
+  useEffect(() => {
+    const fetchStaff = async () => {
+      try {
+        const response = await axios.get('/staff/list/');
+        setStaff(response.data);
+      } catch (error) {
+        console.error('Error fetching staff:', error);
+      }
+    };
+    fetchStaff();
+  }, []);
+
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      setIsLoadingDoctors(true);
+      try {
+        const response = await api.doctors.getAll();
+        setDoctorsList(response);
+      } catch (error) {
+        console.error('Error fetching doctors:', error);
+      } finally {
+        setIsLoadingDoctors(false);
+      }
+    };
+    fetchDoctors();
+  }, []);
+
+  useEffect(() => {
+    const fetchReceptionists = async () => {
+      setIsLoadingReceptionists(true);
+      try {
+        const response = await api.receptionists.getAll();
+        setReceptionistsList(response);
+      } catch (error) {
+        console.error('Error fetching receptionists:', error);
+      } finally {
+        setIsLoadingReceptionists(false);
+      }
+    };
+    fetchReceptionists();
+  }, []);
+
+  useEffect(() => {
+    const fetchAdmins = async () => {
+      setIsLoadingAdmins(true);
+      try {
+        const response = await api.admins.getAll();
+        setAdminsList(response);
+      } catch (error) {
+        console.error('Error fetching admins:', error);
+      } finally {
+        setIsLoadingAdmins(false);
+      }
+    };
+    fetchAdmins();
+  }, []);
 
   if (currentUser?.role !== 'admin') {
     return (
@@ -42,18 +108,45 @@ const StaffPage = () => {
     );
   }
 
-  // Filter users by role and search term
-  const filterUsers = (role: string) => {
-    return users.filter(user => 
+  // Filter staff by role and search term
+  const filterStaff = (role: string) => {
+    return staff.filter(user => 
       user.role === role && 
-      (user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ((user.first_name + ' ' + user.last_name).toLowerCase().includes(searchTerm.toLowerCase()) ||
        user.email.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   };
 
-  const doctors = filterUsers('doctor');
-  const receptionists = filterUsers('receptionist');
-  const admins = filterUsers('admin');
+  // Filter doctors by search term
+  const filterDoctors = () => {
+    return doctorsList.filter(doctor => 
+      ((doctor.first_name + ' ' + doctor.last_name).toLowerCase().includes(searchTerm.toLowerCase()) ||
+       doctor.email.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  };
+
+  // Filter receptionists by search term
+  const filterReceptionists = () => {
+    return receptionistsList.filter(receptionist => 
+      ((receptionist.first_name + ' ' + receptionist.last_name).toLowerCase().includes(searchTerm.toLowerCase()) ||
+       receptionist.email.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  };
+
+  // Filter admins by search term
+  const filterAdmins = () => {
+    return adminsList.filter(admin => 
+      ((admin.first_name + ' ' + admin.last_name).toLowerCase().includes(searchTerm.toLowerCase()) ||
+       admin.email.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  };
+
+  const doctors = filterStaff('doctor');
+  const filteredDoctors = filterDoctors();
+  const receptionists = filterStaff('receptionist');
+  const filteredReceptionists = filterReceptionists();
+  const admins = filterStaff('admin');
+  const filteredAdmins = filterAdmins();
 
   // Handle input changes for the form
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -262,27 +355,33 @@ const StaffPage = () => {
         </TabsList>
         
         <TabsContent value="doctors" className="space-y-4 mt-6">
-          {doctors.length === 0 ? (
+          {isLoadingDoctors ? (
+            <Card>
+              <CardContent className="text-center py-6 text-muted-foreground">
+                Loading doctors...
+              </CardContent>
+            </Card>
+          ) : filteredDoctors.length === 0 ? (
             <Card>
               <CardContent className="text-center py-6 text-muted-foreground">
                 No doctors match your search criteria.
               </CardContent>
             </Card>
           ) : (
-            doctors.map(doctor => (
+            filteredDoctors.map(doctor => (
               <Card key={doctor.id}>
                 <CardHeader className="pb-2">
                   <div className="flex items-center">
                     <Avatar className="h-10 w-10 mr-4">
-                      <AvatarImage src={doctor.image} alt={doctor.name} />
-                      <AvatarFallback>{doctor.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={doctor.image} alt={`${doctor.first_name} ${doctor.last_name}`} />
+                      <AvatarFallback>{doctor.first_name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="flex items-center">
-                        <CardTitle className="text-lg">{doctor.name}</CardTitle>
+                        <CardTitle className="text-lg">{`${doctor.first_name} ${doctor.last_name}`}</CardTitle>
                         <Badge variant="outline" className="ml-2 bg-blue-50 text-blue-700 border-blue-200">Doctor</Badge>
                       </div>
-                      <CardDescription>{doctor.speciality || 'General Physician'}</CardDescription>
+                      <CardDescription>General Physician</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -294,7 +393,7 @@ const StaffPage = () => {
                     </div>
                     <div className="flex items-center">
                       <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span>{doctor.phone || 'N/A'}</span>
+                      <span>N/A</span>
                     </div>
                   </div>
                 </CardContent>
@@ -310,24 +409,30 @@ const StaffPage = () => {
         </TabsContent>
         
         <TabsContent value="receptionists" className="space-y-4 mt-6">
-          {receptionists.length === 0 ? (
+          {isLoadingReceptionists ? (
+            <Card>
+              <CardContent className="text-center py-6 text-muted-foreground">
+                Loading receptionists...
+              </CardContent>
+            </Card>
+          ) : filteredReceptionists.length === 0 ? (
             <Card>
               <CardContent className="text-center py-6 text-muted-foreground">
                 No receptionists match your search criteria.
               </CardContent>
             </Card>
           ) : (
-            receptionists.map(receptionist => (
+            filteredReceptionists.map(receptionist => (
               <Card key={receptionist.id}>
                 <CardHeader className="pb-2">
                   <div className="flex items-center">
                     <Avatar className="h-10 w-10 mr-4">
-                      <AvatarImage src={receptionist.image} alt={receptionist.name} />
-                      <AvatarFallback>{receptionist.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={receptionist.image} alt={`${receptionist.first_name} ${receptionist.last_name}`} />
+                      <AvatarFallback>{receptionist.first_name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="flex items-center">
-                        <CardTitle className="text-lg">{receptionist.name}</CardTitle>
+                        <CardTitle className="text-lg">{`${receptionist.first_name} ${receptionist.last_name}`}</CardTitle>
                         <Badge variant="outline" className="ml-2 bg-green-50 text-green-700 border-green-200">Receptionist</Badge>
                       </div>
                       <CardDescription>Front Office</CardDescription>
@@ -342,7 +447,7 @@ const StaffPage = () => {
                     </div>
                     <div className="flex items-center">
                       <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span>{receptionist.phone || 'N/A'}</span>
+                      <span>N/A</span>
                     </div>
                   </div>
                 </CardContent>
@@ -358,24 +463,30 @@ const StaffPage = () => {
         </TabsContent>
         
         <TabsContent value="admins" className="space-y-4 mt-6">
-          {admins.length === 0 ? (
+          {isLoadingAdmins ? (
+            <Card>
+              <CardContent className="text-center py-6 text-muted-foreground">
+                Loading administrators...
+              </CardContent>
+            </Card>
+          ) : filteredAdmins.length === 0 ? (
             <Card>
               <CardContent className="text-center py-6 text-muted-foreground">
                 No administrators match your search criteria.
               </CardContent>
             </Card>
           ) : (
-            admins.map(admin => (
+            filteredAdmins.map(admin => (
               <Card key={admin.id}>
                 <CardHeader className="pb-2">
                   <div className="flex items-center">
                     <Avatar className="h-10 w-10 mr-4">
-                      <AvatarImage src={admin.image} alt={admin.name} />
-                      <AvatarFallback>{admin.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={admin.image} alt={`${admin.first_name} ${admin.last_name}`} />
+                      <AvatarFallback>{admin.first_name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="flex items-center">
-                        <CardTitle className="text-lg">{admin.name}</CardTitle>
+                        <CardTitle className="text-lg">{`${admin.first_name} ${admin.last_name}`}</CardTitle>
                         <Badge variant="outline" className="ml-2 bg-purple-50 text-purple-700 border-purple-200">Administrator</Badge>
                       </div>
                       <CardDescription>System Administrator</CardDescription>
@@ -390,7 +501,7 @@ const StaffPage = () => {
                     </div>
                     <div className="flex items-center">
                       <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span>{admin.phone || 'N/A'}</span>
+                      <span>N/A</span>
                     </div>
                   </div>
                 </CardContent>
