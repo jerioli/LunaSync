@@ -30,9 +30,12 @@ const ResetPassword = () => {
 
     setIsLoading(true);
     try {
-      const response = await axios.post(`${API_BASE_URL}/password-reset-confirm/${uidb64}/${token}/`, {
-        new_password: newPassword
-      });
+      const response = await axios.post<{ success: boolean; message?: string }>(
+        `${API_BASE_URL}/password-reset-confirm/${uidb64}/${token}/`,
+        {
+          new_password: newPassword
+        }
+      );
       
       if (response.data.success) {
         toast.success('Password has been reset successfully');

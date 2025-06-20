@@ -9,9 +9,10 @@ import { Search, UserPlus, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import AddPatient from '@/components/patients/AddPatient';
-import { Patient } from '@/lib/mock-data';
+import { Patient, patients } from '@/lib/mock-data';
 import { useClinic } from '@/contexts/ClinicContext';
 import axios from 'axios';
+import AddPatientModal from '@/components/patients/AddPatientModal';
 
 
 axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
@@ -33,7 +34,7 @@ const PatientsList = () => {
 
   const handleAddPatient = async (patient: Patient) => {
     try {
-      await addPatient(patient);
+      await axios.post('patients/', patient);
       toast({
         title: 'Patient Added',
         description: `${patient.name} has been successfully added.`,

@@ -45,7 +45,7 @@ const PatientManagement = () => {
         // If still not found, try API
         const response = await axios.get(`/patients/${id}/`);
         if (response.data) {
-          setPatientData(response.data);
+          setPatientData(response.data as Patient);
           // Update localStorage with the fetched data
           const stored = localStorage.getItem('patientsList');
           let updated = [];
