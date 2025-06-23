@@ -189,4 +189,10 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'jeri.olivarez@gmail.com'  # Your Gmail address
 EMAIL_HOST_PASSWORD = 'ovyb dqzr rjrm ramg'  # The app password you generated
 
+# Clinic Configuration
+CLINIC_DEFAULT_EMAIL = 'jeri.olivarez@gmail.com'  # Email to receive review notifications
+
+# For development/testing, you can uncomment this line to see emails in console
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 

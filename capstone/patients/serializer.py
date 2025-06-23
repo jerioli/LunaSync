@@ -14,5 +14,6 @@ class PatientSerializer(serializers.ModelSerializer):
             'address',
             'marital_status',
             'medical_info',
+            'physical_examination',
             'registration_date',
         ]

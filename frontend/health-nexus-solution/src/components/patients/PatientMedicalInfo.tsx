@@ -152,12 +152,12 @@ const PatientMedicalInfo: React.FC<PatientMedicalInfoProps> = ({
                     </Button>
                   </CollapsibleTrigger>
                 </div>
-                <CollapsibleContent className="space-y-4">
-                  <div className="flex gap-2">
+                <CollapsibleContent className="space-y-4">                  <div className="flex gap-2">
                     <Input
                       placeholder="Enter custom allergy"
                       value={newAllergy}
                       onChange={(e) => setNewAllergy(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && addAllergy()}
                     />
                     <Button onClick={addAllergy}>
                       <Plus className="h-4 w-4 mr-1" />

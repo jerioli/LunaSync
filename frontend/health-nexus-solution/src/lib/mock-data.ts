@@ -24,8 +24,20 @@ export type Patient = {
     allergies?: string[];
     medicalHistory?: string;
   };
+  physical_examination?: {
+    height?: string;
+    weight?: string;
+    bloodPressure?: string;
+    temperature?: string;
+    pulseRate?: string;
+    respiratoryRate?: string;
+    notes?: string;
+  };
   registrationDate: string;
 };
+
+// Type for creating new patients (excludes auto-generated fields)
+export type NewPatient = Omit<Patient, 'id' | 'registrationDate'>;
 
 export type Appointment = {
   id: string;

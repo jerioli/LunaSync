@@ -61,10 +61,9 @@ const PatientDashboard = () => {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{upcomingAppointments.length}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold">{upcomingAppointments.length}</div>            <p className="text-xs text-muted-foreground">
               {upcomingAppointments.length > 0 
-                ? `Next on ${new Date(upcomingAppointments[0].date).toLocaleDateString()}` 
+                ? `Next on ${new Date(upcomingAppointments[0].date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}` 
                 : 'No upcoming appointments'}
             </p>
           </CardContent>
@@ -127,10 +126,9 @@ const PatientDashboard = () => {
                           <div className="font-medium">{doctor?.name}</div>
                           <div className="text-sm text-muted-foreground">{appointment.type}</div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-4">
+                      </div>                      <div className="flex items-center gap-4">
                         <div className="text-right">
-                          <div className="font-medium">{new Date(appointment.date).toLocaleDateString()}</div>
+                          <div className="font-medium">{new Date(appointment.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
                           <div className="text-sm text-muted-foreground">{appointment.time}</div>
                         </div>
                         <Button size="sm" variant="outline">Reschedule</Button>
@@ -164,10 +162,9 @@ const PatientDashboard = () => {
                   const doctor = users.find(u => u.id === prescription.doctorId);
                   
                   return (
-                    <div key={prescription.id} className="p-4">
-                      <div className="flex items-center justify-between mb-2">
+                    <div key={prescription.id} className="p-4">                      <div className="flex items-center justify-between mb-2">
                         <div className="font-medium">Prescribed by {doctor?.name}</div>
-                        <Badge variant="outline">{new Date(prescription.date).toLocaleDateString()}</Badge>
+                        <Badge variant="outline">{new Date(prescription.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</Badge>
                       </div>
                       <div className="space-y-2 mt-2">
                         {prescription.medications.map((med, index) => (
@@ -215,7 +212,7 @@ const PatientDashboard = () => {
                 <div key={result.id} className="flex items-center justify-between p-4">
                   <div>
                     <div className="font-medium">{result.type}</div>
-                    <div className="text-sm text-muted-foreground">{new Date(result.date).toLocaleDateString()}</div>
+                    <div className="text-sm text-muted-foreground">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
                   </div>
                   <div className="flex items-center gap-2">
                     {result.notes && (

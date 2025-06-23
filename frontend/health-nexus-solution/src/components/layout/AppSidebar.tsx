@@ -31,7 +31,6 @@ export const AppSidebar = () => {
   const location = useLocation();
 
   if (!currentUser) return null;
-
   const getMenuItems = () => {
     switch (currentUser.role) {
       case 'doctor':
@@ -42,12 +41,14 @@ export const AppSidebar = () => {
           { title: 'Prescriptions', icon: Pill, path: '/prescriptions' },
           { title: 'Lab Results', icon: Image, path: '/lab-results' },
           { title: 'My Schedule', icon: Calendar, path: '/schedule' },
+          { title: 'Settings', icon: Settings, path: '/user-settings' },
         ];
       case 'receptionist':
         return [
           { title: 'Dashboard', icon: Home, path: '/' },
           { title: 'Patients', icon: Users, path: '/patients' },
           { title: 'Appointments', icon: Calendar, path: '/appointments' },
+          { title: 'Settings', icon: Settings, path: '/user-settings' },
         ];
       case 'admin':
         return [

@@ -19,7 +19,7 @@ const ReceptionistDashboard = () => {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const response = await axios.get('/appointments/list/');
+        const response = await axios.get('appointments/list/');
         setAppointments(response.data);
       } catch (error) {
         console.error('Error fetching appointments:', error);
@@ -27,12 +27,11 @@ const ReceptionistDashboard = () => {
     };
     fetchAppointments();
   }, []);
-
   // Fetch patients count from backend
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await axios.get('/patients/');
+        const response = await axios.get('patients/');
         setPatientsCount(Array.isArray(response.data) ? response.data.length : 0);
       } catch (error) {
         setPatientsCount(0);
@@ -46,7 +45,7 @@ const ReceptionistDashboard = () => {
   const fetchPatientById = async (id) => {
     if (!id || patientDetails[id]) return;
     try {
-      const response = await axios.get(`/patients/${id}/`);
+      const response = await axios.get(`patients/${id}/`);
       setPatientDetails(prev => ({ ...prev, [id]: response.data }));
     } catch (error) {
       setPatientDetails(prev => ({ ...prev, [id]: { name: 'Unknown Patient' } }));
@@ -222,10 +221,9 @@ const ReceptionistDashboard = () => {
                           <div className="font-medium">{patient?.name || 'Unknown Patient'}</div>
                           <div className="text-sm text-muted-foreground">{consultationType}</div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-4">
+                      </div>                      <div className="flex items-center gap-4">
                         <div className="text-right">
-                          <div className="font-medium">{new Date(appointment.date).toLocaleDateString()}</div>
+                          <div className="font-medium">{new Date(appointment.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
                           <div className="text-sm text-muted-foreground">{appointment.time}</div>
                         </div>
                         <Button size="sm" variant="outline" onClick={() => navigate(`/patients/${patient?.id}`)}>

@@ -8,7 +8,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Search, UserPlus, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import AddPatientModal from '@/components/patients/AddPatientModal';
 import { Patient } from '@/lib/mock-data';
 import { useClinic } from '@/contexts/ClinicContext';
 import axios from 'axios';
@@ -18,14 +17,12 @@ axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
 const PatientsList = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { patients, addPatient, fetchPatients } = useClinic();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
-
-  // Fetch patients when component mounts
+  const { patients, fetchPatients } = useClinic();
+  const [searchQuery, setSearchQuery] = useState('');  // Fetch patients when component mounts
   useEffect(() => {
     fetchPatients();
-  }, [fetchPatients]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
 
   // Filter patients based on search query
   const filteredPatients = patients.filter((patient) =>
@@ -35,38 +32,10 @@ const PatientsList = () => {
     (patient.marital_status || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleAddPatient = async (patient: Patient) => {
-    try {
-      await addPatient(patient);
-      toast({
-        title: 'Patient Added',
-        description: `${patient.name} has been successfully added.`,
-      });
-      setIsAddPatientModalOpen(false);
-    } catch (error: any) {
-      if (error.response && error.response.status === 400) {
-        console.error('Validation errors:', error.response.data);
-        toast({
-          title: 'Validation Error',
-          description: 'Please check the input fields and try again.',
-          variant: 'destructive',
-        });
-      } else {
-        console.error('Error adding patient:', error.response || error.message);
-        toast({
-          title: 'Error',
-          description: 'Failed to add patient. Please try again later.',
-          variant: 'destructive',
-        });
-      }
-    }
-  };
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">      <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Patients</h1>
-        <Button onClick={() => setIsAddPatientModalOpen(true)}>
+        <Button onClick={() => navigate('/patients/add')}>
           <UserPlus className="mr-2 h-4 w-4" />
           Add New Patient
         </Button>
@@ -144,16 +113,8 @@ const PatientsList = () => {
                 </TableRow>
               )}
             </TableBody>
-          </Table>
-        </CardContent>
+          </Table>        </CardContent>
       </Card>
-
-      {/* Add Patient Modal */}
-      <AddPatientModal
-        open={isAddPatientModalOpen}
-        onOpenChange={setIsAddPatientModalOpen}
-        onAddPatient={handleAddPatient}
-      />
     </div>
   );
 };
