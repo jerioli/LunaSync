@@ -62,135 +62,136 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-          <Routes>
-            {/* Initial landing/routing page */}
-            <Route path="/index" element={<Index />} />
-            
-            {/* Public patient portal */}
-            <Route path="/portal" element={<PatientPortal />} />
-            
-            {/* Staff login */}
-            <Route path="/login" element={
-              <StaffRoute>
-                <Login />
-              </StaffRoute>
-            } />
-            
-            {/* Forgot password */}
-            <Route path="/forgot-password" element={
-              <StaffRoute>
-                <ForgotPassword />
-              </StaffRoute>
-            } />
-            
-            {/* Reset password */}
-            <Route path="/reset-password/:uidb64/:token" element={
-              <PublicRoute>
-                <ResetPassword />
-              </PublicRoute>
-            } />
-            
-            {/* Staff protected routes */}
-            <Route path="/" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Dashboard />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-
-            
+            <Routes>
+              {/* Initial landing/routing page */}
+              <Route path="/index" element={<Index />} />
+              
+              {/* Public patient portal */}
+              <Route path="/portal" element={<PatientPortal />} />
+              
+              {/* Staff login */}
+              <Route path="/login" element={
+                <StaffRoute>
+                  <Login />
+                </StaffRoute>
+              } />
+              
+              {/* Forgot password */}
+              <Route path="/forgot-password" element={
+                <StaffRoute>
+                  <ForgotPassword />
+                </StaffRoute>
+              } />
+              
+              {/* Reset password */}
+              <Route path="/reset-password/:uidb64/:token" element={
+                <PublicRoute>
+                  <ResetPassword />
+                </PublicRoute>
+              } />
+              
+              {/* Staff protected routes */}
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Dashboard />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              
               {/* Patient management routes */}
-            <Route path="/patients" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <PatientsList />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/patients/add" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <AddPatient />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/patients/:id" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <PatientManagement />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            
-            {/* Appointments route */}
-            <Route path="/appointments" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Appointments />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            
-            {/* Doctor schedule route */}
-            <Route path="/schedule" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Schedule />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            
-            {/* Prescriptions route */}
-            <Route path="/prescriptions" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Prescriptions />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            
-            {/* Staff management route for admin */}
-            <Route path="/staff" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Staff />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
+              <Route path="/patients" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <PatientsList />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/patients/add" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <AddPatient />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/patients/:id" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <PatientManagement />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              
+              {/* Appointments route */}
+              <Route path="/appointments" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Appointments />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              
+              {/* Doctor schedule route */}
+              <Route path="/schedule" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Schedule />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              
+              {/* Prescriptions route */}
+              <Route path="/prescriptions" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Prescriptions />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              
+              {/* Staff management route for admin */}
+              <Route path="/staff" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Staff />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              
               {/* Settings route for admin */}
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Settings />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            
-            {/* User Settings route for staff members */}
-            <Route path="/user-settings" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <UserSettings />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            
-            {/* Lab Results route */}
-            <Route path="/lab-results" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <LabResults />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Settings />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              
+              {/* User Settings route for staff members */}
+              <Route path="/user-settings" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <UserSettings />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              
+              {/* Lab Results route */}
+              <Route path="/lab-results" element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <LabResults />
+                  </AppLayout>
+                </ProtectedRoute>
+              } />
+              
               {/* 404 route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </ClinicProvider>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </ClinicProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
