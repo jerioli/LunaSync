@@ -12,6 +12,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { ArrowLeft, X, Calendar as CalendarIcon, Pencil, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Checkbox } from "@/components/ui/checkbox";
+
 import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -56,15 +57,17 @@ const AddPatient = () => {
     notes: ''
   });
     const handleHistoryChange = (field, value) => {
+
     setMedicalHistory(prev => {
       if (value === undefined) {
         const updated = { ...prev };
         delete updated[field];
         return updated;
       }
-      return { ...prev, [field]: value };
+      return { ...prev, [field]:a value };
     });
   };
+
   
   const handlePhysicalExamChange = (field, value) => {
     setPhysicalExamination(prev => ({
@@ -72,6 +75,7 @@ const AddPatient = () => {
       [field]: value
     }));
   };
+
   const [templates, setTemplates] = useState([]);
   const [selectedTemplate, setSelectedTemplate] = useState('');
   type PrescriptionData = {
@@ -181,6 +185,7 @@ const AddPatient = () => {
     setTemplates((prev) => prev.filter((_, i) => i !== deleteIndex));
     setShowDeleteConfirm(false);
   };
+
   const [showCancelDialog, setShowCancelDialog] = useState(false);  const handleSaveAll = async () => {
     // Basic validation
     if (!form.name || !form.email || !form.phone || !form.dateOfBirth || !form.gender) {
@@ -247,6 +252,8 @@ const AddPatient = () => {
     } finally {
       setLoading(false);
     }
+
+
   };
   const initialPrescriptionData = {nameType: '', name: '', dose: '', quantity: '', frequency: '', startDate: '', endDate: '', notes: '',
     favorite: false,
@@ -270,7 +277,9 @@ const AddPatient = () => {
             <button onClick={() => navigate('/patients')} className="text-[#1EAEDB] hover:underline">◄ Back to Patients List</button>
           </div>
 
+
           <Card className="h-[82vh] flex flex-col">              <CardHeader className="border-b">
+
                 <nav className="flex justify-around items-center">
                   <ul className="flex gap-10 text-base">
                     <li>
@@ -280,6 +289,7 @@ const AddPatient = () => {
                         }`}>Personal Information
                       </button>
                     </li>
+
                     {isDoctor && (
                       <>
                         <li>
@@ -351,12 +361,15 @@ const AddPatient = () => {
                         id="dateOfBirth"
                         required
                         type="date"
+
                         value={form.dateOfBirth}
                         onChange={e => handleChange('dateOfBirth', e.target.value)}
                       />
                     </div>
                     <div>
+
                       <Label>Email Address <span className="text-red-500">*</span></Label>
+
                       <Input
                         required
                         type="email"
@@ -366,7 +379,9 @@ const AddPatient = () => {
                       />
                     </div>
                     <div>
+
                       <Label>Phone Number <span className="text-red-500">*</span></Label>
+
                       <Input
                         required
                         placeholder="Input your phone number"
@@ -376,6 +391,7 @@ const AddPatient = () => {
                     </div>
                     <div>
                       <Label>Religion</Label>
+
                       <Input placeholder="Input your religion" value={form.religion} onChange={(e) => handleChange('religion', e.target.value)} />
                     </div>
                   </div>                </div>
@@ -522,6 +538,7 @@ const AddPatient = () => {
                           </div>
                         </div>
                       )}
+
 
                 {showForm && selectedTemplate === 'Blank' && (
                     <div>
@@ -829,7 +846,9 @@ const AddPatient = () => {
         </AccordionContent>
       </AccordionItem>
     ))
+
   }                </Accordion>
+
               </div>
 
               <div ref={historyRef} className="border p-4 rounded">
@@ -883,6 +902,7 @@ const AddPatient = () => {
                           />
                         </div>
                       )
+
                   )}                </div>
               </div>
                   </>
@@ -895,6 +915,7 @@ const AddPatient = () => {
                 >
                   {loading ? 'Saving...' : isDoctor ? 'Save Patient Record' : 'Save Patient (Personal Info Only)'}
                 </Button>
+
                 <Button variant="outline" className="hover:bg-[#1EAEDB] hover:text-white" onClick={() => setShowCancelModal(true)}>Cancel</Button>
               </div>
             </CardContent>
