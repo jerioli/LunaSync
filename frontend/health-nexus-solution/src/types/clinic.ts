@@ -1,4 +1,4 @@
-import { User, Patient, Appointment, Prescription, LabResult, Inventory, Payment } from '@/lib/mock-data';
+import { User, Patient, NewPatient, Appointment, Prescription, LabResult, Inventory, Payment } from '@/lib/mock-data';
 
 // Define clinic branding and customization types
 export type ClinicCustomization = {
@@ -27,7 +27,7 @@ export interface ClinicContextType {
   appointments: Appointment[];
   prescriptions: Prescription[];
   labResults: LabResult[];
-  addPatient: (patient: Patient) => Promise<void>;
+  addPatient: (patient: NewPatient) => Promise<void>;
   addAppointment: (appointment: Appointment) => void;
   updateAppointment: (id: string, updatedData: Partial<Appointment>) => void;
   addPrescription: (prescription: Prescription) => void;
@@ -41,4 +41,5 @@ export interface ClinicContextType {
   updateInventory: (id: string, updatedData: Partial<Inventory>) => void;
   addPayment: (payment: Payment) => void;
   updatePayment: (id: string, data: Partial<Payment>) => void;
+  fetchPatients: () => Promise<void>;
 }

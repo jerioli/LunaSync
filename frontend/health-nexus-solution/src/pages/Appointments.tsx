@@ -23,6 +23,16 @@ const Appointments = () => {
   const isReceptionist = currentUser?.role === 'receptionist';
   const isDoctor = currentUser?.role === 'doctor';
 
+  // Helper function to format date in readable format
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: '2-digit'
+    });
+  };
+
   // Map backend fields to frontend expected fields
   const mapAppointments = (data) => {
     return data.map(appt => ({
@@ -33,14 +43,27 @@ const Appointments = () => {
       status: appt.status || 'scheduled',
       type: appt.appointment_type,
       notes: appt.notes,
-      doctorId: appt.doctor || null // if you have doctor field
+      doctorId: appt.doctor || null,
+      doctorName: appt.doctor_name || appt.display_doctor_name || "Not Assigned",
+      // Map new patient detail fields for pending appointments
+      patient_name: appt.patient_name,
+      patient_email: appt.patient_email,
+      patient_phone: appt.patient_phone,
+      patient_date_of_birth: appt.patient_date_of_birth,
+      patient_gender: appt.patient_gender,
+      patient_address: appt.patient_address,
+      patient_marital_status: appt.patient_marital_status,
+      // Add display fields for confirmed appointments
+      display_patient_name: appt.display_patient_name,
+      display_doctor_name: appt.display_doctor_name
     }));
   };
 
   // Fetch appointments from backend
   const fetchAppointments = async () => {
     try {
-      const response = await axios.get('/api/appointments/list/');
+      const response = await axios.get('appointments/list/');
+      console.log('Fetched appointments from API:', response.data);
       setAppointments(mapAppointments(response.data));
     } catch (error) {
       console.error('Error fetching appointments:', error);
@@ -55,7 +78,7 @@ const Appointments = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await axios.get('/api/patients/');
+        const response = await axios.get('patients/');
         setLocalPatients(response.data);
       } catch (error) {
         console.error('Error fetching patients:', error);
@@ -66,23 +89,93 @@ const Appointments = () => {
 
   // Filtered appointments logic
   const filteredAppointments = appointments.filter(appointment => {
-    if (isDoctor && appointment.doctorId !== currentUser?.id) {
-      return false;
+    // Debug: Log all appointments being processed with detailed doctor info
+    console.log('Processing appointment:', {
+      id: appointment.id,
+      doctorId: appointment.doctorId,
+      doctorIdType: typeof appointment.doctorId,
+      display_doctor_name: appointment.display_doctor_name,
+      status: appointment.status,
+      activeTab,
+      isDoctor,
+      currentUserId: currentUser?.id,
+      currentUserIdType: typeof currentUser?.id,
+      fullAppointment: appointment
+    });
+
+    // For doctors, only show appointments assigned to them
+    if (isDoctor) {
+      // Handle both string and number ID comparisons
+      const appointmentDoctorId = String(appointment.doctorId);
+      const currentUserId = String(currentUser?.id);
+      
+      // Debug logging for doctors
+      console.log('Doctor filtering:', {
+        appointmentId: appointment.id,
+        appointmentDoctorId: appointment.doctorId,
+        appointmentDoctorIdString: appointmentDoctorId,
+        currentUserId: currentUser?.id,
+        currentUserIdString: currentUserId,
+        stringComparison: `"${appointmentDoctorId}" === "${currentUserId}"`,
+        match: appointmentDoctorId === currentUserId,
+        doctorIdIsFalsy: !appointment.doctorId,
+        doctorIdIsNull: appointment.doctorId === null,
+        doctorIdIsUndefined: appointment.doctorId === undefined,
+        doctorIdIsEmptyString: appointment.doctorId === "",
+        displayDoctorName: appointment.display_doctor_name,
+        currentUserName: currentUser?.name
+      });
+      
+      // Check if appointment has doctorId and it matches current user
+      const doctorIdMatches = appointment.doctorId && appointmentDoctorId === currentUserId;
+      
+      // Also check if display_doctor_name matches current user's name (fallback)
+      const doctorNameMatches = appointment.display_doctor_name && 
+                               currentUser?.name && 
+                               appointment.display_doctor_name === currentUser.name;
+      
+      console.log('Doctor matching logic:', {
+        doctorIdMatches,
+        doctorNameMatches,
+        shouldShow: doctorIdMatches || doctorNameMatches
+      });
+      
+      // If neither doctorId nor display name matches, don't show it to doctors
+      if (!doctorIdMatches && !doctorNameMatches) {
+        console.log('Filtering out: No doctor match found');
+        return false;
+      }
+      
+      console.log('Doctor filter PASSED for appointment:', appointment.id);
     }
 
     const appointmentDate = new Date(appointment.date + 'T' + appointment.time);
     const today = new Date();
     
     if (activeTab === "upcoming") {
-      return appointmentDate >= today && appointment.status === "scheduled";
-    } else if (activeTab === "pending" && isReceptionist) {
-      return appointment.status === "pending";
+      const result = appointmentDate >= today && appointment.status === "scheduled";
+      console.log('Upcoming filter result:', result, 'for appointment:', appointment.id);
+      return result;
+    } else if (activeTab === "pending") {
+      // Only receptionists can see pending appointments
+      if (!isReceptionist) {
+        console.log('Filtering out pending: Not receptionist');
+        return false;
+      }
+      const result = appointment.status === "pending";
+      console.log('Pending filter result:', result, 'for appointment:', appointment.id);
+      return result;
     } else if (activeTab === "completed") {
-      return appointment.status === "completed";
+      const result = appointment.status === "completed";
+      console.log('Completed filter result:', result, 'for appointment:', appointment.id);
+      return result;
     } else if (activeTab === "cancelled") {
-      return appointment.status === "cancelled" || appointment.status === "no-show";
+      const result = appointment.status === "cancelled" || appointment.status === "no-show";
+      console.log('Cancelled filter result:', result, 'for appointment:', appointment.id);
+      return result;
     }
     
+    console.log('No tab match, filtering out appointment:', appointment.id);
     return false;
   });
 
@@ -92,7 +185,31 @@ const Appointments = () => {
   // Reset page to 1 when tab or filter changes
   useEffect(() => { setCurrentPage(1); }, [activeTab, appointments]);
 
- const getPatientName = (patientId) => {
+ const getPatientName = (patientId, appointment) => {
+  // First check for patient_name field (new structure for pending appointments)
+  if (appointment?.patient_name) {
+    return appointment.patient_name;
+  }
+
+  // For confirmed appointments, use display_patient_name if available
+  if (appointment?.display_patient_name) {
+    return appointment.display_patient_name;
+  }
+
+  // For pending appointments with old structure, try to get name from notes
+  if (appointment?.notes && appointment.status === 'pending') {
+    const notes = appointment.notes;
+    if (notes.includes('Patient Details (Pending):')) {
+      try {
+        const patientDetails = JSON.parse(notes.split('Patient Details (Pending):')[1].trim());
+        return patientDetails.name;
+      } catch (error) {
+        console.error('Error parsing patient details:', error);
+      }
+    }
+  }
+
+  // Fallback to patient lookup
   const patient = localPatients.find(p => String(p.id) === String(patientId));
   if (patient && patient.name) return patient.name;
   if (typeof patientId === 'object' && patientId !== null && patientId.name) {
@@ -101,22 +218,116 @@ const Appointments = () => {
   return "Unknown Patient";
 };
 
-  const getDoctorName = (doctorId: string) => {
-    const doctor = users.find(u => u.id === doctorId && u.role === 'doctor');
-    return doctor ? doctor.name : "Unassigned Doctor";
+  const getDoctorName = (doctorId: string, appointment?: any) => {
+    // Debug logging for getDoctorName function
+    console.log('getDoctorName called with:', {
+      doctorId,
+      doctorIdType: typeof doctorId,
+      appointmentId: appointment?.id,
+      doctorName: appointment?.doctorName,
+      display_doctor_name: appointment?.display_doctor_name,
+      appointment_doctor_field: appointment?.doctor,
+      appointment_doctorId_field: appointment?.doctorId
+    });
+
+    // First check if we have doctorName from the backend
+    if (appointment?.doctorName && appointment.doctorName !== "N/A" && appointment.doctorName !== "Not Assigned") {
+      console.log('Using doctorName:', appointment.doctorName);
+      return appointment.doctorName;
+    }
+
+    // Fallback to display_doctor_name
+    if (appointment?.display_doctor_name && appointment.display_doctor_name !== "N/A" && appointment.display_doctor_name !== "Not Assigned") {
+      console.log('Using display_doctor_name:', appointment.display_doctor_name);
+      return appointment.display_doctor_name;
+    }
+
+    // If no doctorId provided, return unassigned
+    if (!doctorId) {
+      return "Unassigned Doctor";
+    }
+
+    // Try to find doctor in users array (handle both string and number IDs)
+    const doctor = users.find(u => 
+      (String(u.id) === String(doctorId) || u.id === doctorId) && u.role === 'doctor'
+    );
+    
+    if (doctor && doctor.name) {
+      console.log('Found doctor in users array:', doctor.name);
+      return doctor.name;
+    }
+
+    // If not found in users, try to fetch from appointments data
+    const existingAppointment = appointments.find(appt => 
+      String(appt.doctorId) === String(doctorId) && (appt.doctorName || appt.display_doctor_name)
+    );
+    
+    if (existingAppointment?.doctorName && existingAppointment.doctorName !== "N/A" && existingAppointment.doctorName !== "Not Assigned") {
+      console.log('Found doctor in existing appointments (doctorName):', existingAppointment.doctorName);
+      return existingAppointment.doctorName;
+    }
+    
+    if (existingAppointment?.display_doctor_name && existingAppointment.display_doctor_name !== "N/A" && existingAppointment.display_doctor_name !== "Not Assigned") {
+      console.log('Found doctor in existing appointments (display_doctor_name):', existingAppointment.display_doctor_name);
+      return existingAppointment.display_doctor_name;
+    }
+
+    console.log('No doctor found, returning Unassigned Doctor');
+    return "Unassigned Doctor";
+  };
+
+  // Helper function to filter out patient details from notes
+  const getDisplayNotes = (notes: string) => {
+    if (!notes) return null;
+    
+    // Check if notes contain patient details
+    if (notes.includes('Patient Details (Pending):')) {
+      // Extract only the part before patient details
+      const beforePatientDetails = notes.split('Patient Details (Pending):')[0].trim();
+      // Return only if there's actual content before patient details and it's not just "none"
+      return beforePatientDetails && beforePatientDetails.toLowerCase() !== 'none' ? beforePatientDetails : null;
+    }
+    
+    // Return original notes if no patient details found and it's not just "none"
+    return notes.toLowerCase() !== 'none' ? notes : null;
   };
 
   // Local handler for status updates
-  const handleStatusUpdate = (appointmentId, status) => {
-    setAppointments(prev => prev.map(appt => appt.id === appointmentId ? { ...appt, status } : appt));
-    const statusMessages = {
-      'scheduled': "Appointment has been confirmed",
-      'completed': "Appointment marked as completed",
-      'cancelled': "Appointment has been cancelled",
-      'no-show': "Patient marked as no-show",
-      'pending': "Appointment marked as pending"
-    };
-    toast.success(statusMessages[status]);
+  const handleStatusUpdate = async (appointmentId, status) => {
+    try {
+      const response = await axios.post(`appointments/update-status/${appointmentId}/`, {
+        status: status
+      });
+      
+      // Update local state with the response
+      setAppointments(prev => prev.map(appt => 
+        appt.id === appointmentId ? { ...appt, ...response.data } : appt
+      ));
+      
+      const statusMessages = {
+        'scheduled': "Appointment has been confirmed",
+        'completed': "Appointment marked as completed",
+        'cancelled': "Appointment has been cancelled",
+        'no-show': "Patient marked as no-show",
+        'pending': "Appointment marked as pending"
+      };
+      
+      // Enhanced success message for confirmations
+      if (status === 'scheduled' && response.data.email_sent) {
+        toast.success("Appointment confirmed! Patient has been notified via email.");
+      } else if (status === 'scheduled' && response.data.patient_created) {
+        toast.success("Appointment confirmed and patient record created!");
+      } else {
+        toast.success(statusMessages[status]);
+      }
+      
+      // Refresh appointments to get updated data
+      await fetchAppointments();
+      
+    } catch (error) {
+      console.error('Error updating appointment status:', error);
+      toast.error('Failed to update appointment status. Please try again.');
+    }
   };
 
   return (
@@ -164,7 +375,7 @@ const Appointments = () => {
                         <div className="flex justify-between items-center min-h-0">
                           <div className="flex items-center min-h-0">
                             <div>
-                              <CardTitle className="text-[1.1rem] font-semibold leading-tight">{getPatientName(appointment.patientId)}</CardTitle>
+                              <CardTitle className="text-[1.1rem] font-semibold leading-tight">{getPatientName(appointment.patientId, appointment)}</CardTitle>
                               <CardDescription className="text-sm text-muted-foreground">{appointment.type}</CardDescription>
                             </div>
                           </div>
@@ -177,7 +388,7 @@ const Appointments = () => {
                         <div className="grid grid-cols-2 gap-1 md:gap-2 text-sm">
                           <div className="flex items-center min-h-0 py-1">
                             <Calendar className="mr-1 h-3.5 w-3.5 text-muted-foreground" />
-                            <span>{new Date(appointment.date).toLocaleDateString()}</span>
+                            <span>{formatDate(appointment.date)}</span>
                           </div>
                           <div className="flex items-center min-h-0 py-1">
                             <Clock className="mr-1 h-3.5 w-3.5 text-muted-foreground" />
@@ -185,12 +396,12 @@ const Appointments = () => {
                           </div>
                           <div className="col-span-2 min-h-0 py-1">
                             <p className="text-xs font-medium leading-tight">Doctor:</p>
-                            <p className="text-xs text-muted-foreground leading-tight">{getDoctorName(appointment.doctorId)}</p>
+                            <p className="text-xs text-muted-foreground leading-tight">{getDoctorName(appointment.doctorId, appointment)}</p>
                           </div>
-                          {appointment.notes && (
+                          {getDisplayNotes(appointment.notes) && (
                             <div className="col-span-2 min-h-0 py-1">
                               <p className="text-xs font-medium leading-tight">Notes:</p>
-                              <p className="text-xs text-muted-foreground leading-tight">{appointment.notes}</p>
+                              <p className="text-xs text-muted-foreground leading-tight">{getDisplayNotes(appointment.notes)}</p>
                             </div>
                           )}
                         </div>
@@ -267,7 +478,7 @@ const Appointments = () => {
                           <div className="flex items-center min-h-0">
                            
                             <div>
-                              <CardTitle className="text-[1.1rem] font-semibold leading-tight">{getPatientName(appointment.patientId)}</CardTitle>
+                              <CardTitle className="text-[1.1rem] font-semibold leading-tight">{getPatientName(appointment.patientId, appointment)}</CardTitle>
                               <CardDescription className="text-sm text-muted-foreground">{appointment.type}</CardDescription>
                             </div>
                           </div>
@@ -280,7 +491,7 @@ const Appointments = () => {
                         <div className="grid grid-cols-2 gap-0.5 md:gap-1 text-sm">
                           <div className="flex items-center min-h-0 py-1">
                             <Calendar className="mr-1 h-3.5 w-3.5 text-muted-foreground" />
-                            <span>{new Date(appointment.date).toLocaleDateString()}</span>
+                            <span>{formatDate(appointment.date)}</span>
                           </div>
                           <div className="flex items-center min-h-0 py-1">
                             <Clock className="mr-1 h-3.5 w-3.5 text-muted-foreground" />
@@ -288,12 +499,12 @@ const Appointments = () => {
                           </div>
                           <div className="col-span-2">
                             <p className="text-xs font-medium leading-tight">Doctor:</p>
-                            <p className="text-xs text-muted-foreground leading-tight">{getDoctorName(appointment.doctorId)}</p>
+                            <p className="text-xs text-muted-foreground leading-tight">{getDoctorName(appointment.doctorId, appointment)}</p>
                           </div>
-                          {appointment.notes && (
+                          {getDisplayNotes(appointment.notes) && (
                             <div className="col-span-2">
                               <p className="text-xs font-medium leading-tight">Notes:</p>
-                              <p className="text-xs text-muted-foreground leading-tight">{appointment.notes}</p>
+                              <p className="text-xs text-muted-foreground leading-tight">{getDisplayNotes(appointment.notes)}</p>
                             </div>
                           )}
                         </div>
@@ -329,7 +540,7 @@ const Appointments = () => {
                         <div className="flex items-center min-h-0">
                           
                           <div>
-                            <CardTitle className="text-[1.1rem] font-semibold leading-tight">{getPatientName(appointment.patientId)}</CardTitle>
+                            <CardTitle className="text-[1.1rem] font-semibold leading-tight">{getPatientName(appointment.patientId, appointment)}</CardTitle>
                             <CardDescription className="text-sm text-muted-foreground">{appointment.type}</CardDescription>
                           </div>
                         </div>
@@ -342,7 +553,7 @@ const Appointments = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="flex items-center">
                           <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                          <span>{new Date(appointment.date).toLocaleDateString()}</span>
+                          <span>{formatDate(appointment.date)}</span>
                         </div>
                         <div className="flex items-center">
                           <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
@@ -370,7 +581,7 @@ const Appointments = () => {
                         <div className="flex items-center min-h-0">
                           
                           <div>
-                            <CardTitle className="text-[1.1rem] font-semibold leading-tight">{getPatientName(appointment.patientId)}</CardTitle>
+                            <CardTitle className="text-[1.1rem] font-semibold leading-tight">{getPatientName(appointment.patientId, appointment)}</CardTitle>
                             <CardDescription className="text-sm text-muted-foreground">{appointment.type}</CardDescription>
                           </div>
                         </div>
@@ -383,7 +594,7 @@ const Appointments = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="flex items-center">
                           <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                          <span>{new Date(appointment.date).toLocaleDateString()}</span>
+                          <span>{formatDate(appointment.date)}</span>
                         </div>
                         <div className="flex items-center">
                           <Clock className="mr-2 h-4 w-4 text-muted-foreground" />

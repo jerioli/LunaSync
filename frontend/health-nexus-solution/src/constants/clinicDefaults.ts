@@ -1,5 +1,5 @@
 
-import { User, Patient, Appointment, Prescription, LabResult, Inventory, Payment } from '@/lib/mock-data';
+import { User, Patient, NewPatient, Appointment, Prescription, LabResult, Inventory, Payment } from '@/lib/mock-data';
 import { ClinicCustomization } from '@/types/clinic';
 
 export const defaultClinicCustomization: ClinicCustomization = {
@@ -39,7 +39,7 @@ export type ClinicContextType = {
   labResults: LabResult[];
   inventory: Inventory[];
   payments: Payment[];
-  addPatient: (patient: Patient) => void;
+  addPatient: (patient: NewPatient) => void;
   addAppointment: (appointment: Appointment) => void;
   updateAppointment: (id: string, updatedData: Partial<Appointment>) => void;
   addPrescription: (prescription: Prescription) => void;

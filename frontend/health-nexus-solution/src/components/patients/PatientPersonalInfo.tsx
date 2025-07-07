@@ -27,13 +27,12 @@ const PatientPersonalInfo: React.FC<PatientPersonalInfoProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">          <div className="space-y-2">
             <Label htmlFor="name">Full Name</Label>
             {isEditing ? (
               <Input 
                 id="name" 
-                value={patient.name} 
+                value={patient.name || ''} 
                 onChange={(e) => onUpdate({ name: e.target.value })}
               />
             ) : (
@@ -47,7 +46,7 @@ const PatientPersonalInfo: React.FC<PatientPersonalInfoProps> = ({
               <Input 
                 id="dateOfBirth" 
                 type="date" 
-                value={patient.date_of_birth} 
+                value={patient.date_of_birth || ''}
                 onChange={(e) => onUpdate({ date_of_birth: e.target.value })}
               />
             ) : (
@@ -58,14 +57,13 @@ const PatientPersonalInfo: React.FC<PatientPersonalInfoProps> = ({
               </div>
             )}
           </div>
-          
-          <div className="space-y-2">
+            <div className="space-y-2">
             <Label htmlFor="gender">Gender</Label>
             {isEditing ? (
               <select 
                 id="gender" 
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                value={patient.gender}
+                value={patient.gender || 'male'}
                 onChange={(e) => onUpdate({ gender: e.target.value as 'male' | 'female' | 'other' })}
               >
                 <option value="male">Male</option>
@@ -83,7 +81,7 @@ const PatientPersonalInfo: React.FC<PatientPersonalInfoProps> = ({
               <Input 
                 id="email" 
                 type="email" 
-                value={patient.email} 
+                value={patient.email || ''} 
                 onChange={(e) => onUpdate({ email: e.target.value })}
               />
             ) : (
@@ -96,7 +94,7 @@ const PatientPersonalInfo: React.FC<PatientPersonalInfoProps> = ({
             {isEditing ? (
               <Input 
                 id="phone" 
-                value={patient.phone} 
+                value={patient.phone || ''} 
                 onChange={(e) => onUpdate({ phone: e.target.value })}
               />
             ) : (
@@ -109,7 +107,7 @@ const PatientPersonalInfo: React.FC<PatientPersonalInfoProps> = ({
             {isEditing ? (
               <Textarea 
                 id="address" 
-                value={patient.address} 
+                value={patient.address || ''} 
                 onChange={(e) => onUpdate({ address: e.target.value })}
               />
             ) : (

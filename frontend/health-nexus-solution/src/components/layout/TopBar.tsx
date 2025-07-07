@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, MessageSquare, Search, Calendar, User, Clock } from 'lucide-react';
+import { Bell, MessageSquare, Search, Calendar, User, Clock, Settings, LogOut, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useClinic } from '@/contexts/ClinicContext';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -96,12 +104,15 @@ export const TopBar: React.FC = () => {
       fetchPendingAppointments();
     }
   }, [showNotifications]);
-
   // Handle logout
   const handleLogout = () => {
     localStorage.removeItem('user');  // Clear user data
     setCurrentUser(null);             // Reset the context
     navigate('/login');              // Redirect to login page
+  };
+  // Handle settings navigation
+  const handleSettings = () => {
+    navigate('/user-settings');
   };
 
   // Handle notification click
@@ -270,20 +281,46 @@ export const TopBar: React.FC = () => {
             </div>
           )}
         </div>
-        
-        <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon">
           <MessageSquare className="h-5 w-5" />
         </Button>
-        <Avatar>
-          <AvatarImage src={currentUser.image} alt={currentUser.name} />
-          <AvatarFallback
-            onClick={handleLogout}  // Add the logout handler here
-            className="cursor-pointer hover:bg-red-100 transition rounded-full px-2 py-1"
-            title="Logout"
-          >
-            {currentUser.name.charAt(0)}
-          </AvatarFallback>
-        </Avatar>
+        
+        {/* User Profile Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={currentUser.image} alt={currentUser.name} />
+                <AvatarFallback>
+                  {currentUser.name.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">{currentUser.name}</p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  {currentUser.email}
+                </p>
+                <p className="text-xs leading-none text-muted-foreground capitalize">
+                  {currentUser.role}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSettings} className="cursor-pointer">
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

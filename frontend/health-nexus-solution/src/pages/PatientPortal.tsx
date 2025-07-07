@@ -39,8 +39,22 @@ const PatientPortal = () => {
   // Move fetchClinic outside useEffect
   const fetchClinic = async () => {
     try {
-      const res = await axios.get('/api/clinic/');
-      setClinic(res.data || {});
+      const res = await axios.get('clinic/');
+      const clinicData = res.data || {};
+      
+      // Also fetch submitted reviews from the reviews API
+      try {
+        const reviewsRes = await axios.get('clinic/reviews/');
+        if (reviewsRes.data && reviewsRes.data.length > 0) {
+          // Use submitted reviews as the primary source
+          clinicData.reviews = reviewsRes.data;
+        }
+      } catch (reviewsErr) {
+        console.log('Could not fetch submitted reviews:', reviewsErr);
+        // Keep any reviews from clinic data as fallback
+      }
+      
+      setClinic(clinicData);
     } catch (err) {
       // fallback: keep default empty values
     } finally {
@@ -68,12 +82,23 @@ const PatientPortal = () => {
         ...reviewForm,
         date: new Date().toISOString().slice(0, 10),
       };
-      await axios.post('/api/clinic/reviews/', reviewData);
+      
+      const response = await axios.post('clinic/reviews/', reviewData);
+      
       setReviewForm({ name: '', email: '', rating: 5, comment: '' });
       await fetchClinic(); // Refresh reviews
-      alert('Thank you for your review!');
+      
+      // Enhanced success message with email confirmation
+      const emailSent = response.data?.email_sent;
+      if (emailSent) {
+        alert('Thank you for your review! We have received it and our clinic management team has been notified via email. They may reach out to you directly.');
+      } else {
+        alert('Thank you for your review! We have received it and saved it to our system. (Email notification temporarily unavailable, but your review is safely stored).');
+      }
+      
     } catch (err) {
-      alert('Failed to submit review.');
+      console.error('Review submission error:', err);
+      alert('Failed to submit review. Please try again later.');
     } finally {
       setSubmitting(false);
     }
@@ -342,6 +367,7 @@ const PatientPortal = () => {
                     className="bg-white text-black"
                     value={reviewForm.name}
                     onChange={e => setReviewForm({ ...reviewForm, name: e.target.value })}
+                    required
                   />
                 </div>
                 <div>
@@ -351,6 +377,7 @@ const PatientPortal = () => {
                     className="bg-white text-black"
                     value={reviewForm.email}
                     onChange={e => setReviewForm({ ...reviewForm, email: e.target.value })}
+                    required
                   />
                 </div>
                 <div>

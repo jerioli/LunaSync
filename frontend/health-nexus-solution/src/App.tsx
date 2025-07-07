@@ -3,18 +3,23 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ClinicProvider, useClinic } from "./contexts/ClinicContext";
-import AddPatient from "./components/patients/AddPatient";
+
+import { ThemeProvider } from "./contexts/ThemeContext";
+
+
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import PatientPortal from "./pages/PatientPortal";
 import PatientsList from "./pages/PatientsList";
 import PatientManagement from "./pages/PatientManagement";
+import AddPatient from "./components/patients/AddPatient";
 import LabResults from "./pages/LabResults";
 import Appointments from "./pages/Appointments";
 import Prescriptions from "./pages/Prescriptions";
 import Schedule from "./pages/Schedule";
 import Staff from "./pages/Staff";
 import Settings from "./pages/Settings";
+import UserSettings from "./pages/UserSettings";
 import { AppLayout } from "./components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
@@ -54,10 +59,11 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ClinicProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+      <ThemeProvider defaultTheme="system" storageKey="health-nexus-theme">
+        <ClinicProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
           <Routes>
             {/* Initial landing/routing page */}
             <Route path="/index" element={<Index />} />
@@ -96,12 +102,19 @@ const App = () => {
             } />
 
             
-            
-            {/* Patient management routes */}
+              {/* Patient management routes */}
             <Route path="/patients" element={
               <ProtectedRoute>
                 <AppLayout>
                   <PatientsList />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/patients/add" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <AddPatient />
                 </AppLayout>
               </ProtectedRoute>
             } />
@@ -149,12 +162,20 @@ const App = () => {
                 </AppLayout>
               </ProtectedRoute>
             } />
-            
-            {/* Settings route for admin */}
+              {/* Settings route for admin */}
             <Route path="/settings" element={
               <ProtectedRoute>
                 <AppLayout>
                   <Settings />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            
+            {/* User Settings route for staff members */}
+            <Route path="/user-settings" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <UserSettings />
                 </AppLayout>
               </ProtectedRoute>
             } />
@@ -167,8 +188,7 @@ const App = () => {
                 </AppLayout>
               </ProtectedRoute>
             } />
-            
-            {/* 404 route */}
+              {/* 404 route */}
             <Route path="*" element={<NotFound />} />
 
             {/* Add new patient route */}
@@ -180,6 +200,7 @@ const App = () => {
           </Routes>
         </BrowserRouter>
       </ClinicProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };

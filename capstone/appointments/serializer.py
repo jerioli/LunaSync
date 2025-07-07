@@ -91,8 +91,19 @@ class AppointmentSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         try:
             data = super().to_representation(instance)
-            # Add patient details from the related patient object
+            
+            # Add doctor information
+            if instance.doctor:
+                data['doctor'] = instance.doctor.id
+                data['doctor_name'] = f"{instance.doctor.first_name} {instance.doctor.last_name}"
+            else:
+                data['doctor'] = None
+                data['doctor_name'] = "Not Assigned"
+            
+            # Add patient details from the related patient object or from notes
             if instance.patient:
+                # For confirmed appointments with patient records
+                data['patient'] = instance.patient.id
                 data['patient_name'] = instance.patient.name
                 data['patient_email'] = instance.patient.email
                 data['patient_phone'] = instance.patient.phone
@@ -100,6 +111,29 @@ class AppointmentSerializer(serializers.ModelSerializer):
                 data['gender'] = instance.patient.gender
                 data['address'] = instance.patient.address
                 data['marital_status'] = instance.patient.marital_status
+            elif instance.status == 'pending' and instance.notes and 'Patient Details (Pending):' in instance.notes:
+                # For pending appointments, extract patient details from notes
+                try:
+                    import json
+                    patient_details_str = instance.notes.split('Patient Details (Pending):')[1].strip()
+                    patient_details = json.loads(patient_details_str)
+                    
+                    data['patient'] = None
+                    data['patient_name'] = patient_details.get('name')
+                    data['patient_email'] = patient_details.get('email')
+                    data['patient_phone'] = patient_details.get('phone')
+                    data['date_of_birth'] = patient_details.get('date_of_birth')
+                    data['gender'] = patient_details.get('gender')
+                    data['address'] = patient_details.get('address')
+                    data['marital_status'] = patient_details.get('marital_status')
+                except (json.JSONDecodeError, IndexError) as e:
+                    logger.error(f"Error parsing patient details from notes: {str(e)}")
+                    # Set default values if parsing fails
+                    data['patient'] = None
+                    data['patient_name'] = None
+                    data['patient_email'] = None
+                    data['patient_phone'] = None
+                    
             return data
         except Exception as e:
             logger.error(f"Error in to_representation: {str(e)}")
@@ -202,37 +236,37 @@ class AppointmentSerializer(serializers.ModelSerializer):
         """Create a new appointment"""
         try:
             status = validated_data.get('status', 'pending')
-            notes = validated_data.get('notes', '')
             
-            # Check if this is a pending appointment with patient details in notes
-            if status == 'pending' and 'Patient Details (Pending):' in notes:
-                # For pending appointments, don't create patient record
-                # Extract patient details from notes and store them there
-                patient_data = {
-                    'name': validated_data.pop('patient_name'),
-                    'email': validated_data.pop('patient_email'),
-                    'phone': validated_data.pop('patient_phone'),
-                    'date_of_birth': validated_data.pop('date_of_birth'),
-                    'gender': validated_data.pop('gender'),
-                    'address': validated_data.pop('address'),
-                    'marital_status': validated_data.pop('marital_status')
-                }
+            # Extract patient data first
+            patient_data = {
+                'name': validated_data.pop('patient_name'),
+                'email': validated_data.pop('patient_email'),
+                'phone': validated_data.pop('patient_phone'),
+                'date_of_birth': validated_data.pop('date_of_birth'),
+                'gender': validated_data.pop('gender'),
+                'address': validated_data.pop('address'),
+                'marital_status': validated_data.pop('marital_status')
+            }
+            
+            # For pending appointments from the chatbot, don't create patient record yet
+            if status == 'pending':
+                # Store patient details in notes for pending appointments
+                user_notes = validated_data.get('notes', '')
+                import json
                 
-                # Patient details are already in notes, so set patient to null
+                # Convert date objects to strings for JSON serialization
+                serializable_patient_data = patient_data.copy()
+                if 'date_of_birth' in serializable_patient_data and serializable_patient_data['date_of_birth']:
+                    serializable_patient_data['date_of_birth'] = serializable_patient_data['date_of_birth'].strftime('%Y-%m-%d')
+                
+                patient_details_json = json.dumps(serializable_patient_data)
+                combined_notes = f"{user_notes}\n\nPatient Details (Pending): {patient_details_json}".strip()
+                validated_data['notes'] = combined_notes
+                
+                # Set patient to null for pending appointments
                 patient = None
             else:
                 # For non-pending appointments, create or get patient record
-                patient_data = {
-                    'name': validated_data.pop('patient_name'),
-                    'email': validated_data.pop('patient_email'),
-                    'phone': validated_data.pop('patient_phone'),
-                    'date_of_birth': validated_data.pop('date_of_birth'),
-                    'gender': validated_data.pop('gender'),
-                    'address': validated_data.pop('address'),
-                    'marital_status': validated_data.pop('marital_status')
-                }
-                
-                # Create or get patient
                 patient, created = Patient.objects.get_or_create(
                     email=patient_data['email'],
                     defaults=patient_data
@@ -251,7 +285,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
                 doctor=doctor,
                 date=validated_data.get('date'),
                 time=validated_data.get('time'),
-                appointment_type=validated_data.pop('appointment_type'),  # Use appointment_type instead of type
+                appointment_type=validated_data.pop('appointment_type'),
                 notes=validated_data.get('notes', ''),
                 status=status
             )

@@ -111,7 +111,8 @@ class ReviewCreateView(APIView):
                 headers={
                     'X-Patient-Email': review_data['email'],
                     'X-Patient-Name': review_data['name'],
-                }            )
+                }
+            )
             
             msg.attach_alternative(html_content, "text/html")
             print("Attempting to send email...")

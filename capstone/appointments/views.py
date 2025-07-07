@@ -295,11 +295,27 @@ class AppointmentUpdateStatusView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            appointment.status = new_status
-            appointment.save()
-
-            serializer = AppointmentSerializer(appointment)
-            return Response(serializer.data)
+            # Handle pending -> scheduled status change
+            if appointment.status == 'pending' and new_status == 'scheduled':
+                email_sent = self._handle_appointment_confirmation(appointment)
+                
+                appointment.status = new_status
+                appointment.save()
+                
+                serializer = AppointmentSerializer(appointment)
+                response_data = serializer.data
+                response_data['email_sent'] = email_sent
+                response_data['patient_created'] = hasattr(appointment, '_patient_created')
+                
+                return Response(response_data)
+            else:
+                # Regular status update
+                appointment.status = new_status
+                appointment.save()
+                
+                serializer = AppointmentSerializer(appointment)
+                return Response(serializer.data)
+                
         except Appointment.DoesNotExist:
             return Response(
                 {'error': 'Appointment not found'},
@@ -312,3 +328,107 @@ class AppointmentUpdateStatusView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+    
+    def _handle_appointment_confirmation(self, appointment):
+        """Handle patient creation and email sending when confirming a pending appointment"""
+        try:
+            # Check if appointment has patient details in different formats
+            patient = None
+            email_sent = False
+            
+            # Check if appointment already has a patient (new format)
+            if hasattr(appointment, 'patient_name') and appointment.patient_name:
+                # Create patient from the new appointment fields
+                try:
+                    patient = Patient.objects.create(
+                        name=appointment.patient_name,
+                        email=appointment.patient_email,
+                        phone=appointment.patient_phone,
+                        date_of_birth=appointment.patient_date_of_birth,
+                        gender=appointment.patient_gender,
+                        address=appointment.patient_address,
+                        marital_status=appointment.patient_marital_status
+                    )
+                    
+                    # Link the patient to the appointment
+                    appointment.patient = patient
+                    appointment._patient_created = True
+                    logger.info(f"Created patient {patient.id} for appointment {appointment.id}")
+                    
+                except Exception as patient_error:
+                    logger.error(f"Error creating patient from appointment fields: {str(patient_error)}")
+            
+            # Check if appointment has patient details in notes (old format)
+            elif appointment.notes and 'Patient Details (Pending):' in appointment.notes:
+                try:
+                    # Extract the patient details JSON string
+                    patient_details_str = appointment.notes.split('Patient Details (Pending):')[1].strip()
+                    patient_details = json.loads(patient_details_str)
+                    
+                    # Convert date format from DD/MM/YYYY or MM/DD/YYYY to YYYY-MM-DD
+                    date_of_birth = patient_details.get('dateOfBirth') or patient_details.get('date_of_birth')
+                    if date_of_birth:
+                        try:
+                            # Try to parse different date formats
+                            if '/' in str(date_of_birth):
+                                date_str = str(date_of_birth)
+                                # Try MM/DD/YYYY format first (American format)
+                                try:
+                                    date_obj = datetime.strptime(date_str, '%m/%d/%Y')
+                                    date_of_birth = date_obj.strftime('%Y-%m-%d')
+                                except ValueError:
+                                    # If that fails, try DD/MM/YYYY format (European format)
+                                    try:
+                                        date_obj = datetime.strptime(date_str, '%d/%m/%Y')
+                                        date_of_birth = date_obj.strftime('%Y-%m-%d')
+                                    except ValueError:
+                                        # If both fail, try to use as is (might already be in YYYY-MM-DD)
+                                        pass
+                        except Exception:
+                            # If any conversion fails, try to use as is
+                            pass
+                    
+                    # Create new patient record with all required fields
+                    patient = Patient.objects.create(
+                        name=patient_details['name'],
+                        email=patient_details['email'],
+                        phone=patient_details['phone'],
+                        date_of_birth=date_of_birth,
+                        gender=patient_details.get('gender'),
+                        address=patient_details.get('address'),
+                        marital_status=patient_details.get('maritalStatus') or patient_details.get('marital_status')
+                    )
+                    
+                    # Update appointment with patient reference and clean up notes
+                    appointment.patient = patient
+                    appointment._patient_created = True
+                    
+                    # Remove patient details from notes, keep only user notes
+                    if 'Patient Details (Pending):' in appointment.notes:
+                        appointment.notes = appointment.notes.split('Patient Details (Pending):')[0].strip()
+                    
+                    logger.info(f"Created patient {patient.id} from notes for appointment {appointment.id}")
+                    
+                except (json.JSONDecodeError, KeyError) as parse_error:
+                    logger.error(f"Error parsing patient details from notes: {str(parse_error)}")
+            
+            # Send confirmation email if we have a patient
+            if patient:
+                try:
+                    email_sent = send_appointment_confirmation_email(appointment, patient)
+                    if email_sent:
+                        logger.info(f"Confirmation email sent to {patient.email} for appointment {appointment.id}")
+                    else:
+                        logger.warning(f"Failed to send confirmation email for appointment {appointment.id}")
+                except Exception as email_error:
+                    logger.error(f"Error sending confirmation email: {str(email_error)}")
+                    email_sent = False
+            else:
+                logger.warning(f"No patient found for appointment {appointment.id}, cannot send confirmation email")
+            
+            return email_sent
+            
+        except Exception as e:
+            logger.error(f"Error handling appointment confirmation: {str(e)}")
+            logger.error(traceback.format_exc())
+            return False

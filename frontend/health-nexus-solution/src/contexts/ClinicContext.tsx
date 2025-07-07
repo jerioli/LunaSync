@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { 
   User, 
   Patient, 
+  NewPatient,
   Appointment, 
   Prescription, 
   LabResult,
@@ -56,7 +57,7 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
   }, []);
 
-  const addPatient = async (patient: Patient) => {
+  const addPatient = async (patient: NewPatient) => {
     try {
       // Format the patient data to match backend expectations
       const formattedPatient = {
@@ -152,7 +153,15 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setPayments(payments.map(payment => 
       payment.id === id ? { ...payment, ...data } : payment
     ));
-  };
+  };  // Fetch patients from backend
+  const fetchPatients = useCallback(async () => {
+    try {
+      const response = await axios.get('patients/');
+      setPatientsList(response.data);
+    } catch (error) {
+      console.error('Error fetching patients:', error);
+    }
+  }, []);
 
   return (
     <ClinicContext.Provider
@@ -181,6 +190,7 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         updateInventory,
         addPayment,
         updatePayment,
+        fetchPatients,
       }}
     >
       {children}

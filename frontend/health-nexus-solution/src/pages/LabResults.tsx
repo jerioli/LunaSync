@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useClinic } from '@/contexts/ClinicContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,13 +9,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Image, Search, Upload, FileText, PlusCircle } from 'lucide-react';
+import { Image, Search, Upload, FileText, PlusCircle, ArrowLeft } from 'lucide-react';
 import OcrScanner from '@/components/lab-results/OcrScanner';
 import OcrResultDisplay from '@/components/lab-results/OcrResultDisplay';
 import { toast } from 'sonner';
 
 const LabResults = () => {
   const { patients, labResults, users, addLabResult } = useClinic();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
+  // Get query parameters for patient context
+  const patientId = searchParams.get('patientId');
+  const patientName = searchParams.get('patientName');
+  const returnTo = searchParams.get('returnTo');
+  const showBackButton = returnTo === 'patient';
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [ocrExtractedText, setOcrExtractedText] = useState<string | null>(null);
@@ -22,9 +32,18 @@ const LabResults = () => {
   const [authorizedBy, setAuthorizedBy] = useState<string | undefined>(undefined);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState('');
-  const [resultType, setResultType] = useState('');
-  const [resultNotes, setResultNotes] = useState('');
+  const [resultType, setResultType] = useState('');  const [resultNotes, setResultNotes] = useState('');
   const [resultAuthorizedBy, setResultAuthorizedBy] = useState('');
+  
+  // Pre-select patient when coming from patient management
+  useEffect(() => {
+    if (patientId && patients.length > 0) {
+      const patient = patients.find(p => p.id === patientId);
+      if (patient) {
+        setSelectedPatient(patientId);
+      }
+    }
+  }, [patientId, patients]);
   
   const handleOcrComplete = (text: string, patientId?: string, doctor?: string) => {
     setOcrExtractedText(text);
@@ -68,14 +87,30 @@ const LabResults = () => {
       setIsDialogOpen(true);
     }
   };
-  
-  const handleSaveResult = () => {
+    const handleSaveResult = () => {
     if (!selectedPatient || !resultType) {
       toast.error('Please fill in all required fields');
       return;
     }
     
     const newLabResult = {
+      id: Date.now(),
+      type: 'lab',
+      patientId: selectedPatient,
+      patientName: patients.find(p => p.id === selectedPatient)?.name,
+      dateCreated: new Date().toISOString(),
+      data: {
+        testName: `${resultType} Test`,
+        testType: resultType,
+        status: 'Completed',
+        results: resultNotes,
+        notes: `Authorized by: ${resultAuthorizedBy}`
+      },
+      createdBy: resultAuthorizedBy || 'Unknown'
+    };
+    
+    // Save to general lab results (for the main LabResults page)
+    addLabResult({
       id: `lab-${Date.now()}`,
       patientId: selectedPatient,
       type: resultType,
@@ -83,10 +118,23 @@ const LabResults = () => {
       notes: resultNotes,
       resultUrl: null,
       authorizedBy: resultAuthorizedBy
-    };
+    });
     
-    addLabResult(newLabResult);
+    // Also save to patient-specific localStorage (for PatientManagement page)
+    if (selectedPatient) {
+      const storageKey = `labresults_patient_${selectedPatient}`;
+      const existing = localStorage.getItem(storageKey);
+      const labResults = existing ? JSON.parse(existing) : [];
+      labResults.push(newLabResult);
+      localStorage.setItem(storageKey, JSON.stringify(labResults));
+    }
+    
     toast.success('Lab result added successfully');
+      // If we came from patient management, navigate back
+    if (showBackButton && patientId) {
+      navigate(`/patients/${patientId}`);
+      return;
+    }
     
     setSelectedPatient('');
     setResultType('');
@@ -119,12 +167,29 @@ const LabResults = () => {
     const patient = patients.find(p => p.id === patientId);
     return patient ? patient.name.charAt(0) : '?';
   };
-  
-  return (
+    return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Lab Results</h1>
-        <p className="text-muted-foreground">View, manage, and analyze patient lab results</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">          {showBackButton && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate(`/patients/${patientId}`)}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to {patientName || 'Patient'}
+            </Button>
+          )}
+          <div>
+            <h1 className="text-3xl font-bold">Lab Results</h1>
+            <p className="text-muted-foreground">
+              {showBackButton && patientName 
+                ? `Upload lab results for ${patientName}` 
+                : 'View, manage, and analyze patient lab results'}
+            </p>
+          </div>
+        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -228,8 +293,7 @@ const LabResults = () => {
                 <TabsList className="mb-4">
                   <TabsTrigger value="all">All Results</TabsTrigger>
                   <TabsTrigger value="recent">Recent (7 days)</TabsTrigger>
-                </TabsList>
-                <TabsContent value="all" className="m-0">
+                </TabsList>                <TabsContent value="all" className="m-0">
                   <div className="space-y-4">
                     {filteredResults.length > 0 ? (
                       filteredResults.map((result) => {
@@ -238,7 +302,6 @@ const LabResults = () => {
                           <div key={result.id} className="flex items-center justify-between p-4 border rounded-lg">
                             <div className="flex items-center gap-3">
                               <Avatar>
-                                {patient?.image && <AvatarImage src={patient.image} alt={patient?.name} />}
                                 <AvatarFallback>{getPatientInitials(result.patientId)}</AvatarFallback>
                               </Avatar>
                               <div>
@@ -268,8 +331,7 @@ const LabResults = () => {
                       </div>
                     )}
                   </div>
-                </TabsContent>
-                <TabsContent value="recent" className="m-0">
+                </TabsContent>                <TabsContent value="recent" className="m-0">
                   <div className="space-y-4">
                     {filteredResults.length > 0 ? (
                       filteredResults.map((result) => {
@@ -278,7 +340,6 @@ const LabResults = () => {
                           <div key={result.id} className="flex items-center justify-between p-4 border rounded-lg">
                             <div className="flex items-center gap-3">
                               <Avatar>
-                                {patient?.image && <AvatarImage src={patient.image} alt={patient?.name} />}
                                 <AvatarFallback>{getPatientInitials(result.patientId)}</AvatarFallback>
                               </Avatar>
                               <div>

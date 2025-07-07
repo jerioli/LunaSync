@@ -9,6 +9,7 @@ class Patient(models.Model):
     address = models.TextField()
     marital_status = models.CharField(max_length=20, choices=[('single', 'Single'), ('married', 'Married'), ('divorced', 'Divorced'), ('widowed', 'Widowed')], blank=True, null=True)
     medical_info = models.JSONField(blank=True, null=True)  # Store medical info as JSON
+    physical_examination = models.JSONField(blank=True, null=True)  # Store physical examination data as JSON
     registration_date = models.DateField(auto_now_add=True)
 
     def __str__(self):

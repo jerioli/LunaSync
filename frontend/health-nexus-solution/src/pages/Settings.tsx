@@ -13,7 +13,7 @@ import axios from 'axios';
 import { Textarea } from '@/components/ui/textarea';
 
 const Settings = () => {
-  const { currentUser } = useClinic();
+  const { currentUser, updateClinicCustomization } = useClinic();
   const [generalSettings, setGeneralSettings] = useState({
     clinicName: '',
     address: '',
@@ -201,27 +201,23 @@ const Settings = () => {
       toast({ title: 'Error', description: 'Failed to save services', variant: 'destructive' });
     } finally {
       setLoading(false);
-    }
-  };
+    }  };
   const handleFaqsSave = async () => {
     setLoading(true);
     try {
       await axios.put('/api/clinic/', { faqs });
+      // Update the clinic context with the new FAQs
+      updateClinicCustomization({ faqs });
       toast({ title: 'FAQs Saved', description: 'FAQs updated.' });
       setIsEditingFaqs(false);
+      
+      // Optionally refresh the settings to ensure they persist
+      const res = await axios.get('/api/clinic/');
+      if (res.data && res.data.faqs) {
+        setFaqs(res.data.faqs);
+      }
     } catch (err) {
       toast({ title: 'Error', description: 'Failed to save FAQs', variant: 'destructive' });
-    } finally {
-      setLoading(false);
-    }
-  };
-  const handleReviewsSave = async () => {
-    setLoading(true);
-    try {
-      await axios.put('/api/clinic/', { reviews });
-      toast({ title: 'Reviews Saved', description: 'Reviews updated.' });
-    } catch (err) {
-      toast({ title: 'Error', description: 'Failed to save reviews', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -640,20 +636,68 @@ const Settings = () => {
             </CardFooter>
           </Card>
         </TabsContent>
-        
-        <TabsContent value="notifications">
+          <TabsContent value="notifications">
           <Card>
             <CardHeader>
               <CardTitle>Notification Settings</CardTitle>
               <CardDescription>
-                Configure email and SMS notifications
+                Configure email and SMS notifications for your clinic
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <p className="text-center py-10 text-muted-foreground">
-                Notification settings will be implemented in the future.
-              </p>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Email Notifications</h3>
+                <div className="space-y-4">                  <div>
+                    <Label htmlFor="notificationEmail">Clinic Email Address</Label>
+                    <Input 
+                      id="notificationEmail" 
+                      type="email"
+                      value={generalSettings.email}
+                      onChange={(e) => setGeneralSettings({...generalSettings, email: e.target.value})}
+                      placeholder="clinic@example.com"
+                    />
+                    <p className="text-sm text-muted-foreground mt-1">
+                      This email address will be used as the sender for all clinic emails (appointment confirmations, reminders, review notifications, etc.)
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label htmlFor="sendAppointmentConfirmations">Send Appointment Confirmations</Label>
+                      <p className="text-sm text-muted-foreground">Send confirmation emails when appointments are scheduled</p>
+                    </div>
+                    <Switch 
+                      id="sendAppointmentConfirmations" 
+                      checked={appointmentSettings.sendReminders}
+                      onCheckedChange={(checked) => setAppointmentSettings({...appointmentSettings, sendReminders: checked})}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label htmlFor="sendReviewNotifications">Send Review Notifications</Label>
+                      <p className="text-sm text-muted-foreground">Send notifications when patients submit reviews</p>
+                    </div>
+                    <Switch 
+                      id="sendReviewNotifications" 
+                      defaultChecked={true}
+                    />
+                  </div>
+                </div>
+                
+                <Separator />
+                
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">SMS Notifications</h3>
+                  <p className="text-sm text-muted-foreground">
+                    SMS notifications will be available in a future update.
+                  </p>
+                </div>
+              </div>
             </CardContent>
+            <CardFooter className="flex justify-end">
+              <Button onClick={handleGeneralSubmit}>Save Notification Settings</Button>
+            </CardFooter>
           </Card>
         </TabsContent>
         

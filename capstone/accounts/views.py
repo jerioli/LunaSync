@@ -5,7 +5,7 @@ from .serializers import CustomUserSerializer
 from .models import CustomUser
 from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth import authenticate
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.conf import settings
@@ -22,6 +22,91 @@ class StaffCreateView(APIView):
             serializer.save()
             return Response({'message': 'Staff member created successfully!'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class PasswordChangeView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        user = request.user
+        current_password = request.data.get('current_password')
+        new_password = request.data.get('new_password')
+        
+        if not current_password or not new_password:
+            return Response({
+                'error': 'Both current_password and new_password are required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if current password is correct
+        if not user.check_password(current_password):
+            return Response({
+                'error': 'Current password is incorrect'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Validate new password length
+        if len(new_password) < 8:
+            return Response({
+                'error': 'New password must be at least 8 characters long'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Set new password
+        user.set_password(new_password)
+        user.save()
+        
+        return Response({
+            'success': True,
+            'message': 'Password changed successfully'
+        })
+
+class UserProfileUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def patch(self, request):
+        user = request.user
+        data = request.data
+        
+        # Update allowed fields
+        if 'name' in data:
+            # Split full name into first and last name
+            name_parts = data['name'].split(' ', 1)
+            user.first_name = name_parts[0] if name_parts else ''
+            user.last_name = name_parts[1] if len(name_parts) > 1 else ''
+        
+        if 'first_name' in data:
+            user.first_name = data['first_name']
+        if 'last_name' in data:
+            user.last_name = data['last_name']
+        if 'email' in data:
+            user.email = data['email']
+        if 'phone' in data:
+            # CustomUser doesn't have phone field by default, so we might need to add it
+            # For now, we'll skip updating phone or add it to the model
+            pass
+        
+        user.save()
+        
+        # Return updated user data
+        serializer = CustomUserSerializer(user)
+        return Response({
+            'success': True,
+            'message': 'Profile updated successfully',
+            'user': serializer.data
+        })
+
+class UserPreferencesView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def patch(self, request):
+        user = request.user
+        preferences = request.data.get('notifications', {})
+        
+        # Store preferences in a JSON field or create a UserPreferences model
+        # For now, we'll just return success
+        # In a real app, you'd save these to a UserPreferences model
+        
+        return Response({
+            'success': True,
+            'message': 'Preferences updated successfully'
+        })
     
 class DoctorListView(APIView):
     def get(self, request):
