@@ -50,11 +50,33 @@ const Settings = () => {
   const [isEditingAbout, setIsEditingAbout] = useState(false);
   const [isEditingServices, setIsEditingServices] = useState(false);
 
+  // Define a type for the clinic data
+  type ClinicData = {
+    clinic_name?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    phone?: string;
+    email?: string;
+    website?: string;
+    hero_title?: string;
+    hero_subtitle?: string;
+    about_title?: string;
+    about_text?: string;
+    services?: { title: string; description: string; details: string }[];
+    faqs?: { question: string; answer: string }[];
+    reviews?: { name: string; rating: number; comment: string; date: string }[];
+    logo?: string;
+    healthcare_professionals_image?: string;
+    clinic_building_image?: string;
+  };
+
   useEffect(() => {
     const fetchSettings = async () => {
       setLoading(true);
       try {
-        const res = await axios.get('/api/clinic/');
+        const res = await axios.get<ClinicData>('/api/clinic/');
         if (res.data) {
           setGeneralSettings({
             clinicName: res.data.clinic_name || '',
@@ -74,12 +96,12 @@ const Settings = () => {
             title: res.data.about_title || '',
             text: res.data.about_text || ''
           });
-          setServices(res.data.services && res.data.services.length ? res.data.services : [{ title: '', description: '', details: '' }]);
-          setFaqs(res.data.faqs && res.data.faqs.length ? res.data.faqs : [{ question: '', answer: '' }]);
-          setReviews(res.data.reviews && res.data.reviews.length ? res.data.reviews : [{ name: '', rating: 5, comment: '', date: '' }]);
-          setLogoPreview(res.data.logo || null);
-          setHealthcareProfessionalsPreview(res.data.healthcare_professionals_image || null);
-          setClinicBuildingPreview(res.data.clinic_building_image || null);
+            setServices(res.data.services && res.data.services.length ? res.data.services : [{ title: '', description: '', details: '' }]);
+            setFaqs(res.data.faqs && res.data.faqs.length ? res.data.faqs : [{ question: '', answer: '' }]);
+            setReviews(res.data.reviews && res.data.reviews.length ? res.data.reviews : [{ name: '', rating: 5, comment: '', date: '' }]);
+            setLogoPreview(res.data.logo || null);
+            setHealthcareProfessionalsPreview(res.data.healthcare_professionals_image || null);
+            setClinicBuildingPreview(res.data.clinic_building_image || null);
         }
       } catch (err) {
         toast({ title: 'Error', description: 'Failed to fetch clinic settings', variant: 'destructive' });

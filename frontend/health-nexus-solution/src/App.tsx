@@ -3,7 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ClinicProvider, useClinic } from "./contexts/ClinicContext";
+
 import { ThemeProvider } from "./contexts/ThemeContext";
+
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -188,6 +190,13 @@ const App = () => {
             } />
               {/* 404 route */}
             <Route path="*" element={<NotFound />} />
+
+            {/* Add new patient route */}
+            <Route path="/patients/add" element={
+              <AppLayout>
+                <AddPatient />
+              </AppLayout>
+            } />
           </Routes>
         </BrowserRouter>
       </ClinicProvider>

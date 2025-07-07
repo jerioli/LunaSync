@@ -8,15 +8,23 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Search, UserPlus, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+
 import { Patient } from '@/lib/mock-data';
+
+import AddPatient from '@/components/patients/AddPatient';
+
+
 import { useClinic } from '@/contexts/ClinicContext';
 import axios from 'axios';
+import AddPatientModal from '@/components/patients/AddPatientModal';
+
 
 axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
 
 const PatientsList = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+
   const { patients, fetchPatients } = useClinic();
   const [searchQuery, setSearchQuery] = useState('');  // Fetch patients when component mounts
   useEffect(() => {
@@ -24,8 +32,9 @@ const PatientsList = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
 
+
   // Filter patients based on search query
-  const filteredPatients = patients.filter((patient) =>
+  const filteredPatients = patients.filter(patient => 
     patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     patient.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     patient.phone.includes(searchQuery) ||
@@ -115,6 +124,8 @@ const PatientsList = () => {
             </TableBody>
           </Table>        </CardContent>
       </Card>
+
+
     </div>
   );
 };
