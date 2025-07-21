@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { MessageType, AppointmentForm } from './types';
 import { MessageSender } from './MessageSender';
@@ -29,7 +28,7 @@ export const ChatMessage = ({
       key={message.id} 
       className={`mb-4 flex ${isUserMessage ? 'justify-end' : 'justify-start'}`}
     >
-      <div className={`max-w-[80%] ${isUserMessage ? 'bg-clinic-blue text-white' : 'bg-gray-100'} rounded-lg p-3`}>
+      <div className={`max-w-[80%] ${isUserMessage ? 'bg-[#79c942] text-white' : 'bg-gray-100'} rounded-lg p-3`}>
         {message.sender === 'bot' && (
           <MessageSender name="MedySync" />
         )}
