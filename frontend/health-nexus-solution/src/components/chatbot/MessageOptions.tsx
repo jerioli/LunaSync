@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 
@@ -16,7 +15,9 @@ export const MessageOptions = ({ options, onOptionSelect, isDarkBackground }: Me
           key={option.value} 
           variant="outline" 
           size="sm"
-          className={isDarkBackground ? '' : 'bg-white'}
+          className={isDarkBackground 
+            ? 'border-white hover:bg-white/20' 
+            : 'bg-white border-[#79c942] text-[#79c942] hover:bg-[#79c942]/10'}
           onClick={() => onOptionSelect(option.value)}
         >
           {option.label}
