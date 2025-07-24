@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from '@/components/ui/navigation-menu';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
-import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, MessageSquare, Users, FileText, BotMessageSquare, ArrowUp, Pill, Sun, Moon, Monitor } from 'lucide-react';
 import { AppointmentChatbot } from '@/components/chatbot/AppointmentChatbot';
-import axios from 'axios';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from '@/components/ui/navigation-menu';
+import axios from 'axios';
+import { ArrowUp, BotMessageSquare, Calendar, FileText, Monitor, Moon, Pill, Sun } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // Note: These hooks need to be implemented or imported from your theme/language context
 // For now, providing mock implementations to prevent errors

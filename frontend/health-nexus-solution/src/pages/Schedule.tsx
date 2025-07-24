@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { useToast } from '@/hooks/use-toast';
-import { useClinic } from '@/contexts/ClinicContext';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Toggle } from '@/components/ui/toggle';
-import { Clock } from 'lucide-react';
+import { useClinic } from '@/contexts/ClinicContext';
+import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
+import { Clock } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 const API_BASE_URL = 'http://localhost:8000/api';
 
