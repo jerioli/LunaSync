@@ -49,7 +49,7 @@ const Schedule = () => {
       
       // Get doctor's ID from database
       const doctorsResponse = await axios.get(`${API_BASE_URL}/doctors/`);
-      const doctors = doctorsResponse.data;
+      const doctors: any[] = doctorsResponse.data;
       const doctor = doctors.find(d => d.email === currentUser.email);
       
       if (!doctor) {
@@ -179,7 +179,11 @@ const Schedule = () => {
 
       console.log('Creating availability with data:', availabilityData);
       const availabilityResponse = await axios.post(`${API_BASE_URL}/availability/`, availabilityData);
-      const availability = availabilityResponse.data;
+      const availabilityData = availabilityResponse.data;
+      if (!availabilityData || typeof availabilityData.id !== 'number') {
+        throw new Error('Availability creation failed: missing id in response');
+      }
+      const availability: { id: number } = { id: availabilityData.id };
       console.log('Created availability:', availability);
 
       // Create time slots

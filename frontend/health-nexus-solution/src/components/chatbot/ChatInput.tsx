@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 
+=======
+import React from 'react';
+>>>>>>> origin/main
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -25,9 +29,18 @@ export const ChatInput = ({
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-        className="flex-1"
+        className="flex-1 placeholder:text-[#79c942]/70 focus-visible:ring-1 focus-visible:ring-[#79c942]/40 focus-visible:ring-offset-[#79c942]/10 border-[#79c942]/20"
       />
+<<<<<<< HEAD
       <Button onClick={handleSendMessage}>{t('chatbot.send')}</Button>
+=======
+      <Button 
+        onClick={handleSendMessage} 
+        className="bg-[#79c942] hover:bg-[#6bb33a] focus-visible:ring-[#79c942]"
+      >
+        Send
+      </Button>
+>>>>>>> origin/main
     </div>
   );
 };

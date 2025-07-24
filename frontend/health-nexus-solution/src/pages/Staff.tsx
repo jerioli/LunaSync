@@ -49,7 +49,7 @@ const StaffPage = () => {
   useEffect(() => {
     const fetchStaff = async () => {
       try {
-        const response = await axios.get('/staff/list/');
+        const response = await axios.get<any[]>('/staff/list/');
         setStaff(response.data);
       } catch (error) {
         console.error('Error fetching staff:', error);

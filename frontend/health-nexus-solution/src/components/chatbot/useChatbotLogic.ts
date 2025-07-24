@@ -85,7 +85,11 @@ export const useChatbotLogic = () => {
   useEffect(() => {
     if (showChat) {
       setTimeout(() => {
+<<<<<<< HEAD
         addMessage('bot', t('chatbot.greeting'));
+=======
+        addMessage('bot', "Hello! I'm Dr.MDSync, your healthcare assistant. Say hi to start conversation?");
+>>>>>>> origin/main
       }, 500);
     }
   }, [showChat, t]);

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 
@@ -17,9 +16,16 @@ export const MessageOptions = ({ options, onOptionSelect, isDarkBackground, mess
           key={option.value} 
           variant="outline" 
           size="sm"
+<<<<<<< HEAD
           className={isDarkBackground ? '' : 'bg-white'}
           onClick={() => onOptionSelect(option.value, messageKey)}
           disabled={option.disabled}
+=======
+          className={isDarkBackground 
+            ? 'border-white hover:bg-white/20' 
+            : 'bg-white border-[#79c942] text-[#79c942] hover:bg-[#79c942]/10'}
+          onClick={() => onOptionSelect(option.value)}
+>>>>>>> origin/main
         >
           {option.label}
         </Button>

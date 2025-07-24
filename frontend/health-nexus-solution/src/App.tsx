@@ -234,6 +234,13 @@ const App = () => {
             } />
               {/* 404 route */}
             <Route path="*" element={<NotFound />} />
+
+            {/* Add new patient route */}
+            <Route path="/patients/add" element={
+              <AppLayout>
+                <AddPatient />
+              </AppLayout>
+            } />
           </Routes>
         </BrowserRouter>
       </ClinicProvider>
