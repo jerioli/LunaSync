@@ -1,16 +1,4 @@
 import { CardHeader, CardTitle } from '@/components/ui/card';
-<<<<<<< HEAD
-import { useLanguage } from '@/contexts/LanguageContext';
-import { Stethoscope } from 'lucide-react';
-
-export const ChatbotHeader = () => {
-  const { t } = useLanguage();
-  
-  return (
-    <CardHeader className="bg-clinic-blue text-white flex flex-row items-center gap-2">
-      <Stethoscope className="h-6 w-6 text-white" />
-      <CardTitle>{t('chatbot.chatAssistant')}</CardTitle>
-=======
 import { Stethoscope, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -36,7 +24,6 @@ export const ChatbotHeader = ({ onClose }: ChatbotHeaderProps) => {
           <X className="h-4 w-4" />
         </Button>
       )}
->>>>>>> origin/main
     </CardHeader>
   );
 };

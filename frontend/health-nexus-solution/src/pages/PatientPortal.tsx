@@ -1,25 +1,3 @@
-<<<<<<< HEAD
-import axios from 'axios';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-
-// UI Components
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { LanguageSelector } from '@/components/ui/LanguageSelector';
-import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, navigationMenuTriggerStyle } from '@/components/ui/navigation-menu';
-
-// Icons
-import { BotMessageSquare, Monitor, Moon, Sun } from 'lucide-react';
-
-// App Components
-import PatientAppointmentModal from '@/components/appointments/PatientAppointmentModal';
-import { AppointmentChatbot } from '@/components/chatbot/AppointmentChatbot';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { useTheme } from '@/contexts/ThemeContext';
-=======
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from '@/components/ui/navigation-menu';
@@ -27,11 +5,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, MessageSquare, Users, FileText, BotMessageSquare, ArrowUp, Pill } from 'lucide-react';
+import { Calendar, Clock, MessageSquare, Users, FileText, BotMessageSquare, ArrowUp, Pill, Sun, Moon, Monitor } from 'lucide-react';
 import { AppointmentChatbot } from '@/components/chatbot/AppointmentChatbot';
 import axios from 'axios';
 import { Checkbox } from '@/components/ui/checkbox';
->>>>>>> origin/main
+
+// Note: These hooks need to be implemented or imported from your theme/language context
+// For now, providing mock implementations to prevent errors
+const useTheme = () => ({ 
+  theme: 'light' as 'light' | 'dark' | 'system', 
+  setTheme: (theme: 'light' | 'dark' | 'system') => {} 
+});
+const useLanguage = () => ({ t: (key: string) => key });
 
 const PatientPortal = () => {
   const navigate = useNavigate();
@@ -307,50 +292,6 @@ const PatientPortal = () => {
             </NavigationMenu>
           </div>
           
-<<<<<<< HEAD
-          <NavigationMenu>
-            <NavigationMenuList>
-              <NavigationMenuItem>
-                <NavigationMenuLink href="#home" className={navigationMenuTriggerStyle()}>
-                  {t('navigation.home')}
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <NavigationMenuLink href="#about" className={navigationMenuTriggerStyle()}>
-                  {t('navigation.about')}
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <NavigationMenuLink href="#services" className={navigationMenuTriggerStyle()}>
-                  {t('navigation.services')}
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <NavigationMenuLink href="#reviews" className={navigationMenuTriggerStyle()}>
-                  {t('navigation.reviews')}
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <NavigationMenuLink href="#faqs" className={navigationMenuTriggerStyle()}>
-                  {t('navigation.faqs')}
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
-          
-          <div className="flex items-center gap-4">
-            <LanguageSelector variant="button" size="sm" showIcon={true} />
-            <Button variant="outline" size="sm" onClick={toggleTheme} title={`Switch to ${theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light'} theme`}>
-              {getThemeIcon()}
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setIsChatbotOpen(true)}>
-              <BotMessageSquare className="mr-2 h-4 w-4" />
-              {t('portal.chatAssistant')}
-            </Button>
-            <Button size="sm" onClick={() => setShowAppointmentModal(true)} className="bg-clinic-blue hover:bg-clinic-blue/90">
-              {t('portal.scheduleAppointment')}
-            </Button>
-=======
           {/* Logo - center on desktop, left-aligned on mobile (after menu button) */}
           <div className="flex items-center justify-center md:flex-1">
             {clinic.logo ? (
@@ -398,7 +339,6 @@ const PatientPortal = () => {
             </Button>
             
             
->>>>>>> origin/main
           </div>
         </div>
       </header>
@@ -456,11 +396,7 @@ const PatientPortal = () => {
       )}
       
       {/* Hero Section */}
-<<<<<<< HEAD
-      <section id="home" className="py-20 bg-gradient-to-b from-clinic-gray to-background dark:from-gray-800 dark:to-gray-900">
-=======
       <section id="home" className="py-20">
->>>>>>> origin/main
         <div className="container mx-auto flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1 space-y-6">
             {clinic.logo && (
@@ -469,29 +405,13 @@ const PatientPortal = () => {
             {clinic.healthcare_professionals_image && (
               <img src={getLogoUrl(clinic.healthcare_professionals_image)} alt="Healthcare Professionals" className="w-full h-auto rounded-lg shadow-lg mb-4" />
             )}
-<<<<<<< HEAD
-            <h1 className="text-4xl md:text-5xl font-bold text-clinic-blue dark:text-clinic-blue">
-              {clinic.hero_title || t('portal.heroTitle')}
-=======
             <h1 className="text-4xl md:text-5xl font-bold text-[#79c942]">
               {clinic.hero_title || 'Your Health Is Our Priority'}
->>>>>>> origin/main
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-300">
               {clinic.hero_subtitle || `${clinic.clinic_name || t('portal.welcome')} ${t('portal.heroSubtitle')}`}
             </p>
-<<<<<<< HEAD
-            <div className="flex gap-4">
-              <Button size="lg" className="rounded-full" onClick={() => setShowAppointmentModal(true)}>
-                {t('portal.scheduleAppointment')}
-              </Button>
-              <Button size="lg" variant="outline" className="rounded-full" onClick={() => setIsChatbotOpen(true)}>
-                {t('portal.chatAssistant')}
-              </Button>
-            </div>
-=======
             {/* Remove the flex container with two buttons and only leave the content div empty */}
->>>>>>> origin/main
           </div>
           <div className="flex-1">
             <img 
@@ -504,15 +424,9 @@ const PatientPortal = () => {
       </section>
 
       {/* About Section */}
-<<<<<<< HEAD
-      <section id="about" className="py-20 bg-background dark:bg-gray-800">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-clinic-blue dark:text-clinic-blue">{clinic.about_title || `About ${clinic.clinic_name || 'Our Clinic'}`}</h2>
-=======
       <section id="about" className="py-20">
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12 text-[#79c942]">{clinic.about_title || `About ${clinic.clinic_name || 'Our Clinic'}`}</h2>
->>>>>>> origin/main
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
               {clinic.clinic_building_image ? (
@@ -530,29 +444,6 @@ const PatientPortal = () => {
               )}
             </div>
             <div className="space-y-6">
-<<<<<<< HEAD
-              <h3 className="text-2xl font-semibold text-clinic-blue dark:text-clinic-blue">{t('portal.ourStory')}</h3>
-              <p className="text-gray-600 dark:text-gray-300">
-                {clinic.about_text || 'Founded in 2010, HealthNexus has grown to become one of the leading healthcare providers in the region. Our mission is to deliver accessible, high-quality healthcare services in a compassionate environment.'}
-              </p>
-              <h3 className="text-2xl font-semibold text-clinic-blue dark:text-clinic-blue">{t('portal.ourValues')}</h3>
-              <ul className="space-y-2 text-gray-600 dark:text-gray-300">
-                <li className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-clinic-blue"></div>
-                  <span>{t('portal.patientCenteredCare')}</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-clinic-blue"></div>
-                  <span>{t('portal.excellenceInPractice')}</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-clinic-blue"></div>
-                  <span>{t('portal.integrityTransparency')}</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-clinic-blue"></div>
-                  <span>{t('portal.continuousImprovement')}</span>
-=======
               <h3 className="text-2xl font-semibold text-[#79c942]">Our Story</h3>
               <p className="text-gray-600">
                 {clinic.about_text || 'Founded in 2010, HealthNexus has grown to become one of the leading healthcare providers in the region. Our mission is to deliver accessible, high-quality healthcare services in a compassionate environment.'}
@@ -574,7 +465,6 @@ const PatientPortal = () => {
                 <li className="flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full" style={{ background: '#79c942' }}></div>
                   <span>Continuous improvement</span>
->>>>>>> origin/main
                 </li>
               </ul>
             </div>
@@ -583,33 +473,6 @@ const PatientPortal = () => {
       </section>
       
       {/* Services Section */}
-<<<<<<< HEAD
-      <section id="services" className="py-20 bg-clinic-gray/20 dark:bg-gray-900/50">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-clinic-blue dark:text-clinic-blue">{t('portal.ourServices')}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {clinic.services && clinic.services.length > 0 ? clinic.services.map((service, index) => (
-              <Card key={index}>
-                <CardHeader>
-                  <CardTitle>{service.title}</CardTitle>
-                  <CardDescription>{service.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 dark:text-gray-300">{service.details}</p>
-                </CardContent>
-              </Card>
-            )) : (
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('portal.generalConsultation')}</CardTitle>
-                  <CardDescription>{t('portal.generalConsultationDesc')}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 dark:text-gray-300">{t('portal.generalConsultationDetails')}</p>
-                </CardContent>
-              </Card>
-            )}
-=======
       <section id="services" className="py-20 relative">
         <style>
           {`
@@ -667,21 +530,14 @@ const PatientPortal = () => {
                 <p className="text-gray-600">Vaccinations, screenings, and wellness programs designed to keep you and your family healthy and prevent illness before it starts.</p>
               </CardContent>
             </Card>
->>>>>>> origin/main
           </div>
         </div>
       </section>
 
       {/* Reviews Section */}
-<<<<<<< HEAD
-      <section id="reviews" className="py-20 bg-background dark:bg-gray-800">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-clinic-blue dark:text-clinic-blue">{t('portal.patientReviews')}</h2>
-=======
       <section id="reviews" className="py-20 relative">
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12 text-[#79c942]">Patient Reviews</h2>
->>>>>>> origin/main
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Left: Leave a Review */}
             <div className="md:col-span-1">
@@ -736,105 +592,6 @@ const PatientPortal = () => {
                       ))}
                     </div>
                   </div>
-<<<<<<< HEAD
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 dark:text-gray-300">{review.comment}</p>
-                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-4">{review.date}</p>
-                </CardContent>
-              </Card>
-            )) : null}
-          </div>
-        </div>
-      </section>
-      
-      {/* FAQs Section */}
-      <section id="faqs" className="py-20 bg-clinic-gray/20 dark:bg-gray-900/50">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-clinic-blue dark:text-clinic-blue">Frequently Asked Questions</h2>
-          <div className="max-w-3xl mx-auto space-y-6">
-            {clinic.faqs && clinic.faqs.length > 0 ? clinic.faqs.map((faq, index) => (
-              <Card key={index}>
-                <CardHeader>
-                  <CardTitle className="text-lg">{faq.question}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 dark:text-gray-300">{faq.answer}</p>
-                </CardContent>
-              </Card>
-            )) : null}
-          </div>
-        </div>
-      </section>
-      
-      {/* Contact Section */}
-      <section className="py-20 bg-clinic-blue text-white">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">Contact Us</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div className="space-y-8">
-              <div>
-                <h3 className="text-xl font-semibold mb-4">Our Location</h3>
-                <p>{clinic.address}</p>
-                <p>{clinic.city}{clinic.state ? `, ${clinic.state}` : ''} {clinic.zip}</p>
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold mb-4">Contact Information</h3>
-                <p>Phone: {clinic.phone}</p>
-                <p>Email: {clinic.email}</p>
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold mb-4">Hours of Operation</h3>
-                <p>Monday - Friday: 8:00 AM - 6:00 PM</p>
-                <p>Saturday: 9:00 AM - 2:00 PM</p>
-                <p>Sunday: Closed</p>
-              </div>
-            </div>
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-              <h3 className="text-xl font-semibold mb-4 text-black dark:text-white">Leave a Review</h3>
-              <form className="space-y-4 text-black dark:text-white" onSubmit={handleReviewSubmit}>
-                <div>
-                  <Input
-                    placeholder="Your Name"
-                    className="bg-white dark:bg-gray-700 text-black dark:text-white"
-                    value={reviewForm.name}
-                    onChange={e => setReviewForm({ ...reviewForm, name: e.target.value })}
-                    required
-                  />
-                </div>
-                <div>
-                  <Input
-                    placeholder="Your Email"
-                    type="email"
-                    className="bg-white dark:bg-gray-700 text-black dark:text-white"
-                    value={reviewForm.email}
-                    onChange={e => setReviewForm({ ...reviewForm, email: e.target.value })}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1 font-medium text-black dark:text-white">Rating</label>
-                  <div className="flex gap-1">
-                    {[1,2,3,4,5].map(star => (
-                      <span
-                        key={star}
-                        style={{ cursor: 'pointer', color: reviewForm.rating >= star ? '#FFD700' : '#E5E7EB', fontSize: 28 }}
-                        onClick={() => setReviewForm({ ...reviewForm, rating: star })}
-                        role="button"
-                        aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
-                      >★</span>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <textarea
-                    placeholder="Your Review"
-                    className="w-full p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-clinic-blue min-h-[120px] text-black dark:text-white"
-                    value={reviewForm.comment}
-                    onChange={e => setReviewForm({ ...reviewForm, comment: e.target.value })}
-                    required
-                  />
-=======
                   <div>
                     <textarea
                       placeholder="Your Review"
@@ -994,7 +751,6 @@ const PatientPortal = () => {
                       <div className="pl-4 pb-3 text-gray-600">Please bring a valid ID, insurance card, and any rointmen medical documents.</div>
                     </details>
                   </div>
->>>>>>> origin/main
                 </div>
               </CardContent>
             </Card>
@@ -1122,14 +878,6 @@ const PatientPortal = () => {
           </div>
         </div>
       </footer>
-<<<<<<< HEAD
-      
-      {/* Patient Appointment Modal */}
-      <PatientAppointmentModal 
-        open={showAppointmentModal} 
-        onOpenChange={setShowAppointmentModal} 
-      />
-=======
 
       {/* Add this style block in your component's JSX return, after existing style blocks */}
       <style>
@@ -1275,7 +1023,6 @@ const PatientPortal = () => {
           </div>
         </>
       )}
->>>>>>> origin/main
     </div>
   );
 };

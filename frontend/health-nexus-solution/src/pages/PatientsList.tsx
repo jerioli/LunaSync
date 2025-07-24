@@ -3,30 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-<<<<<<< HEAD
-=======
-import { Search, UserPlus, FileText } from 'lucide-react';
-import { format } from 'date-fns';
-import { useToast } from '@/hooks/use-toast';
-
-import { Patient } from '@/lib/mock-data';
-
-import AddPatient from '@/components/patients/AddPatient';
-
-
->>>>>>> origin/main
 import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
-<<<<<<< HEAD
 import { format } from 'date-fns';
 import { FileText, Search, UserPlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-=======
-import AddPatientModal from '@/components/patients/AddPatientModal';
-
->>>>>>> origin/main
 
 axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
 

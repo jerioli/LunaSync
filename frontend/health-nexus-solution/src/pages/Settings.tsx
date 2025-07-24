@@ -87,11 +87,7 @@ const Settings = () => {
     const fetchSettings = async () => {
       setLoading(true);
       try {
-<<<<<<< HEAD
         const res = await axios.get('clinic/');
-=======
-        const res = await axios.get<ClinicData>('/api/clinic/');
->>>>>>> origin/main
         if (res.data) {
           setGeneralSettings({
             clinicName: res.data.clinic_name || '',
