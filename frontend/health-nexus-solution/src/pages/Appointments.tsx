@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CalendarCheck, ClipboardList, Calendar, Clock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useClinic } from '@/hooks/useClinicContext';
-import { toast } from 'sonner';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import NewAppointmentModal from '@/components/appointments/ScheduleAppointmentModal';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext } from '@/components/ui/pagination';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useClinic } from '@/hooks/useClinicContext';
+import axios from 'axios';
+import { Calendar, CalendarCheck, Clock, User } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 // Set axios base URL to include the API prefix
 axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
@@ -27,6 +27,42 @@ const Appointments = () => {
   
   const isReceptionist = currentUser?.role === 'receptionist';
   const isDoctor = currentUser?.role === 'doctor';
+
+  // Consistent button class for all action buttons
+  const buttonClass = "h-8 px-3 text-xs";
+
+  // Helper function to format time
+  const formatTime = (timeString: string) => {
+    try {
+      const [hours, minutes] = timeString.split(':');
+      const hour = parseInt(hours);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const formattedHour = hour % 12 || 12;
+      return `${formattedHour}:${minutes} ${ampm}`;
+    } catch (error) {
+      console.error('Error formatting time:', timeString, error);
+      return timeString;
+    }
+  };
+
+  // Get status badge with consistent styling
+  const getStatusBadge = (status: string) => {
+    const variants = {
+      'scheduled': { className: 'bg-blue-100 text-blue-800 hover:bg-blue-100', label: 'Upcoming' },
+      'pending': { className: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100', label: 'Pending' },
+      'ongoing': { className: 'bg-orange-100 text-orange-800 hover:bg-orange-100', label: 'Ongoing' },
+      'completed': { className: 'bg-green-100 text-green-800 hover:bg-green-100', label: 'Completed' },
+      'cancelled': { className: 'bg-red-100 text-red-800 hover:bg-red-100', label: 'Cancelled' },
+      'no-show': { className: 'bg-red-100 text-red-800 hover:bg-red-100', label: 'No Show' }
+    };
+    
+    const config = variants[status] || variants['scheduled'];
+    return (
+      <Badge variant="outline" className={config.className}>
+        {config.label}
+      </Badge>
+    );
+  };
 
   // Helper function to format date in readable format
   const formatDate = (dateString: string) => {
@@ -357,9 +393,105 @@ const Appointments = () => {
         const errorMsg = error.response?.data?.detail || error.response?.data?.error || 'Invalid request. The status might not be supported.';
         toast.error(`Failed to update appointment: ${errorMsg}`);
       } else {
-        toast.error('Failed to update appointment status. Please try again.');
       }
     }
+  };
+
+  // Render action buttons for each appointment
+  const renderActionButtons = (appointment) => {
+    if (activeTab === "upcoming" && isReceptionist) {
+      return (
+        <div className="flex gap-2">
+          <Button 
+            variant="default" 
+            size="sm" 
+            className={`${buttonClass} bg-orange-600 hover:bg-orange-700`}
+            onClick={() => handleStatusUpdate(appointment.id, 'ongoing')}
+          >
+            Check In
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className={buttonClass}
+            onClick={() => handleStatusUpdate(appointment.id, 'no-show')}
+          >
+            No Show
+          </Button>
+          <Button 
+            variant="destructive" 
+            size="sm" 
+            className={buttonClass}
+            onClick={() => handleStatusUpdate(appointment.id, 'cancelled')}
+          >
+            Cancel
+          </Button>
+        </div>
+      );
+    }
+
+    if (activeTab === "pending" && isReceptionist) {
+      return (
+        <div className="flex gap-2">
+          <Button 
+            variant="default" 
+            size="sm" 
+            className={buttonClass}
+            onClick={() => handleStatusUpdate(appointment.id, 'scheduled')}
+          >
+            Confirm
+          </Button>
+          <Button 
+            variant="destructive" 
+            size="sm" 
+            className={buttonClass}
+            onClick={() => handleStatusUpdate(appointment.id, 'cancelled')}
+          >
+            Decline
+          </Button>
+        </div>
+      );
+    }
+
+    if (activeTab === "ongoing") {
+      if (isDoctor) {
+        return (
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className={buttonClass}
+              onClick={() => navigate(`/patients/${appointment.patientId}`)}
+            >
+              View Record
+            </Button>
+            <Button 
+              variant="default" 
+              size="sm" 
+              className={`${buttonClass} bg-green-600 hover:bg-green-700`}
+              onClick={() => handleStatusUpdate(appointment.id, 'completed')}
+            >
+              Complete
+            </Button>
+          </div>
+        );
+      }
+      
+      if (isReceptionist) {
+        return (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className={buttonClass}
+            onClick={() => handleStatusUpdate(appointment.id, 'scheduled')}
+          >
+            Return to Scheduled
+          </Button>
+        );
+      }
+    }
+
+    return null;
   };
 
   return (
@@ -402,62 +534,63 @@ const Appointments = () => {
                 </Card>
               ) : (
                 <>
-                  {paginatedAppointments.map(appointment => (
-                    <Card key={appointment.id}>
-                      <CardHeader className="pb-2 min-h-0">
-                        <div className="flex justify-between items-center min-h-0">
-                          <div className="flex items-center min-h-0">
-                            <div>
-                              <CardTitle className="text-[1.1rem] font-semibold leading-tight">{getPatientName(appointment.patientId, appointment)}</CardTitle>
-                              <CardDescription className="text-sm text-muted-foreground">{appointment.type}</CardDescription>
-                            </div>
-                          </div>
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 px-1.5 py-0.5 text-xs font-medium h-5 min-w-12 flex items-center justify-center">
-                            Upcoming
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pb-0.5">
-                        <div className="grid grid-cols-2 gap-1 md:gap-2 text-sm">
-                          <div className="flex items-center min-h-0 py-1">
-                            <Calendar className="mr-1 h-3.5 w-3.5 text-muted-foreground" />
-                            <span>{formatDate(appointment.date)}</span>
-                          </div>
-                          <div className="flex items-center min-h-0 py-1">
-                            <Clock className="mr-1 h-3.5 w-3.5 text-muted-foreground" />
-                            <span>{appointment.time}</span>
-                          </div>
-                          <div className="col-span-2 min-h-0 py-1">
-                            <p className="text-xs font-medium leading-tight">Doctor:</p>
-                            <p className="text-xs text-muted-foreground leading-tight">{getDoctorName(appointment.doctorId, appointment)}</p>
-                          </div>
-                          {getDisplayNotes(appointment.notes) && (
-                            <div className="col-span-2 min-h-0 py-1">
-                              <p className="text-xs font-medium leading-tight">Notes:</p>
-                              <p className="text-xs text-muted-foreground leading-tight">{getDisplayNotes(appointment.notes)}</p>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                      <CardFooter className="py-1 px-2">
-                        <div className="flex flex-wrap gap-1 w-full justify-end">
-                          {isReceptionist && (
-                            <>
-                              <Button variant="default" size="sm" className="h-6 px-2 text-xs bg-yellow-600 hover:bg-yellow-700" onClick={() => handleStatusUpdate(appointment.id, 'ongoing')}>
-                                Check In Patient
-                              </Button>
-                              <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={() => handleStatusUpdate(appointment.id, 'no-show')}>
-                                No Show
-                              </Button>
-                              <Button variant="destructive" size="sm" className="h-6 px-2 text-xs" onClick={() => handleStatusUpdate(appointment.id, 'cancelled')}>
-                                Cancel
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </CardFooter>
-                    </Card>
-                  ))}
+                  <Card>
+                    <CardContent className="p-0">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[200px]">
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4" />
+                                Patient
+                              </div>
+                            </TableHead>
+                            <TableHead>
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                Date
+                              </div>
+                            </TableHead>
+                            <TableHead>
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4" />
+                                Time
+                              </div>
+                            </TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Doctor</TableHead>
+                            <TableHead>Status</TableHead>
+                            {getDisplayNotes(paginatedAppointments[0]?.notes) && (
+                              <TableHead>Notes</TableHead>
+                            )}
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {paginatedAppointments.map((appointment) => (
+                            <TableRow key={appointment.id}>
+                              <TableCell className="font-medium">
+                                {getPatientName(appointment.patientId, appointment)}
+                              </TableCell>
+                              <TableCell>{formatDate(appointment.date)}</TableCell>
+                              <TableCell>{formatTime(appointment.time)}</TableCell>
+                              <TableCell>{appointment.type}</TableCell>
+                              <TableCell>{getDoctorName(appointment.doctorId, appointment)}</TableCell>
+                              <TableCell>{getStatusBadge(appointment.status)}</TableCell>
+                              {getDisplayNotes(appointment.notes) && (
+                                <TableCell className="max-w-[200px] truncate">
+                                  {getDisplayNotes(appointment.notes)}
+                                </TableCell>
+                              )}
+                              <TableCell className="text-right">
+                                {renderActionButtons(appointment)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
                   {totalPages > 1 && (
                     <Pagination className="mt-4">
                       <PaginationContent>
@@ -502,56 +635,63 @@ const Appointments = () => {
                     </CardContent>
                   </Card>
                 ) : (
-                  filteredAppointments.map(appointment => (
-                    <Card key={appointment.id}>
-                      <CardHeader className="pb-2 min-h-0">
-                        <div className="flex justify-between items-center min-h-0">
-                          <div className="flex items-center min-h-0">
-                           
-                            <div>
-                              <CardTitle className="text-[1.1rem] font-semibold leading-tight">{getPatientName(appointment.patientId, appointment)}</CardTitle>
-                              <CardDescription className="text-sm text-muted-foreground">{appointment.type}</CardDescription>
-                            </div>
-                          </div>
-                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 px-1.5 py-0.5 text-xs font-medium h-5 min-w-12 flex items-center justify-center">
-                            Pending
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pb-0.5">
-                        <div className="grid grid-cols-2 gap-0.5 md:gap-1 text-sm">
-                          <div className="flex items-center min-h-0 py-1">
-                            <Calendar className="mr-1 h-3.5 w-3.5 text-muted-foreground" />
-                            <span>{formatDate(appointment.date)}</span>
-                          </div>
-                          <div className="flex items-center min-h-0 py-1">
-                            <Clock className="mr-1 h-3.5 w-3.5 text-muted-foreground" />
-                            <span>{appointment.time}</span>
-                          </div>
-                          <div className="col-span-2">
-                            <p className="text-xs font-medium leading-tight">Doctor:</p>
-                            <p className="text-xs text-muted-foreground leading-tight">{getDoctorName(appointment.doctorId, appointment)}</p>
-                          </div>
-                          {getDisplayNotes(appointment.notes) && (
-                            <div className="col-span-2">
-                              <p className="text-xs font-medium leading-tight">Notes:</p>
-                              <p className="text-xs text-muted-foreground leading-tight">{getDisplayNotes(appointment.notes)}</p>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                      <CardFooter>
-                        <div className="flex flex-wrap gap-2 w-full justify-end">
-                          <Button onClick={() => handleStatusUpdate(appointment.id, 'scheduled')}>
-                            Confirm Appointment
-                          </Button>
-                          <Button variant="destructive" onClick={() => handleStatusUpdate(appointment.id, 'cancelled')}>
-                            Decline
-                          </Button>
-                        </div>
-                      </CardFooter>
-                    </Card>
-                  ))
+                  <Card>
+                    <CardContent className="p-0">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[200px]">
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4" />
+                                Patient
+                              </div>
+                            </TableHead>
+                            <TableHead>
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                Date
+                              </div>
+                            </TableHead>
+                            <TableHead>
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4" />
+                                Time
+                              </div>
+                            </TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Doctor</TableHead>
+                            <TableHead>Status</TableHead>
+                            {getDisplayNotes(filteredAppointments[0]?.notes) && (
+                              <TableHead>Notes</TableHead>
+                            )}
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredAppointments.map((appointment) => (
+                            <TableRow key={appointment.id}>
+                              <TableCell className="font-medium">
+                                {getPatientName(appointment.patientId, appointment)}
+                              </TableCell>
+                              <TableCell>{formatDate(appointment.date)}</TableCell>
+                              <TableCell>{formatTime(appointment.time)}</TableCell>
+                              <TableCell>{appointment.type}</TableCell>
+                              <TableCell>{getDoctorName(appointment.doctorId, appointment)}</TableCell>
+                              <TableCell>{getStatusBadge(appointment.status)}</TableCell>
+                              {getDisplayNotes(appointment.notes) && (
+                                <TableCell className="max-w-[200px] truncate">
+                                  {getDisplayNotes(appointment.notes)}
+                                </TableCell>
+                              )}
+                              <TableCell className="text-right">
+                                {renderActionButtons(appointment)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
                 )}
               </TabsContent>
             )}
@@ -565,67 +705,63 @@ const Appointments = () => {
                 </Card>
               ) : (
                 <>
-                  {paginatedAppointments.map(appointment => (
-                    <Card key={appointment.id}>
-                      <CardHeader className="pb-2 min-h-0">
-                        <div className="flex justify-between items-center min-h-0">
-                          <div className="flex items-center min-h-0">
-                            <div>
-                              <CardTitle className="text-[1.1rem] font-semibold leading-tight">{getPatientName(appointment.patientId, appointment)}</CardTitle>
-                              <CardDescription className="text-sm text-muted-foreground">{appointment.type}</CardDescription>
-                            </div>
-                          </div>
-                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 px-1.5 py-0.5 text-xs font-medium h-5 min-w-12 flex items-center justify-center">
-                            Ongoing
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pb-0.5">
-                        <div className="grid grid-cols-2 gap-1 md:gap-2 text-sm">
-                          <div className="flex items-center min-h-0 py-1">
-                            <Calendar className="mr-1 h-3.5 w-3.5 text-muted-foreground" />
-                            <span>{formatDate(appointment.date)}</span>
-                          </div>
-                          <div className="flex items-center min-h-0 py-1">
-                            <Clock className="mr-1 h-3.5 w-3.5 text-muted-foreground" />
-                            <span>{appointment.time}</span>
-                          </div>
-                          <div className="col-span-2 min-h-0 py-1">
-                            <p className="text-xs font-medium leading-tight">Doctor:</p>
-                            <p className="text-xs text-muted-foreground leading-tight">{getDoctorName(appointment.doctorId, appointment)}</p>
-                          </div>
-                          {getDisplayNotes(appointment.notes) && (
-                            <div className="col-span-2 min-h-0 py-1">
-                              <p className="text-xs font-medium leading-tight">Notes:</p>
-                              <p className="text-xs text-muted-foreground leading-tight">{getDisplayNotes(appointment.notes)}</p>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                      <CardFooter className="py-1 px-2">
-                        <div className="flex flex-wrap gap-1 w-full justify-end">
-                          {isDoctor && (
-                            <>
-                              <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={() => {
-                                // Navigate to patient record using React Router
-                                navigate(`/patients/${appointment.patientId}`);
-                              }}>
-                                View Patient Record
-                              </Button>
-                              <Button variant="default" size="sm" className="h-6 px-2 text-xs bg-green-600 hover:bg-green-700" onClick={() => handleStatusUpdate(appointment.id, 'completed')}>
-                                Complete Appointment
-                              </Button>
-                            </>
-                          )}
-                          {isReceptionist && (
-                            <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={() => handleStatusUpdate(appointment.id, 'scheduled')}>
-                              Return to Scheduled
-                            </Button>
-                          )}
-                        </div>
-                      </CardFooter>
-                    </Card>
-                  ))}
+                  <Card>
+                    <CardContent className="p-0">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[200px]">
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4" />
+                                Patient
+                              </div>
+                            </TableHead>
+                            <TableHead>
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                Date
+                              </div>
+                            </TableHead>
+                            <TableHead>
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4" />
+                                Time
+                              </div>
+                            </TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Doctor</TableHead>
+                            <TableHead>Status</TableHead>
+                            {getDisplayNotes(paginatedAppointments[0]?.notes) && (
+                              <TableHead>Notes</TableHead>
+                            )}
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {paginatedAppointments.map((appointment) => (
+                            <TableRow key={appointment.id}>
+                              <TableCell className="font-medium">
+                                {getPatientName(appointment.patientId, appointment)}
+                              </TableCell>
+                              <TableCell>{formatDate(appointment.date)}</TableCell>
+                              <TableCell>{formatTime(appointment.time)}</TableCell>
+                              <TableCell>{appointment.type}</TableCell>
+                              <TableCell>{getDoctorName(appointment.doctorId, appointment)}</TableCell>
+                              <TableCell>{getStatusBadge(appointment.status)}</TableCell>
+                              {getDisplayNotes(appointment.notes) && (
+                                <TableCell className="max-w-[200px] truncate">
+                                  {getDisplayNotes(appointment.notes)}
+                                </TableCell>
+                              )}
+                              <TableCell className="text-right">
+                                {renderActionButtons(appointment)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
                   {totalPages > 1 && (
                     <Pagination className="mt-4">
                       <PaginationContent>
@@ -669,36 +805,51 @@ const Appointments = () => {
                   </CardContent>
                 </Card>
               ) : (
-                filteredAppointments.map(appointment => (
-                  <Card key={appointment.id}>
-                    <CardHeader className="pb-2 min-h-0">
-                      <div className="flex justify-between items-center min-h-0">
-                        <div className="flex items-center min-h-0">
-                          
-                          <div>
-                            <CardTitle className="text-[1.1rem] font-semibold leading-tight">{getPatientName(appointment.patientId, appointment)}</CardTitle>
-                            <CardDescription className="text-sm text-muted-foreground">{appointment.type}</CardDescription>
-                          </div>
-                        </div>
-                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 px-1.5 py-0.5 text-xs font-medium h-5 min-w-12 flex items-center justify-center">
-                          Completed
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center">
-                          <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                          <span>{formatDate(appointment.date)}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                          <span>{appointment.time}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                <Card>
+                  <CardContent className="p-0">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[200px]">
+                            <div className="flex items-center gap-2">
+                              <User className="h-4 w-4" />
+                              Patient
+                            </div>
+                          </TableHead>
+                          <TableHead>
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4" />
+                              Date
+                            </div>
+                          </TableHead>
+                          <TableHead>
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4" />
+                              Time
+                            </div>
+                          </TableHead>
+                          <TableHead>Type</TableHead>
+                          <TableHead>Doctor</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredAppointments.map((appointment) => (
+                          <TableRow key={appointment.id}>
+                            <TableCell className="font-medium">
+                              {getPatientName(appointment.patientId, appointment)}
+                            </TableCell>
+                            <TableCell>{formatDate(appointment.date)}</TableCell>
+                            <TableCell>{formatTime(appointment.time)}</TableCell>
+                            <TableCell>{appointment.type}</TableCell>
+                            <TableCell>{getDoctorName(appointment.doctorId, appointment)}</TableCell>
+                            <TableCell>{getStatusBadge(appointment.status)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
               )}
             </TabsContent>
             
@@ -710,36 +861,51 @@ const Appointments = () => {
                   </CardContent>
                 </Card>
               ) : (
-                filteredAppointments.map(appointment => (
-                  <Card key={appointment.id}>
-                    <CardHeader className="pb-2 min-h-0">
-                      <div className="flex justify-between items-center min-h-0">
-                        <div className="flex items-center min-h-0">
-                          
-                          <div>
-                            <CardTitle className="text-[1.1rem] font-semibold leading-tight">{getPatientName(appointment.patientId, appointment)}</CardTitle>
-                            <CardDescription className="text-sm text-muted-foreground">{appointment.type}</CardDescription>
-                          </div>
-                        </div>
-                        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 px-1.5 py-0.5 text-xs font-medium h-5 min-w-12 flex items-center justify-center">
-                          {appointment.status === "cancelled" ? "Cancelled" : "No Show"}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center">
-                          <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                          <span>{formatDate(appointment.date)}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                          <span>{appointment.time}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                <Card>
+                  <CardContent className="p-0">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[200px]">
+                            <div className="flex items-center gap-2">
+                              <User className="h-4 w-4" />
+                              Patient
+                            </div>
+                          </TableHead>
+                          <TableHead>
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4" />
+                              Date
+                            </div>
+                          </TableHead>
+                          <TableHead>
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4" />
+                              Time
+                            </div>
+                          </TableHead>
+                          <TableHead>Type</TableHead>
+                          <TableHead>Doctor</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredAppointments.map((appointment) => (
+                          <TableRow key={appointment.id}>
+                            <TableCell className="font-medium">
+                              {getPatientName(appointment.patientId, appointment)}
+                            </TableCell>
+                            <TableCell>{formatDate(appointment.date)}</TableCell>
+                            <TableCell>{formatTime(appointment.time)}</TableCell>
+                            <TableCell>{appointment.type}</TableCell>
+                            <TableCell>{getDoctorName(appointment.doctorId, appointment)}</TableCell>
+                            <TableCell>{getStatusBadge(appointment.status)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
               )}
             </TabsContent>
           </Tabs>
