@@ -179,11 +179,11 @@ const Schedule = () => {
 
       console.log('Creating availability with data:', availabilityData);
       const availabilityResponse = await axios.post(`${API_BASE_URL}/availability/`, availabilityData);
-      const availabilityData = availabilityResponse.data;
-      if (!availabilityData || typeof availabilityData.id !== 'number') {
+      const createdAvailability = availabilityResponse.data;
+      if (!createdAvailability || typeof createdAvailability.id !== 'number') {
         throw new Error('Availability creation failed: missing id in response');
       }
-      const availability: { id: number } = { id: availabilityData.id };
+      const availability: { id: number } = { id: createdAvailability.id };
       console.log('Created availability:', availability);
 
       // Create time slots
