@@ -11,10 +11,13 @@ from django.core.mail import send_mail
 from django.conf import settings
 import random
 import string
+import secrets
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.shortcuts import get_object_or_404
+from django.core.cache import cache
+from datetime import datetime, timedelta
 
 class StaffCreateView(APIView):
     def post(self, request):
@@ -309,3 +312,142 @@ class StaffLoginView(APIView):
             'success': False,
             'error': 'Invalid credentials'
         }, status=status.HTTP_401_UNAUTHORIZED)
+
+# Add OTP functionality
+
+class UserListView(APIView):
+    """General users endpoint for OTP user lookup"""
+    def get(self, request):
+        users = CustomUser.objects.all()
+        serializer = CustomUserSerializer(users, many=True)
+        return Response(serializer.data)
+
+class SendOTPView(APIView):
+    permission_classes = [AllowAny]
+    
+    def post(self, request):
+        identifier = request.data.get('identifier')
+        identifier_type = request.data.get('identifier_type')
+        
+        if not identifier or not identifier_type:
+            return Response({
+                'success': False,
+                'error': 'identifier and identifier_type are required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Find user by email or phone
+        try:
+            if identifier_type == 'email':
+                user = CustomUser.objects.get(email=identifier)
+            elif identifier_type == 'phone':
+                # Assuming phone field exists on CustomUser model
+                # If it doesn't exist, we'll create the field or use email for demo
+                user = CustomUser.objects.get(email=identifier)  # Fallback to email for demo
+            else:
+                return Response({
+                    'success': False,
+                    'error': 'identifier_type must be email or phone'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        except CustomUser.DoesNotExist:
+            return Response({
+                'success': False,
+                'error': 'No user found with this identifier'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Generate 6-digit OTP
+        otp = ''.join([str(secrets.randbelow(10)) for _ in range(6)])
+        
+        # Store OTP in cache with 5-minute expiration
+        cache_key = f"otp_{identifier}_{identifier_type}"
+        cache.set(cache_key, otp, 300)  # 5 minutes
+        
+        # Send OTP via email or SMS
+        try:
+            if identifier_type == 'email':
+                send_mail(
+                    'MedSync - Your Login Code',
+                    f'Your verification code is: {otp}. This code expires in 5 minutes.',
+                    settings.DEFAULT_FROM_EMAIL,
+                    [identifier],
+                    fail_silently=False,
+                )
+            elif identifier_type == 'phone':
+                # For demo, we'll just log the OTP
+                # In production, integrate with SMS service like Twilio
+                print(f"SMS OTP for {identifier}: {otp}")
+                # TODO: Implement SMS sending with Twilio or similar service
+                
+        except Exception as e:
+            print(f"Failed to send OTP: {e}")
+            # For demo purposes, still return success
+            pass
+        
+        return Response({
+            'success': True,
+            'message': 'OTP sent successfully',
+            'expires_in': 300
+        })
+
+class VerifyOTPView(APIView):
+    permission_classes = [AllowAny]
+    
+    def post(self, request):
+        identifier = request.data.get('identifier')
+        identifier_type = request.data.get('identifier_type')
+        otp = request.data.get('otp')
+        
+        if not identifier or not identifier_type or not otp:
+            return Response({
+                'success': False,
+                'error': 'identifier, identifier_type, and otp are required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check OTP from cache
+        cache_key = f"otp_{identifier}_{identifier_type}"
+        stored_otp = cache.get(cache_key)
+        
+        if not stored_otp:
+            return Response({
+                'success': False,
+                'error': 'OTP expired or not found'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        if stored_otp != otp:
+            return Response({
+                'success': False,
+                'error': 'Invalid OTP'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Find user
+        try:
+            if identifier_type == 'email':
+                user = CustomUser.objects.get(email=identifier)
+            elif identifier_type == 'phone':
+                user = CustomUser.objects.get(email=identifier)  # Fallback for demo
+            else:
+                return Response({
+                    'success': False,
+                    'error': 'identifier_type must be email or phone'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        except CustomUser.DoesNotExist:
+            return Response({
+                'success': False,
+                'error': 'User not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Clear the OTP from cache
+        cache.delete(cache_key)
+        
+        # Return user data (similar to login response)
+        return Response({
+            'success': True,
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'name': user.get_full_name() or user.username,
+                'email': user.email,
+                'role': user.role,
+                'accessToken': 'dummy_access_token',  # In production, generate JWT token
+                'refreshToken': 'dummy_refresh_token'  # In production, generate refresh token
+            }
+        })

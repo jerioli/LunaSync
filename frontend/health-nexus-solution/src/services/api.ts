@@ -16,6 +16,7 @@ export interface Doctor {
   first_name: string;
   last_name: string;
   email: string;
+  phone?: string;
   role: string;
   is_active: boolean;
   can_manage_appointments?: boolean;
@@ -31,6 +32,7 @@ export interface Receptionist {
   first_name: string;
   last_name: string;
   email: string;
+  phone?: string;
   role: string;
   is_active: boolean;
   can_manage_appointments?: boolean;
@@ -46,6 +48,7 @@ export interface Admin {
   first_name: string;
   last_name: string;
   email: string;
+  phone?: string;
   role: string;
   is_active: boolean;
   can_manage_appointments?: boolean;
@@ -60,6 +63,7 @@ export interface StaffMember {
   first_name: string;
   last_name: string;
   email: string;
+  phone?: string;
   username: string;
   role: string;
   is_active: boolean;

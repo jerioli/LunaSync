@@ -1,22 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useClinic } from '@/contexts/ClinicContext';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Search, UserPlus, Mail, Phone, MoreHorizontal, Shield, Eye, Edit } from 'lucide-react';
-import axios from 'axios';
-import { api, Doctor, Receptionist, Admin, StaffMember } from '@/services/api';
 import StaffDetailModal from '@/components/StaffDetailModal';
 import StaffEditModal from '@/components/StaffEditModal';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useClinic } from '@/contexts/ClinicContext';
+import { Admin, api, Doctor, Receptionist, StaffMember } from '@/services/api';
+import axios from 'axios';
+import { Edit, Eye, Mail, Phone, Search, Shield, UserPlus } from 'lucide-react';
 
 const StaffPage = () => {
   const { currentUser } = useClinic();
@@ -209,6 +208,7 @@ const StaffPage = () => {
       const response = await axios.post('http://127.0.0.1:8000/api/staff/', {
         username: newStaff.username || newStaff.email, // Use username or fallback to email
         email: newStaff.email,
+        phone: newStaff.phone, // Include phone number
         password: tempPassword, // Use auto-generated password
         first_name: newStaff.name.split(' ')[0], // Extract first name
         last_name: newStaff.name.split(' ').slice(1).join(' '), // Extract last name
@@ -457,6 +457,7 @@ const StaffPage = () => {
                   <TableRow>
                     <TableHead>Doctor</TableHead>
                     <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
                     <TableHead>Permissions</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -480,6 +481,12 @@ const StaffPage = () => {
                         <div className="flex items-center">
                           <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
                           {doctor.email}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
+                          {doctor.phone || 'Not provided'}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -536,6 +543,7 @@ const StaffPage = () => {
                   <TableRow>
                     <TableHead>Receptionist</TableHead>
                     <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
                     <TableHead>Permissions</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -559,6 +567,12 @@ const StaffPage = () => {
                         <div className="flex items-center">
                           <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
                           {receptionist.email}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
+                          {receptionist.phone || 'Not provided'}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -615,6 +629,7 @@ const StaffPage = () => {
                   <TableRow>
                     <TableHead>Administrator</TableHead>
                     <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
                     <TableHead>Permissions</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -638,6 +653,12 @@ const StaffPage = () => {
                         <div className="flex items-center">
                           <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
                           {admin.email}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
+                          {admin.phone || 'Not provided'}
                         </div>
                       </TableCell>
                       <TableCell>
