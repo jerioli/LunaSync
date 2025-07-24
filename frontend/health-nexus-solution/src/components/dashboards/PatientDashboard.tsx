@@ -1,17 +1,18 @@
-import React from 'react';
-import { useClinic } from '@/contexts/ClinicContext';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import PatientAppointmentModal from '@/components/appointments/PatientAppointmentModal';
+import { AppointmentChatbot } from '@/components/chatbot/AppointmentChatbot';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, FileText, MessageSquare, Pill, Bell } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useClinic } from '@/contexts/ClinicContext';
+import { Calendar, FileText, MessageSquare, Pill } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Input } from '@/components/ui/input';
-import { AppointmentChatbot } from '@/components/chatbot/AppointmentChatbot';
 
 const PatientDashboard = () => {
   const { currentUser, appointments, users, prescriptions, labResults } = useClinic();
   const navigate = useNavigate();
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   
   if (!currentUser || currentUser.role !== 'patient') {
     return <div>Loading...</div>;
@@ -144,7 +145,7 @@ const PatientDashboard = () => {
             </div>
           </CardContent>
           <CardFooter className="border-t bg-muted/50 px-6 py-3">
-            <Button className="w-full" onClick={() => navigate('/request-appointment')}>
+            <Button className="w-full" onClick={() => setShowAppointmentModal(true)}>
               Request new appointment
             </Button>
           </CardFooter>
@@ -241,6 +242,12 @@ const PatientDashboard = () => {
       <div className="grid grid-cols-1">
         <AppointmentChatbot />
       </div>
+      
+      {/* Patient Appointment Modal */}
+      <PatientAppointmentModal 
+        open={showAppointmentModal} 
+        onOpenChange={setShowAppointmentModal} 
+      />
     </div>
   );
 };

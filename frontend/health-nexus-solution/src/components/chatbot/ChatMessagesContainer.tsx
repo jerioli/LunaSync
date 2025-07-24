@@ -6,7 +6,7 @@ import DatePicker from 'react-datepicker';
 interface ChatMessagesContainerProps {
   messages: MessageType[];
   appointmentForm: AppointmentForm;
-  onOptionSelect: (value: string) => void;
+  onOptionSelect: (value: string, messageKey?: string) => void;
   onDateSelect: (date: Date | undefined) => void;
   onFileUpload?: (file: File) => void;
 }
@@ -35,20 +35,6 @@ export const ChatMessagesContainer = ({
             onDateSelect={onDateSelect}
             onFileUpload={onFileUpload}
           />
-          {/* Render options if present */}
-          {message.type === 'options' && message.options && (
-            <div className="flex gap-2 mt-2">
-              {message.options.map(option => (
-                <Button key={option.value} onClick={() => onOptionSelect(option.value)}>
-                  {option.label}
-                </Button>
-              ))}
-            </div>
-          )}
-          {/* Render date picker if needed */}
-          {message.type === 'date' && (
-            <DatePicker onSelect={onDateSelect} />
-          )}
         </div>
       ))}
       <div ref={messagesEndRef} />

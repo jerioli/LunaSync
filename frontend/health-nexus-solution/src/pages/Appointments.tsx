@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CalendarCheck, ClipboardList, Calendar, Clock } from 'lucide-react';
@@ -11,8 +12,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import NewAppointmentModal from '@/components/appointments/ScheduleAppointmentModal';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext } from '@/components/ui/pagination';
 
+// Set axios base URL to include the API prefix
+axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
+
 const Appointments = () => {
   const { currentUser, patients, users } = useClinic();
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [activeTab, setActiveTab] = useState("upcoming");
   const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false);
@@ -165,6 +170,10 @@ const Appointments = () => {
       const result = appointment.status === "pending";
       console.log('Pending filter result:', result, 'for appointment:', appointment.id);
       return result;
+    } else if (activeTab === "ongoing") {
+      const result = appointment.status === "ongoing";
+      console.log('Ongoing filter result:', result, 'for appointment:', appointment.id);
+      return result;
     } else if (activeTab === "completed") {
       const result = appointment.status === "completed";
       console.log('Completed filter result:', result, 'for appointment:', appointment.id);
@@ -295,9 +304,18 @@ const Appointments = () => {
   // Local handler for status updates
   const handleStatusUpdate = async (appointmentId, status) => {
     try {
+      console.log('Attempting to update appointment status:', {
+        appointmentId,
+        status,
+        url: `appointments/update-status/${appointmentId}/`,
+        payload: { status: status }
+      });
+      
       const response = await axios.post(`appointments/update-status/${appointmentId}/`, {
         status: status
       });
+      
+      console.log('Status update response:', response.data);
       
       // Update local state with the response
       setAppointments(prev => prev.map(appt => 
@@ -309,7 +327,8 @@ const Appointments = () => {
         'completed': "Appointment marked as completed",
         'cancelled': "Appointment has been cancelled",
         'no-show': "Patient marked as no-show",
-        'pending': "Appointment marked as pending"
+        'pending': "Appointment marked as pending",
+        'ongoing': "Patient has been checked in"
       };
       
       // Enhanced success message for confirmations
@@ -326,7 +345,20 @@ const Appointments = () => {
       
     } catch (error) {
       console.error('Error updating appointment status:', error);
-      toast.error('Failed to update appointment status. Please try again.');
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        statusText: error.response?.statusText
+      });
+      
+      // Show more specific error message
+      if (error.response?.status === 400) {
+        const errorMsg = error.response?.data?.detail || error.response?.data?.error || 'Invalid request. The status might not be supported.';
+        toast.error(`Failed to update appointment: ${errorMsg}`);
+      } else {
+        toast.error('Failed to update appointment status. Please try again.');
+      }
     }
   };
 
@@ -353,9 +385,10 @@ const Appointments = () => {
       <div className="grid grid-cols-1 md:grid-cols-1 gap-6 md:max-w-7xl mx-auto">
         <div>
           <Tabs defaultValue="upcoming" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-4 mb-4">
+            <TabsList className={`grid mb-4 ${isReceptionist ? 'grid-cols-5' : 'grid-cols-4'}`}>
               <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
               {isReceptionist && <TabsTrigger value="pending">Pending</TabsTrigger>}
+              <TabsTrigger value="ongoing">Ongoing</TabsTrigger>
               <TabsTrigger value="completed">Completed</TabsTrigger>
               <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
             </TabsList>
@@ -408,13 +441,11 @@ const Appointments = () => {
                       </CardContent>
                       <CardFooter className="py-1 px-2">
                         <div className="flex flex-wrap gap-1 w-full justify-end">
-                          {isDoctor && (
-                            <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={() => handleStatusUpdate(appointment.id, 'completed')}>
-                              Mark Complete
-                            </Button>
-                          )}
                           {isReceptionist && (
                             <>
+                              <Button variant="default" size="sm" className="h-6 px-2 text-xs bg-yellow-600 hover:bg-yellow-700" onClick={() => handleStatusUpdate(appointment.id, 'ongoing')}>
+                                Check In Patient
+                              </Button>
                               <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={() => handleStatusUpdate(appointment.id, 'no-show')}>
                                 No Show
                               </Button>
@@ -524,6 +555,111 @@ const Appointments = () => {
                 )}
               </TabsContent>
             )}
+            
+            <TabsContent value="ongoing" className="space-y-4">
+              {filteredAppointments.length === 0 ? (
+                <Card>
+                  <CardContent className="pt-6 text-center">
+                    <p>No ongoing appointments found.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  {paginatedAppointments.map(appointment => (
+                    <Card key={appointment.id}>
+                      <CardHeader className="pb-2 min-h-0">
+                        <div className="flex justify-between items-center min-h-0">
+                          <div className="flex items-center min-h-0">
+                            <div>
+                              <CardTitle className="text-[1.1rem] font-semibold leading-tight">{getPatientName(appointment.patientId, appointment)}</CardTitle>
+                              <CardDescription className="text-sm text-muted-foreground">{appointment.type}</CardDescription>
+                            </div>
+                          </div>
+                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 px-1.5 py-0.5 text-xs font-medium h-5 min-w-12 flex items-center justify-center">
+                            Ongoing
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pb-0.5">
+                        <div className="grid grid-cols-2 gap-1 md:gap-2 text-sm">
+                          <div className="flex items-center min-h-0 py-1">
+                            <Calendar className="mr-1 h-3.5 w-3.5 text-muted-foreground" />
+                            <span>{formatDate(appointment.date)}</span>
+                          </div>
+                          <div className="flex items-center min-h-0 py-1">
+                            <Clock className="mr-1 h-3.5 w-3.5 text-muted-foreground" />
+                            <span>{appointment.time}</span>
+                          </div>
+                          <div className="col-span-2 min-h-0 py-1">
+                            <p className="text-xs font-medium leading-tight">Doctor:</p>
+                            <p className="text-xs text-muted-foreground leading-tight">{getDoctorName(appointment.doctorId, appointment)}</p>
+                          </div>
+                          {getDisplayNotes(appointment.notes) && (
+                            <div className="col-span-2 min-h-0 py-1">
+                              <p className="text-xs font-medium leading-tight">Notes:</p>
+                              <p className="text-xs text-muted-foreground leading-tight">{getDisplayNotes(appointment.notes)}</p>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                      <CardFooter className="py-1 px-2">
+                        <div className="flex flex-wrap gap-1 w-full justify-end">
+                          {isDoctor && (
+                            <>
+                              <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={() => {
+                                // Navigate to patient record using React Router
+                                navigate(`/patients/${appointment.patientId}`);
+                              }}>
+                                View Patient Record
+                              </Button>
+                              <Button variant="default" size="sm" className="h-6 px-2 text-xs bg-green-600 hover:bg-green-700" onClick={() => handleStatusUpdate(appointment.id, 'completed')}>
+                                Complete Appointment
+                              </Button>
+                            </>
+                          )}
+                          {isReceptionist && (
+                            <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={() => handleStatusUpdate(appointment.id, 'scheduled')}>
+                              Return to Scheduled
+                            </Button>
+                          )}
+                        </div>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                  {totalPages > 1 && (
+                    <Pagination className="mt-4">
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                            aria-disabled={currentPage === 1}
+                            tabIndex={currentPage === 1 ? -1 : 0}
+                          />
+                        </PaginationItem>
+                        {Array.from({ length: totalPages }, (_, i) => (
+                          <PaginationItem key={i + 1}>
+                            <PaginationLink
+                              isActive={currentPage === i + 1}
+                              onClick={() => setCurrentPage(i + 1)}
+                              href="#"
+                            >
+                              {i + 1}
+                            </PaginationLink>
+                          </PaginationItem>
+                        ))}
+                        <PaginationItem>
+                          <PaginationNext
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                            aria-disabled={currentPage === totalPages}
+                            tabIndex={currentPage === totalPages ? -1 : 0}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  )}
+                </>
+              )}
+            </TabsContent>
             
             <TabsContent value="completed" className="space-y-4">
               {filteredAppointments.length === 0 ? (

@@ -12,6 +12,15 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import os
+from dotenv import load_dotenv
+import ssl
+
+# Fix SSL certificate verification issues for development
+ssl._create_default_https_context = ssl._create_unverified_context
+
+# Load environment variables from .env file
+load_dotenv(os.path.join(Path(__file__).resolve().parent.parent, '.env'))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,11 +49,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
+    'api',  # OCR and AWS credentials management
     'accounts',
     'patients',
     'appointments',
      'clinic',
     'doctor_availability',
+    'medical_documents',
+    'medical_requests',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -52,6 +64,8 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",  # React dev server
     "http://localhost:3000",  # React dev server alternative port
+    "http://localhost:5173",  # Vite dev server default port
+    "http://localhost:4173",  # Vite preview port
 ]
 
 CORS_ALLOW_METHODS = [
@@ -180,19 +194,23 @@ REST_FRAMEWORK = {
     ],
 }
 
-# Email Configuration
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # Change to SMTP backend
-DEFAULT_FROM_EMAIL = 'jeri.olivarez@gmail.com'  # Your Gmail address
+# Email Configuration - SMTP for production emails
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+DEFAULT_FROM_EMAIL = 'jeri.olivarez@gmail.com'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'jeri.olivarez@gmail.com'  # Your Gmail address
-EMAIL_HOST_PASSWORD = 'ovyb dqzr rjrm ramg'  # The app password you generated
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = 'jeri.olivarez@gmail.com'
+EMAIL_HOST_PASSWORD = 'snsi pqbb sdjt hsqt'
+EMAIL_TIMEOUT = 30
+
+# AWS Configuration
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
 
 # Clinic Configuration
 CLINIC_DEFAULT_EMAIL = 'jeri.olivarez@gmail.com'  # Email to receive review notifications
-
-# For development/testing, you can uncomment this line to see emails in console
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 

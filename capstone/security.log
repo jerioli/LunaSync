@@ -1,0 +1,33 @@
+WARNING 2025-07-06 02:36:49,081 middleware 10604 3440 Suspicious request detected from 127.0.0.1: /api/auth/login/
+WARNING 2025-07-06 02:36:53,287 middleware 10604 15776 Suspicious request detected from 127.0.0.1: /api/auth/login/
+WARNING 2025-07-06 02:36:57,401 middleware 10604 6992 Suspicious request detected from 127.0.0.1: /api/medical-documents/lab-results/
+WARNING 2025-07-06 02:36:59,464 middleware 10604 23172 Suspicious request detected from 127.0.0.1: /api/medical-documents/lab-results/
+WARNING 2025-07-06 02:37:03,802 middleware 10604 11644 Suspicious request detected from 127.0.0.1: /api/medical-documents/lab-results/
+WARNING 2025-07-06 02:37:03,803 middleware 10604 11644 IP 127.0.0.1 has been blocked for 3600 seconds
+WARNING 2025-07-06 02:37:05,862 middleware 10604 20140 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:08,030 middleware 10604 22468 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:10,203 middleware 10604 24412 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:12,350 middleware 10604 5528 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:14,504 middleware 10604 24824 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:16,652 middleware 10604 24500 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:18,837 middleware 10604 17192 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:21,021 middleware 10604 22264 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:23,171 middleware 10604 9596 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:25,320 middleware 10604 19392 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:27,479 middleware 10604 23328 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:29,650 middleware 10604 25248 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:31,838 middleware 10604 15356 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:33,988 middleware 10604 20772 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:36,136 middleware 10604 23168 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:38,271 middleware 10604 4424 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:40,307 middleware 10604 5532 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:42,356 middleware 10604 24032 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:44,422 middleware 10604 11352 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:46,471 middleware 10604 3192 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:49,021 middleware 10604 7008 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:51,557 middleware 10604 21740 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:54,095 middleware 10604 20248 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:56,621 middleware 10604 1740 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:37:59,160 middleware 10604 10196 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:38:01,757 middleware 10604 25012 Blocked IP attempted access: 127.0.0.1
+WARNING 2025-07-06 02:38:27,580 middleware 10604 8196 Blocked IP attempted access: 127.0.0.1

@@ -1,19 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { useBranding } from '@/contexts/BrandingContext';
 import { useClinic } from '@/contexts/ClinicContext';
 import { toast } from '@/hooks/use-toast';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import axios from 'axios';
-import { Textarea } from '@/components/ui/textarea';
+import React, { useEffect, useState } from 'react';
 
 const Settings = () => {
   const { currentUser, updateClinicCustomization } = useClinic();
+  const { colors, updateColors, resetColors } = useBranding();
   const [generalSettings, setGeneralSettings] = useState({
     clinicName: '',
     address: '',
@@ -40,6 +42,7 @@ const Settings = () => {
     reminderTime: '24'
   });
   const [loading, setLoading] = useState(false);
+  const [brandingLoading, setBrandingLoading] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [healthcareProfessionalsPreview, setHealthcareProfessionalsPreview] = useState<string | null>(null);
   const [clinicBuildingPreview, setClinicBuildingPreview] = useState<string | null>(null);
@@ -49,12 +52,20 @@ const Settings = () => {
   const [isEditingHero, setIsEditingHero] = useState(false);
   const [isEditingAbout, setIsEditingAbout] = useState(false);
   const [isEditingServices, setIsEditingServices] = useState(false);
+  const [awsCredentials, setAwsCredentials] = useState({
+    name: 'AWS Textract Config',
+    aws_access_key_id: '',
+    aws_secret_access_key: '',
+    aws_region: 'us-east-1',
+    is_active: true
+  });
+  const [isEditingAws, setIsEditingAws] = useState(false);
 
   useEffect(() => {
     const fetchSettings = async () => {
       setLoading(true);
       try {
-        const res = await axios.get('/api/clinic/');
+        const res = await axios.get('clinic/');
         if (res.data) {
           setGeneralSettings({
             clinicName: res.data.clinic_name || '',
@@ -80,6 +91,23 @@ const Settings = () => {
           setLogoPreview(res.data.logo || null);
           setHealthcareProfessionalsPreview(res.data.healthcare_professionals_image || null);
           setClinicBuildingPreview(res.data.clinic_building_image || null);
+        }
+        
+        // Fetch AWS credentials
+        try {
+          const awsRes = await axios.get('aws-credentials/');
+          if (awsRes.data && awsRes.data.length > 0) {
+            const activeCredentials = awsRes.data.find((cred: any) => cred.is_active) || awsRes.data[0];
+            setAwsCredentials({
+              name: activeCredentials.name || 'AWS Textract Config',
+              aws_access_key_id: activeCredentials.aws_access_key_id || '',
+              aws_secret_access_key: '', // Don't populate for security
+              aws_region: activeCredentials.aws_region || 'us-east-1',
+              is_active: activeCredentials.is_active || true
+            });
+          }
+        } catch (awsErr) {
+          console.warn('No AWS credentials found, using defaults');
         }
       } catch (err) {
         toast({ title: 'Error', description: 'Failed to fetch clinic settings', variant: 'destructive' });
@@ -107,7 +135,7 @@ const Settings = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.put('/api/clinic/', {
+      await axios.put('clinic/', {
         clinic_name: generalSettings.clinicName,
         address: generalSettings.address,
         city: generalSettings.city,
@@ -128,6 +156,19 @@ const Settings = () => {
       setLoading(false);
     }
   };
+
+  const handleAwsSave = async () => {
+    setLoading(true);
+    try {
+      await axios.post('aws-credentials/', awsCredentials);
+      toast({ title: 'AWS Credentials Saved', description: 'AWS credentials updated successfully.' });
+      setIsEditingAws(false);
+    } catch (err) {
+      toast({ title: 'Error', description: 'Failed to save AWS credentials', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const handleAppointmentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,7 +183,7 @@ const Settings = () => {
   const handleHeroSave = async () => {
     setLoading(true);
     try {
-      await axios.put('/api/clinic/', {
+      await axios.put('clinic/', {
         hero_title: hero.title,
         hero_subtitle: hero.subtitle
       });
@@ -157,7 +198,7 @@ const Settings = () => {
   const handleAboutSave = async () => {
     setLoading(true);
     try {
-      await axios.put('/api/clinic/', {
+      await axios.put('clinic/', {
         about_title: about.title,
         about_text: about.text
       });
@@ -172,7 +213,7 @@ const Settings = () => {
   const handleServicesSave = async () => {
     setLoading(true);
     try {
-      await axios.put('/api/clinic/', { services });
+      await axios.put('clinic/', { services });
       toast({ title: 'Services Saved', description: 'Services updated.' });
       setIsEditingServices(false);
     } catch (err) {
@@ -183,14 +224,14 @@ const Settings = () => {
   const handleFaqsSave = async () => {
     setLoading(true);
     try {
-      await axios.put('/api/clinic/', { faqs });
+      await axios.put('clinic/', { faqs });
       // Update the clinic context with the new FAQs
       updateClinicCustomization({ faqs });
       toast({ title: 'FAQs Saved', description: 'FAQs updated.' });
       setIsEditingFaqs(false);
       
       // Optionally refresh the settings to ensure they persist
-      const res = await axios.get('/api/clinic/');
+      const res = await axios.get('clinic/');
       if (res.data && res.data.faqs) {
         setFaqs(res.data.faqs);
       }
@@ -209,7 +250,7 @@ const Settings = () => {
     formData.append(field, file);
     setLoading(true);
     try {
-      await axios.put('/api/clinic/', formData, {
+      await axios.put('clinic/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       toast({ title: 'Image Updated', description: `${field.replace(/_/g, ' ')} updated successfully.` });
@@ -217,6 +258,54 @@ const Settings = () => {
       toast({ title: 'Error', description: `Failed to update ${field.replace(/_/g, ' ')}`, variant: 'destructive' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Branding functions
+  const handleBrandingUpdate = async () => {
+    setBrandingLoading(true);
+    try {
+      // Update colors through context
+      updateColors(colors);
+      
+      toast({
+        title: "Branding Updated",
+        description: "Your color preferences have been applied successfully.",
+      });
+    } catch (error) {
+      console.error('Error updating branding:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update branding. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setBrandingLoading(false);
+    }
+  };
+
+  const handleColorChange = (colorType: 'primaryColor' | 'secondaryColor' | 'tertiaryColor', value: string) => {
+    const newColors = { ...colors, [colorType]: value };
+    updateColors(newColors);
+  };
+
+  const handleResetBranding = () => {
+    setBrandingLoading(true);
+    try {
+      resetColors();
+      toast({
+        title: "Colors Reset",
+        description: "Branding colors have been reset to default values.",
+      });
+    } catch (error) {
+      console.error('Error resetting branding:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reset branding colors.",
+        variant: "destructive",
+      });
+    } finally {
+      setBrandingLoading(false);
     }
   };
 
@@ -236,6 +325,7 @@ const Settings = () => {
           <TabsTrigger value="appointments">Appointments</TabsTrigger>
           <TabsTrigger value="faqs">FAQs</TabsTrigger>
           <TabsTrigger value="homepage">Homepage</TabsTrigger>
+          <TabsTrigger value="aws">AWS OCR</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
         </TabsList>
@@ -355,62 +445,170 @@ const Settings = () => {
         <TabsContent value="branding">
           <Card>
             <CardHeader>
-              <CardTitle>Branding</CardTitle>
+              <CardTitle>Branding Colors</CardTitle>
               <CardDescription>
-                Set your clinic's primary color and logo.
+                Customize the application colors and branding elements. Changes apply to all users across the entire application.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="primary_color">Primary Color</Label>
-                <Input
-                  id="primary_color"
-                  type="color"
-                  value={"#1976d2"}
-                  style={{ width: 60, height: 40, padding: 0, border: 'none', background: 'none' }}
-                  readOnly
-                />
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Primary Color */}
+                <div className="space-y-3">
+                  <Label htmlFor="primaryColor">Primary Color</Label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      id="primaryColor"
+                      type="color"
+                      value={colors.primaryColor}
+                      onChange={(e) => handleColorChange('primaryColor', e.target.value)}
+                      className="w-16 h-16 rounded-lg border-2 border-border cursor-pointer"
+                    />
+                    <div>
+                      <div className="font-medium">Primary</div>
+                      <div className="text-sm text-muted-foreground">{colors.primaryColor}</div>
+                      <div className="text-xs text-muted-foreground">Buttons, links, highlights</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Secondary Color */}
+                <div className="space-y-3">
+                  <Label htmlFor="secondaryColor">Secondary Color</Label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      id="secondaryColor"
+                      type="color"
+                      value={colors.secondaryColor}
+                      onChange={(e) => handleColorChange('secondaryColor', e.target.value)}
+                      className="w-16 h-16 rounded-lg border-2 border-border cursor-pointer"
+                    />
+                    <div>
+                      <div className="font-medium">Secondary</div>
+                      <div className="text-sm text-muted-foreground">{colors.secondaryColor}</div>
+                      <div className="text-xs text-muted-foreground">Cards, backgrounds</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tertiary Color */}
+                <div className="space-y-3">
+                  <Label htmlFor="tertiaryColor">Tertiary Color</Label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      id="tertiaryColor"
+                      type="color"
+                      value={colors.tertiaryColor}
+                      onChange={(e) => handleColorChange('tertiaryColor', e.target.value)}
+                      className="w-16 h-16 rounded-lg border-2 border-border cursor-pointer"
+                    />
+                    <div>
+                      <div className="font-medium">Tertiary</div>
+                      <div className="text-sm text-muted-foreground">{colors.tertiaryColor}</div>
+                      <div className="text-xs text-muted-foreground">Accents, icons</div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="logo">Logo</Label>
-                <Input
-                  id="logo"
-                  type="file"
-                  accept="image/*"
-                  onChange={e => handleImageChange(e, 'logo', setLogoPreview)}
-                />
-                {logoPreview && (
-                  <img src={logoPreview} alt="Logo Preview" className="mt-2 h-16" />
-                )}
+
+              <Separator />
+
+              {/* Color Preview */}
+              <div className="space-y-3">
+                <Label>Color Preview</Label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-lg border" style={{ backgroundColor: colors.primaryColor + '20', borderColor: colors.primaryColor }}>
+                    <div className="text-sm font-medium">Primary Color Usage</div>
+                    <Button size="sm" className="mt-2" style={{ backgroundColor: colors.primaryColor }}>
+                      Primary Button
+                    </Button>
+                  </div>
+                  <div className="p-4 rounded-lg border" style={{ backgroundColor: colors.secondaryColor + '20', borderColor: colors.secondaryColor }}>
+                    <div className="text-sm font-medium">Secondary Color Usage</div>
+                    <Button size="sm" variant="secondary" className="mt-2" style={{ backgroundColor: colors.secondaryColor }}>
+                      Secondary Button
+                    </Button>
+                  </div>
+                  <div className="p-4 rounded-lg border" style={{ backgroundColor: colors.tertiaryColor + '20', borderColor: colors.tertiaryColor }}>
+                    <div className="text-sm font-medium">Tertiary Color Usage</div>
+                    <Button size="sm" variant="outline" className="mt-2" style={{ borderColor: colors.tertiaryColor, color: colors.tertiaryColor }}>
+                      Tertiary Button
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="healthcare_professionals_image">Healthcare Professionals Image</Label>
-                <Input
-                  id="healthcare_professionals_image"
-                  type="file"
-                  accept="image/*"
-                  onChange={e => handleImageChange(e, 'healthcare_professionals_image', setHealthcareProfessionalsPreview)}
-                />
-                {healthcareProfessionalsPreview && (
-                  <img src={healthcareProfessionalsPreview} alt="Healthcare Professionals Preview" className="mt-2 h-16" />
-                )}
+
+              <Separator />
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <Button onClick={handleBrandingUpdate} disabled={brandingLoading}>
+                  {brandingLoading ? 'Applying...' : 'Apply Colors'}
+                </Button>
+                <Button variant="outline" onClick={handleResetBranding} disabled={brandingLoading}>
+                  Reset to Default
+                </Button>
               </div>
-              <div>
-                <Label htmlFor="clinic_building_image">Clinic Building Image</Label>
-                <Input
-                  id="clinic_building_image"
-                  type="file"
-                  accept="image/*"
-                  onChange={e => handleImageChange(e, 'clinic_building_image', setClinicBuildingPreview)}
-                />
-                {clinicBuildingPreview && (
-                  <img src={clinicBuildingPreview} alt="Clinic Building Preview" className="mt-2 h-16" />
-                )}
+
+              <Separator />
+
+              {/* Logo and Images Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Images & Assets</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <Label htmlFor="logo">Logo</Label>
+                    <Input
+                      id="logo"
+                      type="file"
+                      accept="image/*"
+                      onChange={e => handleImageChange(e, 'logo', setLogoPreview)}
+                      className="mt-2"
+                    />
+                    {logoPreview && (
+                      <img src={logoPreview} alt="Logo Preview" className="mt-2 h-16 object-contain" />
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="healthcare_professionals_image">Healthcare Professionals Image</Label>
+                    <Input
+                      id="healthcare_professionals_image"
+                      type="file"
+                      accept="image/*"
+                      onChange={e => handleImageChange(e, 'healthcare_professionals_image', setHealthcareProfessionalsPreview)}
+                      className="mt-2"
+                    />
+                    {healthcareProfessionalsPreview && (
+                      <img src={healthcareProfessionalsPreview} alt="Healthcare Professionals Preview" className="mt-2 h-16 object-contain" />
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="clinic_building_image">Clinic Building Image</Label>
+                    <Input
+                      id="clinic_building_image"
+                      type="file"
+                      accept="image/*"
+                      onChange={e => handleImageChange(e, 'clinic_building_image', setClinicBuildingPreview)}
+                      className="mt-2"
+                    />
+                    {clinicBuildingPreview && (
+                      <img src={clinicBuildingPreview} alt="Clinic Building Preview" className="mt-2 h-16 object-contain" />
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Information */}
+              <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
+                <h4 className="font-medium mb-2">Admin Branding Control:</h4>
+                <ul className="text-sm space-y-1 text-muted-foreground">
+                  <li>• Only administrators can modify application colors and branding</li>
+                  <li>• Colors are applied instantly across the entire application for all users</li>
+                  <li>• Changes are saved and persist across browser sessions</li>
+                  <li>• Images are uploaded and stored on the server</li>
+                  <li>• Use the reset button to return to default color scheme</li>
+                </ul>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-end">
-              <Button disabled>Save Branding</Button>
-            </CardFooter>
           </Card>
         </TabsContent>
         
@@ -614,6 +812,134 @@ const Settings = () => {
             </CardFooter>
           </Card>
         </TabsContent>
+        
+        <TabsContent value="aws">
+          <Card>
+            <CardHeader>
+              <CardTitle>AWS OCR Credentials</CardTitle>
+              <CardDescription>
+                Configure AWS Textract credentials for lab result processing
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="bg-yellow-50 dark:bg-yellow-950 p-4 rounded-lg mb-6">
+                <h4 className="font-medium mb-2">🔐 Security Notice:</h4>
+                <ul className="text-sm space-y-1 text-muted-foreground">
+                  <li>• AWS credentials are stored securely in the database</li>
+                  <li>• Only administrators can view and modify these settings</li>
+                  <li>• Secret keys are encrypted and never displayed in full</li>
+                  <li>• These credentials enable OCR processing of lab results</li>
+                </ul>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label htmlFor="awsAccessKey">AWS Access Key ID</Label>
+                  <Input
+                    id="awsAccessKey"
+                    type="text"
+                    value={awsCredentials.aws_access_key_id}
+                    onChange={(e) => setAwsCredentials({...awsCredentials, aws_access_key_id: e.target.value})}
+                    disabled={!isEditingAws}
+                    placeholder="AKIA..."
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Your AWS Access Key ID for Textract service
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="awsSecretKey">AWS Secret Access Key</Label>
+                  <Input
+                    id="awsSecretKey"
+                    type="password"
+                    value={awsCredentials.aws_secret_access_key}
+                    onChange={(e) => setAwsCredentials({...awsCredentials, aws_secret_access_key: e.target.value})}
+                    disabled={!isEditingAws}
+                    placeholder="Enter new secret key..."
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Leave blank to keep existing secret key
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="awsRegion">AWS Region</Label>
+                  <select
+                    id="awsRegion"
+                    value={awsCredentials.aws_region}
+                    onChange={(e) => setAwsCredentials({...awsCredentials, aws_region: e.target.value})}
+                    disabled={!isEditingAws}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="us-east-1">US East (N. Virginia)</option>
+                    <option value="us-east-2">US East (Ohio)</option>
+                    <option value="us-west-1">US West (N. California)</option>
+                    <option value="us-west-2">US West (Oregon)</option>
+                    <option value="eu-west-1">Europe (Ireland)</option>
+                    <option value="eu-central-1">Europe (Frankfurt)</option>
+                    <option value="ap-southeast-1">Asia Pacific (Singapore)</option>
+                    <option value="ap-southeast-2">Asia Pacific (Sydney)</option>
+                  </select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Choose the AWS region closest to your location
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="awsName">Configuration Name</Label>
+                  <Input
+                    id="awsName"
+                    type="text"
+                    value={awsCredentials.name}
+                    onChange={(e) => setAwsCredentials({...awsCredentials, name: e.target.value})}
+                    disabled={!isEditingAws}
+                    placeholder="AWS Textract Config"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Friendly name for this AWS configuration
+                  </p>
+                </div>
+              </div>
+
+              <div className="border-t pt-6">
+                <h4 className="font-medium mb-4">AWS Service Status</h4>
+                <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span className="text-sm">AWS Textract OCR Service</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Used for processing lab result documents and extracting structured data
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
+                <h4 className="font-medium mb-2">How to get AWS Credentials:</h4>
+                <ol className="text-sm space-y-1 text-muted-foreground list-decimal list-inside">
+                  <li>Sign in to AWS Console</li>
+                  <li>Go to IAM (Identity and Access Management)</li>
+                  <li>Create a new user with Textract permissions</li>
+                  <li>Generate access keys for programmatic access</li>
+                  <li>Copy the Access Key ID and Secret Access Key here</li>
+                </ol>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-end">
+              {!isEditingAws && (
+                <Button type="button" onClick={() => setIsEditingAws(true)}>Edit AWS Settings</Button>
+              )}
+              {isEditingAws && (
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => setIsEditingAws(false)}>Cancel</Button>
+                  <Button onClick={handleAwsSave}>Save AWS Credentials</Button>
+                </div>
+              )}
+            </CardFooter>
+          </Card>
+        </TabsContent>
+          
           <TabsContent value="notifications">
           <Card>
             <CardHeader>

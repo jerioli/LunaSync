@@ -7,11 +7,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { FileText, Download, Save, Eye, FileCheck, X, Trash2, Printer } from 'lucide-react';
+import { FileText, Download, Save, Eye, FileCheck, X, Trash2, Printer, Mail } from 'lucide-react';
 import { format } from 'date-fns';
 import { Patient } from '@/lib/mock-data';
 import { useClinic } from '@/contexts/ClinicContext';
 import axios from 'axios';
+
+// Set axios base URL for API calls
+axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
 
 interface MedicalCertificateData {
   hospitalName: string;
@@ -226,79 +229,236 @@ const MedicalCertificateGenerator: React.FC<MedicalCertificateGeneratorProps> = 
     setShowForm(false);
     setShowPreview(false);
   };
+
+  const saveAndSendEmail = async () => {
+    try {
+      setLoading(true);
+      
+      // Generate certificate first
+      const certificate = {
+        id: Date.now(),
+        type: 'Medical Certificate',
+        dateCreated: new Date().toISOString(),
+        patientId: patient.id,
+        data: certificateData,
+        content: generateCertificateHTML()
+      };
+
+      // Save the certificate
+      onSaveCertificate(certificate);
+
+      // Send email with the certificate
+      const emailData = {
+        patient_email: patient.email,
+        patient_name: patient.name,
+        certificate_html: generateCertificateHTML(),
+        certificate_type: certificateData.fitForWork === 'unfit' ? 'Sick Leave Certificate' : 
+                         certificateData.fitForWork === 'limited' ? 'Fitness Certificate (Limited)' : 'Fitness Certificate',
+        doctor_name: certificateData.doctorName,
+        hospital_name: certificateData.hospitalName,
+        subject: `Medical Certificate - ${certificateData.fitForWork === 'unfit' ? 'Sick Leave Certificate' : 
+                 certificateData.fitForWork === 'limited' ? 'Fitness Certificate (Limited)' : 'Fitness Certificate'}`,
+        email_body: `Dear ${patient.name},
+
+Please find attached your medical certificate as requested.
+
+Certificate Details:
+- Type: ${certificateData.fitForWork === 'unfit' ? 'Sick Leave Certificate' : 
+          certificateData.fitForWork === 'limited' ? 'Fitness Certificate (Limited)' : 'Fitness Certificate'}
+- Date Issued: ${format(new Date(certificateData.dateIssued), 'MMMM dd, yyyy')}
+- Issued by: ${certificateData.doctorName}
+
+If you have any questions, please contact our clinic.
+
+Best regards,
+${certificateData.hospitalName}`
+      };
+
+      await axios.post('/send-medical-certificate-email/', emailData);
+      
+      setShowForm(false);
+      setShowPreview(false);
+      
+      // Show success message using dynamic import to avoid SSR issues
+      const { toast } = await import('sonner');
+      toast.success('Medical certificate saved and sent via email successfully!', {
+        description: `Email sent to ${patient.email}`
+      });
+      
+    } catch (error) {
+      console.error('Error saving and sending certificate:', error);
+      const { toast } = await import('sonner');
+      toast.error('Failed to send email', {
+        description: 'Certificate was saved but email sending failed. Please try sending manually.'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   const generateCertificateHTML = () => {
     return `
-      <div style="font-family: Arial, sans-serif; max-width: 900px; margin: 0 auto; padding: 40px; border: 2px solid #333; background: white;">
-        <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="margin: 0; color: #2563eb; font-size: 32px; font-weight: bold;">${certificateData.hospitalName}</h1>
-          <p style="margin: 5px 0; color: #666; font-size: 16px;">${certificateData.hospitalAddress}</p>
-          <p style="margin: 5px 0; color: #666; font-size: 14px;">${certificateData.hospitalContact}</p>
-          ${certificateData.hospitalLicense ? `<p style="margin: 5px 0; color: #666; font-size: 12px;">License: ${certificateData.hospitalLicense}</p>` : ''}
-          <hr style="margin: 25px 0; border: 2px solid #333;" />
-          <h2 style="margin: 25px 0; color: #333; font-size: 28px; font-weight: bold; letter-spacing: 2px;">MEDICAL CERTIFICATE</h2>
+      <div style="font-family: 'Times New Roman', serif; max-width: 900px; margin: 0 auto; padding: 0; background: white; border: 3px solid #1e40af; position: relative;">
+        <!-- Medical Symbol Header -->
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 20px; text-align: center; position: relative;">
+          <div style="position: absolute; left: 30px; top: 50%; transform: translateY(-50%); font-size: 40px;">⚕️</div>
+          <div style="position: absolute; right: 30px; top: 50%; transform: translateY(-50%); font-size: 40px;">⚕️</div>
+          <h1 style="margin: 0; font-size: 28px; font-weight: bold; letter-spacing: 1px;">${certificateData.hospitalName}</h1>
+          <div style="width: 100px; height: 2px; background: white; margin: 10px auto;"></div>
+          <p style="margin: 8px 0; font-size: 14px; opacity: 0.9;">${certificateData.hospitalAddress}</p>
+          <p style="margin: 5px 0; font-size: 13px; opacity: 0.9;">${certificateData.hospitalContact}</p>
+          ${certificateData.hospitalLicense ? `<p style="margin: 5px 0; font-size: 12px; opacity: 0.8;">License No: ${certificateData.hospitalLicense}</p>` : ''}
         </div>
 
-        <div style="margin-bottom: 30px; text-align: left;">
-          <p style="margin-bottom: 20px; font-size: 18px;">
-            <strong>Date:</strong> ${format(new Date(certificateData.dateIssued), 'MMMM dd, yyyy')}
-          </p>
-          <p style="margin-bottom: 20px; font-size: 18px;">
-            <strong>To Whom It May Concern:</strong>
-          </p>
+        <!-- Certificate Title -->
+        <div style="text-align: center; padding: 30px 0 20px 0; background: #f8fafc;">
+          <h2 style="margin: 0; color: #1e40af; font-size: 36px; font-weight: bold; letter-spacing: 3px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);">MEDICAL CERTIFICATE</h2>
+          <div style="width: 200px; height: 3px; background: linear-gradient(to right, #1e40af, #3b82f6, #1e40af); margin: 15px auto;"></div>
+          <p style="margin: 10px 0; font-size: 14px; color: #64748b; font-style: italic;">Official Medical Document</p>
         </div>
 
-        <div style="margin-bottom: 30px; line-height: 1.8; text-align: justify;">
-          <p style="margin-bottom: 20px; font-size: 18px;">
-            This is to certify that <strong>${certificateData.patientName}</strong>, 
-            ${certificateData.patientAge} years of age, has been under my medical care.
-          </p>
-          
-          <div style="margin: 25px 0; padding: 20px; background: #f8f9fa; border-left: 4px solid #2563eb;">
-            <p style="margin-bottom: 15px; font-size: 18px;">
-              <strong>Diagnosis:</strong> ${certificateData.diagnosis}
+        <!-- Certificate Content -->
+        <div style="padding: 40px; background: white;">
+          <!-- Date and Reference -->
+          <div style="margin-bottom: 30px; display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px;">
+            <div>
+              <p style="margin: 0; font-size: 16px; color: #374151;"><strong>Certificate No:</strong> MC-${format(new Date(), 'yyyyMMdd')}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}</p>
+            </div>
+            <div>
+              <p style="margin: 0; font-size: 16px; color: #374151;"><strong>Date Issued:</strong> ${format(new Date(certificateData.dateIssued), 'MMMM dd, yyyy')}</p>
+            </div>
+          </div>
+
+          <!-- Formal Address -->
+          <div style="margin-bottom: 30px;">
+            <p style="margin-bottom: 20px; font-size: 18px; font-weight: 600; color: #1f2937;">To Whom It May Concern:</p>
+          </div>
+
+          <!-- Patient Information Card -->
+          <div style="margin-bottom: 30px; padding: 25px; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); border-left: 5px solid #1e40af; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <h3 style="margin: 0 0 15px 0; color: #1e40af; font-size: 20px; font-weight: bold;">PATIENT INFORMATION</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+              <div>
+                <p style="margin: 8px 0; font-size: 16px; color: #374151;"><strong>Name:</strong> ${certificateData.patientName}</p>
+                <p style="margin: 8px 0; font-size: 16px; color: #374151;"><strong>Age:</strong> ${certificateData.patientAge} years</p>
+              </div>
+              <div>
+                <p style="margin: 8px 0; font-size: 16px; color: #374151;"><strong>Date of Examination:</strong> ${format(new Date(), 'MMMM dd, yyyy')}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Medical Findings -->
+          <div style="margin-bottom: 30px;">
+            <p style="margin-bottom: 20px; font-size: 18px; line-height: 1.6; color: #374151; text-align: justify;">
+              This is to certify that the above-named patient has been under my professional medical care and examination.
             </p>
             
-            <p style="margin-bottom: 15px; font-size: 18px;">
-              <strong>Medical Recommendations:</strong> ${certificateData.recommendations}
+            <div style="margin: 25px 0; padding: 25px; background: #fefefe; border: 2px solid #e2e8f0; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+              <div style="margin-bottom: 20px; padding: 15px; background: #fee2e2; border-left: 4px solid #dc2626; border-radius: 5px;">
+                <p style="margin: 0; font-size: 16px; font-weight: 600; color: #dc2626;">DIAGNOSIS:</p>
+                <p style="margin: 8px 0 0 0; font-size: 16px; color: #374151;">${certificateData.diagnosis}</p>
+              </div>
+              
+              <div style="margin-bottom: 20px; padding: 15px; background: #dbeafe; border-left: 4px solid #2563eb; border-radius: 5px;">
+                <p style="margin: 0; font-size: 16px; font-weight: 600; color: #2563eb;">MEDICAL RECOMMENDATIONS:</p>
+                <p style="margin: 8px 0 0 0; font-size: 16px; color: #374151;">${certificateData.recommendations}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Work Status Section -->
+          <div style="margin-bottom: 30px; padding: 25px; background: ${
+            certificateData.fitForWork === 'unfit' ? '#fef2f2' : 
+            certificateData.fitForWork === 'limited' ? '#fffbeb' : '#f0fdf4'
+          }; border: 2px solid ${
+            certificateData.fitForWork === 'unfit' ? '#fecaca' : 
+            certificateData.fitForWork === 'limited' ? '#fed7aa' : '#bbf7d0'
+          }; border-radius: 10px;">
+            <h3 style="margin: 0 0 15px 0; color: ${
+              certificateData.fitForWork === 'unfit' ? '#dc2626' : 
+              certificateData.fitForWork === 'limited' ? '#d97706' : '#059669'
+            }; font-size: 20px; font-weight: bold;">WORK FITNESS ASSESSMENT</h3>
+            
+            ${certificateData.fitForWork === 'unfit' ? `
+              <div style="padding: 15px; background: #fee2e2; border-radius: 8px; border-left: 4px solid #dc2626;">
+                <p style="margin: 0; font-size: 18px; color: #dc2626; font-weight: bold;">⚠️ UNFIT FOR WORK</p>
+                <p style="margin: 10px 0; font-size: 16px; color: #374151;">
+                  The patient is medically advised to rest from work from 
+                  <strong style="color: #dc2626;">${format(new Date(certificateData.restFromDate), 'MMMM dd, yyyy')}</strong> 
+                  to <strong style="color: #dc2626;">${format(new Date(certificateData.restToDate), 'MMMM dd, yyyy')}</strong>.
+                </p>
+                <p style="margin: 5px 0 0 0; font-size: 14px; color: #6b7280; font-style: italic;">
+                  Total rest period: ${Math.ceil((new Date(certificateData.restToDate).getTime() - new Date(certificateData.restFromDate).getTime()) / (1000 * 60 * 60 * 24))} days
+                </p>
+              </div>
+            ` : certificateData.fitForWork === 'limited' ? `
+              <div style="padding: 15px; background: #fef3c7; border-radius: 8px; border-left: 4px solid #d97706;">
+                <p style="margin: 0; font-size: 18px; color: #d97706; font-weight: bold;">⚡ FIT FOR WORK WITH LIMITATIONS</p>
+                <p style="margin: 10px 0; font-size: 16px; color: #374151;">
+                  <strong>Limitations:</strong> ${certificateData.limitations}
+                </p>
+              </div>
+            ` : `
+              <div style="padding: 15px; background: #dcfce7; border-radius: 8px; border-left: 4px solid #059669;">
+                <p style="margin: 0; font-size: 18px; color: #059669; font-weight: bold;">✅ FIT FOR WORK</p>
+                <p style="margin: 10px 0; font-size: 16px; color: #374151;">
+                  The patient is medically cleared to return to work without restrictions.
+                </p>
+              </div>
+            `}
+          </div>
+
+          ${certificateData.followUpDate ? `
+            <div style="margin-bottom: 30px; padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <p style="margin: 0; font-size: 16px; color: #374151;">
+                <strong style="color: #1e40af;">📅 Follow-up Appointment:</strong> ${format(new Date(certificateData.followUpDate), 'MMMM dd, yyyy')}
+              </p>
+            </div>
+          ` : ''}
+
+          <!-- Legal Notice -->
+          <div style="margin-bottom: 40px; padding: 15px; background: #f1f5f9; border-left: 4px solid #6366f1; border-radius: 5px;">
+            <p style="margin: 0; font-size: 14px; color: #4b5563; font-style: italic;">
+              This medical certificate is issued based on my professional medical examination and is valid for the purposes stated above. 
+              Any alteration or misuse of this document is strictly prohibited and may constitute a criminal offense.
             </p>
           </div>
-          
-          ${certificateData.fitForWork === 'unfit' ? `
-            <p style="margin-bottom: 20px; font-size: 18px; color: #dc2626; font-weight: bold;">
-              The patient is advised to rest from work from 
-              <strong>${format(new Date(certificateData.restFromDate), 'MMMM dd, yyyy')}</strong> 
-              to <strong>${format(new Date(certificateData.restToDate), 'MMMM dd, yyyy')}</strong>.
-            </p>
-          ` : certificateData.fitForWork === 'limited' ? `
-            <p style="margin-bottom: 20px; font-size: 18px; color: #d97706;">
-              The patient is fit for work with limitations: <strong>${certificateData.limitations}</strong>
-            </p>
-          ` : `
-            <p style="margin-bottom: 20px; font-size: 18px; color: #059669; font-weight: bold;">
-              The patient is fit to return to work without restrictions.
-            </p>
-          `}
-          
-          ${certificateData.followUpDate ? `
-            <p style="margin-bottom: 20px; font-size: 18px;">
-              <strong>Follow-up Date:</strong> ${format(new Date(certificateData.followUpDate), 'MMMM dd, yyyy')}
-            </p>
-          ` : ''}
-        </div>        <div style="margin-top: 60px; display: flex; justify-content: flex-end;">
-          <div style="text-align: center; width: 350px;">
-            <div style="border-bottom: 2px solid #333; margin-bottom: 10px; height: 80px;"></div>
-            <p style="margin: 0; font-weight: bold; font-size: 18px;">${certificateData.doctorName}</p>
-            <p style="margin: 5px 0; font-size: 16px; color: #666;">Attending Physician</p>
-            <div style="margin-top: 10px; font-size: 12px; color: #666;">
-              ${certificateData.doctorLicense ? `<p style="margin: 2px 0;">License No: ${certificateData.doctorLicense}</p>` : ''}
-              ${certificateData.doctorPRC ? `<p style="margin: 2px 0;">PRC No: ${certificateData.doctorPRC}</p>` : ''}
-              ${certificateData.doctorPTR ? `<p style="margin: 2px 0;">PTR No: ${certificateData.doctorPTR}</p>` : ''}
+
+          <!-- Doctor Signature Section -->
+          <div style="margin-top: 50px; display: flex; justify-content: space-between; align-items: flex-end;">
+            <div style="flex: 1;">
+              <p style="margin: 0; font-size: 14px; color: #6b7280;">
+                This certificate was generated electronically and is valid without physical signature as per digital medical records policy.
+              </p>
+            </div>
+            <div style="text-align: center; width: 350px; padding: 20px; border: 2px solid #e2e8f0; border-radius: 10px; background: #fafafa;">
+              <div style="border-bottom: 3px solid #1e40af; margin-bottom: 15px; height: 60px; position: relative;">
+                <div style="position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); background: #1e40af; color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold;">
+                  DIGITAL SIGNATURE
+                </div>
+              </div>
+              <p style="margin: 20px 0 8px 0; font-weight: bold; font-size: 18px; color: #1e40af;">${certificateData.doctorName}</p>
+              <p style="margin: 5px 0; font-size: 14px; color: #6b7280; font-weight: 600;">Attending Physician</p>
+              <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #e2e8f0;">
+                ${certificateData.doctorLicense ? `<p style="margin: 3px 0; font-size: 12px; color: #6b7280;">License No: ${certificateData.doctorLicense}</p>` : ''}
+                ${certificateData.doctorPRC ? `<p style="margin: 3px 0; font-size: 12px; color: #6b7280;">PRC No: ${certificateData.doctorPRC}</p>` : ''}
+                ${certificateData.doctorPTR ? `<p style="margin: 3px 0; font-size: 12px; color: #6b7280;">PTR No: ${certificateData.doctorPTR}</p>` : ''}
+              </div>
             </div>
           </div>
         </div>
+
+        <!-- Footer -->
+        <div style="background: #1e40af; color: white; padding: 15px; text-align: center; font-size: 12px;">
+          <p style="margin: 0; opacity: 0.8;">
+            This is an official medical document issued by ${certificateData.hospitalName} • Generated on ${format(new Date(), 'MMMM dd, yyyy \'at\' h:mm a')}
+          </p>
+        </div>
       </div>
     `;
-  };  if (showPreview) {
+  };
+
+  if (showPreview) {
     return (
       <Dialog open={showPreview} onOpenChange={() => setShowPreview(false)}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
@@ -322,6 +482,14 @@ const MedicalCertificateGenerator: React.FC<MedicalCertificateGeneratorProps> = 
               <Button onClick={generateCertificate} className="flex-1">
                 <Save className="mr-2 h-4 w-4" />
                 Save Certificate
+              </Button>
+              <Button 
+                onClick={saveAndSendEmail} 
+                disabled={loading || !patient.email}
+                className="flex-1 bg-green-600 hover:bg-green-700"
+              >
+                <Mail className="mr-2 h-4 w-4" />
+                {loading ? 'Sending...' : 'Save & Send Email'}
               </Button>
               <Button 
                 variant="outline" 
@@ -637,7 +805,9 @@ const MedicalCertificateGenerator: React.FC<MedicalCertificateGeneratorProps> = 
         </DialogContent>
       </Dialog>
     );
-  }  return (
+  }
+
+  return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
         <FileCheck className="h-4 w-4" />

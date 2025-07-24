@@ -12,5 +12,8 @@ class Patient(models.Model):
     physical_examination = models.JSONField(blank=True, null=True)  # Store physical examination data as JSON
     registration_date = models.DateField(auto_now_add=True)
 
+    class Meta:
+        db_table = 'patients'
+
     def __str__(self):
         return self.name

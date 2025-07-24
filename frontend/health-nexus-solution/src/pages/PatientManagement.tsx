@@ -18,6 +18,7 @@ import PatientPhysicalExamination from '@/components/patients/PatientPhysicalExa
 import MedicalCertificateGenerator from '@/components/patients/MedicalCertificateGenerator';
 import { Patient } from '@/lib/mock-data';
 import { useToast } from '@/hooks/use-toast';
+import { medicalDocumentsAPI, type LabResult as APILabResult } from '@/services/medicalDocumentsAPI';
 import axios from 'axios';
 import { format } from 'date-fns';
 
@@ -41,7 +42,7 @@ const PatientManagement = () => {
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
   const [soapNotes, setSoapNotes] = useState<any[]>([]);
   const [blankNotes, setBlankNotes] = useState<any[]>([]);
-  const [labResults, setLabResults] = useState<any[]>([]);
+  const [labResults, setLabResults] = useState<APILabResult[]>([]);
   
   // Document creation state
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -185,6 +186,32 @@ const PatientManagement = () => {
       title: 'Certificate deleted',
       description: 'Medical certificate has been deleted successfully.',
     });
+  };
+
+  const handleDeleteLabResult = async (labResultId: string) => {
+    if (!window.confirm('Are you sure you want to delete this lab result? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      // Delete from backend
+      await medicalDocumentsAPI.deleteLabResult(labResultId);
+      
+      // Update local state
+      setLabResults(prev => prev.filter(result => result.id !== labResultId));
+      
+      toast({
+        title: 'Lab result deleted',
+        description: 'Lab result has been deleted successfully.',
+      });
+    } catch (error) {
+      console.error('Error deleting lab result:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete lab result. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   // Document creation functions
@@ -396,39 +423,49 @@ const PatientManagement = () => {
         setBlankNotes(JSON.parse(existingBlank));
       }
 
-      // Load lab results (includes both manually created and uploaded via Lab Results page)
-      const labKey = `labresults_patient_${id}`;
-      const existingLab = localStorage.getItem(labKey);
-      if (existingLab) {
-        setLabResults(JSON.parse(existingLab));
-      }
+      // Load lab results from database
+      loadLabResults();
     }
   }, [id]);
 
+  // Function to load lab results from database
+  const loadLabResults = async () => {
+    if (!id) return;
+    
+    try {
+      const results = await medicalDocumentsAPI.getLabResultsByPatient(id);
+      setLabResults(results.lab_results || []);
+    } catch (error) {
+      console.error('Failed to load lab results:', error);
+      // Fallback to localStorage for backward compatibility
+      const labKey = `labresults_patient_${id}`;
+      const existingLab = localStorage.getItem(labKey);
+      if (existingLab) {
+        try {
+          const parsedLab = JSON.parse(existingLab);
+          setLabResults(Array.isArray(parsedLab) ? parsedLab : []);
+        } catch (parseError) {
+          console.error('Error parsing localStorage lab results:', parseError);
+          setLabResults([]);
+        }
+      } else {
+        setLabResults([]);
+      }
+    }
+  };
+
   // Listen for lab results updates when returning from Lab Results page
   useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === `labresults_patient_${id}` && e.newValue) {
-        setLabResults(JSON.parse(e.newValue));
-      }
-    };
-
     const handleFocus = () => {
       // Reload lab results when window regains focus (when returning from Lab Results page)
       if (id) {
-        const labKey = `labresults_patient_${id}`;
-        const existingLab = localStorage.getItem(labKey);
-        if (existingLab) {
-          setLabResults(JSON.parse(existingLab));
-        }
+        loadLabResults();
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
     window.addEventListener('focus', handleFocus);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('focus', handleFocus);
     };
   }, [id]);
@@ -981,46 +1018,99 @@ const PatientManagement = () => {
                   <div key={result.id || index} className="p-3 border rounded-lg">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <div className="text-sm font-medium">{result.data.testName || result.fileName}</div>
+                        <div className="text-sm font-medium">{result.test_name}</div>
                         <div className="text-xs text-muted-foreground">
-                          {result.data.testType || 'Uploaded Document'} | {result.data.status || 'Processed'}
+                          {result.test_category} | {result.document?.status || 'Unknown'}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          Date: {new Date(result.dateCreated || result.uploadDate).toLocaleDateString()}
+                          Date: {result.document?.document_date ? new Date(result.document.document_date).toLocaleDateString() : 'Date not available'}
                         </div>
+                        {result.laboratory_name && (
+                          <div className="text-xs text-muted-foreground">
+                            Lab: {result.laboratory_name}
+                          </div>
+                        )}
+                        {(result.critical_values && result.critical_values.length > 0) && (
+                          <div className="text-xs text-red-600 font-medium">
+                            🚨 {result.critical_values.length} critical value(s)
+                          </div>
+                        )}
+                        {(result.abnormal_values && result.abnormal_values.length > 0) && (
+                          <div className="text-xs text-yellow-600 font-medium">
+                            ⚠️ {result.abnormal_values.length} abnormal value(s)
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center gap-1">
                         <Button 
                           variant="outline" 
                           size="sm"
                           onClick={() => {
-                            if (result.fileUrl) {
-                              window.open(result.fileUrl, '_blank');
-                            } else {
-                              const content = `
-                                <div style="font-family: Arial, sans-serif; padding: 20px;">
-                                  <h2>Lab Result</h2>
-                                  <p><strong>Patient:</strong> ${result.patientName}</p>
-                                  <p><strong>Test Name:</strong> ${result.data?.testName || 'N/A'}</p>
-                                  <p><strong>Test Type:</strong> ${result.data?.testType || 'N/A'}</p>
-                                  <p><strong>Date:</strong> ${new Date(result.dateCreated || result.uploadDate).toLocaleDateString()}</p>
-                                  <p><strong>Status:</strong> ${result.data?.status || 'Processed'}</p>
-                                  ${result.data?.results ? `<p><strong>Results:</strong></p><div style="margin-top: 10px; white-space: pre-wrap;">${result.data.results}</div>` : ''}
-                                  ${result.data?.notes ? `<p><strong>Notes:</strong></p><div style="margin-top: 10px; white-space: pre-wrap;">${result.data.notes}</div>` : ''}
-                                  <p><strong>Uploaded by:</strong> ${result.createdBy || 'Unknown'}</p>
-                                </div>
-                              `;
-                              const newWindow = window.open();
-                              if (newWindow) {
-                                newWindow.document.write(content);
-                                newWindow.document.close();
-                              }
+                            const content = `
+                              <div style="font-family: Arial, sans-serif; padding: 20px;">
+                                <h2>Lab Result</h2>
+                                <p><strong>Patient:</strong> ${patientData.name}</p>
+                                <p><strong>Test Name:</strong> ${result.test_name}</p>
+                                <p><strong>Test Category:</strong> ${result.test_category}</p>
+                                <p><strong>Specimen Type:</strong> ${result.specimen_type}</p>
+                                <p><strong>Laboratory:</strong> ${result.laboratory_name || 'N/A'}</p>
+                                <p><strong>Collection Date:</strong> ${result.collection_date ? new Date(result.collection_date).toLocaleDateString() : 'N/A'}</p>
+                                <p><strong>Document Date:</strong> ${result.document?.document_date ? new Date(result.document.document_date).toLocaleDateString() : 'N/A'}</p>
+                                <p><strong>Status:</strong> ${result.document?.status || 'Unknown'}</p>
+                                
+                                ${(result.test_results && result.test_results.length > 0) ? `
+                                  <h3 style="margin-top: 20px;">Test Results:</h3>
+                                  <table style="border-collapse: collapse; width: 100%; margin-top: 10px;">
+                                    <thead>
+                                      <tr style="background-color: #f5f5f5;">
+                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Test</th>
+                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Result</th>
+                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Unit</th>
+                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Reference Range</th>
+                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Status</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      ${(result.test_results || []).map(test => `
+                                        <tr>
+                                          <td style="border: 1px solid #ddd; padding: 8px;">${test.test_name}</td>
+                                          <td style="border: 1px solid #ddd; padding: 8px;">${test.result_value}</td>
+                                          <td style="border: 1px solid #ddd; padding: 8px;">${test.unit}</td>
+                                          <td style="border: 1px solid #ddd; padding: 8px;">${test.reference_range}</td>
+                                          <td style="border: 1px solid #ddd; padding: 8px; ${test.status === 'critical' ? 'color: red; font-weight: bold;' : test.status === 'abnormal' ? 'color: orange; font-weight: bold;' : ''}">${test.status || 'normal'}</td>
+                                        </tr>
+                                      `).join('')}
+                                    </tbody>
+                                  </table>
+                                ` : ''}
+                                
+                                ${result.interpretation ? `<p><strong>Interpretation:</strong></p><div style="margin-top: 10px; white-space: pre-wrap;">${result.interpretation}</div>` : ''}
+                                ${result.clinical_significance ? `<p><strong>Clinical Significance:</strong></p><div style="margin-top: 10px; white-space: pre-wrap;">${result.clinical_significance}</div>` : ''}
+                                ${result.recommendations ? `<p><strong>Recommendations:</strong></p><div style="margin-top: 10px; white-space: pre-wrap;">${result.recommendations}</div>` : ''}
+                                ${result.document?.content ? `<p><strong>Document Content:</strong></p><div style="margin-top: 10px; white-space: pre-wrap;">${result.document.content}</div>` : ''}
+                              </div>
+                            `;
+                            const newWindow = window.open();
+                            if (newWindow) {
+                              newWindow.document.write(content);
+                              newWindow.document.close();
                             }
                           }}
                           title="View Lab Result"
                         >
                           <Eye className="h-3 w-3" />
                         </Button>
+                        {isDoctor && (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDeleteLabResult(result.id)}
+                            title="Delete Lab Result"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>

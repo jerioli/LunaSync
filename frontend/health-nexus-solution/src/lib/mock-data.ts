@@ -4,13 +4,17 @@ export type User = {
   name: string;
   email: string;
   username: string;
+  first_name?: string;
+  last_name?: string;
   role: 'doctor' | 'receptionist' | 'admin' | 'patient';
   image?: string;
   phone?: string;
   speciality?: string;
+  force_password_change?: boolean;
 };
 
 export type Patient = {
+  
   id: string;
   name: string;
   email: string;
@@ -69,9 +73,22 @@ export type LabResult = {
   patientId: string;
   date: string;
   type: string;
-  resultUrl: string;
+  resultUrl: string | null;
   notes?: string;
   authorizedBy?: string;
+  structuredData?: Array<{
+    test_name: string;
+    result_value: string;
+    unit: string;
+    reference_range: string;
+    status?: 'normal' | 'abnormal' | 'critical';
+  }>;
+  summary?: {
+    totalTests: number;
+    criticalCount: number;
+    abnormalCount: number;
+    normalCount: number;
+  };
 };
 
 export type Inventory = {

@@ -1,0 +1,771 @@
+"""
+Amazon Textract OCR API for Lab Results Processing
+Enhanced table extraction and structured data processing for medical documents
+"""
+
+import os
+import io
+import json
+import base64
+import re
+from typing import List, Dict, Any, Tuple
+from PIL import Image, ImageEnhance, ImageFilter
+import boto3
+import pandas as pd
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from django.conf import settings
+import logging
+import traceback
+from .models import AWSCredentials
+
+logger = logging.getLogger(__name__)
+
+def get_aws_credentials():
+    """Get AWS credentials from database for security - keeping all other optimizations"""
+    try:
+        # Use database credentials for security (test if this maintains accuracy)
+        aws_config = AWSCredentials.get_active_credentials()
+        if aws_config:
+            logger.info("Using AWS credentials from database for security")
+            return {
+                'aws_access_key_id': aws_config.aws_access_key_id,
+                'aws_secret_access_key': aws_config.aws_secret_access_key,
+                'region_name': aws_config.aws_region
+            }
+        else:
+            logger.warning("No active AWS credentials found in database, falling back to direct credentials")
+            # Fallback to direct credentials if database is not configured
+            return {
+                'aws_access_key_id': 'AKIAZZ56MPEX5EMQ7WUD',
+                'aws_secret_access_key': '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',
+                'region_name': 'us-east-1'
+            }
+    except Exception as e:
+        logger.error(f"Error retrieving AWS credentials from database: {e}")
+        logger.warning("Falling back to direct credentials due to database error")
+        # Fallback to direct credentials on any database error
+        return {
+            'aws_access_key_id': 'AKIAZZ56MPEX5EMQ7WUD',
+            'aws_secret_access_key': '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',
+            'region_name': 'us-east-1'
+        }
+
+def get_textract_client():
+    """Get configured AWS Textract client"""
+    credentials = get_aws_credentials()
+    if not credentials:
+        raise Exception("AWS credentials not configured. Please set them in Django Admin under 'AWS Credentials'.")
+    
+    try:
+        client = boto3.client('textract', **credentials)
+        return client
+    except Exception as e:
+        logger.error(f"Failed to create Textract client: {e}")
+        raise Exception(f"AWS Textract client configuration failed: {e}")
+
+def preprocess_image_for_ocr(image_bytes: bytes) -> bytes:
+    """Simple image preprocessing - match Google Colab approach for speed"""
+    try:
+        # Minimal processing to match Google Colab speed and accuracy
+        # Just return the original bytes for maximum speed
+        logger.info(f"Using original image without preprocessing for speed (Google Colab approach)")
+        return image_bytes
+        
+    except Exception as e:
+        logger.error(f"Error in image preprocessing: {e}")
+        return image_bytes  # Return original on any error
+
+def extract_text_with_enhanced_textract(image_bytes: bytes) -> Tuple[str, List[Dict]]:
+    """Enhanced Textract extraction with better configuration for lab results"""
+    try:
+        # Initialize Textract client
+        textract_client = get_textract_client()
+        if not textract_client:
+            raise Exception("Textract client not available")
+        
+        # Use detect_document_text for fast and accurate text extraction (same as Google Colab)
+        response = textract_client.detect_document_text(
+            Document={'Bytes': image_bytes}
+        )
+        
+        # Extract text blocks with position information
+        text_blocks = []
+        for block in response['Blocks']:
+            if block['BlockType'] == 'LINE':
+                text_blocks.append({
+                    'text': block['Text'],
+                    'confidence': block['Confidence'],
+                    'geometry': block['Geometry'],
+                    'top': block['Geometry']['BoundingBox']['Top'],
+                    'left': block['Geometry']['BoundingBox']['Left'],
+                    'height': block['Geometry']['BoundingBox']['Height'],
+                    'width': block['Geometry']['BoundingBox']['Width']
+                })
+        
+        # Sort blocks by position (top to bottom, left to right)
+        text_blocks.sort(key=lambda x: (x['top'], x['left']))
+        
+        # Combine into full text
+        full_text = '\n'.join([block['text'] for block in text_blocks])
+        
+        logger.info(f"Enhanced Textract extracted {len(text_blocks)} text blocks")
+        return full_text, text_blocks
+        
+    except Exception as e:
+        logger.error(f"Enhanced Textract extraction failed: {e}")
+        return None, None
+
+def extract_lab_results_with_enhanced_patterns(text: str) -> List[Dict[str, Any]]:
+    """Enhanced lab result extraction with comprehensive patterns"""
+    
+    # Comprehensive patterns for lab tests - more specific and accurate
+    enhanced_patterns = [
+        # Physical examination parameters
+        (r'COLOUR\s*:\s*([^\n\r]+)', 'COLOUR'),
+        (r'COLOR\s*:\s*([^\n\r]+)', 'COLOR'),
+        (r'APPEARANCE\s*:\s*([^\n\r]+)', 'APPEARANCE'),
+        (r'REACTION\s*:\s*([^\n\r]+)', 'REACTION'),
+        (r'PH\s*:\s*([^\n\r]+)', 'PH'),
+        (r'SPECIFIC\s*GRAVITY\s*:\s*([^\n\r]+)', 'SPECIFIC GRAVITY'),
+        
+        # Chemical parameters
+        (r'ALBUMIN\s*:\s*([^\n\r]+)', 'ALBUMIN'),
+        (r'SUGAR\s*:\s*([^\n\r]+)', 'SUGAR'),
+        (r'GLUCOSE\s*:\s*([^\n\r]+)', 'GLUCOSE'),
+        (r'PROTEIN\s*:\s*([^\n\r]+)', 'PROTEIN'),
+        (r'KETONES\s*:\s*([^\n\r]+)', 'KETONES'),
+        (r'BILESALT\s*:\s*([^\n\r]+)', 'BILESALT'),
+        (r'BILE\s*SALT\s*:\s*([^\n\r]+)', 'BILE SALT'),
+        (r'BILEPIGMENT\s*:\s*([^\n\r]+)', 'BILEPIGMENT'),
+        (r'BILE\s*PIGMENT\s*:\s*([^\n\r]+)', 'BILE PIGMENT'),
+        (r'UROBILINOGEN\s*:\s*([^\n\r]+)', 'UROBILINOGEN'),
+        (r'NITRITES\s*:\s*([^\n\r]+)', 'NITRITES'),
+        (r'LEUKOCYTE\s*ESTERASE\s*:\s*([^\n\r]+)', 'LEUKOCYTE ESTERASE'),
+        
+        # Microscopic examination
+        (r'PUS\s*CELLS\s*:\s*([^\n\r]+)', 'PUS CELLS'),
+        (r'EPITHELIAL\s*CELLS\s*:\s*([^\n\r]+)', 'EPITHELIAL CELLS'),
+        (r'RBCS\s*:\s*([^\n\r]+)', 'RBCS'),
+        (r'RED\s*BLOOD\s*CELLS\s*:\s*([^\n\r]+)', 'RED BLOOD CELLS'),
+        (r'WBCS\s*:\s*([^\n\r]+)', 'WBCS'),
+        (r'WHITE\s*BLOOD\s*CELLS\s*:\s*([^\n\r]+)', 'WHITE BLOOD CELLS'),
+        (r'CRYSTALS\s*:\s*([^\n\r]+)', 'CRYSTALS'),
+        (r'CAST\s*:\s*([^\n\r]+)', 'CAST'),
+        (r'CASTS\s*:\s*([^\n\r]+)', 'CASTS'),
+        (r'BACTERIA\s*:\s*([^\n\r]+)', 'BACTERIA'),
+        (r'YEAST\s*:\s*([^\n\r]+)', 'YEAST'),
+        (r'DEPOSITS\s*:\s*([^\n\r]+)', 'DEPOSITS'),
+        
+        # Handle special cases for cell counts
+        (r'(\d+\s*-\s*\d+)\s*/\s*HPF', 'CELL_COUNT_RANGE'),
+        (r'(\d+)\s*/\s*HPF', 'CELL_COUNT_SINGLE'),
+    ]
+    
+    results = []
+    text_upper = text.upper()
+    
+    # Track processed positions to avoid duplicates
+    processed_positions = set()
+    
+    for pattern, test_type in enhanced_patterns:
+        matches = re.finditer(pattern, text_upper, re.IGNORECASE | re.MULTILINE)
+        for match in matches:
+            # Skip if this position was already processed
+            if match.span() in processed_positions:
+                continue
+                
+            value = match.group(1).strip()
+            if value and len(value) > 0:  # Only add non-empty values
+                # Extract unit from value if present
+                unit = ''
+                if '/HPF' in value:
+                    unit = '/HPF'
+                    value = value.replace('/HPF', '').strip()
+                elif 'mg/dL' in value:
+                    unit = 'mg/dL'
+                    value = value.replace('mg/dL', '').strip()
+                elif 'g/dL' in value:
+                    unit = 'g/dL'
+                    value = value.replace('g/dL', '').strip()
+                
+                # Determine test status
+                status = determine_test_status(test_type, value)
+                
+                results.append({
+                    'test_name': test_type,
+                    'result_value': value,
+                    'unit': unit,
+                    'status': status,
+                    'confidence': 0.9,
+                    'match_position': match.span(),
+                    'reference_range': get_reference_range(test_type)
+                })
+                
+                processed_positions.add(match.span())
+    
+    # Remove duplicates based on test name and value
+    unique_results = []
+    seen = set()
+    for result in results:
+        key = (result['test_name'], result['result_value'])
+        if key not in seen:
+            unique_results.append(result)
+            seen.add(key)
+    
+    logger.info(f"Enhanced pattern extraction found {len(unique_results)} unique lab results")
+    return unique_results
+
+def determine_test_status(test_name: str, value: str) -> str:
+    """Determine if a test result is normal, abnormal, or critical"""
+    test_upper = test_name.upper()
+    value_upper = value.upper()
+    
+    # Handle positive/negative results
+    if value_upper in ['NEGATIVE', 'NIL', 'ABSENT', 'NOT DETECTED']:
+        return 'normal'
+    elif value_upper in ['POSITIVE', '+', '++', '+++', 'PRESENT', 'DETECTED']:
+        if any(keyword in test_upper for keyword in ['ALBUMIN', 'SUGAR', 'GLUCOSE', 'PROTEIN', 'KETONES']):
+            return 'critical' if '+++' in value_upper else 'abnormal'
+        return 'normal'  # For some tests, positive is normal
+    
+    # Handle numeric ranges
+    if '/HPF' in test_upper or 'CELLS' in test_upper:
+        try:
+            # Parse range like "2-3" or "15-20"
+            range_match = re.search(r'(\d+)\s*-\s*(\d+)', value)
+            if range_match:
+                min_val = int(range_match.group(1))
+                max_val = int(range_match.group(2))
+            else:
+                # Single number
+                single_match = re.search(r'(\d+)', value)
+                if single_match:
+                    min_val = max_val = int(single_match.group(1))
+                else:
+                    return 'normal'
+            
+            # Check against reference ranges
+            if 'PUS' in test_upper and max_val > 5:
+                return 'critical' if max_val > 15 else 'abnormal'
+            elif 'EPITHELIAL' in test_upper and max_val > 3:
+                return 'abnormal'
+            elif ('RBC' in test_upper or 'RED BLOOD' in test_upper) and max_val > 2:
+                return 'abnormal'
+        except:
+            pass
+    
+    # Handle specific parameters
+    if test_upper == 'PH':
+        try:
+            ph_val = float(value)
+            if ph_val < 4.5 or ph_val > 8.0:
+                return 'abnormal'
+        except:
+            pass
+    elif test_upper == 'SPECIFIC GRAVITY':
+        try:
+            sg_val = float(value)
+            if sg_val < 1.003 or sg_val > 1.030:
+                return 'abnormal'
+        except:
+            pass
+    
+    return 'normal'
+
+def get_reference_range(test_name: str) -> str:
+    """Get reference range for a test"""
+    reference_ranges = {
+        'PUS CELLS': '0-5 /HPF',
+        'EPITHELIAL CELLS': '0-3 /HPF',
+        'RBCS': '0-2 /HPF',
+        'RED BLOOD CELLS': '0-2 /HPF',
+        'WBCS': '0-5 /HPF',
+        'WHITE BLOOD CELLS': '0-5 /HPF',
+        'PH': '4.5-8.0',
+        'SPECIFIC GRAVITY': '1.003-1.030',
+        'ALBUMIN': 'Negative',
+        'SUGAR': 'Negative',
+        'GLUCOSE': 'Negative',
+        'PROTEIN': 'Negative',
+        'KETONES': 'Negative',
+        'CRYSTALS': 'Nil',
+        'CAST': 'Nil',
+        'CASTS': 'Nil',
+        'BACTERIA': 'Nil',
+    }
+    
+    return reference_ranges.get(test_name.upper(), 'Normal')
+
+# Initialize Amazon Textract client (moved to top of file)
+def fallback_table_extraction(image_bytes: bytes) -> Dict[str, Any]:
+    """
+    Fallback table extraction using basic text analysis when Textract is not available
+    """
+    try:
+        # Try to extract text from the uploaded file
+        text_content = None
+        
+        try:
+            # Try to read as text file
+            text_content = image_bytes.decode('utf-8')
+            logger.info("File appears to be a text file, using direct content")
+            extraction_type = 'text_file'
+        except UnicodeDecodeError:
+            # Not a text file, try PIL for basic image text extraction
+            try:
+                import io
+                from PIL import Image
+                
+                image = Image.open(io.BytesIO(image_bytes))
+                logger.info(f"Image opened: {image.format}, {image.size}, {image.mode}")
+                
+                # For image files, we need Textract
+                logger.warning("Image file requires AWS Textract for proper extraction")
+                return {
+                    'requires_textract': True,
+                    'error': 'Image processing requires AWS Textract',
+                    'full_text': ''
+                }
+            except Exception as pil_error:
+                logger.error(f"Failed to process with PIL: {pil_error}")
+                return {
+                    'error': f"Failed to process file: {str(pil_error)}",
+                    'full_text': ''
+                }
+        
+        if not text_content:
+            return {
+                'error': 'Could not extract text from file',
+                'full_text': ''
+            }
+        
+        return {
+            'tables': [],
+            'key_value_pairs': [],
+            'full_text': text_content
+        }
+        
+    except Exception as e:
+        logger.error(f"Fallback extraction error: {e}")
+        return {
+            'error': f"Extraction failed: {str(e)}",
+            'full_text': ''
+        }
+
+def process_fallback_results(text_content: str) -> Dict[str, Any]:
+    """Process text content to extract lab results using regex patterns"""
+    if not text_content:
+        return {
+            'test_results': [],
+            'critical_values': [],
+            'abnormal_values': [],
+            'document_details': {},
+            'summary': {'total_tests': 0, 'normal_count': 0, 'abnormal_count': 0, 'critical_count': 0}
+        }
+    
+    try:
+        # Process text content by lines
+        lines = text_content.strip().split('\n')
+        
+        logger.info(f"Processing {len(lines)} lines for text extraction")
+        
+        results = []
+        abnormal = []
+        critical = []
+        
+        # Process each line with lab result patterns
+        line_num = 0
+        while line_num < len(lines):
+            line = lines[line_num]
+            line_num += 1
+            
+            if not line.strip():
+                continue
+                
+            logger.info(f"Line {line_num-1}: '{line}'")
+            
+            # Skip header lines
+            skip_keywords = ['LABORATORY', 'REPORT', 'PATIENT', 'NAME', 'DATE', 'DOCTOR', 'CLINICAL', 'PATHOLOGY', 'ANALYSIS', 'EXAMINATION']
+            if any(keyword in line.upper() for keyword in skip_keywords) and len(line.split()) <= 3:
+                logger.info(f"Skipping line {line_num-1}: contains skip keyword")
+                continue
+            
+            # Skip lines with just numbers, dates, or special characters
+            if re.match(r'^[\d\s\-\.\:\/\,]+$', line) and len(line) < 10:
+                logger.info(f"Skipping line {line_num-1}: just numbers/dates/special chars")
+                continue
+            
+            # Check for colon-separated test result pattern (TEST NAME : RESULT)
+            colon_match = re.match(r'(.+?)\s*:\s*(.+)', line)
+            if colon_match:
+                test_name = colon_match.group(1).strip()
+                result_value = colon_match.group(2).strip()
+                
+                logger.info(f"Found colon pattern: '{test_name}' : '{result_value}'")
+                
+                # Skip section headers
+                skip_test_names = ['tel', 'phone', 'email', 'registration', 'sample', 'collected', 'doctor']
+                if any(s in test_name.lower() for s in skip_test_names):
+                    continue
+                
+                # Extract unit if present
+                unit = ''
+                if '/HPF' in result_value:
+                    unit = '/HPF'
+                
+                # Determine status
+                status = 'normal'
+                if '+++' in result_value:
+                    if any(keyword in test_name.upper() for keyword in ['ALBUMIN', 'SUGAR', 'GLUCOSE', 'PROTEIN']):
+                        status = 'critical'
+                        critical.append(test_name)
+                elif '+' in result_value or '++' in result_value:
+                    if any(keyword in test_name.upper() for keyword in ['ALBUMIN', 'SUGAR', 'GLUCOSE', 'PROTEIN']):
+                        status = 'abnormal'
+                        abnormal.append(test_name)
+                
+                logger.info(f"Determining status for {test_name}: {result_value}")
+                if status == 'normal':
+                    logger.info(f"Defaulting to normal for {test_name}: {result_value}")
+                
+                test_result = {
+                    'test_name': test_name,
+                    'result_value': result_value,
+                    'unit': unit,
+                    'reference_range': 'Not specified',
+                    'status': status
+                }
+                
+                results.append(test_result)
+                logger.info(f"Added test result: {test_result}")
+                continue
+            
+            # Check for space-separated pattern (TEST RESULT)
+            space_match = re.match(r'([A-Za-z\s]+)\s+([A-Za-z0-9\+\-\s\/\.]+)$', line)
+            if space_match and len(line.split()) <= 5:
+                test_name = space_match.group(1).strip()
+                result_value = space_match.group(2).strip()
+                
+                logger.info(f"Found space pattern: '{test_name}' '{result_value}'")
+                
+                # Skip section headers more strictly
+                skip_test_names = ['COMPLETE', 'URINE', 'EXAMINATION', 'ANALYSIS', 'CLINICAL', 'PATHOLOGY', 
+                                 'LABORATORY', 'REPORT', 'TEST', 'RESULT', 'NORMAL', 'RANGES']
+                if any(s in test_name.upper() for s in skip_test_names):
+                    continue
+                
+                # Determine status
+                status = 'normal'
+                
+                logger.info(f"Determining status for {test_name}: {result_value}")
+                logger.info(f"Defaulting to normal for {test_name}: {result_value}")
+                
+                test_result = {
+                    'test_name': test_name,
+                    'result_value': result_value,
+                    'unit': '',
+                    'reference_range': 'Not specified',
+                    'status': status
+                }
+                
+                results.append(test_result)
+                logger.info(f"Added test result: {test_result}")
+        
+        logger.info(f"Final extraction results: {len(results)} tests found")
+        
+        return {
+            'test_results': results,
+            'critical_values': critical,
+            'abnormal_values': abnormal,
+            'document_details': {
+                'lines_processed': len(lines),
+                'extraction_method': 'text_pattern_matching'
+            },
+            'summary': {
+                'total_tests': len(results),
+                'normal_count': len(results) - len(abnormal) - len(critical),
+                'abnormal_count': len(abnormal),
+                'critical_count': len(critical),
+                'overall_status': 'critical' if critical else ('abnormal' if abnormal else 'normal'),
+                'completion_rate': len(results) / max(1, len(lines)) * 100
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Text processing error: {e}")
+        return {
+            'test_results': [],
+            'critical_values': [],
+            'abnormal_values': [],
+            'document_details': {},
+            'summary': {'total_tests': 0, 'normal_count': 0, 'abnormal_count': 0, 'critical_count': 0}
+        }
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def textract_lab_analysis(request):
+    """
+    Enhanced lab result processing endpoint with improved accuracy
+    """
+    try:
+        # Check AWS credentials from database
+        credentials = get_aws_credentials()
+        if not credentials:
+            logger.error("AWS credentials not configured. Please set them in Django Admin.")
+            return JsonResponse({'error': 'AWS credentials not configured. Please set them in Django Admin under AWS Credentials.'}, status=500)
+        
+        # Debug: Log AWS credentials (masked for security)
+        logger.info(f"AWS Credentials Check - Access Key: {'*****' + credentials['aws_access_key_id'][-4:] if credentials['aws_access_key_id'] else 'Not Set'}")
+        logger.info(f"AWS Credentials Check - Region: {credentials['region_name']}")
+        
+        # Debug: Log request details
+        logger.info(f"DEBUG: Request method: {request.method}")
+        logger.info(f"DEBUG: Request FILES keys: {list(request.FILES.keys())}")
+        logger.info(f"DEBUG: Request POST keys: {list(request.POST.keys())}")
+        logger.info(f"DEBUG: Content type: {request.content_type}")
+            
+        # Handle file upload - check for different field names
+        uploaded_file = None
+        if 'document' in request.FILES:
+            uploaded_file = request.FILES['document']
+            logger.info("DEBUG: Found file in 'document' field")
+        elif 'file' in request.FILES:
+            uploaded_file = request.FILES['file']
+            logger.info("DEBUG: Found file in 'file' field")
+        elif 'image' in request.FILES:
+            uploaded_file = request.FILES['image']
+            logger.info("DEBUG: Found file in 'image' field")
+        elif request.content_type and 'json' in request.content_type and request.body:
+            # Fallback for base64 data
+            logger.info("DEBUG: Trying JSON/base64 data")
+            data = json.loads(request.body)
+            image_base64 = data.get('image')
+            if not image_base64:
+                return JsonResponse({'error': 'No image data provided'}, status=400)
+            image_bytes = base64.b64decode(image_base64)
+        else:
+            logger.error("DEBUG: No file found in any expected field")
+            return JsonResponse({'error': 'No file or image data provided'}, status=400)
+        
+        if uploaded_file:
+            image_bytes = uploaded_file.read()
+            logger.info(f"DEBUG: File read successfully, size: {len(image_bytes)} bytes")
+
+        # Preprocess image for better OCR
+        processed_image_bytes = preprocess_image_for_ocr(image_bytes)
+
+        # Initialize result variables
+        lab_results = []
+        extraction_method = 'fallback_ocr'
+        extracted_text = ''
+        confidence = 0
+        structured_results = None
+        raw_textract_blocks = []  # Store raw blocks for positioning
+
+        # Try enhanced pattern extraction first
+        try:
+            # Extract text using Textract
+            textract_client = get_textract_client()
+            if not textract_client:
+                raise Exception("Textract client not available")
+            
+            # Use detect_document_text for fast and accurate text extraction (same as Google Colab)
+            response = textract_client.detect_document_text(
+                Document={'Bytes': processed_image_bytes}
+            )
+            
+            # Store raw blocks for frontend positioning
+            raw_textract_blocks = response.get('Blocks', [])
+            logger.info(f"DEBUG: Got {len(raw_textract_blocks)} raw Textract blocks")
+            
+            # Extract all detected text with enhanced accuracy
+            # Use LINE blocks for better accuracy than basic concatenation
+            text_blocks = []
+            word_blocks = []
+            
+            for item in response['Blocks']:
+                if item['BlockType'] == 'LINE':
+                    text_blocks.append(item['Text'])
+                elif item['BlockType'] == 'WORD':
+                    word_blocks.append(item)
+            
+            logger.info(f"DEBUG: Extracted {len(text_blocks)} lines and {len(word_blocks)} words")
+            
+            # Combine all text blocks into a single string
+            extracted_text = '\n'.join(text_blocks)
+            
+            # Use enhanced pattern extraction
+            if extracted_text:
+                lab_results = extract_lab_results_with_enhanced_patterns(extracted_text)
+                structured_results = []
+                
+                for result in lab_results:
+                    structured_result = {
+                        'test_name': result['test_name'],
+                        'result_value': result['result_value'],
+                        'unit': result['unit'],
+                        'reference_range': result['reference_range'],
+                        'status': result['status']
+                    }
+                    structured_results.append(structured_result)
+                
+                extraction_method = 'enhanced_textract'
+                confidence = 95
+            
+        except Exception as textract_error:
+            logger.warning(f"Enhanced Textract extraction failed: {textract_error}")
+            
+            # Fall back to legacy extraction if enhanced fails
+            try:
+                # Get the original extraction function output
+                extraction_result = fallback_table_extraction(image_bytes)
+                
+                # Check if fallback failed due to image file without Textract
+                if extraction_result.get('requires_textract'):
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'AWS Textract configuration required',
+                        'message': extraction_result.get('error', ''),
+                        'suggestion': 'Please configure AWS credentials or upload a text file instead of an image'
+                    }, status=400)
+                
+                if extraction_result.get('error'):
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'File processing failed',
+                        'message': extraction_result.get('error', ''),
+                        'fallback': True
+                    }, status=400)
+                
+                fallback_results = process_fallback_results(extraction_result['full_text'])
+                structured_results = fallback_results['test_results']
+                extracted_text = extraction_result['full_text']
+                extraction_method = 'fallback_text'
+                confidence = 85 if extraction_result['full_text'] else 0
+                raw_textract_blocks = []  # No blocks for fallback method
+                
+            except Exception as fallback_error:
+                logger.error(f"Fallback extraction also failed: {fallback_error}")
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Failed to process document',
+                    'message': f"Please try again or upload a text file instead of an image.",
+                    'detail': str(fallback_error)
+                }, status=500)
+        
+        # Critical and abnormal values
+        critical_values = [r for r in structured_results if r.get('status') == 'critical']
+        abnormal_values = [r for r in structured_results if r.get('status') == 'abnormal']
+        
+        # Use Google Colab algorithms for maximum accuracy
+        # These algorithms use advanced positioning and text reconstruction
+        # to dramatically improve OCR accuracy beyond basic AWS Textract
+        try:
+            from .google_colab_textract import process_document_with_colab_algorithms
+            
+            # Process with EXACT Google Colab algorithms for superior text positioning
+            logger.info('🚀 Using Google Colab algorithms for maximum accuracy...')
+            logger.info(f'Input blocks for Google Colab: {len(raw_textract_blocks)} blocks')
+            
+            colab_results = process_document_with_colab_algorithms(raw_textract_blocks)
+            
+            logger.info(f'Google Colab results: {colab_results.keys()}')
+            logger.info(f'Google Colab success: {colab_results.get("success", False)}')
+            
+            if colab_results['success']:
+                logger.info(f'Google Colab processing successful: {colab_results["algorithm_source"]}')
+                logger.info(f'Google Colab combined text length: {len(colab_results.get("combined_text", ""))}')
+                # Use Google Colab processed text instead of basic extracted text
+                extracted_text = colab_results['combined_text']
+                extraction_method = 'google_colab_enhanced'
+                logger.info(f'Updated extraction_method to: {extraction_method}')
+            else:
+                logger.warning(f'Google Colab processing failed: {colab_results["error"]}')
+                # Keep the original extraction method
+                pass
+                
+        except Exception as colab_error:
+            logger.error(f'Google Colab algorithms error: {colab_error}')
+            logger.error(traceback.format_exc())
+            # Keep the original extraction method
+            pass
+        
+        # Prepare response - Include raw_blocks at top level for frontend compatibility
+        response_data = {
+            'success': True,
+            'extraction_method': extraction_method,
+            'raw_text': extracted_text,
+            'raw_blocks': raw_textract_blocks,  # TOP LEVEL - Frontend expects this!
+            'blocks': raw_textract_blocks,      # Keep for backward compatibility
+            'formattedText': extracted_text,    # Frontend expects this
+            'hasTable': len([b for b in raw_textract_blocks if b.get('BlockType') == 'TABLE']) > 0,
+            'structured_results': {
+                'blocks': raw_textract_blocks,  # Include raw blocks for positioning
+                'test_results': structured_results,
+                'critical_values': critical_values,
+                'abnormal_values': abnormal_values,
+                'document_details': {
+                    'extraction_method': extraction_method
+                }
+            },
+            'summary': {
+                'total_tests': len(structured_results),
+                'normal_count': len(structured_results) - len(abnormal_values) - len(critical_values),
+                'abnormal_count': len(abnormal_values),
+                'critical_count': len(critical_values),
+                'overall_status': 'critical' if critical_values else ('abnormal' if abnormal_values else 'normal'),
+                'completion_rate': 100
+            },
+            'confidence': confidence,
+            'processing_info': {
+                'tables_found': len([b for b in raw_textract_blocks if b.get('BlockType') == 'TABLE']),
+                'total_tests': len(structured_results),
+                'critical_count': len(critical_values),
+                'abnormal_count': len(abnormal_values),
+                'blocks_count': len(raw_textract_blocks)  # Debug info
+            }
+        }
+        
+        return JsonResponse(response_data)
+        
+    except Exception as e:
+        logger.error(f"OCR processing error: {str(e)}")
+        logger.error(traceback.format_exc())
+        return JsonResponse({
+            'success': False,
+            'error': f"OCR processing error: {str(e)}",
+            'message': "Please try again or upload a text file instead of an image."
+        }, status=500)
+
+
+@require_http_methods(["GET"])
+def health_check(request):
+    """
+    Health check endpoint for AWS Textract service
+    """
+    try:
+        # Test AWS credentials
+        try:
+            textract_client = get_textract_client()
+            if textract_client:
+                aws_status = 'Connected'
+            else:
+                aws_status = 'Disconnected'
+        except Exception:
+            aws_status = 'Disconnected'
+
+        return JsonResponse({
+            'status': 'healthy',
+            'service': 'AWS Textract OCR Django Backend with Google Colab Algorithms',
+            'aws_textract': aws_status,
+            'algorithms': 'Google Colab Enhanced Processing',
+            'timestamp': '2025-01-24T22:11:00Z'
+        })
+    
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'error': str(e)
+        }, status=500)

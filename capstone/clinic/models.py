@@ -19,6 +19,9 @@ class ClinicSettings(models.Model):
     about_text = models.TextField(default="Founded in 2010, HealthNexus has grown to become one of the leading healthcare providers in the region. Our mission is to deliver accessible, high-quality healthcare services in a compassionate environment.")
     services = models.JSONField(default=list, blank=True)  # List of service dicts: title, description, details
 
+    class Meta:
+        db_table = 'clinic_settings'
+
     def __str__(self):
         return self.clinic_name 
 
@@ -27,9 +30,15 @@ class FAQ(models.Model):
     question = models.CharField(max_length=255)
     answer = models.TextField()
 
+    class Meta:
+        db_table = 'faqs'
+
 class Review(models.Model):
     clinic = models.ForeignKey(ClinicSettings, related_name='reviews', on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     rating = models.PositiveSmallIntegerField(default=5)
     comment = models.TextField()
-    date = models.CharField(max_length=100) 
+    date = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'reviews'

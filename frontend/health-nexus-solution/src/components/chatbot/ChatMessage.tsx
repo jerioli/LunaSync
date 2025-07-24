@@ -10,7 +10,7 @@ import { FileUpload } from './FileUpload';
 interface ChatMessageProps {
   message: MessageType;
   appointmentForm: AppointmentForm;
-  onOptionSelect: (value: string) => void;
+  onOptionSelect: (value: string, messageKey?: string) => void;
   onDateSelect: (date: Date | undefined) => void;
   onFileUpload?: (file: File) => void;
 }
@@ -41,6 +41,7 @@ export const ChatMessage = ({
             options={message.options} 
             onOptionSelect={onOptionSelect}
             isDarkBackground={isUserMessage}
+            messageKey={message.messageKey}
           />
         )}
         
@@ -54,7 +55,7 @@ export const ChatMessage = ({
         {message.timeSelector && message.times && (
           <TimeSelector 
             times={message.times} 
-            onTimeSelect={onOptionSelect} 
+            onTimeSelect={(value) => onOptionSelect(value, message.messageKey)} 
           />
         )}
 

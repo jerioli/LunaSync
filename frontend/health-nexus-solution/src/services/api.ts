@@ -17,6 +17,12 @@ export interface Doctor {
   last_name: string;
   email: string;
   role: string;
+  is_active: boolean;
+  can_manage_appointments?: boolean;
+  can_manage_patients?: boolean;
+  can_manage_staff?: boolean;
+  can_view_reports?: boolean;
+  can_manage_clinic_settings?: boolean;
 }
 
 export interface Receptionist {
@@ -26,6 +32,12 @@ export interface Receptionist {
   last_name: string;
   email: string;
   role: string;
+  is_active: boolean;
+  can_manage_appointments?: boolean;
+  can_manage_patients?: boolean;
+  can_manage_staff?: boolean;
+  can_view_reports?: boolean;
+  can_manage_clinic_settings?: boolean;
 }
 
 export interface Admin {
@@ -35,6 +47,28 @@ export interface Admin {
   last_name: string;
   email: string;
   role: string;
+  is_active: boolean;
+  can_manage_appointments?: boolean;
+  can_manage_patients?: boolean;
+  can_manage_staff?: boolean;
+  can_view_reports?: boolean;
+  can_manage_clinic_settings?: boolean;
+}
+
+export interface StaffMember {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  username: string;
+  role: string;
+  is_active: boolean;
+  can_manage_appointments: boolean;
+  can_manage_patients: boolean;
+  can_manage_staff: boolean;
+  can_view_reports: boolean;
+  can_manage_clinic_settings: boolean;
+  image?: string;
 }
 
 export interface PredefinedTimeSlot {
@@ -80,6 +114,31 @@ export const api = {
       return response.data;
     },
   },
+  staff: {
+    getDetails: async (userId: number): Promise<StaffMember> => {
+      const response = await axiosInstance.get(`/staff/${userId}/`);
+      return response.data;
+    },
+    update: async (userId: number, data: Partial<StaffMember>): Promise<StaffMember> => {
+      const response = await axiosInstance.patch(`/staff/${userId}/`, data);
+      return response.data.data;
+    },
+    updatePermissions: async (userId: number, permissions: Partial<StaffMember>): Promise<StaffMember> => {
+      const response = await axiosInstance.patch(`/staff/${userId}/permissions/`, {
+        permissions: {
+          can_manage_appointments: permissions.can_manage_appointments,
+          can_manage_patients: permissions.can_manage_patients,
+          can_manage_staff: permissions.can_manage_staff,
+          can_view_reports: permissions.can_view_reports,
+          can_manage_clinic_settings: permissions.can_manage_clinic_settings,
+        }
+      });
+      return response.data.data;
+    },
+    delete: async (userId: number): Promise<void> => {
+      await axiosInstance.delete(`/staff/${userId}/`);
+    }
+  },
   appointments: {
     create: async (data: any) => {
       const response = await axiosInstance.post('/appointments/create/', data);
@@ -95,14 +154,18 @@ export const api = {
       const response = await axiosInstance.get('/availability/', {
         params: { 
           doctor_id: doctorId,
-          date: date
+          date: date,
+          _t: Date.now() // Cache busting parameter
         }
       });
       return response.data;
     },
     getAvailableDates: async (doctorId: string) => {
       const response = await axiosInstance.get('/availability/available_dates/', {
-        params: { doctor_id: doctorId }
+        params: { 
+          doctor_id: doctorId,
+          _t: Date.now() // Cache busting parameter
+        }
       });
       return response.data;
     },
@@ -137,4 +200,4 @@ export const api = {
       return response.data;
     }
   },
-}; 
+};

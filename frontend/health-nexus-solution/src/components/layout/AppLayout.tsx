@@ -1,7 +1,7 @@
 
-import React, { ReactNode } from 'react';
-import { Sidebar, SidebarContent, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { useClinic } from '@/contexts/ClinicContext';
+import React, { ReactNode } from 'react';
 import { AppSidebar } from './AppSidebar';
 import { TopBar } from './TopBar';
 
@@ -18,7 +18,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-clinic-gray">
+      <div className="min-h-screen flex w-full bg-clinic-gray dark:bg-gray-900">
         <AppSidebar />
         <div className="flex flex-col flex-1">
           <TopBar />

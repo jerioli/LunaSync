@@ -14,26 +14,120 @@ import string
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
+from django.shortcuts import get_object_or_404
 
 class StaffCreateView(APIView):
     def post(self, request):
         serializer = CustomUserSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            user = serializer.save()
+            
+            # Send email with credentials if requested
+            if request.data.get('send_email', False):
+                temp_password = request.data.get('temp_password', request.data.get('password'))
+                try:
+                    send_mail(
+                        'Your Account Credentials - Health Nexus',
+                        f'''
+Hello {user.get_full_name()},
+
+Your account has been created successfully!
+
+Login Credentials:
+Email: {user.email}
+Username: {user.username}
+Temporary Password: {temp_password}
+
+Please log in and change your password immediately for security.
+
+Login URL: http://localhost:3000/login
+
+Best regards,
+Health Nexus Team
+                        ''',
+                        settings.DEFAULT_FROM_EMAIL,
+                        [user.email],
+                        fail_silently=False,
+                    )
+                except Exception as e:
+                    print(f"Failed to send email: {e}")
+            
             return Response({'message': 'Staff member created successfully!'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-class PasswordChangeView(APIView):
-    permission_classes = [IsAuthenticated]
+class StaffDetailView(APIView):
+    def get(self, request, user_id):
+        user = get_object_or_404(CustomUser, id=user_id)
+        serializer = CustomUserSerializer(user)
+        return Response(serializer.data)
     
+    def patch(self, request, user_id):
+        user = get_object_or_404(CustomUser, id=user_id)
+        serializer = CustomUserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'success': True,
+                'message': 'Staff member updated successfully',
+                'data': serializer.data
+            })
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, user_id):
+        user = get_object_or_404(CustomUser, id=user_id)
+        user.delete()
+        return Response({
+            'success': True,
+            'message': 'Staff member deleted successfully'
+        })
+
+class StaffPermissionsView(APIView):
+    def patch(self, request, user_id):
+        user = get_object_or_404(CustomUser, id=user_id)
+        
+        # Update permissions
+        permissions = request.data.get('permissions', {})
+        user.can_manage_appointments = permissions.get('can_manage_appointments', user.can_manage_appointments)
+        user.can_manage_patients = permissions.get('can_manage_patients', user.can_manage_patients)
+        user.can_manage_staff = permissions.get('can_manage_staff', user.can_manage_staff)
+        user.can_view_reports = permissions.get('can_view_reports', user.can_view_reports)
+        user.can_manage_clinic_settings = permissions.get('can_manage_clinic_settings', user.can_manage_clinic_settings)
+        
+        user.save()
+        
+        serializer = CustomUserSerializer(user)
+        return Response({
+            'success': True,
+            'message': 'Permissions updated successfully',
+            'data': serializer.data
+        })
+    
+class PasswordChangeView(APIView):
     def post(self, request):
-        user = request.user
+        # Get user from email in request or from authenticated user
+        email = request.data.get('email') or request.data.get('username')
         current_password = request.data.get('current_password')
         new_password = request.data.get('new_password')
         
         if not current_password or not new_password:
             return Response({
                 'error': 'Both current_password and new_password are required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # If no email provided and user is authenticated, use authenticated user
+        if hasattr(request, 'user') and request.user.is_authenticated:
+            user = request.user
+        elif email:
+            # Find user by email
+            try:
+                user = CustomUser.objects.get(email=email)
+            except CustomUser.DoesNotExist:
+                return Response({
+                    'error': 'User not found'
+                }, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({
+                'error': 'Email is required'
             }, status=status.HTTP_400_BAD_REQUEST)
         
         # Check if current password is correct
@@ -50,6 +144,7 @@ class PasswordChangeView(APIView):
         
         # Set new password
         user.set_password(new_password)
+        user.force_password_change = False  # Reset the flag after password change
         user.save()
         
         return Response({

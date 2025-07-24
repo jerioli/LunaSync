@@ -2,11 +2,14 @@ from django.urls import path
 from accounts.views import (
     StaffCreateView, DoctorListView, ReceptionistListView, AdminListView, 
     StaffLoginView, PasswordResetRequestView, PasswordResetConfirmView,
-    PasswordChangeView, UserProfileUpdateView, UserPreferencesView
+    PasswordChangeView, UserProfileUpdateView, UserPreferencesView,
+    StaffDetailView, StaffPermissionsView
 )
 
 urlpatterns = [
     path('staff/', StaffCreateView.as_view(), name='create-staff'),  # Matches /api/staff/
+    path('staff/<int:user_id>/', StaffDetailView.as_view(), name='staff-detail'),
+    path('staff/<int:user_id>/permissions/', StaffPermissionsView.as_view(), name='staff-permissions'),
     path('doctors/', DoctorListView.as_view(), name='doctor-list'),  # Matches /api/doctors/
     path('receptionists/', ReceptionistListView.as_view(), name='receptionist-list'),  # Matches /api/receptionists/
     path('admins/', AdminListView.as_view(), name='admin-list'),  # Matches /api/admins/

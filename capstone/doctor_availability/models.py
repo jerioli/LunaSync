@@ -11,6 +11,7 @@ class PredefinedTimeSlot(models.Model):
 
     class Meta:
         ordering = ['start_time']
+        db_table = 'predefined_time_slot'
 
     def __str__(self):
         return f"{self.start_time} - {self.end_time}"
@@ -26,6 +27,7 @@ class DoctorAvailability(models.Model):
     class Meta:
         unique_together = ('doctor', 'date')
         ordering = ['date']
+        db_table = 'doctor_availability'
 
     def __str__(self):
         return f"{self.doctor.get_full_name()} - {self.date}"
@@ -40,6 +42,7 @@ class TimeSlot(models.Model):
 
     class Meta:
         ordering = ['start_time']
+        db_table = 'time_slot'
 
     def __str__(self):
-        return f"{self.start_time} - {self.end_time}" 
+        return f"{self.start_time} - {self.end_time}"

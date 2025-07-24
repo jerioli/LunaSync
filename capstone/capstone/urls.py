@@ -30,6 +30,11 @@ urlpatterns = [
      path('api/', include('patients.urls')),
     path('api/availability/', include('doctor_availability.urls')),
     path('api/clinic/', include('clinic.urls')),
+    path('api/', include('api.urls')),  # API endpoints including AWS credentials and textract
+    path('api/ocr/', include('api.urls_ocr')),  # OCR API endpoints
+    # path('api/textract/', include('api.textract_urls')),  # DISABLED - Conflicts with api.urls textract endpoint
+    path('api/', include('medical_requests.urls')),  # Medical certificate and prescription requests
+    path('', include('medical_documents.urls')),  # Medical documents API
 ]
 
 if settings.DEBUG:

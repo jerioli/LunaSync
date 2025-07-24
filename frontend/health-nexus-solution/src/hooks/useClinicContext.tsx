@@ -6,6 +6,7 @@ interface User {
   username: string;
   password: string;
   role: string;
+  force_password_change?: boolean;
 }
 
 interface ClinicContextType {

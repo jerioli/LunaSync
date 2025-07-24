@@ -13,6 +13,7 @@ class Appointment(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('scheduled', 'Scheduled'),
+        ('ongoing', 'Ongoing'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
         ('no-show', 'No Show'),
@@ -38,6 +39,9 @@ class Appointment(models.Model):
     notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'appointments'
 
     def __str__(self):
         return f"{self.get_patient_name()} on {self.date} at {self.time}"

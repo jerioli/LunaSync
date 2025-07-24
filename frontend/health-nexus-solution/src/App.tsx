@@ -1,28 +1,35 @@
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrandingProvider } from "./contexts/BrandingContext";
 import { ClinicProvider, useClinic } from "./contexts/ClinicContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
-import Login from "./pages/Login";
+import { AppLayout } from "./components/layout/AppLayout";
+import AddPatient from "./components/patients/AddPatient_clean";
+import Appointments from "./pages/Appointments";
+import AppointmentScheduling from "./pages/AppointmentScheduling";
+import ChangePassword from "./pages/ChangePassword";
 import Dashboard from "./pages/Dashboard";
+import ForgotPassword from "./pages/ForgotPassword";
+import Index from "./pages/Index";
+import LabResults from "./pages/LabResults";
+import Login from "./pages/Login";
+import MedicalCertificateGeneration from "./pages/MedicalCertificateGeneration";
+import MedicalCertificateManagement from "./pages/MedicalCertificateManagement";
+import NotFound from "./pages/NotFound";
+import PatientManagement from "./pages/PatientManagement";
 import PatientPortal from "./pages/PatientPortal";
 import PatientsList from "./pages/PatientsList";
-import PatientManagement from "./pages/PatientManagement";
-import AddPatient from "./components/patients/AddPatient";
-import LabResults from "./pages/LabResults";
-import Appointments from "./pages/Appointments";
+import PrescriptionManagement from "./pages/PrescriptionManagement";
 import Prescriptions from "./pages/Prescriptions";
-import Schedule from "./pages/Schedule";
-import Staff from "./pages/Staff";
-import Settings from "./pages/Settings";
-import UserSettings from "./pages/UserSettings";
-import { AppLayout } from "./components/layout/AppLayout";
-import NotFound from "./pages/NotFound";
-import Index from "./pages/Index";
-import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Schedule from "./pages/Schedule";
+import Settings from "./pages/Settings";
+import Staff from "./pages/Staff";
+import UserSettings from "./pages/UserSettings";
 
 // Auth route guard component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -58,16 +65,21 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system" storageKey="health-nexus-theme">
-        <ClinicProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+        <LanguageProvider defaultLanguage="en" storageKey="health-nexus-language">
+          <BrandingProvider>
+            <ClinicProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
           <Routes>
             {/* Initial landing/routing page */}
             <Route path="/index" element={<Index />} />
             
             {/* Public patient portal */}
             <Route path="/portal" element={<PatientPortal />} />
+            
+            {/* Patient appointment scheduling */}
+            <Route path="/portal/appointment" element={<AppointmentScheduling />} />
             
             {/* Staff login */}
             <Route path="/login" element={
@@ -88,6 +100,13 @@ const App = () => {
               <PublicRoute>
                 <ResetPassword />
               </PublicRoute>
+            } />
+            
+            {/* Change password for first-time users */}
+            <Route path="/change-password" element={
+              <ProtectedRoute>
+                <ChangePassword />
+              </ProtectedRoute>
             } />
             
             {/* Staff protected routes */}
@@ -152,6 +171,33 @@ const App = () => {
               </ProtectedRoute>
             } />
             
+            {/* Medical Certificate Management route */}
+            <Route path="/medical-certificates" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <MedicalCertificateManagement />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            
+            {/* Medical Certificate Generation route */}
+            <Route path="/patients/certificate-generate" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <MedicalCertificateGeneration />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            
+            {/* Prescription Management route */}
+            <Route path="/prescription-management" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <PrescriptionManagement />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            
             {/* Staff management route for admin */}
             <Route path="/staff" element={
               <ProtectedRoute>
@@ -191,6 +237,8 @@ const App = () => {
           </Routes>
         </BrowserRouter>
       </ClinicProvider>
+      </BrandingProvider>
+      </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { Mail } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:8000/api';
 
@@ -36,52 +37,46 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-clinic-gray relative">
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-clinic-blue opacity-10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-clinic-teal opacity-10 rounded-full blur-3xl" />
-      </div>
-      <div className="w-full max-w-md px-4">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-clinic-blue">MedSync</h1>
-          <p className="text-gray-500">Password Reset</p>
-        </div>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Forgot Password</CardTitle>
-            <CardDescription>
-              Enter your email address and we'll send you instructions to reset your password.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Sending...' : 'Send Reset Instructions'}
-              </Button>
-              <div className="text-center">
-                <Link 
-                  to="/login" 
-                  className="text-sm text-clinic-blue hover:text-clinic-blue/80"
-                >
-                  Back to Login
-                </Link>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <div className="p-3 rounded-full bg-blue-100">
+              <Mail className="h-6 w-6 text-blue-600" />
+            </div>
+          </div>
+          <CardTitle>Forgot Password</CardTitle>
+          <CardDescription>
+            Enter your email address and we'll send you instructions to reset your password.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input 
+                id="email" 
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Sending...' : 'Send Reset Instructions'}
+            </Button>
+            <div className="text-center">
+              <Link 
+                to="/login" 
+                className="text-sm text-blue-600 hover:text-blue-500"
+              >
+                Back to Login
+              </Link>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };

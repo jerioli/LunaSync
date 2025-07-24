@@ -9,7 +9,9 @@ import {
   Settings, 
   Bell,
   Pill,
-  Image
+  Image,
+  ClipboardList,
+  FileCheck
 } from 'lucide-react';
 import { 
   Sidebar, 
@@ -41,6 +43,8 @@ export const AppSidebar = () => {
           { title: 'Prescriptions', icon: Pill, path: '/prescriptions' },
           { title: 'Lab Results', icon: Image, path: '/lab-results' },
           { title: 'My Schedule', icon: Calendar, path: '/schedule' },
+          { title: 'Medical Certificates', icon: FileCheck, path: '/medical-certificates' },
+          { title: 'Prescription Requests', icon: ClipboardList, path: '/prescription-management' },
           { title: 'Settings', icon: Settings, path: '/user-settings' },
         ];
       case 'receptionist':
@@ -48,6 +52,8 @@ export const AppSidebar = () => {
           { title: 'Dashboard', icon: Home, path: '/' },
           { title: 'Patients', icon: Users, path: '/patients' },
           { title: 'Appointments', icon: Calendar, path: '/appointments' },
+          { title: 'Medical Certificates', icon: FileCheck, path: '/medical-certificates' },
+          { title: 'Prescription Requests', icon: ClipboardList, path: '/prescription-management' },
           { title: 'Settings', icon: Settings, path: '/user-settings' },
         ];
       case 'admin':

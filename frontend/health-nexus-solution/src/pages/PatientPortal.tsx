@@ -1,17 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from '@/components/ui/navigation-menu';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
-import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, MessageSquare, Users, FileText, BotMessageSquare } from 'lucide-react';
-import { AppointmentChatbot } from '@/components/chatbot/AppointmentChatbot';
 import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+// UI Components
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { LanguageSelector } from '@/components/ui/LanguageSelector';
+import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, navigationMenuTriggerStyle } from '@/components/ui/navigation-menu';
+
+// Icons
+import { BotMessageSquare, Monitor, Moon, Sun } from 'lucide-react';
+
+// App Components
+import PatientAppointmentModal from '@/components/appointments/PatientAppointmentModal';
+import { AppointmentChatbot } from '@/components/chatbot/AppointmentChatbot';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const PatientPortal = () => {
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
+  const { t } = useLanguage();
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [clinic, setClinic] = useState({
     clinic_name: '',
     address: '',
@@ -35,6 +48,29 @@ const PatientPortal = () => {
   const [loading, setLoading] = useState(true);
   const [reviewForm, setReviewForm] = useState({ name: '', email: '', rating: 5, comment: '' });
   const [submitting, setSubmitting] = useState(false);
+
+  // Theme toggle function
+  const toggleTheme = () => {
+    if (theme === 'light') {
+      setTheme('dark');
+    } else if (theme === 'dark') {
+      setTheme('system');
+    } else {
+      setTheme('light');
+    }
+  };
+
+  // Get theme icon
+  const getThemeIcon = () => {
+    switch (theme) {
+      case 'light':
+        return <Sun className="h-4 w-4" />;
+      case 'dark':
+        return <Moon className="h-4 w-4" />;
+      default:
+        return <Monitor className="h-4 w-4" />;
+    }
+  };
 
   // Move fetchClinic outside useEffect
   const fetchClinic = async () => {
@@ -121,34 +157,44 @@ const PatientPortal = () => {
             <NavigationMenuList>
               <NavigationMenuItem>
                 <NavigationMenuLink href="#home" className={navigationMenuTriggerStyle()}>
-                  Home
+                  {t('navigation.home')}
                 </NavigationMenuLink>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <NavigationMenuLink href="#about" className={navigationMenuTriggerStyle()}>
-                  About
+                  {t('navigation.about')}
                 </NavigationMenuLink>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <NavigationMenuLink href="#services" className={navigationMenuTriggerStyle()}>
-                  Services
+                  {t('navigation.services')}
                 </NavigationMenuLink>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <NavigationMenuLink href="#reviews" className={navigationMenuTriggerStyle()}>
-                  Reviews
+                  {t('navigation.reviews')}
                 </NavigationMenuLink>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <NavigationMenuLink href="#faqs" className={navigationMenuTriggerStyle()}>
-                  FAQs
+                  {t('navigation.faqs')}
                 </NavigationMenuLink>
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
           
           <div className="flex items-center gap-4">
-       
+            <LanguageSelector variant="button" size="sm" showIcon={true} />
+            <Button variant="outline" size="sm" onClick={toggleTheme} title={`Switch to ${theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light'} theme`}>
+              {getThemeIcon()}
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setIsChatbotOpen(true)}>
+              <BotMessageSquare className="mr-2 h-4 w-4" />
+              {t('portal.chatAssistant')}
+            </Button>
+            <Button size="sm" onClick={() => setShowAppointmentModal(true)} className="bg-clinic-blue hover:bg-clinic-blue/90">
+              {t('portal.scheduleAppointment')}
+            </Button>
           </div>
         </div>
       </header>
@@ -169,7 +215,7 @@ const PatientPortal = () => {
       )}
       
       {/* Hero Section */}
-      <section id="home" className="py-20 bg-gradient-to-b from-clinic-gray to-white">
+      <section id="home" className="py-20 bg-gradient-to-b from-clinic-gray to-background dark:from-gray-800 dark:to-gray-900">
         <div className="container mx-auto flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1 space-y-6">
             {clinic.logo && (
@@ -178,18 +224,18 @@ const PatientPortal = () => {
             {clinic.healthcare_professionals_image && (
               <img src={getLogoUrl(clinic.healthcare_professionals_image)} alt="Healthcare Professionals" className="w-full h-auto rounded-lg shadow-lg mb-4" />
             )}
-            <h1 className="text-4xl md:text-5xl font-bold text-clinic-blue">
-              {clinic.hero_title || 'Your Health Is Our Priority'}
+            <h1 className="text-4xl md:text-5xl font-bold text-clinic-blue dark:text-clinic-blue">
+              {clinic.hero_title || t('portal.heroTitle')}
             </h1>
-            <p className="text-lg text-gray-600">
-              {clinic.hero_subtitle || `${clinic.clinic_name || 'Our clinic'} is dedicated to providing exceptional healthcare services with a patient-centered approach. Schedule your appointment today.`}
+            <p className="text-lg text-gray-600 dark:text-gray-300">
+              {clinic.hero_subtitle || `${clinic.clinic_name || t('portal.welcome')} ${t('portal.heroSubtitle')}`}
             </p>
             <div className="flex gap-4">
-              <Button size="lg" className="rounded-full">
-                Request Appointment
+              <Button size="lg" className="rounded-full" onClick={() => setShowAppointmentModal(true)}>
+                {t('portal.scheduleAppointment')}
               </Button>
-              <Button size="lg" variant="outline" className="rounded-full">
-                Contact Us
+              <Button size="lg" variant="outline" className="rounded-full" onClick={() => setIsChatbotOpen(true)}>
+                {t('portal.chatAssistant')}
               </Button>
             </div>
           </div>
@@ -204,9 +250,9 @@ const PatientPortal = () => {
       </section>
       
       {/* About Section */}
-      <section id="about" className="py-20 bg-white">
+      <section id="about" className="py-20 bg-background dark:bg-gray-800">
         <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-clinic-blue">{clinic.about_title || `About ${clinic.clinic_name || 'Our Clinic'}`}</h2>
+          <h2 className="text-3xl font-bold text-center mb-12 text-clinic-blue dark:text-clinic-blue">{clinic.about_title || `About ${clinic.clinic_name || 'Our Clinic'}`}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
               {clinic.clinic_building_image ? (
@@ -224,27 +270,27 @@ const PatientPortal = () => {
               )}
             </div>
             <div className="space-y-6">
-              <h3 className="text-2xl font-semibold text-clinic-blue">Our Story</h3>
-              <p className="text-gray-600">
+              <h3 className="text-2xl font-semibold text-clinic-blue dark:text-clinic-blue">{t('portal.ourStory')}</h3>
+              <p className="text-gray-600 dark:text-gray-300">
                 {clinic.about_text || 'Founded in 2010, HealthNexus has grown to become one of the leading healthcare providers in the region. Our mission is to deliver accessible, high-quality healthcare services in a compassionate environment.'}
               </p>
-              <h3 className="text-2xl font-semibold text-clinic-blue">Our Values</h3>
-              <ul className="space-y-2 text-gray-600">
+              <h3 className="text-2xl font-semibold text-clinic-blue dark:text-clinic-blue">{t('portal.ourValues')}</h3>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-300">
                 <li className="flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-clinic-blue"></div>
-                  <span>Patient-centered care</span>
+                  <span>{t('portal.patientCenteredCare')}</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-clinic-blue"></div>
-                  <span>Excellence in medical practice</span>
+                  <span>{t('portal.excellenceInPractice')}</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-clinic-blue"></div>
-                  <span>Integrity and transparency</span>
+                  <span>{t('portal.integrityTransparency')}</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-clinic-blue"></div>
-                  <span>Continuous improvement</span>
+                  <span>{t('portal.continuousImprovement')}</span>
                 </li>
               </ul>
             </div>
@@ -253,9 +299,9 @@ const PatientPortal = () => {
       </section>
       
       {/* Services Section */}
-      <section id="services" className="py-20 bg-clinic-gray/20">
+      <section id="services" className="py-20 bg-clinic-gray/20 dark:bg-gray-900/50">
         <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-clinic-blue">Our Services</h2>
+          <h2 className="text-3xl font-bold text-center mb-12 text-clinic-blue dark:text-clinic-blue">{t('portal.ourServices')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {clinic.services && clinic.services.length > 0 ? clinic.services.map((service, index) => (
               <Card key={index}>
@@ -264,17 +310,17 @@ const PatientPortal = () => {
                   <CardDescription>{service.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">{service.details}</p>
+                  <p className="text-gray-600 dark:text-gray-300">{service.details}</p>
                 </CardContent>
               </Card>
             )) : (
               <Card>
                 <CardHeader>
-                  <CardTitle>General Consultation</CardTitle>
-                  <CardDescription>Comprehensive health assessments and personalized care plans</CardDescription>
+                  <CardTitle>{t('portal.generalConsultation')}</CardTitle>
+                  <CardDescription>{t('portal.generalConsultationDesc')}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">Our experienced physicians provide thorough examinations and personalized treatment plans for a wide range of health concerns, from routine check-ups to chronic condition management.</p>
+                  <p className="text-gray-600 dark:text-gray-300">{t('portal.generalConsultationDetails')}</p>
                 </CardContent>
               </Card>
             )}
@@ -283,9 +329,9 @@ const PatientPortal = () => {
       </section>
       
       {/* Reviews Section */}
-      <section id="reviews" className="py-20 bg-white">
+      <section id="reviews" className="py-20 bg-background dark:bg-gray-800">
         <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-clinic-blue">Patient Reviews</h2>
+          <h2 className="text-3xl font-bold text-center mb-12 text-clinic-blue dark:text-clinic-blue">{t('portal.patientReviews')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {clinic.reviews && clinic.reviews.length > 0 ? clinic.reviews.slice(0, 3).map((review, index) => (
               <Card key={index}>
@@ -307,8 +353,8 @@ const PatientPortal = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">{review.comment}</p>
-                  <p className="text-sm text-gray-400 mt-4">{review.date}</p>
+                  <p className="text-gray-600 dark:text-gray-300">{review.comment}</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-4">{review.date}</p>
                 </CardContent>
               </Card>
             )) : null}
@@ -317,9 +363,9 @@ const PatientPortal = () => {
       </section>
       
       {/* FAQs Section */}
-      <section id="faqs" className="py-20 bg-clinic-gray/20">
+      <section id="faqs" className="py-20 bg-clinic-gray/20 dark:bg-gray-900/50">
         <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-clinic-blue">Frequently Asked Questions</h2>
+          <h2 className="text-3xl font-bold text-center mb-12 text-clinic-blue dark:text-clinic-blue">Frequently Asked Questions</h2>
           <div className="max-w-3xl mx-auto space-y-6">
             {clinic.faqs && clinic.faqs.length > 0 ? clinic.faqs.map((faq, index) => (
               <Card key={index}>
@@ -327,7 +373,7 @@ const PatientPortal = () => {
                   <CardTitle className="text-lg">{faq.question}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">{faq.answer}</p>
+                  <p className="text-gray-600 dark:text-gray-300">{faq.answer}</p>
                 </CardContent>
               </Card>
             )) : null}
@@ -358,13 +404,13 @@ const PatientPortal = () => {
                 <p>Sunday: Closed</p>
               </div>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-lg">
-              <h3 className="text-xl font-semibold mb-4 text-black">Leave a Review</h3>
-              <form className="space-y-4 text-black" onSubmit={handleReviewSubmit}>
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+              <h3 className="text-xl font-semibold mb-4 text-black dark:text-white">Leave a Review</h3>
+              <form className="space-y-4 text-black dark:text-white" onSubmit={handleReviewSubmit}>
                 <div>
                   <Input
                     placeholder="Your Name"
-                    className="bg-white text-black"
+                    className="bg-white dark:bg-gray-700 text-black dark:text-white"
                     value={reviewForm.name}
                     onChange={e => setReviewForm({ ...reviewForm, name: e.target.value })}
                     required
@@ -374,14 +420,14 @@ const PatientPortal = () => {
                   <Input
                     placeholder="Your Email"
                     type="email"
-                    className="bg-white text-black"
+                    className="bg-white dark:bg-gray-700 text-black dark:text-white"
                     value={reviewForm.email}
                     onChange={e => setReviewForm({ ...reviewForm, email: e.target.value })}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block mb-1 font-medium text-black">Rating</label>
+                  <label className="block mb-1 font-medium text-black dark:text-white">Rating</label>
                   <div className="flex gap-1">
                     {[1,2,3,4,5].map(star => (
                       <span
@@ -397,7 +443,7 @@ const PatientPortal = () => {
                 <div>
                   <textarea
                     placeholder="Your Review"
-                    className="w-full p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-clinic-blue min-h-[120px] text-black"
+                    className="w-full p-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-clinic-blue min-h-[120px] text-black dark:text-white"
                     value={reviewForm.comment}
                     onChange={e => setReviewForm({ ...reviewForm, comment: e.target.value })}
                     required
@@ -430,6 +476,14 @@ const PatientPortal = () => {
                 <li><a href="#services" className="text-gray-400 hover:text-white transition-colors">Services</a></li>
                 <li><a href="#reviews" className="text-gray-400 hover:text-white transition-colors">Reviews</a></li>
                 <li><a href="#faqs" className="text-gray-400 hover:text-white transition-colors">FAQs</a></li>
+                <li>
+                  <button 
+                    onClick={() => setShowAppointmentModal(true)} 
+                    className="text-clinic-blue hover:text-white transition-colors"
+                  >
+                    Schedule Appointment
+                  </button>
+                </li>
               </ul>
             </div>
             <div>
@@ -461,6 +515,12 @@ const PatientPortal = () => {
           </div>
         </div>
       </footer>
+      
+      {/* Patient Appointment Modal */}
+      <PatientAppointmentModal 
+        open={showAppointmentModal} 
+        onOpenChange={setShowAppointmentModal} 
+      />
     </div>
   );
 };

@@ -1,22 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { Bell, MessageSquare, Search, Calendar, User, Clock, Settings, LogOut, ChevronDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useClinic } from '@/contexts/ClinicContext';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { useClinic } from '@/contexts/ClinicContext';
 import axios from 'axios';
+import { Bell, Calendar, Clock, MessageSquare, Search } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export const TopBar: React.FC = () => {
   const { currentUser, setCurrentUser } = useClinic();
@@ -104,15 +96,12 @@ export const TopBar: React.FC = () => {
       fetchPendingAppointments();
     }
   }, [showNotifications]);
+
   // Handle logout
   const handleLogout = () => {
     localStorage.removeItem('user');  // Clear user data
     setCurrentUser(null);             // Reset the context
     navigate('/login');              // Redirect to login page
-  };
-  // Handle settings navigation
-  const handleSettings = () => {
-    navigate('/user-settings');
   };
 
   // Handle notification click
@@ -147,7 +136,7 @@ export const TopBar: React.FC = () => {
   if (!currentUser) return null; // If no user, don't render the top bar
 
   return (
-    <header className="py-3 px-6 border-b bg-white flex items-center justify-between">
+    <header className="py-3 px-6 border-b bg-white dark:bg-gray-800 flex items-center justify-between">
       <div className="flex items-center">
         <SidebarTrigger />
         <div className="ml-4 relative max-w-md w-64 lg:w-96">
@@ -177,7 +166,7 @@ export const TopBar: React.FC = () => {
           
           {/* Notification Dropdown */}
           {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+            <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
               <div className="p-4 border-b border-gray-100">
                 <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
                 <p className="text-xs text-gray-500 mt-1">
@@ -281,46 +270,20 @@ export const TopBar: React.FC = () => {
             </div>
           )}
         </div>
-          <Button variant="ghost" size="icon">
+        
+        <Button variant="ghost" size="icon">
           <MessageSquare className="h-5 w-5" />
         </Button>
-        
-        {/* User Profile Dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={currentUser.image} alt={currentUser.name} />
-                <AvatarFallback>
-                  {currentUser.name.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end" forceMount>
-            <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{currentUser.name}</p>
-                <p className="text-xs leading-none text-muted-foreground">
-                  {currentUser.email}
-                </p>
-                <p className="text-xs leading-none text-muted-foreground capitalize">
-                  {currentUser.role}
-                </p>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSettings} className="cursor-pointer">
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600">
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Avatar>
+          <AvatarImage src={currentUser.image} alt={currentUser.name} />
+          <AvatarFallback
+            onClick={handleLogout}  // Add the logout handler here
+            className="cursor-pointer hover:bg-red-100 transition rounded-full px-2 py-1"
+            title="Logout"
+          >
+            {currentUser.name.charAt(0)}
+          </AvatarFallback>
+        </Avatar>
       </div>
     </header>
   );

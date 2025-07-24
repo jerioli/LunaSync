@@ -8,6 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+// Set axios base URL to include the API prefix
+axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
+
 const ReceptionistDashboard = () => {
   const { patients } = useClinic();
   const [appointments, setAppointments] = useState([]);

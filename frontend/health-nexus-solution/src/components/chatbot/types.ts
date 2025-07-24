@@ -3,13 +3,14 @@ export type MessageType = {
   sender: 'user' | 'bot';
   text: string;
   type?: 'text' | 'options' | 'date' | 'doctor' | 'slot';
-  options?: { value: string; label: string }[];
+  options?: { value: string; label: string; disabled?: boolean }[];
   dateSelector?: boolean;
   timeSelector?: boolean;
   times?: string[];
   fileUpload?: boolean;
   fileUploadLabel?: string;
   fileUploadAccept?: string;
+  messageKey?: string; // To identify which set of options this message contains
 };
 
 export type Doctor = {
