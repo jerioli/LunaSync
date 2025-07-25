@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useClinic } from '@/contexts/ClinicContext';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback,  } from '@/components/ui/avatar';
+import BulkImportModal from '@/components/bulk/BulkImportModal';
+import { Avatar, AvatarFallback, } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useClinic } from '@/contexts/ClinicContext';
+import axios from 'axios';
 import { Calendar, Clock, Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // Set axios base URL to include the API prefix
@@ -132,6 +133,14 @@ const ReceptionistDashboard = () => {
             <div className="text-2xl font-bold">{patientsCount}</div>
             <p className="text-xs text-muted-foreground">Total patient records</p>
           </CardContent>
+          <CardFooter className="border-t bg-muted/50 px-6 py-3">
+            <div className="flex gap-2 w-full">
+              <Button variant="ghost" className="flex-1" onClick={() => navigate('/patients')}>
+                View all patients
+              </Button>
+              <BulkImportModal type="patients" />
+            </div>
+          </CardFooter>
         </Card>
         
        

@@ -1,13 +1,13 @@
 
-import React from 'react';
-import { useClinic } from '@/contexts/ClinicContext';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import BulkImportModal from '@/components/bulk/BulkImportModal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Users, Package, CreditCard, Settings, ShieldAlert, BarChart } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useClinic } from '@/contexts/ClinicContext';
+import { CreditCard, Package, ShieldAlert, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Bar, BarChart as ReBarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { Bar, BarChart as ReBarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 const AdminDashboard = () => {
   const { users, patients, inventory, payments } = useClinic();
@@ -110,6 +110,14 @@ const AdminDashboard = () => {
               </ResponsiveContainer>
             </div>
           </CardContent>
+          <CardFooter className="border-t bg-muted/50 px-6 py-3">
+            <div className="flex gap-2 w-full">
+              <Button variant="ghost" className="flex-1" onClick={() => navigate('/patients')}>
+                View all patients
+              </Button>
+              <BulkImportModal type="patients" />
+            </div>
+          </CardFooter>
         </Card>
       </div>
       
@@ -142,9 +150,12 @@ const AdminDashboard = () => {
             </div>
           </CardContent>
           <CardFooter className="border-t bg-muted/50 px-6 py-3">
-            <Button variant="ghost" className="w-full" onClick={() => navigate('/staff')}>
-              Manage all staff
-            </Button>
+            <div className="flex gap-2 w-full">
+              <Button variant="ghost" className="flex-1" onClick={() => navigate('/staff')}>
+                Manage all staff
+              </Button>
+              <BulkImportModal type="staff" />
+            </div>
           </CardFooter>
         </Card>
         

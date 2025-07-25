@@ -1,14 +1,14 @@
-import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {Select,SelectContent,SelectItem,SelectTrigger,SelectValue,} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle,} from '@/components/ui/dialog';
 import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
+import React, { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const AddPatient = () => {
   const navigate = useNavigate();
@@ -18,10 +18,11 @@ const AddPatient = () => {
   // Check user role for access control
   const isDoctor = currentUser?.role === 'doctor';
   const isReceptionist = currentUser?.role === 'receptionist';
+  const isAdmin = currentUser?.role === 'admin';
   
   // Redirect if user doesn't have permission to add patients
   React.useEffect(() => {
-    if (currentUser && !isDoctor && !isReceptionist) {
+    if (currentUser && !isDoctor && !isReceptionist && !isAdmin) {
       toast({
         title: 'Access Denied',
         description: 'You do not have permission to add patients.',
@@ -29,7 +30,7 @@ const AddPatient = () => {
       });
       navigate('/');
     }
-  }, [currentUser, isDoctor, isReceptionist, navigate, toast]);
+  }, [currentUser, isDoctor, isReceptionist, isAdmin, navigate, toast]);
   
   const [form, setForm] = useState({
     name: '', gender: '', age: '', address: '', dateOfBirth: '', email: '', phone: '', religion: '',
@@ -116,7 +117,7 @@ const AddPatient = () => {
     }
 
     // Check if user has permission to add patients
-    if (!isDoctor && !isReceptionist) {
+    if (!isDoctor && !isReceptionist && !isAdmin) {
       toast({
         title: 'Access Denied',
         description: 'You do not have permission to add patients.',
@@ -137,18 +138,18 @@ const AddPatient = () => {
         gender: form.gender.toLowerCase() as 'male' | 'female' | 'other',
         address: form.address,
         marital_status: 'single' as const, // default value
-        medical_info: isDoctor ? {
+        medical_info: (isDoctor || isAdmin) ? {
           medicalHistory: medicalHistory.chiefComplaint || '',
           allergies: [],
           bloodType: ''
         } : undefined,
-        physical_examination: isDoctor ? physicalExamination : undefined
+        physical_examination: (isDoctor || isAdmin) ? physicalExamination : undefined
       };
 
       await addPatient(patientData);
       toast({
         title: 'Success',
-        description: isDoctor 
+        description: (isDoctor || isAdmin)
           ? `${form.name} has been successfully added as a patient with medical information.`
           : `${form.name} has been successfully added as a patient. Medical information can be added later by a doctor.`,
       });
@@ -184,7 +185,7 @@ const AddPatient = () => {
                   }`}>Personal Information
                 </button>
               </li>
-              {isDoctor && (
+              {(isDoctor || isAdmin) && (
                 <>
                   <li>
                     <button onClick={() => {setActiveTab('exam'); scrollTo(examRef);}}
@@ -217,7 +218,7 @@ const AddPatient = () => {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-blue-700">
-                    <strong>Note:</strong> As a receptionist, you can only add personal information. Physical examination and medical history can only be added by doctors.
+                    <strong>Note:</strong> As a receptionist, you can only add personal information. Physical examination and medical history can only be added by doctors or admins.
                   </p>
                 </div>
               </div>
@@ -288,7 +289,7 @@ const AddPatient = () => {
             </div>
           </div>
 
-          {isDoctor && (
+          {(isDoctor || isAdmin) && (
             <>
               <div ref={examRef} className="border p-4 rounded">
                 <h2 className="text-xl font-bold mb-4">Physical Examination</h2>
@@ -431,7 +432,7 @@ const AddPatient = () => {
               className="hover:bg-[#1EAEDB]"
               disabled={loading}
             >
-              {loading ? 'Saving...' : isDoctor ? 'Save Patient Record' : 'Save Patient (Personal Info Only)'}
+              {loading ? 'Saving...' : (isDoctor || isAdmin) ? 'Save Patient Record' : 'Save Patient (Personal Info Only)'}
             </Button>
             <Button variant="outline" className="hover:bg-[#1EAEDB] hover:text-white" onClick={() => setShowCancelModal(true)}>Cancel</Button>
           </div>

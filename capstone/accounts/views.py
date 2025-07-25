@@ -8,6 +8,8 @@ from django.contrib.auth import authenticate
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from django.conf import settings
 import random
 import string
@@ -281,6 +283,7 @@ class PasswordResetConfirmView(APIView):
         except Exception:
             return Response({'success': False, 'message': 'Invalid request.'}, status=400)
 
+@method_decorator(csrf_exempt, name='dispatch')
 class StaffLoginView(APIView):
     permission_classes = [AllowAny]
 
@@ -296,6 +299,10 @@ class StaffLoginView(APIView):
         user = authenticate(request, email=email, password=password)
 
         if user is not None:
+            # Log the user in (creates session)
+            from django.contrib.auth import login
+            login(request, user)
+            
             return Response({
                 'success': True,
                 'message': 'Login successful',

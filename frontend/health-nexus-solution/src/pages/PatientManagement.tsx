@@ -1,26 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useClinic } from '@/contexts/ClinicContext';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import MedicalCertificateGenerator from '@/components/patients/MedicalCertificateGenerator';
+import PatientMedicalInfo from '@/components/patients/PatientMedicalInfo';
+import PatientPersonalInfo from '@/components/patients/PatientPersonalInfo';
+import PatientPhysicalExamination from '@/components/patients/PatientPhysicalExamination';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Save, Trash2, Edit, User, Heart, FileText, Clipboard, Stethoscope, File, Download, Eye, Plus, Pencil, TestTube, Upload } from 'lucide-react';
-import PatientPersonalInfo from '@/components/patients/PatientPersonalInfo';
-import PatientMedicalInfo from '@/components/patients/PatientMedicalInfo';
-import PatientPhysicalExamination from '@/components/patients/PatientPhysicalExamination';
-import MedicalCertificateGenerator from '@/components/patients/MedicalCertificateGenerator';
-import { Patient } from '@/lib/mock-data';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
+import { Patient } from '@/lib/mock-data';
 import { medicalDocumentsAPI, type LabResult as APILabResult } from '@/services/medicalDocumentsAPI';
 import axios from 'axios';
 import { format } from 'date-fns';
+import { ArrowLeft, Clipboard, Edit, Eye, File, FileText, Heart, Plus, Save, Stethoscope, TestTube, Trash2, Upload, User } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 // Set the base URL for axios
 axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
@@ -34,8 +34,9 @@ const PatientManagement = () => {
   // Role-based access control
   const isDoctor = currentUser?.role === 'doctor';
   const isReceptionist = currentUser?.role === 'receptionist';
-  const canEdit = isDoctor || isReceptionist;
-  const canDelete = isDoctor; // Only doctors can delete patient records
+  const isAdmin = currentUser?.role === 'admin';
+  const canEdit = isDoctor || isReceptionist || isAdmin; // Admins can edit
+  const canDelete = isDoctor || isAdmin; // Doctors and admins can delete patient records
   
   // Document management state
   const [certificates, setCertificates] = useState<any[]>([]);
@@ -52,7 +53,7 @@ const PatientManagement = () => {
   
   // Redirect unauthorized users
   React.useEffect(() => {
-    if (currentUser && !isDoctor && !isReceptionist) {
+    if (currentUser && !isDoctor && !isReceptionist && !isAdmin) {
       toast({
         title: 'Access Denied',
         description: 'You do not have permission to view patient records.',
@@ -60,7 +61,7 @@ const PatientManagement = () => {
       });
       navigate('/');
     }
-  }, [currentUser, isDoctor, isReceptionist, navigate, toast]);
+  }, [currentUser, isDoctor, isReceptionist, isAdmin, navigate, toast]);
   
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'personal' | 'physical' | 'medical' | 'documents'>('overview'); // Updated tab types
@@ -1276,10 +1277,10 @@ const PatientManagement = () => {
         <TabsContent value="physical">
           <PatientPhysicalExamination
             patient={patientData}
-            isEditing={isEditing && isDoctor} // Only doctors can edit physical exam data
+            isEditing={isEditing && (isDoctor || isAdmin)} // Doctors and admins can edit physical exam data
             onUpdate={(updatedData) => setPatientData(prev => ({ ...prev, ...updatedData }))}
           />
-          {isEditing && isDoctor && (
+          {isEditing && (isDoctor || isAdmin) && (
             <div className="mt-4 flex justify-end">
               <Button onClick={handleNext}>
                 Next: Medical Information
@@ -1291,7 +1292,7 @@ const PatientManagement = () => {
         <TabsContent value="medical">
           <PatientMedicalInfo
             patient={patientData}
-            isEditing={isEditing && isDoctor} // Only doctors can edit medical info
+            isEditing={isEditing && (isDoctor || isAdmin)} // Doctors and admins can edit medical info
             onUpdate={(updatedData) => setPatientData(prev => ({ ...prev, ...updatedData }))}
           />
           {isEditing && (
