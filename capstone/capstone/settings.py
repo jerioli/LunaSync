@@ -221,4 +221,12 @@ AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
 # Clinic Configuration
 CLINIC_DEFAULT_EMAIL = 'jeri.olivarez@gmail.com'  # Email to receive review notifications
 
+# ===============================
+# SMS SERVICE CONFIGURATION
+# ===============================
+
+# Semaphore (Philippines SMS Provider) - CONFIGURED
+# Your API key: 1d1b9ab6af89e61b3db59d9ab3796906
+SEMAPHORE_API_KEY = '1d1b9ab6af89e61b3db59d9ab3796906'
+
 

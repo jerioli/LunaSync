@@ -12,6 +12,7 @@ from django.conf import settings
 import random
 import string
 import secrets
+import requests
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
@@ -176,9 +177,7 @@ class UserProfileUpdateView(APIView):
         if 'email' in data:
             user.email = data['email']
         if 'phone' in data:
-            # CustomUser doesn't have phone field by default, so we might need to add it
-            # For now, we'll skip updating phone or add it to the model
-            pass
+            user.phone = data['phone']
         
         user.save()
         
@@ -340,9 +339,7 @@ class SendOTPView(APIView):
             if identifier_type == 'email':
                 user = CustomUser.objects.get(email=identifier)
             elif identifier_type == 'phone':
-                # Assuming phone field exists on CustomUser model
-                # If it doesn't exist, we'll create the field or use email for demo
-                user = CustomUser.objects.get(email=identifier)  # Fallback to email for demo
+                user = CustomUser.objects.get(phone=identifier)
             else:
                 return Response({
                     'success': False,
@@ -372,10 +369,21 @@ class SendOTPView(APIView):
                     fail_silently=False,
                 )
             elif identifier_type == 'phone':
-                # For demo, we'll just log the OTP
-                # In production, integrate with SMS service like Twilio
-                print(f"SMS OTP for {identifier}: {otp}")
-                # TODO: Implement SMS sending with Twilio or similar service
+                # Use the SMS service configuration
+                from .sms_config import SMSService
+                
+                sms_service = SMSService()
+                message = f'Your MedSync verification code is: {otp}. This code expires in 5 minutes.'
+                
+                success, result = sms_service.send_sms(identifier, message, country_code='+63')
+                
+                if success:
+                    print(f"SMS sent to {identifier}: {result}")
+                else:
+                    print(f"SMS failed for {identifier}: {result}")
+                    # Fallback to console for development
+                    print(f"FALLBACK SMS for {identifier}: {otp}")
+                    print("Please configure SMS service credentials in sms_config.py")
                 
         except Exception as e:
             print(f"Failed to send OTP: {e}")
@@ -423,7 +431,7 @@ class VerifyOTPView(APIView):
             if identifier_type == 'email':
                 user = CustomUser.objects.get(email=identifier)
             elif identifier_type == 'phone':
-                user = CustomUser.objects.get(email=identifier)  # Fallback for demo
+                user = CustomUser.objects.get(phone=identifier)
             else:
                 return Response({
                     'success': False,
