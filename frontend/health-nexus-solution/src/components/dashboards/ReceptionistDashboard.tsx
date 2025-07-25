@@ -1,4 +1,3 @@
-import BulkImportModal from '@/components/bulk/BulkImportModal';
 import { Avatar, AvatarFallback, } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -138,7 +137,6 @@ const ReceptionistDashboard = () => {
               <Button variant="ghost" className="flex-1" onClick={() => navigate('/patients')}>
                 View all patients
               </Button>
-              <BulkImportModal type="patients" />
             </div>
           </CardFooter>
         </Card>

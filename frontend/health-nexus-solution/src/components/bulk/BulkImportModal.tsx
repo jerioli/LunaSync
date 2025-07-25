@@ -16,9 +16,10 @@ axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
 
 interface BulkImportModalProps {
   type: 'patients' | 'staff';
+  onUploadComplete?: () => void;
 }
 
-export default function BulkImportModal({ type }: BulkImportModalProps) {
+export default function BulkImportModal({ type, onUploadComplete }: BulkImportModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -45,6 +46,11 @@ export default function BulkImportModal({ type }: BulkImportModalProps) {
       });
       setIsOpen(false);
       setUploadFile(null);
+      
+      // Call the callback to refresh the parent component
+      if (onUploadComplete) {
+        onUploadComplete();
+      }
     } catch (error: any) {
       console.error('Upload error:', error);
       console.log('Error response:', error.response?.data);
@@ -169,7 +175,15 @@ export default function BulkImportModal({ type }: BulkImportModalProps) {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ManualBulkEntry type={type} onComplete={() => setIsOpen(false)} />
+                    <ManualBulkEntry 
+                      type={type} 
+                      onComplete={() => {
+                        setIsOpen(false);
+                        if (onUploadComplete) {
+                          onUploadComplete();
+                        }
+                      }} 
+                    />
                   </CardContent>
                 </Card>
               </TabsContent>

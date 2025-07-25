@@ -1,3 +1,4 @@
+import BulkImportModal from '@/components/bulk/BulkImportModal';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,8 +18,13 @@ const PatientsList = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const { patients, fetchPatients } = useClinic();
+  const { patients, fetchPatients, currentUser } = useClinic();
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Role-based access control - admin, receptionist, and doctor can use bulk import
+  const canUseBulkImport = currentUser?.role === 'admin' || 
+                          currentUser?.role === 'receptionist' || 
+                          currentUser?.role === 'doctor';
 
   // Fetch patients when component mounts
   useEffect(() => {
@@ -40,10 +46,20 @@ const PatientsList = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Patients</h1>
-        <Button onClick={() => navigate('/patients/add')}>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Add New Patient
-        </Button>
+        <div className="flex gap-2">
+          {canUseBulkImport && (
+            <BulkImportModal 
+              type="patients" 
+              onUploadComplete={() => {
+                fetchPatients(); // Refresh the patient list after successful upload
+              }}
+            />
+          )}
+          <Button onClick={() => navigate('/patients/add')}>
+            <UserPlus className="mr-2 h-4 w-4" />
+            Add New Patient
+          </Button>
+        </div>
       </div>
 
       <Card>

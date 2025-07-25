@@ -1,5 +1,4 @@
 
-import BulkImportModal from '@/components/bulk/BulkImportModal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -115,7 +114,6 @@ const AdminDashboard = () => {
               <Button variant="ghost" className="flex-1" onClick={() => navigate('/patients')}>
                 View all patients
               </Button>
-              <BulkImportModal type="patients" />
             </div>
           </CardFooter>
         </Card>
@@ -154,7 +152,6 @@ const AdminDashboard = () => {
               <Button variant="ghost" className="flex-1" onClick={() => navigate('/staff')}>
                 Manage all staff
               </Button>
-              <BulkImportModal type="staff" />
             </div>
           </CardFooter>
         </Card>
