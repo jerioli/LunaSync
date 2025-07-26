@@ -35,6 +35,7 @@ urlpatterns = [
     # path('api/textract/', include('api.textract_urls')),  # DISABLED - Conflicts with api.urls textract endpoint
     path('api/', include('medical_requests.urls')),  # Medical certificate and prescription requests
     path('', include('medical_documents.urls')),  # Medical documents API
+    path('', include('security_app.urls')),  # Security API endpoints
 ]
 
 if settings.DEBUG:

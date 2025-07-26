@@ -4,7 +4,7 @@ from rest_framework import status
 from .serializers import CustomUserSerializer
 from .models import CustomUser
 from rest_framework.decorators import api_view, permission_classes
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
@@ -227,6 +227,7 @@ class AdminListView(APIView):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@csrf_exempt
 def login_view(request):
     username = request.data.get('username')
     password = request.data.get('password')
@@ -234,11 +235,14 @@ def login_view(request):
     user = authenticate(username=username, password=password)
     
     if user:
+        # Actually log the user in to create a session
+        login(request, user)
         return Response({
             'success': True,
             'id': user.id,
             'name': user.get_full_name() or user.username,
             'email': user.email,
+            'username': user.username,
             'role': user.role if hasattr(user, 'role') else 'doctor'
         })
     

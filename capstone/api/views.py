@@ -1,10 +1,32 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.permissions import BasePermission
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from .models import AWSCredentials
 from .serializers import AWSCredentialsSerializer
+
+class IsAdminUser(BasePermission):
+    """
+    Custom permission to only allow admin users to access this view.
+    """
+    def has_permission(self, request, view):
+        print(f"DEBUG: Permission check - User: {request.user}")
+        print(f"DEBUG: Is authenticated: {request.user.is_authenticated}")
+        if hasattr(request.user, 'role'):
+            print(f"DEBUG: User role: {request.user.role}")
+        else:
+            print("DEBUG: User has no role attribute")
+        
+        result = (
+            request.user.is_authenticated and 
+            hasattr(request.user, 'role') and 
+            request.user.role == 'admin'
+        )
+        print(f"DEBUG: Permission result: {result}")
+        return result
 
 @api_view(['GET', 'POST'])
 @permission_classes([])  # No permissions for testing
@@ -23,32 +45,23 @@ def aws_credentials_test(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@method_decorator(csrf_exempt, name='dispatch')
 class AWSCredentialsViewSet(viewsets.ModelViewSet):
-    """ViewSet for managing AWS credentials - Debugging permissions"""
+    """ViewSet for managing AWS credentials - Admin access only"""
     queryset = AWSCredentials.objects.all()
     serializer_class = AWSCredentialsSerializer
-    permission_classes = []  # Remove all permissions temporarily
+    permission_classes = [IsAdminUser]
     
     def get_queryset(self):
-        """Allow all users to access for now (for debugging)"""
-        print(f"DEBUG: get_queryset called, user: {self.request.user}")
+        """Get all AWS credentials for admin users"""
         return AWSCredentials.objects.all()
     
     def perform_create(self, serializer):
-        """Allow all users for now (for debugging)"""
-        print(f"DEBUG: perform_create called, user: {self.request.user}")
+        """Create AWS credentials"""
         serializer.save()
     
     def create(self, request, *args, **kwargs):
         """Create or update AWS credentials"""
-        # Temporarily allow all users for debugging
-        user = request.user
-        print(f"DEBUG: User: {user}, Is authenticated: {user.is_authenticated}")
-        print(f"DEBUG: User attributes: {dir(user)}")
-        if hasattr(user, 'role'):
-            print(f"DEBUG: User role: {user.role}")
-        print(f"DEBUG: Is superuser: {user.is_superuser}, Is staff: {user.is_staff}")
-        
         # Check if active credentials already exist
         active_credentials = AWSCredentials.objects.filter(is_active=True).first()
         

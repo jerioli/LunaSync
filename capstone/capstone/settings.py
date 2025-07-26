@@ -37,6 +37,29 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# Security Settings
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+# Session Security
+SESSION_COOKIE_HTTPONLY = False  # Allow JS access for development
+SESSION_COOKIE_AGE = 1800  # 30 minutes
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_DOMAIN = None     # Allow for localhost development
+
+# For development - set these to True in production with HTTPS
+SESSION_COOKIE_SECURE = False  # Set to True with HTTPS
+CSRF_COOKIE_SECURE = False     # Set to True with HTTPS
+SECURE_SSL_REDIRECT = False    # Set to True in production
+
+# Allow cross-origin cookies for development
+SESSION_COOKIE_SAMESITE = 'Lax'  # Allow cross-origin requests in development
+CSRF_COOKIE_SAMESITE = 'Lax'     # Allow cross-origin CSRF tokens
+
+# File Upload Security
+FILE_UPLOAD_PERMISSIONS = 0o644  # Secure file permissions
+
 
 # Application definition
 
@@ -58,6 +81,7 @@ INSTALLED_APPS = [
     'doctor_availability',
     'medical_documents',
     'medical_requests',
+    'security_app',  # Security management
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -138,7 +162,10 @@ DATABASES = {
         'PASSWORD':'admin',
         'HOST':'127.0.0.1',
         'PORT':'5432',
-        
+        'OPTIONS': {
+            'sslmode': 'prefer',  # Enable SSL for database connections
+            'connect_timeout': 60,
+        },
     }
 }
 

@@ -2,9 +2,10 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:8000/api';
 
-// Create axios instance without token handling
+// Create axios instance with credentials for session authentication
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,  // Send cookies with requests
   headers: {
     'Content-Type': 'application/json',
   },
@@ -191,7 +192,7 @@ export const api = {
   },
   auth: {
     login: async (email: string, password: string) => {
-      const response = await axios.post(`${API_BASE_URL}/login/`, {
+      const response = await axiosInstance.post('/login/', {
         email: email,
         password: password
       });
@@ -205,3 +206,6 @@ export const api = {
     }
   },
 };
+
+// Export the configured axios instance for direct use
+export { axiosInstance };

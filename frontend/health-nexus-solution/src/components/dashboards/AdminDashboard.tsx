@@ -4,12 +4,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useClinic } from '@/contexts/ClinicContext';
+import { useSecurity } from '@/hooks/useSecurity';
 import { CreditCard, Package, ShieldAlert, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Bar, BarChart as ReBarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 const AdminDashboard = () => {
   const { users, patients, inventory, payments } = useClinic();
+  const { securityData, loading: securityLoading } = useSecurity();
   const navigate = useNavigate();
   
   // Count staff by role
@@ -163,27 +165,98 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent className="p-0">
             <div className="p-4 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ShieldAlert className="h-5 w-5 text-accent" />
-                  <span>Data Encryption</span>
-                </div>
-                <Badge variant="outline" className="bg-accent/10 text-accent">Active</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ShieldAlert className="h-5 w-5 text-accent" />
-                  <span>Backup Status</span>
-                </div>
-                <Badge variant="outline" className="bg-accent/10 text-accent">Up to date</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ShieldAlert className="h-5 w-5 text-accent" />
-                  <span>Last Security Audit</span>
-                </div>
-                <Badge variant="outline">7 days ago</Badge>
-              </div>
+              {securityLoading ? (
+                <div className="text-center py-4">Loading security data...</div>
+              ) : securityData ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ShieldAlert className="h-5 w-5 text-accent" />
+                      <span>Data Encryption</span>
+                    </div>
+                    <Badge 
+                      variant="outline" 
+                      className={`${
+                        securityData.encryption.status === 'Active' 
+                          ? 'bg-green-100 text-green-800 border-green-200' 
+                          : 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                      }`}
+                    >
+                      {securityData.encryption.status}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ShieldAlert className="h-5 w-5 text-accent" />
+                      <span>Backup Status</span>
+                    </div>
+                    <Badge 
+                      variant="outline" 
+                      className={`${
+                        securityData.backup.status === 'Up to date' 
+                          ? 'bg-green-100 text-green-800 border-green-200' 
+                          : 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                      }`}
+                    >
+                      {securityData.backup.status}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ShieldAlert className="h-5 w-5 text-accent" />
+                      <span>Last Security Audit</span>
+                    </div>
+                    <Badge 
+                      variant="outline"
+                      className={`${
+                        securityData.last_audit.status.includes('days ago') && 
+                        parseInt(securityData.last_audit.status) <= 30
+                          ? 'bg-green-100 text-green-800 border-green-200'
+                          : 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                      }`}
+                    >
+                      {securityData.last_audit.status}
+                    </Badge>
+                  </div>
+                  {securityData.overall_status && (
+                    <div className="mt-4 p-3 rounded-lg bg-gray-50 border">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Security Score</span>
+                        <Badge 
+                          variant="outline"
+                          className={`bg-${securityData.overall_status.color}-100 text-${securityData.overall_status.color}-800 border-${securityData.overall_status.color}-200`}
+                        >
+                          {securityData.overall_status.score}/100 - {securityData.overall_status.level}
+                        </Badge>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ShieldAlert className="h-5 w-5 text-accent" />
+                      <span>Data Encryption</span>
+                    </div>
+                    <Badge variant="outline" className="bg-accent/10 text-accent">Active</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ShieldAlert className="h-5 w-5 text-accent" />
+                      <span>Backup Status</span>
+                    </div>
+                    <Badge variant="outline" className="bg-accent/10 text-accent">Up to date</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ShieldAlert className="h-5 w-5 text-accent" />
+                      <span>Last Security Audit</span>
+                    </div>
+                    <Badge variant="outline">7 days ago</Badge>
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
           <CardFooter className="border-t bg-muted/50 px-6 py-3">

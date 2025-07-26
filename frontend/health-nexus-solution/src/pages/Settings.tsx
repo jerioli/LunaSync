@@ -10,12 +10,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { useBranding } from '@/contexts/BrandingContext';
 import { useClinic } from '@/contexts/ClinicContext';
 import { toast } from '@/hooks/use-toast';
-import axios from 'axios';
+import { useSecurity } from '@/hooks/useSecurity';
+import { axiosInstance } from '@/services/api';
 import React, { useEffect, useState } from 'react';
 
 const Settings = () => {
   const { currentUser, updateClinicCustomization } = useClinic();
   const { colors, updateColors, resetColors } = useBranding();
+  const { securityData, loading: securityLoading, error: securityError, refreshSecurityData } = useSecurity();
   const [generalSettings, setGeneralSettings] = useState({
     clinicName: '',
     address: '',
@@ -85,9 +87,13 @@ const Settings = () => {
 
   useEffect(() => {
     const fetchSettings = async () => {
+      if (!currentUser || currentUser.role !== 'admin') {
+        return; // Don't fetch settings if user is not an admin
+      }
+      
       setLoading(true);
       try {
-        const res = await axios.get('clinic/');
+        const res = await axiosInstance.get('/clinic/');
         if (res.data) {
           setGeneralSettings({
             clinicName: res.data.clinic_name || '',
@@ -115,9 +121,9 @@ const Settings = () => {
             setClinicBuildingPreview(res.data.clinic_building_image || null);
         }
         
-        // Fetch AWS credentials
+        // Fetch AWS credentials only if user is authenticated admin
         try {
-          const awsRes = await axios.get('aws-credentials/');
+          const awsRes = await axiosInstance.get('/aws-credentials/');
           if (awsRes.data && awsRes.data.length > 0) {
             const activeCredentials = awsRes.data.find((cred: any) => cred.is_active) || awsRes.data[0];
             setAwsCredentials({
@@ -129,16 +135,17 @@ const Settings = () => {
             });
           }
         } catch (awsErr) {
-          console.warn('No AWS credentials found, using defaults');
+          console.warn('No AWS credentials found or insufficient permissions, using defaults');
         }
       } catch (err) {
+        console.error('Error fetching clinic settings:', err);
         toast({ title: 'Error', description: 'Failed to fetch clinic settings', variant: 'destructive' });
       } finally {
         setLoading(false);
       }
     };
     fetchSettings();
-  }, []);
+  }, [currentUser]);
 
   if (currentUser?.role !== 'admin') {
     return (
@@ -155,9 +162,15 @@ const Settings = () => {
   
   const handleGeneralSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!currentUser || currentUser.role !== 'admin') {
+      toast({ title: 'Error', description: 'Unauthorized access', variant: 'destructive' });
+      return;
+    }
+    
     setLoading(true);
     try {
-      await axios.put('clinic/', {
+      await axiosInstance.put('/clinic/', {
         clinic_name: generalSettings.clinicName,
         address: generalSettings.address,
         city: generalSettings.city,
@@ -172,21 +185,38 @@ const Settings = () => {
         description: 'Your general clinic settings have been updated successfully.'
       });
       setIsEditing(false);
-    } catch (err) {
-      toast({ title: 'Error', description: 'Failed to save clinic settings', variant: 'destructive' });
+    } catch (err: any) {
+      console.error('Error saving clinic settings:', err);
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Failed to save clinic settings';
+      toast({ title: 'Error', description: errorMessage, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
   };
 
   const handleAwsSave = async () => {
+    if (!currentUser || currentUser.role !== 'admin') {
+      toast({ title: 'Error', description: 'Unauthorized access', variant: 'destructive' });
+      return;
+    }
+    
     setLoading(true);
     try {
-      await axios.post('aws-credentials/', awsCredentials);
+      await axiosInstance.put('/clinic/', {
+        aws_credentials: {
+          name: awsCredentials.name,
+          aws_access_key_id: awsCredentials.aws_access_key_id,
+          aws_secret_access_key: awsCredentials.aws_secret_access_key,
+          aws_region: awsCredentials.aws_region,
+          is_active: awsCredentials.is_active
+        }
+      });
       toast({ title: 'AWS Credentials Saved', description: 'AWS credentials updated successfully.' });
       setIsEditingAws(false);
-    } catch (err) {
-      toast({ title: 'Error', description: 'Failed to save AWS credentials', variant: 'destructive' });
+    } catch (err: any) {
+      console.error('Error saving AWS credentials:', err);
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Failed to save AWS credentials';
+      toast({ title: 'Error', description: errorMessage, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -205,7 +235,7 @@ const Settings = () => {
   const handleHeroSave = async () => {
     setLoading(true);
     try {
-      await axios.put('clinic/', {
+      await axiosInstance.put('/clinic/', {
         hero_title: hero.title,
         hero_subtitle: hero.subtitle
       });
@@ -220,7 +250,7 @@ const Settings = () => {
   const handleAboutSave = async () => {
     setLoading(true);
     try {
-      await axios.put('clinic/', {
+      await axiosInstance.put('/clinic/', {
         about_title: about.title,
         about_text: about.text
       });
@@ -235,7 +265,7 @@ const Settings = () => {
   const handleServicesSave = async () => {
     setLoading(true);
     try {
-      await axios.put('clinic/', { services });
+      await axiosInstance.put('/clinic/', { services });
       toast({ title: 'Services Saved', description: 'Services updated.' });
       setIsEditingServices(false);
     } catch (err) {
@@ -246,14 +276,14 @@ const Settings = () => {
   const handleFaqsSave = async () => {
     setLoading(true);
     try {
-      await axios.put('clinic/', { faqs });
+      await axiosInstance.put('/clinic/', { faqs });
       // Update the clinic context with the new FAQs
       updateClinicCustomization({ faqs });
       toast({ title: 'FAQs Saved', description: 'FAQs updated.' });
       setIsEditingFaqs(false);
       
       // Optionally refresh the settings to ensure they persist
-      const res = await axios.get('clinic/');
+      const res = await axiosInstance.get('/clinic/');
       if (res.data && res.data.faqs) {
         setFaqs(res.data.faqs);
       }
@@ -272,7 +302,7 @@ const Settings = () => {
     formData.append(field, file);
     setLoading(true);
     try {
-      await axios.put('clinic/', formData, {
+      await axiosInstance.put('/clinic/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       toast({ title: 'Image Updated', description: `${field.replace(/_/g, ' ')} updated successfully.` });
@@ -331,6 +361,36 @@ const Settings = () => {
     }
   };
 
+  const handleSecurityTestRun = async () => {
+    try {
+      await refreshSecurityData();
+      toast({
+        title: 'Security Check Complete',
+        description: 'Security status has been updated.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Security Check Failed',
+        description: 'Could not complete security check.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleOpenSecurityDashboard = () => {
+    // Try to open the local HTML file first, fallback to external URL
+    const dashboardUrl = 'http://127.0.0.1:8000/static/encryption_test.html';
+    window.open(dashboardUrl, '_blank', 'width=1200,height=800');
+  };
+
+  const handleRunBatchTests = () => {
+    // Show instructions for running batch tests
+    toast({
+      title: 'Batch Testing',
+      description: 'Use run_security_tests.bat from your capstone folder to run comprehensive tests.',
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -350,6 +410,7 @@ const Settings = () => {
           <TabsTrigger value="aws">AWS OCR</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
+          <TabsTrigger value="security">Security Testing</TabsTrigger>
         </TabsList>
         
         <TabsContent value="general">
@@ -1041,6 +1102,367 @@ const Settings = () => {
               </p>
             </CardContent>
           </Card>
+        </TabsContent>
+        
+        <TabsContent value="security">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  🔐 Security Testing & Monitoring
+                </CardTitle>
+                <CardDescription>
+                  Test and monitor your system's security status, encryption, and compliance
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* Security Overview */}
+                  {securityLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                      <span className="ml-2">Loading security status...</span>
+                    </div>
+                  ) : securityError ? (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <p className="text-red-700">⚠️ Security service unavailable: {securityError}</p>
+                      <Button 
+                        variant="outline" 
+                        className="mt-2" 
+                        onClick={refreshSecurityData}
+                      >
+                        Retry Connection
+                      </Button>
+                    </div>
+                  ) : securityData ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {/* Overall Security Score */}
+                      <Card className={`border-2 ${
+                        securityData.overall_status.color === 'green' ? 'border-green-500 bg-green-50' :
+                        securityData.overall_status.color === 'yellow' ? 'border-yellow-500 bg-yellow-50' :
+                        'border-red-500 bg-red-50'
+                      }`}>
+                        <CardContent className="p-4">
+                          <div className="text-center">
+                            <div className={`text-2xl font-bold ${
+                              securityData.overall_status.color === 'green' ? 'text-green-700' :
+                              securityData.overall_status.color === 'yellow' ? 'text-yellow-700' :
+                              'text-red-700'
+                            }`}>
+                              {securityData.overall_status.score}/100
+                            </div>
+                            <div className="text-sm text-gray-600">Overall Security</div>
+                            <div className={`text-xs font-medium ${
+                              securityData.overall_status.color === 'green' ? 'text-green-600' :
+                              securityData.overall_status.color === 'yellow' ? 'text-yellow-600' :
+                              'text-red-600'
+                            }`}>
+                              {securityData.overall_status.level}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Encryption Status */}
+                      <Card className={`border ${
+                        securityData.encryption.status === 'active' ? 'border-green-300' : 'border-red-300'
+                      }`}>
+                        <CardContent className="p-4">
+                          <div className="text-center">
+                            <div className={`text-xl font-semibold ${
+                              securityData.encryption.status === 'active' ? 'text-green-700' : 'text-red-700'
+                            }`}>
+                              {securityData.encryption.enabled_count}/{securityData.encryption.total_count}
+                            </div>
+                            <div className="text-sm text-gray-600">Encryption Active</div>
+                            <div className={`text-xs ${
+                              securityData.encryption.status === 'active' ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {securityData.encryption.status.toUpperCase()}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Backup Status */}
+                      <Card className={`border ${
+                        securityData.backup.status === 'completed' ? 'border-green-300' : 'border-yellow-300'
+                      }`}>
+                        <CardContent className="p-4">
+                          <div className="text-center">
+                            <div className={`text-lg font-semibold ${
+                              securityData.backup.status === 'completed' ? 'text-green-700' : 'text-yellow-700'
+                            }`}>
+                              {securityData.backup.last_backup ? 
+                                new Date(securityData.backup.last_backup).toLocaleDateString() : 
+                                'Never'
+                              }
+                            </div>
+                            <div className="text-sm text-gray-600">Last Backup</div>
+                            <div className={`text-xs ${
+                              securityData.backup.status === 'completed' ? 'text-green-600' : 'text-yellow-600'
+                            }`}>
+                              {securityData.backup.status.toUpperCase()}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Security Incidents */}
+                      <Card className={`border ${
+                        securityData.incidents.critical > 0 ? 'border-red-300' : 
+                        securityData.incidents.open > 0 ? 'border-yellow-300' : 'border-green-300'
+                      }`}>
+                        <CardContent className="p-4">
+                          <div className="text-center">
+                            <div className={`text-xl font-semibold ${
+                              securityData.incidents.critical > 0 ? 'text-red-700' :
+                              securityData.incidents.open > 0 ? 'text-yellow-700' : 'text-green-700'
+                            }`}>
+                              {securityData.incidents.open}
+                            </div>
+                            <div className="text-sm text-gray-600">Open Incidents</div>
+                            <div className={`text-xs ${
+                              securityData.incidents.critical > 0 ? 'text-red-600' :
+                              securityData.incidents.open > 0 ? 'text-yellow-600' : 'text-green-600'
+                            }`}>
+                              {securityData.incidents.critical} CRITICAL
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  ) : null}
+
+                  <Separator />
+
+                  {/* Security Testing Tools */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Security Testing Tools</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Quick Security Check */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">⚡ Quick Security Check</CardTitle>
+                          <CardDescription>
+                            Run basic security validation tests
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <Button 
+                            className="w-full" 
+                            onClick={handleSecurityTestRun}
+                            disabled={securityLoading}
+                          >
+                            {securityLoading ? 'Running...' : 'Run Security Check'}
+                          </Button>
+                        </CardContent>
+                      </Card>
+
+                      {/* Visual Security Dashboard */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">📊 Visual Testing Dashboard</CardTitle>
+                          <CardDescription>
+                            Open comprehensive security testing interface
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <Button 
+                            className="w-full" 
+                            variant="outline"
+                            onClick={handleOpenSecurityDashboard}
+                          >
+                            Open Test Dashboard
+                          </Button>
+                        </CardContent>
+                      </Card>
+
+                      {/* Batch Testing */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">🚀 Automated Testing</CardTitle>
+                          <CardDescription>
+                            Run comprehensive automated security tests
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <Button 
+                            className="w-full" 
+                            variant="secondary"
+                            onClick={handleRunBatchTests}
+                          >
+                            View Batch Testing
+                          </Button>
+                        </CardContent>
+                      </Card>
+
+                      {/* Real-time Monitoring */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">🔍 Real-time Monitor</CardTitle>
+                          <CardDescription>
+                            Monitor security status in real-time
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-sm">
+                              <span>Auto-refresh:</span>
+                              <Switch 
+                                checked={false}
+                                onCheckedChange={() => {
+                                  toast({
+                                    title: 'Real-time Monitoring',
+                                    description: 'Feature will be implemented soon.',
+                                  });
+                                }}
+                              />
+                            </div>
+                            <Button 
+                              className="w-full" 
+                              variant="outline" 
+                              size="sm"
+                              onClick={refreshSecurityData}
+                            >
+                              Refresh Now
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Security Details */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Security Details</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Encryption Details */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">🔐 Encryption Details</CardTitle>
+                          <CardDescription>
+                            View detailed encryption status
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          {securityData?.encryption.details.length ? (
+                            <div className="space-y-2">
+                              {securityData.encryption.details.map((detail, index) => (
+                                <div key={index} className="flex justify-between items-center text-sm">
+                                  <span>{detail.type}</span>
+                                  <span className={`px-2 py-1 rounded text-xs ${
+                                    detail.enabled ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                  }`}>
+                                    {detail.enabled ? 'ENABLED' : 'DISABLED'}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-500">No encryption details available</p>
+                          )}
+                        </CardContent>
+                      </Card>
+
+                      {/* Security Settings */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">⚙️ Security Configuration</CardTitle>
+                          <CardDescription>
+                            Current security settings overview
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          {securityData?.settings ? (
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span>Auto Backup:</span>
+                                <span className={securityData.settings.auto_backup_enabled ? 'text-green-600' : 'text-red-600'}>
+                                  {securityData.settings.auto_backup_enabled ? 'ON' : 'OFF'}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Audit Logging:</span>
+                                <span className={securityData.settings.audit_logging_enabled ? 'text-green-600' : 'text-red-600'}>
+                                  {securityData.settings.audit_logging_enabled ? 'ON' : 'OFF'}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Session Timeout:</span>
+                                <span>{securityData.settings.session_timeout}min</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Max Login Attempts:</span>
+                                <span>{securityData.settings.max_login_attempts}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-500">No settings data available</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Security Documentation */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Security Documentation</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">📋 Testing Guide</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-gray-600 mb-3">
+                            Step-by-step security testing instructions
+                          </p>
+                          <Button variant="outline" size="sm" className="w-full">
+                            View Guide
+                          </Button>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">🛡️ Security Policies</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-gray-600 mb-3">
+                            Review security policies and compliance
+                          </p>
+                          <Button variant="outline" size="sm" className="w-full">
+                            View Policies
+                          </Button>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-base">📊 Security Reports</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-gray-600 mb-3">
+                            Generate and download security reports
+                          </p>
+                          <Button variant="outline" size="sm" className="w-full">
+                            Generate Report
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
         
         <TabsContent value="homepage">
