@@ -18,7 +18,7 @@ import { Patient } from '@/lib/mock-data';
 import { medicalDocumentsAPI, type LabResult as APILabResult } from '@/services/medicalDocumentsAPI';
 import axios from 'axios';
 import { format } from 'date-fns';
-import { ArrowLeft, Clipboard, Edit, Eye, File, FileText, Heart, Plus, Save, Stethoscope, TestTube, Trash2, Upload, User } from 'lucide-react';
+import { ArrowLeft, Edit, Eye, File, FileText, Heart, Plus, Save, Stethoscope, TestTube, Trash2, Upload, User } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -29,7 +29,16 @@ const PatientManagement = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { patients, updatePatient, deletePatient, currentUser, fetchPatients } = useClinic();
+  const { patients, updatePatient, deletePatient, currentUser, fetchPatients, clinicCustomization } = useClinic();
+  
+  // Helper function to get logo URL
+  const getLogoUrl = (logo: string) => {
+    if (!logo) return null;
+    if (logo.startsWith('http')) return logo;
+    if (logo.startsWith('/media/')) return `http://127.0.0.1:8000${logo}`;
+    if (logo.startsWith('branding/')) return `http://127.0.0.1:8000/media/${logo}`;
+    return `http://127.0.0.1:8000${logo}`;
+  };
   
   // Role-based access control
   const isDoctor = currentUser?.role === 'doctor';
@@ -743,7 +752,9 @@ const PatientManagement = () => {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Clipboard className="h-4 w-4" />
+                <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                  Rx
+                </div>
                 <h3 className="font-semibold">E-Prescriptions</h3>
               </div>
               {isDoctor && (
@@ -760,15 +771,20 @@ const PatientManagement = () => {
             <div className="space-y-2">
               {prescriptions.length > 0 ? (
                 prescriptions.map((prescription, index) => (
-                  <div key={prescription.id || index} className="p-3 border rounded-lg">
+                  <div key={prescription.id || index} className="p-3 border rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
                     <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="text-sm font-medium">{prescription.data.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {prescription.data.dose} | {prescription.data.frequency}
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                          Rx
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          Created: {new Date(prescription.dateCreated).toLocaleDateString()}
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-gray-900">{prescription.data.name}</div>
+                          <div className="text-xs text-blue-600">
+                            {prescription.data.dose} | {prescription.data.frequency}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Created: {new Date(prescription.dateCreated).toLocaleDateString()}
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
@@ -776,19 +792,192 @@ const PatientManagement = () => {
                           variant="outline" 
                           size="sm"
                           onClick={() => {
+                            // Helper function to get proper logo URL
+                            const getFullLogoUrl = (logo: string) => {
+                              if (!logo) return null;
+                              // If it's already a full URL, return as-is
+                              if (logo.startsWith('http')) return logo;
+                              // If it starts with /media/, add the base URL
+                              if (logo.startsWith('/media/')) return `http://127.0.0.1:8000${logo}`;
+                              // If it starts with branding/, add the full path
+                              if (logo.startsWith('branding/')) return `http://127.0.0.1:8000/media/${logo}`;
+                              // If it's just a filename, assume it's in branding folder
+                              if (!logo.includes('/')) return `http://127.0.0.1:8000/media/branding/${logo}`;
+                              // Otherwise, add base URL
+                              return `http://127.0.0.1:8000${logo.startsWith('/') ? logo : '/' + logo}`;
+                            };
+                            
+                            const logoUrl = getFullLogoUrl(clinicCustomization?.logo);
                             const content = `
-                              <div style="font-family: Arial, sans-serif; padding: 20px;">
-                                <h2>E-Prescription</h2>
-                                <p><strong>Patient:</strong> ${prescription.patientName}</p>
-                                <p><strong>Date:</strong> ${new Date(prescription.dateCreated).toLocaleDateString()}</p>
-                                <p><strong>Medication:</strong> ${prescription.data.name} (${prescription.data.nameType})</p>
-                                <p><strong>Dose:</strong> ${prescription.data.dose}</p>
-                                <p><strong>Quantity:</strong> ${prescription.data.quantity}</p>
-                                <p><strong>Frequency:</strong> ${prescription.data.frequency === 'custom' ? prescription.data.customFrequency : prescription.data.frequency}</p>
-                                <p><strong>Duration:</strong> ${prescription.data.startDate} to ${prescription.data.endDate}</p>
-                                <p><strong>Notes:</strong> ${prescription.data.notes}</p>
-                                <p><strong>Prescribed by:</strong> ${prescription.createdBy}</p>
-                              </div>
+                              <!DOCTYPE html>
+                              <html>
+                              <head>
+                                <title>E-Prescription</title>
+                                <style>
+                                  body { 
+                                    font-family: Arial, sans-serif; 
+                                    padding: 20px; 
+                                    margin: 0;
+                                    background-color: #f8fafc;
+                                  }
+                                  .prescription-container {
+                                    max-width: 800px;
+                                    margin: 0 auto;
+                                    background: white;
+                                    border-radius: 10px;
+                                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                                    overflow: hidden;
+                                  }
+                                  .logo-header {
+                                    background: white;
+                                    padding: 30px 20px 20px 20px;
+                                    text-align: center;
+                                    border-bottom: 3px solid #3b82f6;
+                                  }
+                                  .logo-header img {
+                                    max-height: 100px;
+                                    max-width: 400px;
+                                    margin-bottom: 15px;
+                                    object-fit: contain;
+                                  }
+                                  .clinic-info {
+                                    color: #6b7280;
+                                    font-size: 14px;
+                                    line-height: 1.5;
+                                  }
+                                  .clinic-info .clinic-name {
+                                    font-size: 24px;
+                                    font-weight: bold;
+                                    color: #3b82f6;
+                                    margin-bottom: 10px;
+                                  }
+                                  .header {
+                                    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+                                    color: white;
+                                    padding: 20px;
+                                    text-align: center;
+                                  }
+                                  .rx-symbol {
+                                    display: inline-block;
+                                    background: rgba(255,255,255,0.2);
+                                    color: white;
+                                    width: 40px;
+                                    height: 40px;
+                                    border-radius: 50%;
+                                    line-height: 40px;
+                                    text-align: center;
+                                    font-weight: bold;
+                                    font-size: 18px;
+                                    margin-right: 10px;
+                                    border: 2px solid rgba(255,255,255,0.3);
+                                  }
+                                  .content {
+                                    padding: 30px;
+                                  }
+                                  .prescription-details {
+                                    background: #f8fafc;
+                                    border-left: 4px solid #3b82f6;
+                                    padding: 20px;
+                                    margin: 20px 0;
+                                    border-radius: 0 8px 8px 0;
+                                  }
+                                  .detail-row {
+                                    margin: 10px 0;
+                                    display: flex;
+                                    align-items: center;
+                                  }
+                                  .detail-label {
+                                    font-weight: bold;
+                                    min-width: 120px;
+                                    color: #374151;
+                                  }
+                                  .detail-value {
+                                    color: #1f2937;
+                                  }
+                                  .footer {
+                                    background: #f1f5f9;
+                                    padding: 20px;
+                                    text-align: center;
+                                    border-top: 1px solid #e2e8f0;
+                                    font-size: 12px;
+                                    color: #6b7280;
+                                  }
+                                  @media print {
+                                    body { background: white; }
+                                    .prescription-container { box-shadow: none; }
+                                  }
+                                </style>
+                              </head>
+                              <body>
+                                <div class="prescription-container">
+                                  <div class="logo-header">
+                                    ${logoUrl ? `
+                                      <img src="${logoUrl}" alt="${clinicCustomization?.name || 'Clinic'} Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+                                      <div class="clinic-name" style="display: none;">${clinicCustomization?.name || 'Medical Clinic'}</div>
+                                    ` : `
+                                      <div class="clinic-name">${clinicCustomization?.name || 'Medical Clinic'}</div>
+                                    `}
+                                    <div class="clinic-info">
+                                      <div>${clinicCustomization?.address || ''}</div>
+                                      <div>${clinicCustomization?.phone || ''}</div>
+                                    </div>
+                                  </div>
+                                  
+                                  <div class="header">
+                                    <span class="rx-symbol">Rx</span>
+                                    <h1 style="margin: 0; display: inline-block; vertical-align: middle;">Electronic Prescription</h1>
+                                  </div>
+                                  
+                                  <div class="content">
+                                    <div class="prescription-details">
+                                      <div class="detail-row">
+                                        <span class="detail-label">Patient:</span>
+                                        <span class="detail-value">${prescription.patientName}</span>
+                                      </div>
+                                      <div class="detail-row">
+                                        <span class="detail-label">Date:</span>
+                                        <span class="detail-value">${new Date(prescription.dateCreated).toLocaleDateString()}</span>
+                                      </div>
+                                      <div class="detail-row">
+                                        <span class="detail-label">Medication:</span>
+                                        <span class="detail-value"><strong>${prescription.data.name}</strong> (${prescription.data.nameType})</span>
+                                      </div>
+                                      <div class="detail-row">
+                                        <span class="detail-label">Dose:</span>
+                                        <span class="detail-value">${prescription.data.dose}</span>
+                                      </div>
+                                      <div class="detail-row">
+                                        <span class="detail-label">Quantity:</span>
+                                        <span class="detail-value">${prescription.data.quantity}</span>
+                                      </div>
+                                      <div class="detail-row">
+                                        <span class="detail-label">Frequency:</span>
+                                        <span class="detail-value">${prescription.data.frequency === 'custom' ? prescription.data.customFrequency : prescription.data.frequency}</span>
+                                      </div>
+                                      <div class="detail-row">
+                                        <span class="detail-label">Duration:</span>
+                                        <span class="detail-value">${prescription.data.startDate} to ${prescription.data.endDate}</span>
+                                      </div>
+                                      ${prescription.data.notes ? `
+                                        <div class="detail-row">
+                                          <span class="detail-label">Notes:</span>
+                                          <span class="detail-value">${prescription.data.notes}</span>
+                                        </div>
+                                      ` : ''}
+                                      <div class="detail-row">
+                                        <span class="detail-label">Prescribed by:</span>
+                                        <span class="detail-value">${prescription.createdBy}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  <div class="footer">
+                                    <p>This is an electronically generated prescription. Please present this document to your pharmacist.</p>
+                                    <p>For verification, contact ${clinicCustomization?.name || 'our clinic'} at ${clinicCustomization?.phone || ''}</p>
+                                  </div>
+                                </div>
+                              </body>
+                              </html>
                             `;
                             const newWindow = window.open();
                             if (newWindow) {
@@ -816,10 +1005,17 @@ const PatientManagement = () => {
                   </div>
                 ))
               ) : (
-                <div className="p-3 border rounded-lg">
-                  <div className="text-sm font-medium">No prescriptions available</div>
-                  <div className="text-xs text-muted-foreground">
-                    {isDoctor ? 'Click "Add" to create prescriptions' : 'Prescriptions will appear here when created by doctors'}
+                <div className="p-3 border rounded-lg bg-gray-50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                      Rx
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium">No prescriptions available</div>
+                      <div className="text-xs text-muted-foreground">
+                        {isDoctor ? 'Click "Add" to create prescriptions' : 'Prescriptions will appear here when created by doctors'}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

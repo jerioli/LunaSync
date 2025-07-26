@@ -59,6 +59,7 @@ export const useChatbotLogic = () => {
     dateOfBirth: '',
     email: '',
     phone: '',
+    idVerification: null,
     prescriptionImage: null,
     additionalNotes: ''
   });
@@ -665,10 +666,10 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please upload your current prescription or doctor\'s note:', undefined, undefined, undefined, undefined, true, "Upload Prescription", "image/*");
+        addMessage('bot', 'For identity verification, please upload a photo of your government-issued ID:', undefined, undefined, undefined, undefined, true, "Upload ID", "image/*");
         setChatStep(10);
       }, 500);
-    } else if (chatStep === 11) {
+    } else if (chatStep === 12) {
       addMessage('user', input || 'No additional notes');
       setPrescriptionForm(prev => ({ ...prev, additionalNotes: input }));
       setInput('');
@@ -686,6 +687,7 @@ export const useChatbotLogic = () => {
             Date of Birth: ${prescriptionForm.dateOfBirth}
             Email: ${prescriptionForm.email}
             Phone: ${prescriptionForm.phone}
+            ID Verification: ${prescriptionForm.idVerification ? 'Uploaded' : 'Not uploaded'}
             Prescription Image: ${prescriptionForm.prescriptionImage ? 'Uploaded' : 'Not uploaded'}
             Additional Notes: ${prescriptionForm.additionalNotes || 'None'}
           `;
@@ -694,7 +696,7 @@ export const useChatbotLogic = () => {
             { label: 'Submit Request', value: 'submit-prescription' },
             { label: 'Cancel', value: 'cancel-prescription' }
           ]);
-          setChatStep(12);
+          setChatStep(13);
         }, 500);
       }, 500);
     }
@@ -740,6 +742,26 @@ export const useChatbotLogic = () => {
       setTimeout(() => {
         addMessage('bot', 'Is there any additional information you would like to provide for your medical records request? (Optional)');
         setChatStep(8);
+      }, 500);
+    } else if (chatMode === 'prescription' && chatStep === 10) {
+      setPrescriptionForm(prev => ({ ...prev, idVerification: file }));
+      
+      addMessage('user', `Uploaded ID: ${file.name}`);
+      
+      setTimeout(() => {
+        addMessage('bot', 'Please upload an image of your previous prescription or relevant medical document (optional):', [
+          { label: 'Skip Upload', value: 'skip-prescription-image' }
+        ], undefined, undefined, undefined, true, "Upload Prescription", "image/*");
+        setChatStep(11);
+      }, 500);
+    } else if (chatMode === 'prescription' && chatStep === 11) {
+      setPrescriptionForm(prev => ({ ...prev, prescriptionImage: file }));
+      
+      addMessage('user', `Uploaded prescription: ${file.name}`);
+      
+      setTimeout(() => {
+        addMessage('bot', 'Any additional notes about your prescription request? (Optional)');
+        setChatStep(12);
       }, 500);
     }
   };
@@ -998,6 +1020,70 @@ export const useChatbotLogic = () => {
         }
       } else {
         handleAppointmentOptionSelect(value);
+      }
+    } else if (chatMode === 'medicalRecord') {
+      // Handle medical record submission
+      console.log('Medical record option selected:', value);
+      if (value === 'submit-record-request') {
+        console.log('Submit medical record button clicked!');
+        addMessage('user', 'Submit medical record request');
+        await submitMedicalRecordRequest();
+        
+        setTimeout(() => {
+          addMessage('bot', 'Is there anything else I can help you with?', [
+            { label: 'Schedule an Appointment', value: 'appointment' },
+            { label: 'Request E-Prescription', value: 'prescription' },
+            { label: 'No, Thank You', value: 'end' }
+          ]);
+          setChatStep(1);
+          resetForms();
+        }, 1000);
+      } else if (value === 'cancel-record-request') {
+        addMessage('user', 'Cancel request');
+        
+        setTimeout(() => {
+          addMessage('bot', 'Medical record request cancelled. Is there anything else I can help you with?', [
+            { label: 'Schedule an Appointment', value: 'appointment' },
+            { label: 'Request E-Prescription', value: 'prescription' },
+            { label: 'No, Thank You', value: 'end' }
+          ]);
+          setChatStep(1);
+          resetForms();
+        }, 500);
+      } else {
+        handleMedicalRecordOptionSelect(value);
+      }
+    } else if (chatMode === 'prescription') {
+      // Handle prescription submission
+      console.log('Prescription option selected:', value);
+      if (value === 'submit-prescription-request' || value === 'submit-prescription') {
+        console.log('Submit prescription button clicked!');
+        addMessage('user', 'Submit prescription request');
+        await submitPrescriptionRequest();
+        
+        setTimeout(() => {
+          addMessage('bot', 'Is there anything else I can help you with?', [
+            { label: 'Schedule an Appointment', value: 'appointment' },
+            { label: 'Request Medical Records', value: 'medicalRecord' },
+            { label: 'No, Thank You', value: 'end' }
+          ]);
+          setChatStep(1);
+          resetForms();
+        }, 1000);
+      } else if (value === 'cancel-prescription-request' || value === 'cancel-prescription') {
+        addMessage('user', 'Cancel request');
+        
+        setTimeout(() => {
+          addMessage('bot', 'Prescription request cancelled. Is there anything else I can help you with?', [
+            { label: 'Schedule an Appointment', value: 'appointment' },
+            { label: 'Request Medical Records', value: 'medicalRecord' },
+            { label: 'No, Thank You', value: 'end' }
+          ]);
+          setChatStep(1);
+          resetForms();
+        }, 500);
+      } else {
+        handlePrescriptionOptionSelect(value);
       }
     }
   };
@@ -1334,47 +1420,387 @@ export const useChatbotLogic = () => {
     }
   };
 
-  const handleMedicalRecordOptionSelect = (value: string) => {
-    if (chatStep === 9) {
-      if (value === 'submit-record-request') {
-        addMessage('user', 'Submit medical record request');
-        
-        setTimeout(() => {
-          addMessage('bot', 'Your medical records request has been submitted! Our team will review your request and contact you within 2-3 business days.');
-          
-          toast({
-            title: "Medical Records Request Submitted",
-            description: "Your request has been received and will be processed within 2-3 business days.",
-          });
-          
-          setTimeout(() => {
-            addMessage('bot', 'Is there anything else I can help you with?', [
-              { label: 'Schedule Appointment', value: 'appointment' },
-              { label: 'Request More Records', value: 'medicalRecord' },
-              { label: 'No, Thank You', value: 'end' }
-            ]);
-            setChatStep(1);
-            resetForms();
-          }, 1000);
-        }, 500);
-      } else if (value === 'cancel-record-request') {
-        addMessage('user', 'Cancel medical record request');
-        
-        setTimeout(() => {
-          addMessage('bot', 'Medical records request cancelled. Is there anything else I can help you with?', [
-            { label: 'Schedule Appointment', value: 'appointment' },
-            { label: 'Request Medical Records', value: 'medicalRecord' },
-            { label: 'No, Thank You', value: 'end' }
-          ]);
-          setChatStep(1);
-          resetForms();
-        }, 500);
+  const submitMedicalRecordRequest = async () => {
+    try {
+      console.log('Submitting medical record request with form data:', medicalRecordForm);
+      
+      const formData = new FormData();
+      formData.append('request_type', medicalRecordForm.requestType);
+      formData.append('patient_name', medicalRecordForm.patientName);
+      formData.append('date_of_birth', medicalRecordForm.dateOfBirth);
+      formData.append('email', medicalRecordForm.email);
+      formData.append('phone', medicalRecordForm.phone);
+      formData.append('additional_info', medicalRecordForm.additionalInfo);
+      
+      if (medicalRecordForm.idVerification) {
+        formData.append('id_verification', medicalRecordForm.idVerification);
       }
+
+      console.log('Making request to:', `${API_BASE_URL}/medical-certificates/`);
+      const response = await axios.post(`${API_BASE_URL}/medical-certificates/`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      console.log('Response received:', response);
+      if (response.status === 200 || response.status === 201) {
+        addMessage('bot', 'Your medical records request has been submitted successfully! Our team will review your request and contact you within 2-3 business days.');
+        
+        toast({
+          title: "Medical Records Request Submitted",
+          description: "Your request has been received and will be processed within 2-3 business days.",
+        });
+      } else {
+        throw new Error('Failed to submit request');
+      }
+    } catch (error) {
+      console.error('Error submitting medical record request:', error);
+      addMessage('bot', 'Sorry, there was an error submitting your request. Please try again or contact us directly.');
+      
+      toast({
+        title: "Submission Error",
+        description: "Failed to submit your request. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const submitPrescriptionRequest = async () => {
+    try {
+      console.log('Submitting prescription request with form data:', prescriptionForm);
+      
+      const formData = new FormData();
+      formData.append('medication_name', prescriptionForm.medicationName);
+      formData.append('dosage', prescriptionForm.dosage);
+      formData.append('frequency', prescriptionForm.frequency);
+      formData.append('duration', prescriptionForm.duration);
+      formData.append('patient_name', prescriptionForm.patientName);
+      formData.append('date_of_birth', prescriptionForm.dateOfBirth);
+      formData.append('email', prescriptionForm.email);
+      formData.append('phone', prescriptionForm.phone);
+      formData.append('additional_notes', prescriptionForm.additionalNotes);
+      
+      if (prescriptionForm.idVerification) {
+        formData.append('id_verification', prescriptionForm.idVerification);
+      }
+      
+      if (prescriptionForm.prescriptionImage) {
+        formData.append('prescription_image', prescriptionForm.prescriptionImage);
+      }
+
+      console.log('Making request to:', `${API_BASE_URL}/prescription-requests/`);
+      const response = await axios.post(`${API_BASE_URL}/prescription-requests/`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      console.log('Response received:', response);
+      if (response.status === 200 || response.status === 201) {
+        addMessage('bot', 'Your prescription request has been submitted successfully! Our team will review your request and contact you within 2-3 business days.');
+        
+        toast({
+          title: "Prescription Request Submitted",
+          description: "Your request has been received and will be processed within 2-3 business days.",
+        });
+      } else {
+        throw new Error('Failed to submit request');
+      }
+    } catch (error) {
+      console.error('Error submitting prescription request:', error);
+      addMessage('bot', 'Sorry, there was an error submitting your request. Please try again or contact us directly.');
+      
+      toast({
+        title: "Submission Error",
+        description: "Failed to submit your request. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleMedicalRecordOptionSelect = async (value: string) => {
+    if (chatStep === 2) {
+      // Record type selected
+      addMessage('user', `I need ${value} records`);
+      setMedicalRecordForm(prev => ({ ...prev, requestType: value }));
+      
+      setTimeout(() => {
+        addMessage('bot', 'Please enter your full name:');
+        setChatStep(3);
+      }, 500);
+    } else if (chatStep === 3) {
+      // Patient name entered
+      addMessage('user', input);
+      setMedicalRecordForm(prev => ({ ...prev, patientName: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addMessage('bot', 'Please enter your date of birth (MM/DD/YYYY):');
+        setChatStep(4);
+      }, 500);
+    } else if (chatStep === 4) {
+      // Date of birth validation
+      const dob = new Date(input);
+      if (isNaN(dob.getTime())) {
+        addMessage('user', input);
+        setInput('');
+        setTimeout(() => {
+          addMessage('bot', 'Please enter a valid date in MM/DD/YYYY format:');
+        }, 500);
+        return;
+      }
+
+      addMessage('user', input);
+      setMedicalRecordForm(prev => ({ ...prev, dateOfBirth: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addMessage('bot', 'Please enter your email address:');
+        setChatStep(5);
+      }, 500);
+    } else if (chatStep === 5) {
+      // Email validation
+      if (!validateEmail(input)) {
+        addMessage('user', input);
+        setInput('');
+        setTimeout(() => {
+          addMessage('bot', 'Please enter a valid email address (e.g., john.doe@example.com):');
+        }, 500);
+        return;
+      }
+      
+      addMessage('user', input);
+      setMedicalRecordForm(prev => ({ ...prev, email: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addMessage('bot', 'Please enter your phone number:');
+        setChatStep(6);
+      }, 500);
+    } else if (chatStep === 6) {
+      // Phone validation
+      if (!validatePhone(input)) {
+        addMessage('user', input);
+        setInput('');
+        setTimeout(() => {
+          addMessage('bot', 'Please enter a valid phone number with exactly 11 digits (e.g., 09123456789):');
+        }, 500);
+        return;
+      }
+      
+      addMessage('user', input);
+      setMedicalRecordForm(prev => ({ ...prev, phone: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addMessage('bot', 'Please upload an image of your ID for verification (required):', undefined, undefined, undefined, undefined, true, "Upload ID", "image/*");
+        setChatStep(7);
+      }, 500);
+    } else if (chatStep === 7) {
+      // ID verification upload handled by file upload component
+      setTimeout(() => {
+        addMessage('bot', 'Any additional information about your request? (Optional)');
+        setChatStep(8);
+      }, 500);
+    } else if (chatStep === 8) {
+      // Additional info
+      addMessage('user', input || 'No additional information');
+      setMedicalRecordForm(prev => ({ ...prev, additionalInfo: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addMessage('bot', 'Thank you! Here is a summary of your medical records request:');
+        
+        setTimeout(() => {
+          const summary = `
+            Record Type: ${medicalRecordForm.requestType}
+            Patient Name: ${medicalRecordForm.patientName}
+            Date of Birth: ${medicalRecordForm.dateOfBirth}
+            Email: ${medicalRecordForm.email}
+            Phone: ${medicalRecordForm.phone}
+            ID Verification: ${medicalRecordForm.idVerification ? 'Uploaded' : 'Not provided'}
+            Additional Info: ${medicalRecordForm.additionalInfo || 'None'}
+          `;
+          
+          addMessage('bot', summary, [
+            { label: 'Submit Request', value: 'submit-record-request' },
+            { label: 'Cancel', value: 'cancel-record-request' }
+          ]);
+          setChatStep(9);
+        }, 500);
+      }, 500);
     } else if (value === 'end') {
       addMessage('user', 'No, thank you');
       
       setTimeout(() => {
         addMessage('bot', 'Thank you for chatting with MedySync! If you need assistance in the future, just say hi to start a new conversation.');
+      }, 500);
+    }
+  };
+
+  const handlePrescriptionOptionSelect = (value: string) => {
+    if (chatStep === 2) {
+      // Medication name entered
+      addMessage('user', value || input);
+      setPrescriptionForm(prev => ({ ...prev, medicationName: value || input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addMessage('bot', 'Please enter the dosage (e.g., 500mg, 1 tablet):');
+        setChatStep(3);
+      }, 500);
+    } else if (chatStep === 3) {
+      // Dosage entered
+      addMessage('user', input);
+      setPrescriptionForm(prev => ({ ...prev, dosage: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addMessage('bot', 'How often should this medication be taken? (e.g., twice daily, every 8 hours):');
+        setChatStep(4);
+      }, 500);
+    } else if (chatStep === 4) {
+      // Frequency entered
+      addMessage('user', input);
+      setPrescriptionForm(prev => ({ ...prev, frequency: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addMessage('bot', 'For how long should this medication be taken? (e.g., 7 days, 2 weeks):');
+        setChatStep(5);
+      }, 500);
+    } else if (chatStep === 5) {
+      // Duration entered
+      addMessage('user', input);
+      setPrescriptionForm(prev => ({ ...prev, duration: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addMessage('bot', 'Please enter your full name:');
+        setChatStep(6);
+      }, 500);
+    } else if (chatStep === 6) {
+      // Patient name entered
+      addMessage('user', input);
+      setPrescriptionForm(prev => ({ ...prev, patientName: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addMessage('bot', 'Please enter your date of birth (MM/DD/YYYY):');
+        setChatStep(7);
+      }, 500);
+    } else if (chatStep === 7) {
+      // Date of birth validation
+      const dob = new Date(input);
+      if (isNaN(dob.getTime())) {
+        addMessage('user', input);
+        setInput('');
+        setTimeout(() => {
+          addMessage('bot', 'Please enter a valid date in MM/DD/YYYY format:');
+        }, 500);
+        return;
+      }
+
+      addMessage('user', input);
+      setPrescriptionForm(prev => ({ ...prev, dateOfBirth: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addMessage('bot', 'Please enter your email address:');
+        setChatStep(8);
+      }, 500);
+    } else if (chatStep === 8) {
+      // Email validation
+      if (!validateEmail(input)) {
+        addMessage('user', input);
+        setInput('');
+        setTimeout(() => {
+          addMessage('bot', 'Please enter a valid email address (e.g., john.doe@example.com):');
+        }, 500);
+        return;
+      }
+      
+      addMessage('user', input);
+      setPrescriptionForm(prev => ({ ...prev, email: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addMessage('bot', 'Please enter your phone number:');
+        setChatStep(9);
+      }, 500);
+    } else if (chatStep === 9) {
+      // Phone validation
+      if (!validatePhone(input)) {
+        addMessage('user', input);
+        setInput('');
+        setTimeout(() => {
+          addMessage('bot', 'Please enter a valid phone number with exactly 11 digits (e.g., 09123456789):');
+        }, 500);
+        return;
+      }
+      
+      addMessage('user', input);
+      setPrescriptionForm(prev => ({ ...prev, phone: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addMessage('bot', 'Please upload an image of your ID for verification (required):', undefined, undefined, undefined, undefined, true, "Upload ID", "image/*");
+        setChatStep(10);
+      }, 500);
+    } else if (chatStep === 10) {
+      // ID verification upload handled by file upload component
+      setTimeout(() => {
+        addMessage('bot', 'Please upload an image of your previous prescription or relevant medical document (optional):', undefined, undefined, undefined, undefined, true, "Upload Prescription", "image/*");
+        setChatStep(11);
+      }, 500);
+    } else if (chatStep === 11) {
+      // Handle skip prescription image upload
+      if (value === 'skip-prescription-image') {
+        addMessage('user', 'Skip prescription image upload');
+        
+        setTimeout(() => {
+          addMessage('bot', 'Any additional notes about your prescription request? (Optional)');
+          setChatStep(12);
+        }, 500);
+        return;
+      }
+      
+      // Prescription image upload handled by file upload component
+      setTimeout(() => {
+        addMessage('bot', 'Any additional notes about your prescription request? (Optional)');
+        setChatStep(12);
+      }, 500);
+    } else if (chatStep === 12) {
+      // Additional notes
+      addMessage('user', input || 'No additional notes');
+      setPrescriptionForm(prev => ({ ...prev, additionalNotes: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addMessage('bot', 'Thank you! Here is a summary of your prescription request:');
+        
+        setTimeout(() => {
+          const summary = `
+            Medication: ${prescriptionForm.medicationName}
+            Dosage: ${prescriptionForm.dosage}
+            Frequency: ${prescriptionForm.frequency}
+            Duration: ${prescriptionForm.duration}
+            Patient Name: ${prescriptionForm.patientName}
+            Date of Birth: ${prescriptionForm.dateOfBirth}
+            Email: ${prescriptionForm.email}
+            Phone: ${prescriptionForm.phone}
+            ID Verification: ${prescriptionForm.idVerification ? 'Uploaded' : 'Not provided'}
+            Prescription Image: ${prescriptionForm.prescriptionImage ? 'Uploaded' : 'Not provided'}
+            Additional Notes: ${prescriptionForm.additionalNotes || 'None'}
+          `;
+          
+          addMessage('bot', summary, [
+            { label: 'Submit Request', value: 'submit-prescription' },
+            { label: 'Cancel', value: 'cancel-prescription' }
+          ]);
+          setChatStep(13);
+        }, 500);
       }, 500);
     }
   };
@@ -1413,6 +1839,7 @@ export const useChatbotLogic = () => {
       dateOfBirth: '',
       email: '',
       phone: '',
+      idVerification: null,
       prescriptionImage: null,
       additionalNotes: ''
     });

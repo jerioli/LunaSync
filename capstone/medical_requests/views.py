@@ -3,12 +3,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 import json
 import logging
 from .models import MedicalCertificateRequest, PrescriptionRequest
-from .email_utils import send_medical_certificate_email
+from .email_utils import send_medical_certificate_email, send_prescription_email
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +41,14 @@ def medical_certificates(request):
     
     elif request.method == "POST":
         try:
-            data = json.loads(request.body)
+            # Handle both JSON and multipart form data
+            if request.content_type and 'application/json' in request.content_type:
+                data = json.loads(request.body)
+                id_verification_file = None
+            else:
+                # Multipart form data with file upload
+                data = request.POST.dict()
+                id_verification_file = request.FILES.get('id_verification')
             
             # Create new medical certificate request
             certificate_request = MedicalCertificateRequest.objects.create(
@@ -52,6 +58,7 @@ def medical_certificates(request):
                 email=data.get('email'),
                 phone=data.get('phone'),
                 additional_info=data.get('additional_info', ''),
+                id_verification=id_verification_file,
                 status='pending'
             )
             
@@ -91,15 +98,21 @@ def approve_medical_certificate(request, request_id):
                 # Get HTML content if provided, otherwise use plain text
                 html_content = data.get('certificate_html', certificate_request.certificate_content)
                 
-                # Get doctor name
+                # Get doctor name from the approval or from data
                 doctor_name = data.get('doctor_name', 'Health Nexus Medical Team')
                 
-                # Send the email
+                # Get fitness status from certificate content or doctor notes
+                fitness_status = data.get('fitness_status', 'Fit for work')  # Default to fit for work
+                
+                # Send the email with complete certificate data
                 email_result = send_medical_certificate_email(
                     patient_email=certificate_request.email,
                     patient_name=certificate_request.patient_name,
                     certificate_html=html_content,
-                    doctor_name=doctor_name
+                    doctor_name=doctor_name,
+                    patient_dob=certificate_request.date_of_birth,
+                    fitness_status=fitness_status,
+                    certificate_request=certificate_request
                 )
                 
                 if email_result:
@@ -161,7 +174,16 @@ def prescription_requests(request):
     
     elif request.method == "POST":
         try:
-            data = json.loads(request.body)
+            # Handle both JSON and multipart form data
+            if request.content_type and 'application/json' in request.content_type:
+                data = json.loads(request.body)
+                id_verification_file = None
+                prescription_image_file = None
+            else:
+                # Multipart form data with file upload
+                data = request.POST.dict()
+                id_verification_file = request.FILES.get('id_verification')
+                prescription_image_file = request.FILES.get('prescription_image')
             
             # Create new prescription request
             prescription_request = PrescriptionRequest.objects.create(
@@ -174,6 +196,8 @@ def prescription_requests(request):
                 email=data.get('email'),
                 phone=data.get('phone'),
                 additional_notes=data.get('additional_notes', ''),
+                id_verification=id_verification_file,
+                prescription_image=prescription_image_file,
                 status='pending'
             )
             
@@ -214,12 +238,14 @@ def approve_prescription(request, request_id):
                 # Get doctor name
                 doctor_name = data.get('doctor_name', 'Health Nexus Medical Team')
                 
-                # Send the email
-                email_result = send_medical_certificate_email(
+                # Send the prescription email with complete prescription data
+                email_result = send_prescription_email(
                     patient_email=prescription_request.email,
                     patient_name=prescription_request.patient_name,
-                    certificate_html=html_content,
-                    doctor_name=doctor_name
+                    prescription_html=html_content,
+                    doctor_name=doctor_name,
+                    patient_dob=prescription_request.date_of_birth,
+                    prescription_request=prescription_request
                 )
                 
                 if email_result:

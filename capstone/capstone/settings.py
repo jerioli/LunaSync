@@ -218,6 +218,9 @@ STATIC_URL = 'static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Domain URL for email links and media files
+DOMAIN_URL = 'http://127.0.0.1:8000'  # Change this to your production domain
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 

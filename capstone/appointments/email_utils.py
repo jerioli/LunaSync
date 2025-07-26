@@ -1,9 +1,96 @@
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
 import logging
+import base64
+import os
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
+from email.utils import formataddr
 from clinic.models import ClinicSettings
 
 logger = logging.getLogger(__name__)
+
+def get_logo_attachment():
+    """
+    Get the clinic logo as an email attachment
+    """
+    try:
+        clinic_settings = ClinicSettings.objects.first()
+        if clinic_settings and clinic_settings.logo:
+            logo_path = clinic_settings.logo.path
+            if os.path.exists(logo_path):
+                with open(logo_path, 'rb') as image_file:
+                    image_data = image_file.read()
+                    
+                    # Create MIMEImage attachment
+                    logo_attachment = MIMEImage(image_data)
+                    logo_attachment.add_header('Content-ID', '<clinic_logo>')
+                    logo_attachment.add_header('Content-Disposition', 'inline', filename='clinic_logo.jpg')
+                    
+                    return logo_attachment
+    except Exception as e:
+        print(f"Error getting logo attachment: {e}")
+    return None
+
+def get_logo_url():
+    """
+    Get the URL for clinic logo for email embedding
+    """
+    try:
+        clinic_settings = ClinicSettings.objects.first()
+        if clinic_settings and clinic_settings.logo:
+            # Build absolute URL
+            domain = getattr(settings, 'DOMAIN_URL', 'http://localhost:8000')
+            logo_url = f"{domain.rstrip('/')}{settings.MEDIA_URL}{clinic_settings.logo}"
+            return logo_url
+    except Exception as e:
+        print(f"Error getting logo URL: {e}")
+    return None
+
+def send_email_with_embedded_logo(to_email, subject, html_content, plain_content, clinic_name):
+    """
+    Send email using smtplib with embedded logo image
+    """
+    try:
+        # Create message container
+        msg = MIMEMultipart('related')
+        msg['Subject'] = subject
+        msg['From'] = formataddr((clinic_name, settings.EMAIL_HOST_USER))
+        msg['To'] = to_email
+
+        # Create alternative container for HTML and plain text
+        msg_alternative = MIMEMultipart('alternative')
+        msg.attach(msg_alternative)
+
+        # Add plain text part
+        part_text = MIMEText(plain_content, 'plain')
+        msg_alternative.attach(part_text)
+
+        # Add HTML part
+        part_html = MIMEText(html_content, 'html')
+        msg_alternative.attach(part_html)
+
+        # Try to attach logo
+        logo_attachment = get_logo_attachment()
+        if logo_attachment:
+            msg.attach(logo_attachment)
+
+        # Send email using smtplib
+        server = smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT)
+        if settings.EMAIL_USE_TLS:
+            server.starttls()
+        if settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD:
+            server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+        
+        server.send_message(msg)
+        server.quit()
+        
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send email with smtplib: {e}")
+        return False
 
 def send_appointment_confirmation_email(appointment, patient):
     """
@@ -21,6 +108,7 @@ def send_appointment_confirmation_email(appointment, patient):
         clinic_phone = clinic.phone if clinic else '(123) 456-7890'
         clinic_email = clinic.email if clinic else 'info@healthnexus.com'
         clinic_website = clinic.website if clinic else 'www.healthnexus.com'
+        clinic_logo = clinic.logo.url if clinic and clinic.logo else None
 
         subject = f'Appointment Confirmed - {clinic_name}'
         
@@ -34,13 +122,42 @@ def send_appointment_confirmation_email(appointment, patient):
         else:
             doctor_name = "To be assigned"
         
+        # Get clinic logo attachment
+        logo_attachment = get_logo_attachment()
+        
+        # Create logo header section
+        logo_section = ""
+        if logo_attachment:
+            # Use embedded image reference (CID)
+            logo_section = f"""
+            <div style="background: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; border: 1px solid #e0e0e0;">
+                <div style="display: inline-block;">
+                    <img src="cid:clinic_logo" alt="{clinic_name} Logo" style="max-height: 80px; max-width: 300px; height: auto; display: block; margin: 0 auto;">
+                </div>
+                <div style="margin-top: 15px; color: #6b7280; font-size: 14px;">
+                    <p style="margin: 5px 0; font-weight: 500;">{clinic_address}</p>
+                    <p style="margin: 5px 0; font-weight: 500;">{clinic_phone}</p>
+                </div>
+            </div>
+            """
+        else:
+            logo_section = f"""
+            <div style="background: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; border: 1px solid #e0e0e0;">
+                <h2 style="color: #059669; margin: 0; font-size: 24px;">{clinic_name}</h2>
+                <div style="margin-top: 15px; color: #6b7280; font-size: 14px;">
+                    <p style="margin: 5px 0; font-weight: 500;">{clinic_address}</p>
+                    <p style="margin: 5px 0; font-weight: 500;">{clinic_phone}</p>
+                </div>
+            </div>
+            """
+        
         # Create HTML email content
         html_content = f"""
         <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto;">
-            <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            {logo_section}
+            <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; text-align: center; border-radius: 0;">
                 <h1 style="color: white; margin: 0; font-size: 28px;">✅ Appointment Confirmed!</h1>
-                <p style="color: #f0f0f0; margin: 10px 0 0 0; font-size: 16px;">{clinic_name}</p>
             </div>
             
             <div style="background: white; padding: 30px; border: 1px solid #e0e0e0;">
@@ -78,9 +195,7 @@ def send_appointment_confirmation_email(appointment, patient):
                 </div>
                 
                 <div style="background: #f0fdf4; border: 1px solid #10b981; border-radius: 8px; padding: 15px; margin: 25px 0;">
-                    <h4 style="margin-top: 0; color: #065f46;">📍 Visit Us At</h4>
-                    <p style="margin: 5px 0; color: #047857;"><strong>Address:</strong> {clinic_address}</p>
-                    <p style="margin: 5px 0; color: #047857;"><strong>Phone:</strong> {clinic_phone}</p>
+                    <h4 style="margin-top: 0; color: #065f46;">📍 Contact Information</h4>
                     <p style="margin: 5px 0; color: #047857;"><strong>Email:</strong> <a href="mailto:{clinic_email}" style="color: #047857;">{clinic_email}</a></p>
                     {f'<p style="margin: 5px 0; color: #047857;"><strong>Website:</strong> <a href="{clinic_website}" style="color: #047857;">{clinic_website}</a></p>' if clinic_website else ''}
                 </div>
@@ -115,7 +230,6 @@ def send_appointment_confirmation_email(appointment, patient):
                     We look forward to seeing you! 🏥
                 </p>
                 <p style="margin: 10px 0 0 0; color: #9ca3af; font-size: 12px;">
-                    Thank you for choosing <strong>{clinic_name}</strong><br>
                     Your health is our priority.
                 </p>
             </div>
@@ -156,32 +270,16 @@ For any questions, please don't hesitate to contact us.
 Best regards,
 {clinic_name} Team
         """
-          # Use EmailMultiAlternatives to send both HTML and plain text versions
-        # Get clinic email settings from database for sender address  
-        if clinic and clinic.email:
-            from_email = f"{clinic_name} <{clinic.email}>"
-        else:
-            # Fallback to Django settings if no clinic email is configured
-            from_email = f"{clinic_name} <{settings.EMAIL_HOST_USER}>"
-        
-        to_email = [patient.email]
-        
-        msg = EmailMultiAlternatives(
+        # Use smtplib to send email with embedded logo
+        success = send_email_with_embedded_logo(
+            to_email=patient.email,
             subject=subject,
-            body=plain_text_message.strip(),
-            from_email=from_email,
-            to=to_email,
-            headers={
-                'X-Patient-Name': patient.name,
-                'X-Appointment-Date': appointment_date,
-                'X-Appointment-Status': 'confirmed'
-            }
+            html_content=html_content,
+            plain_content=plain_text_message.strip(),
+            clinic_name=clinic_name
         )
         
-        msg.attach_alternative(html_content, "text/html")
-        result = msg.send()
-        
-        if result == 1:
+        if success:
             logger.info(f"Confirmation email sent to {patient.email} for appointment {appointment.id}")
             return True
         else:
@@ -208,6 +306,7 @@ def send_appointment_reminder_email(appointment, patient):
         clinic_phone = clinic.phone if clinic else '(123) 456-7890'
         clinic_email = clinic.email if clinic else 'info@healthnexus.com'
         clinic_website = clinic.website if clinic else 'www.healthnexus.com'
+        clinic_logo = clinic.logo.url if clinic and clinic.logo else None
         
         subject = f'Appointment Reminder - {clinic_name}'
         
@@ -215,13 +314,42 @@ def send_appointment_reminder_email(appointment, patient):
         appointment_date = appointment.date.strftime('%B %d, %Y')
         appointment_time = appointment.time.strftime('%I:%M %p')
         
+        # Get clinic logo attachment
+        logo_attachment = get_logo_attachment()
+        
+        # Create logo header section
+        logo_section = ""
+        if logo_attachment:
+            # Use embedded image reference (CID)
+            logo_section = f"""
+            <div style="background: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; border: 1px solid #e0e0e0;">
+                <div style="display: inline-block;">
+                    <img src="cid:clinic_logo" alt="{clinic_name} Logo" style="max-height: 80px; max-width: 300px; height: auto; display: block; margin: 0 auto;">
+                </div>
+                <div style="margin-top: 15px; color: #6b7280; font-size: 14px;">
+                    <p style="margin: 5px 0; font-weight: 500;">{clinic_address}</p>
+                    <p style="margin: 5px 0; font-weight: 500;">{clinic_phone}</p>
+                </div>
+            </div>
+            """
+        else:
+            logo_section = f"""
+            <div style="background: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; border: 1px solid #e0e0e0;">
+                <h2 style="color: #2563eb; margin: 0; font-size: 24px;">{clinic_name}</h2>
+                <div style="margin-top: 15px; color: #6b7280; font-size: 14px;">
+                    <p style="margin: 5px 0; font-weight: 500;">{clinic_address}</p>
+                    <p style="margin: 5px 0; font-weight: 500;">{clinic_phone}</p>
+                </div>
+            </div>
+            """
+        
         # Create HTML email content
         html_content = f"""
         <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto;">
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            {logo_section}
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 0;">
                 <h1 style="color: white; margin: 0; font-size: 28px;">⏰ Appointment Reminder</h1>
-                <p style="color: #f0f0f0; margin: 10px 0 0 0; font-size: 16px;">{clinic_name}</p>
             </div>
             
             <div style="background: white; padding: 30px; border: 1px solid #e0e0e0;">
@@ -321,31 +449,16 @@ We look forward to seeing you!
 Best regards,
 {clinic_name} Team        """
         
-        # Use EmailMultiAlternatives to send both HTML and plain text versions
-        # Get clinic email settings from database for sender address
-        if clinic and clinic.email:
-            from_email = f"{clinic_name} <{clinic.email}>"
-        else:
-            # Fallback to Django settings if no clinic email is configured
-            from_email = f"{clinic_name} <{settings.EMAIL_HOST_USER}>"
-        
-        to_email = [patient.email]
-        
-        msg = EmailMultiAlternatives(
+        # Use smtplib to send email with embedded logo
+        success = send_email_with_embedded_logo(
+            to_email=patient.email,
             subject=subject,
-            body=plain_text_message.strip(),
-            from_email=from_email,
-            to=to_email,
-            headers={
-                'X-Patient-Name': patient.name,
-                'X-Appointment-Date': appointment_date,
-            }
+            html_content=html_content,
+            plain_content=plain_text_message.strip(),
+            clinic_name=clinic_name
         )
         
-        msg.attach_alternative(html_content, "text/html")
-        result = msg.send()
-        
-        if result == 1:
+        if success:
             logger.info(f"Reminder email sent to {patient.email} for appointment {appointment.id}")
             return True
         else:

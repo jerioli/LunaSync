@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle, XCircle, Eye, Mail, FileText, Printer, Download } from 'lucide-react';
-import { toast } from 'sonner';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
 import { useClinic } from '@/contexts/ClinicContext';
-import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
 import { generateMedicalCertificateHTML, MedicalCertificateTemplateData } from '@/utils/medicalCertificateTemplate';
 import axios from 'axios';
+import { format } from 'date-fns';
+import { CheckCircle, Download, Eye, FileText, Mail, Printer, XCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 // Configure axios
 axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
@@ -515,9 +515,7 @@ const MedicalCertificateManagement: React.FC = () => {
                                   {selectedRequest.status === 'completed' && selectedRequest.certificate_content && (
                                     <div className="w-full">
                                       <Label className="font-semibold text-green-600">Certificate Content</Label>
-                                      <p className="mt-1 p-2 bg-green-50 rounded text-green-800">
-                                        {selectedRequest.certificate_content}
-                                      </p>
+                                      <div className="mt-1 p-2 bg-green-50 rounded text-green-800" dangerouslySetInnerHTML={{ __html: selectedRequest.certificate_content }} />
                                     </div>
                                   )}
                                 </div>

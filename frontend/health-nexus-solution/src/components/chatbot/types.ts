@@ -55,6 +55,7 @@ export type PrescriptionRequestForm = {
   dateOfBirth: string;
   email: string;
   phone: string;
+  idVerification: File | null;
   prescriptionImage: File | null;
   additionalNotes: string;
 };
