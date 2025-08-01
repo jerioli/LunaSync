@@ -294,18 +294,179 @@ class StaffLoginView(APIView):
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
+        otp_method = request.data.get('otp_method')  # 'email' or 'sms'
+        step = request.data.get('step', 'credentials')  # 'credentials' or 'otp'
 
-        if not email or not password:
+        if step == 'credentials':
+            # Step 1: Validate credentials
+            if not email or not password:
+                return Response({
+                    'error': 'Please provide both email/username and password'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Use username parameter to trigger EmailOrUsernameBackend
+            user = authenticate(request, username=email, password=password)
+
+            if user is not None:
+                # Store user info in session for OTP verification
+                request.session['pending_user_id'] = user.id
+                request.session['pending_login'] = True
+                
+                return Response({
+                    'success': True,
+                    'step': 'otp_method_selection',
+                    'message': 'Credentials valid. Please choose OTP delivery method.',
+                    'user': {
+                        'id': user.id,
+                        'email': user.email,
+                        'name': user.name,
+                        'role': user.role,
+                        'phone': getattr(user, 'phone', None)
+                    }
+                })
+            
             return Response({
-                'error': 'Please provide both email and password'
+                'success': False,
+                'error': 'Invalid credentials'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+        elif step == 'send_otp':
+            # Step 2: Send OTP to chosen method
+            if not otp_method:
+                return Response({
+                    'error': 'Please specify OTP delivery method (email or sms)'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            user_id = request.session.get('pending_user_id')
+            if not user_id or not request.session.get('pending_login'):
+                return Response({
+                    'error': 'Invalid session. Please login again.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                user = CustomUser.objects.get(id=user_id)
+            except CustomUser.DoesNotExist:
+                return Response({
+                    'error': 'User not found'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Generate OTP
+            import random
+            import string
+            otp = ''.join(random.choices(string.digits, k=6))
+            
+            # Store OTP in cache
+            cache.set(f'login_otp_{user.id}', otp, timeout=300)  # 5 minutes
+            cache.set(f'login_otp_method_{user.id}', otp_method, timeout=300)
+
+            if otp_method == 'email':
+                # Send OTP via email
+                try:
+                    send_mail(
+                        'MedSync Login Verification Code',
+                        f'Your login verification code is: {otp}\n\nThis code expires in 5 minutes.\n\nIf you did not request this, please ignore this email.',
+                        settings.DEFAULT_FROM_EMAIL,
+                        [user.email],
+                        fail_silently=False,
+                    )
+                    return Response({
+                        'success': True,
+                        'step': 'otp_verification',
+                        'message': f'Verification code sent to {user.email}',
+                        'method': 'email'
+                    })
+                except Exception as e:
+                    return Response({
+                        'error': 'Failed to send email verification code'
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            elif otp_method == 'sms':
+                # Send OTP via SMS using iProg
+                if not hasattr(user, 'phone') or not user.phone:
+                    return Response({
+                        'error': 'No phone number associated with this account'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+                from .iprog_sms_service import iprog_sms_service
+                success, message, reference_id = iprog_sms_service.send_otp_sms(user.phone, otp)
+                
+                if success:
+                    return Response({
+                        'success': True,
+                        'step': 'otp_verification',
+                        'message': f'Verification code sent to {user.phone}',
+                        'method': 'sms'
+                    })
+                else:
+                    return Response({
+                        'error': 'Failed to send SMS verification code'
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            else:
+                return Response({
+                    'error': 'Invalid OTP method. Use "email" or "sms"'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            'error': 'Invalid request'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CompleteLoginView(APIView):
+    """Complete login after OTP verification"""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        otp = request.data.get('otp')
+        
+        if not otp:
+            return Response({
+                'error': 'Please provide the verification code'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        user = authenticate(request, email=email, password=password)
+        user_id = request.session.get('pending_user_id')
+        if not user_id or not request.session.get('pending_login'):
+            return Response({
+                'error': 'Invalid session. Please login again.'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
-        if user is not None:
-            # Log the user in (creates session)
+        try:
+            user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({
+                'error': 'User not found'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get stored OTP and method
+        stored_otp = cache.get(f'login_otp_{user.id}')
+        otp_method = cache.get(f'login_otp_method_{user.id}')
+
+        if not stored_otp:
+            return Response({
+                'error': 'Verification code expired. Please request a new one.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Verify OTP based on method used
+        verification_success = False
+        
+        if otp_method == 'sms':
+            # Use Django OTP verification (iProg is just for sending)
+            verification_success = (stored_otp == otp)
+        else:
+            # Email OTP verification
+            verification_success = (stored_otp == otp)
+
+        if verification_success:
+            # Complete the login
             from django.contrib.auth import login
             login(request, user)
+            
+            # Clear session data and cache
+            request.session.pop('pending_user_id', None)
+            request.session.pop('pending_login', None)
+            cache.delete(f'login_otp_{user.id}')
+            cache.delete(f'login_otp_method_{user.id}')
             
             return Response({
                 'success': True,
@@ -317,11 +478,12 @@ class StaffLoginView(APIView):
                     'role': user.role
                 }
             })
-        
-        return Response({
-            'success': False,
-            'error': 'Invalid credentials'
-        }, status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            return Response({
+                'success': False,
+                'error': 'Invalid verification code'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
 
 # Add OTP functionality
 
@@ -380,21 +542,27 @@ class SendOTPView(APIView):
                     fail_silently=False,
                 )
             elif identifier_type == 'phone':
-                # Use the SMS service configuration
-                from .sms_config import SMSService
+                # Use iProg SMS service as primary
+                from .iprog_sms_service import iprog_sms_service
                 
-                sms_service = SMSService()
-                message = f'Your MedSync verification code is: {otp}. This code expires in 5 minutes.'
-                
-                success, result = sms_service.send_sms(identifier, message, country_code='+63')
+                success, message, reference_id = iprog_sms_service.send_otp_sms(identifier, otp)
                 
                 if success:
-                    print(f"SMS sent to {identifier}: {result}")
+                    print(f"iProg SMS sent to {identifier}: {message}")
+                    if reference_id:
+                        print(f"iProg Reference ID: {reference_id}")
                 else:
-                    print(f"SMS failed for {identifier}: {result}")
-                    # Fallback to console for development
-                    print(f"FALLBACK SMS for {identifier}: {otp}")
-                    print("Please configure SMS service credentials in sms_config.py")
+                    print(f"iProg SMS failed for {identifier}: {message}")
+                    # Additional fallback to Semaphore if needed
+                    try:
+                        from .sms_config import SMSService
+                        sms_service = SMSService()
+                        message = f'Your MedSync verification code is: {otp}. This code expires in 5 minutes.'
+                        success, result = sms_service.send_sms(identifier, message, country_code='+63')
+                        print(f"Semaphore fallback result: {result}")
+                    except Exception as fallback_error:
+                        print(f"All SMS methods failed: {fallback_error}")
+                        print(f"FINAL FALLBACK SMS for {identifier}: {otp}")
                 
         except Exception as e:
             print(f"Failed to send OTP: {e}")
@@ -421,21 +589,37 @@ class VerifyOTPView(APIView):
                 'error': 'identifier, identifier_type, and otp are required'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Check OTP from cache
+        # Check OTP from cache first (for fallback/development mode)
         cache_key = f"otp_{identifier}_{identifier_type}"
         stored_otp = cache.get(cache_key)
         
-        if not stored_otp:
-            return Response({
-                'success': False,
-                'error': 'OTP expired or not found'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        if stored_otp != otp:
-            return Response({
-                'success': False,
-                'error': 'Invalid OTP'
-            }, status=status.HTTP_400_BAD_REQUEST)
+        # If phone number, use Django OTP verification (iProg is just for sending)
+        if identifier_type == 'phone':
+            # Use Django OTP verification only
+            if not stored_otp:
+                return Response({
+                    'success': False,
+                    'error': 'OTP expired or not found'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            if stored_otp != otp:
+                return Response({
+                    'success': False,
+                    'error': 'Invalid OTP'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # Email verification - use Django OTP verification only
+            if not stored_otp:
+                return Response({
+                    'success': False,
+                    'error': 'OTP expired or not found'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            if stored_otp != otp:
+                return Response({
+                    'success': False,
+                    'error': 'Invalid OTP'
+                }, status=status.HTTP_400_BAD_REQUEST)
         
         # Find user
         try:

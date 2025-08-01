@@ -12,8 +12,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useClinic } from '@/contexts/ClinicContext';
 import { toast } from '@/hooks/use-toast';
 import { medicalDocumentsAPI, type CreateLabResultRequest, type LabTestResult } from '@/services/medicalDocumentsAPI';
-import { FileText, Image, Loader2, PlusCircle, Search, Upload } from 'lucide-react';
+import { Edit, FileText, Image, Loader2, PlusCircle, Search, Upload } from 'lucide-react';
 import React, { useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 // AWS Textract configuration is now handled by environment variables
 // or backend configuration
@@ -76,6 +77,8 @@ interface LocalCreateLabResultRequest {
 }
 
 const LabResults = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { patients, labResults, users, addLabResult, fetchPatients, currentUser } = useClinic();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all');
@@ -114,6 +117,36 @@ const LabResults = () => {
       setBackendType(result.backend);
     });
   }, [fetchPatients]);
+
+  // Handle return from DocumentComparison page
+  React.useEffect(() => {
+    if (location.state) {
+      const state = location.state as any;
+      if (state.processCompleted && state.correctedText) {
+        // Set the corrected text
+        setOcrExtractedText(state.correctedText);
+        setEditableText(state.correctedText);
+        
+        // Set the original file if available
+        if (state.originalFile) {
+          setUploadedFile(state.originalFile);
+        }
+        
+        // Set patient if available
+        if (state.patientId) {
+          setMatchedPatientId(state.patientId);
+        }
+        
+        toast({
+          title: "Document Updated",
+          description: "Corrected text has been loaded successfully.",
+        });
+        
+        // Clear the state to prevent re-triggering
+        navigate('/lab-results', { replace: true });
+      }
+    }
+  }, [location.state, navigate]);
 
   // Handle file upload and processing
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -179,6 +212,20 @@ const LabResults = () => {
         title: "Document Processed",
         description: "Text extracted successfully using AWS Textract",
       });
+
+      // Navigate to document comparison page
+      setTimeout(() => {
+        navigate('/document-comparison', {
+          state: {
+            originalFile: file,
+            extractedText: extractedText,
+            visualizationData: result.visualizationData,
+            patientId: patientId,
+            patientName: patientId ? patients.find(p => p.id === patientId)?.name : undefined,
+            returnPath: '/lab-results'
+          }
+        });
+      }, 1000); // Brief delay to show the toast
 
     } catch (error) {
       console.error('Error processing document:', error);
@@ -1005,7 +1052,29 @@ const LabResults = () => {
               
               {/* Export Button for lab results */}
               {ocrExtractedText && (
-                <div className="mt-4 flex justify-end">
+                <div className="mt-4 flex justify-between">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      if (uploadedFile && ocrExtractedText) {
+                        navigate('/document-comparison', {
+                          state: {
+                            originalFile: uploadedFile,
+                            extractedText: ocrExtractedText,
+                            visualizationData: visualizationData,
+                            patientId: matchedPatientId,
+                            patientName: matchedPatientId ? patients.find(p => p.id === matchedPatientId)?.name : undefined,
+                            returnPath: '/lab-results'
+                          }
+                        });
+                      }
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <Edit className="h-4 w-4" />
+                    Review & Edit Text
+                  </Button>
+                  
                   <ExportButton 
                     text={editableText}
                     visualizationData={visualizationData}

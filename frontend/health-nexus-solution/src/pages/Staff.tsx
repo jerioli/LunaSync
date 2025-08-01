@@ -13,12 +13,14 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useClinic } from '@/contexts/ClinicContext';
+import { useToast } from '@/hooks/use-toast';
 import { Admin, api, Doctor, Receptionist, StaffMember } from '@/services/api';
 import axios from 'axios';
-import { Edit, Eye, Mail, Phone, Search, Shield, UserPlus } from 'lucide-react';
+import { Edit, Eye, Mail, Phone, Search, Shield, Trash, UserPlus } from 'lucide-react';
 
 const StaffPage = () => {
   const { currentUser } = useClinic();
+  const { toast } = useToast();
   const [staff, setStaff] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [newStaff, setNewStaff] = useState({
@@ -43,6 +45,8 @@ const StaffPage = () => {
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [staffToDelete, setStaffToDelete] = useState<StaffMember | null>(null);
 
   // Fetch staff from backend
   useEffect(() => {
@@ -243,7 +247,11 @@ const StaffPage = () => {
       setIsDetailModalOpen(true);
     } catch (error) {
       console.error('Error fetching staff details:', error);
-      alert('Failed to fetch staff details');
+      toast({
+        title: "Error",
+        description: "Failed to fetch staff details. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -255,7 +263,11 @@ const StaffPage = () => {
       setIsEditModalOpen(true);
     } catch (error) {
       console.error('Error fetching staff details:', error);
-      alert('Failed to fetch staff details');
+      toast({
+        title: "Error",
+        description: "Failed to fetch staff details. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -265,6 +277,35 @@ const StaffPage = () => {
     setIsEditModalOpen(false);
     setSelectedStaff(null);
     refreshStaffLists();
+  };
+
+  // Handle delete confirmation
+  const handleDeleteClick = (staffMember: Doctor | Receptionist | Admin) => {
+    setStaffToDelete(staffMember as StaffMember);
+    setIsDeleteDialogOpen(true);
+  };
+
+  // Handle staff deletion
+  const handleDeleteStaff = async () => {
+    if (!staffToDelete) return;
+    
+    try {
+      await api.staff.delete(staffToDelete.id);
+      setIsDeleteDialogOpen(false);
+      setStaffToDelete(null);
+      refreshStaffLists();
+      toast({
+        title: "Staff deleted",
+        description: `${staffToDelete.first_name} ${staffToDelete.last_name} has been successfully deleted.`,
+      });
+    } catch (error) {
+      console.error('Error deleting staff:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete staff member. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Get permission summary for a staff member
@@ -513,6 +554,9 @@ const StaffPage = () => {
                           <Button variant="outline" size="sm" onClick={() => handleEditStaff(doctor)} title="Edit Staff">
                             <Edit className="h-4 w-4" />
                           </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleDeleteClick(doctor)} title="Delete Staff" className="text-red-600 hover:text-red-700">
+                            <Trash className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -598,6 +642,9 @@ const StaffPage = () => {
                           </Button>
                           <Button variant="outline" size="sm" onClick={() => handleEditStaff(receptionist)} title="Edit Staff">
                             <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleDeleteClick(receptionist)} title="Delete Staff" className="text-red-600 hover:text-red-700">
+                            <Trash className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -685,6 +732,9 @@ const StaffPage = () => {
                           <Button variant="outline" size="sm" onClick={() => handleEditStaff(admin)} title="Edit Staff">
                             <Edit className="h-4 w-4" />
                           </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleDeleteClick(admin)} title="Delete Staff" className="text-red-600 hover:text-red-700">
+                            <Trash className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -710,6 +760,27 @@ const StaffPage = () => {
         onClose={() => setIsEditModalOpen(false)}
         onUpdate={handleStaffUpdate}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Staff Member</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {staffToDelete?.first_name} {staffToDelete?.last_name}? 
+              This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteStaff}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

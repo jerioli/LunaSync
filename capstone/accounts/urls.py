@@ -1,7 +1,7 @@
 from django.urls import path
 from accounts.views import (
     StaffCreateView, DoctorListView, ReceptionistListView, AdminListView, 
-    StaffLoginView, PasswordResetRequestView, PasswordResetConfirmView,
+    StaffLoginView, CompleteLoginView, PasswordResetRequestView, PasswordResetConfirmView,
     PasswordChangeView, UserProfileUpdateView, UserPreferencesView,
     StaffDetailView, StaffPermissionsView, UserListView, SendOTPView, VerifyOTPView
 )
@@ -17,6 +17,7 @@ urlpatterns = [
     path('admins/', AdminListView.as_view(), name='admin-list'),  # Matches /api/admins/
     path('staff/create/', StaffCreateView.as_view(), name='staff-create'),
     path('staff/login/', StaffLoginView.as_view(), name='staff-login'),
+    path('auth/complete-login/', CompleteLoginView.as_view(), name='complete-login'),
     path('password-reset/', PasswordResetRequestView.as_view(), name='password-reset'),
     path('password-reset-confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
     

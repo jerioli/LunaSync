@@ -106,18 +106,27 @@ export const api = {
       const response = await axiosInstance.get('/doctors/');
       return response.data;
     },
+    delete: async (id: number): Promise<void> => {
+      await axiosInstance.delete(`/staff/${id}/`);
+    }
   },
   receptionists: {
     getAll: async (): Promise<Receptionist[]> => {
       const response = await axiosInstance.get('/receptionists/');
       return response.data;
     },
+    delete: async (id: number): Promise<void> => {
+      await axiosInstance.delete(`/staff/${id}/`);
+    }
   },
   admins: {
     getAll: async (): Promise<Admin[]> => {
       const response = await axiosInstance.get('/admins/');
       return response.data;
     },
+    delete: async (id: number): Promise<void> => {
+      await axiosInstance.delete(`/staff/${id}/`);
+    }
   },
   staff: {
     getDetails: async (userId: number): Promise<StaffMember> => {
@@ -204,7 +213,7 @@ export const api = {
       const response = await axiosInstance.get('/patients/patients/');
       return response.data;
     }
-  },
+  }
 };
 
 // Export the configured axios instance for direct use

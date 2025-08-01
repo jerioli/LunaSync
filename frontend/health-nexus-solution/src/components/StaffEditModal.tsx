@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, User, Shield, Mail, Settings } from 'lucide-react';
 import { StaffMember, api } from '@/services/api';
+import { Calendar, Mail, Settings, Shield, User } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 interface StaffEditModalProps {
   staff: StaffMember | null;
@@ -29,6 +29,7 @@ const StaffEditModal: React.FC<StaffEditModalProps> = ({ staff, isOpen, onClose,
         last_name: staff.last_name,
         email: staff.email,
         username: staff.username,
+        phone: staff.phone,
         is_active: staff.is_active,
       });
       setPermissions({
@@ -191,6 +192,17 @@ const StaffEditModal: React.FC<StaffEditModalProps> = ({ staff, isOpen, onClose,
                   type="email"
                   value={formData.email || ''}
                   onChange={(e) => handleInputChange('email', e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={formData.phone || ''}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  placeholder="e.g., +639123456789"
                 />
               </div>
               

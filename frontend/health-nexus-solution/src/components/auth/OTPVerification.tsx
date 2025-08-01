@@ -74,17 +74,25 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
           refreshToken: response.data.user.refreshToken
         };
 
-        toast.success('Login successful!');
+        toast.success('🎉 Login successful! Welcome to MedSync.');
         onVerificationSuccess(userData);
       } else {
         setError(response.data.error || 'Invalid OTP');
-        toast.error('Invalid OTP. Please try again.');
+        toast.error('❌ Invalid OTP. Please check your code and try again.');
       }
     } catch (error: any) {
       console.error('Verify OTP error:', error);
       const errorMessage = error.response?.data?.error || 'Failed to verify OTP';
       setError(errorMessage);
-      toast.error(errorMessage);
+      
+      // Enhanced error messages
+      if (errorMessage.includes('expired')) {
+        toast.error('⏰ Your verification code has expired. Please request a new one.');
+      } else if (errorMessage.includes('Invalid OTP')) {
+        toast.error('🔐 Invalid verification code. Please check and try again.');
+      } else {
+        toast.error('❌ ' + errorMessage);
+      }
     } finally {
       setIsVerifying(false);
     }
@@ -101,17 +109,24 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
       });
 
       if (response.data.success) {
-        toast.success(`New OTP sent to your ${identifierType}`);
+        const method = identifierType === 'email' ? 'email' : 'SMS';
+        toast.success(`📱 New verification code sent via ${method}! Check your ${identifierType}.`);
         setTimeLeft(300); // Reset timer
         setCanResend(false);
         setOtp('');
       } else {
-        toast.error(response.data.error || 'Failed to resend OTP');
+        toast.error('❌ ' + (response.data.error || 'Failed to resend OTP'));
       }
       
     } catch (error: any) {
       console.error('Resend OTP error:', error);
-      toast.error(error.response?.data?.error || 'Failed to resend OTP');
+      const errorMessage = error.response?.data?.error || 'Failed to resend OTP';
+      
+      if (errorMessage.includes('rate limit')) {
+        toast.error('⏱️ Please wait before requesting another code.');
+      } else {
+        toast.error('❌ ' + errorMessage);
+      }
     } finally {
       setIsResending(false);
     }
@@ -157,8 +172,13 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
             </div>
             <CardTitle>Enter Verification Code</CardTitle>
             <CardDescription>
-              We've sent a 6-digit code to<br />
+              We've sent a 6-digit verification code to<br />
               <span className="font-semibold text-foreground">{maskedIdentifier}</span>
+              {identifierType === 'phone' && (
+                <div className="text-xs text-blue-600 mt-1">
+                  📱 Powered by iProg SMS for reliable delivery
+                </div>
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">

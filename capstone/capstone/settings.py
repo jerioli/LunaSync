@@ -262,4 +262,27 @@ CLINIC_DEFAULT_EMAIL = 'jeri.olivarez@gmail.com'  # Email to receive review noti
 # Your API key: 1d1b9ab6af89e61b3db59d9ab3796906
 SEMAPHORE_API_KEY = '1d1b9ab6af89e61b3db59d9ab3796906'
 
+# ===============================
+# IPROG SMS API CONFIGURATION (PRIMARY)
+# ===============================
+
+# iProg SMS API - Philippines SMS Provider
+IPROG_API_TOKEN = os.getenv('IPROG_API_TOKEN', '')
+IPROG_API_URL = os.getenv('IPROG_API_URL', 'https://sms.iprogtech.com/api/v1/sms_messages')
+IPROG_SMS_PROVIDER = os.getenv('IPROG_SMS_PROVIDER', '0')  # 0 or 1, default: 0
+
+# ===============================
+# TWILIO CONFIGURATION FOR OTP (BACKUP)
+# ===============================
+
+# Twilio settings - Get these from your Twilio Console
+TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID', '')
+TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN', '')
+TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER', '')  # Your Twilio phone number
+
+# OTP Configuration
+OTP_LENGTH = 6
+OTP_EXPIRY_MINUTES = 5
+OTP_MAX_ATTEMPTS = 3
+
 

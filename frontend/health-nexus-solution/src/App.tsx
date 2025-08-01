@@ -13,6 +13,7 @@ import Appointments from "./pages/Appointments";
 import AppointmentScheduling from "./pages/AppointmentScheduling";
 import ChangePassword from "./pages/ChangePassword";
 import Dashboard from "./pages/Dashboard";
+import DocumentComparison from "./pages/DocumentComparison";
 import ForgotPassword from "./pages/ForgotPassword";
 import Index from "./pages/Index";
 import LabResults from "./pages/LabResults";
@@ -229,6 +230,15 @@ const App = () => {
               <ProtectedRoute>
                 <AppLayout>
                   <LabResults />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            
+            {/* Document Comparison route */}
+            <Route path="/document-comparison" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <DocumentComparison />
                 </AppLayout>
               </ProtectedRoute>
             } />
