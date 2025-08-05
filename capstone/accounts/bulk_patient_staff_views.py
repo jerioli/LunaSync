@@ -30,40 +30,64 @@ class BulkPatientUploadView(APIView):
         """
         print(f"DEBUG: Bulk patient upload request received")
         print(f"DEBUG: Content Type: {request.content_type}")
+        print(f"DEBUG: Request FILES: {list(request.FILES.keys())}")
+        print(f"DEBUG: Request DATA keys: {list(request.data.keys())}")
+        print(f"DEBUG: Request method: {request.method}")
         
-        # Handle file upload
-        if 'file' in request.FILES:
-            return self._handle_file_upload(request.FILES['file'])
-        
-        # Handle JSON data (manual entry)
-        elif 'data' in request.data:
-            return self._handle_json_data(request.data['data'])
-        
-        else:
-            return Response({'error': 'No file or data provided'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            # Handle file upload
+            if 'file' in request.FILES:
+                print(f"DEBUG: Processing file upload")
+                return self._handle_file_upload(request.FILES['file'])
+            
+            # Handle JSON data (manual entry)
+            elif 'data' in request.data:
+                print(f"DEBUG: Processing JSON data")
+                return self._handle_json_data(request.data['data'])
+            
+            else:
+                print(f"DEBUG: No file or data found in request")
+                return Response({'error': 'No file or data provided'}, status=status.HTTP_400_BAD_REQUEST)
+                
+        except Exception as e:
+            print(f"DEBUG: Exception in post method: {str(e)}")
+            return Response({'error': f'Server error: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     def _handle_file_upload(self, file):
         """Process CSV/Excel file upload"""
+        print(f"DEBUG: _handle_file_upload called with file: {file.name}")
+        print(f"DEBUG: PANDAS_AVAILABLE: {PANDAS_AVAILABLE}")
+        
         if not PANDAS_AVAILABLE:
             return Response({
                 'error': 'File upload not supported. Please use manual entry instead.'
             }, status=status.HTTP_400_BAD_REQUEST)
         
         try:
+            print(f"DEBUG: File extension check for: {file.name}")
             # Determine file type and read accordingly
             if file.name.endswith('.csv'):
+                print(f"DEBUG: Reading CSV file")
                 df = pd.read_csv(file)
             elif file.name.endswith(('.xlsx', '.xls')):
+                print(f"DEBUG: Reading Excel file")
                 df = pd.read_excel(file)
             else:
+                print(f"DEBUG: Unsupported file format: {file.name}")
                 return Response({'error': 'Unsupported file format. Use CSV or Excel.'}, 
                               status=status.HTTP_400_BAD_REQUEST)
             
+            print(f"DEBUG: DataFrame shape: {df.shape}")
+            print(f"DEBUG: DataFrame columns: {list(df.columns)}")
+            
             # Convert DataFrame to list of dictionaries
             data = df.to_dict('records')
+            print(f"DEBUG: Converted to {len(data)} records")
+            
             return self._process_patient_data(data)
             
         except Exception as e:
+            print(f"DEBUG: Exception in _handle_file_upload: {str(e)}")
             return Response({'error': f'File processing error: {str(e)}'}, 
                           status=status.HTTP_400_BAD_REQUEST)
     
@@ -73,20 +97,26 @@ class BulkPatientUploadView(APIView):
     
     def _process_patient_data(self, data):
         """Process and create patient records"""
+        print(f"DEBUG: _process_patient_data called with {len(data)} records")
+        
         created_patients = []
         errors = []
         
         # Required fields for Patient model
         required_fields = ['name', 'email', 'phone', 'date_of_birth']
         
-        with transaction.atomic():
-            try:
+        try:
+            with transaction.atomic():
                 for i, patient_data in enumerate(data):
                     try:
+                        print(f"DEBUG: Processing patient {i+1}: {patient_data}")
+                        
                         # Validate required fields
                         missing_fields = [field for field in required_fields if not patient_data.get(field)]
                         if missing_fields:
-                            errors.append(f"Row {i+1}: Missing required fields: {', '.join(missing_fields)}")
+                            error_msg = f"Row {i+1}: Missing required fields: {', '.join(missing_fields)}"
+                            print(f"DEBUG: {error_msg}")
+                            errors.append(error_msg)
                             continue
                         
                         # Clean and prepare data
@@ -100,12 +130,16 @@ class BulkPatientUploadView(APIView):
                             'marital_status': patient_data.get('marital_status', 'single'),
                         }
                         
+                        print(f"DEBUG: Clean data prepared: {clean_data}")
+                        
                         # Validate date format
                         if isinstance(clean_data['date_of_birth'], str):
                             try:
                                 clean_data['date_of_birth'] = datetime.strptime(clean_data['date_of_birth'], '%Y-%m-%d').date()
                             except ValueError:
-                                errors.append(f"Row {i+1}: Invalid date format for date_of_birth. Use YYYY-MM-DD")
+                                error_msg = f"Row {i+1}: Invalid date format for date_of_birth. Use YYYY-MM-DD"
+                                print(f"DEBUG: {error_msg}")
+                                errors.append(error_msg)
                                 continue
                         
                         # Handle optional JSON fields
@@ -116,25 +150,36 @@ class BulkPatientUploadView(APIView):
                         
                         # Check if patient already exists
                         if Patient.objects.filter(email=clean_data['email']).exists():
-                            errors.append(f"Row {i+1}: Patient with email {clean_data['email']} already exists")
+                            error_msg = f"Row {i+1}: Patient with email {clean_data['email']} already exists"
+                            print(f"DEBUG: {error_msg}")
+                            errors.append(error_msg)
                             continue
                         
                         # Create patient
+                        print(f"DEBUG: Creating patient with data: {clean_data}")
                         patient = Patient.objects.create(**clean_data)
                         created_patients.append({
                             'id': patient.id,
                             'name': patient.name,
                             'email': patient.email
                         })
+                        print(f"DEBUG: Successfully created patient {patient.id}")
                         
                     except ValidationError as e:
-                        errors.append(f"Row {i+1}: Validation error - {str(e)}")
+                        error_msg = f"Row {i+1}: Validation error - {str(e)}"
+                        print(f"DEBUG: {error_msg}")
+                        errors.append(error_msg)
                     except Exception as e:
-                        errors.append(f"Row {i+1}: {str(e)}")
+                        error_msg = f"Row {i+1}: {str(e)}"
+                        print(f"DEBUG: {error_msg}")
+                        errors.append(error_msg)
                 
-            except Exception as e:
-                return Response({'error': f'Transaction failed: {str(e)}'}, 
-                              status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            print(f"DEBUG: Transaction failed: {str(e)}")
+            return Response({'error': f'Transaction failed: {str(e)}'}, 
+                          status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        print(f"DEBUG: Completed processing. Created: {len(created_patients)}, Errors: {len(errors)}")
         
         return Response({
             'message': f'Bulk patient upload completed',
