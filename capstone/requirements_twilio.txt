@@ -1,3 +1,0 @@
-# Additional requirements for Twilio SMS integration
-twilio>=8.2.0
-python-dotenv>=1.0.0

@@ -6,7 +6,7 @@ from accounts.views import (
     StaffDetailView, StaffPermissionsView, UserListView, SendOTPView, VerifyOTPView
 )
 from accounts.bulk_patient_staff_views import BulkPatientUploadView, BulkStaffUploadView, BulkImportTemplateView
-from accounts.test_auth_views import TestAuthView
+
 
 urlpatterns = [
     path('staff/', StaffCreateView.as_view(), name='create-staff'),  # Matches /api/staff/
@@ -33,8 +33,6 @@ urlpatterns = [
     path('auth/send-otp/', SendOTPView.as_view(), name='send-otp'),  # Matches /api/auth/send-otp/
     path('auth/verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),  # Matches /api/auth/verify-otp/
     
-    # Test authentication endpoint
-    path('auth/test/', TestAuthView.as_view(), name='test-auth'),  # Test JWT authentication
     
     # Bulk operations endpoints
     path('bulk/patients/upload/', BulkPatientUploadView.as_view(), name='bulk-patient-upload'),  # CSV/Excel upload
