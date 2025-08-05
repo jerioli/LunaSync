@@ -77,17 +77,40 @@ def send_email_with_embedded_logo(to_email, subject, html_content, plain_content
         if logo_attachment:
             msg.attach(logo_attachment)
 
-        # Send email using smtplib
-        server = smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT)
-        if settings.EMAIL_USE_TLS:
-            server.starttls()
-        if settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD:
-            server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
-        
-        server.send_message(msg)
-        server.quit()
-        
-        return True
+        # Send email using Django's email backend (more reliable)
+        try:
+            from django.core.mail import EmailMultiAlternatives
+            
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=plain_content,
+                from_email=formataddr((clinic_name, settings.EMAIL_HOST_USER)),
+                to=[to_email]
+            )
+            email.attach_alternative(html_content, "text/html")
+            
+            # Try to attach logo
+            logo_attachment = get_logo_attachment()
+            if logo_attachment:
+                email.attach(logo_attachment)
+            
+            email.send()
+            return True
+            
+        except Exception as django_error:
+            logger.error(f"Django email failed: {django_error}, trying smtplib fallback")
+            
+            # Fallback to smtplib
+            server = smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT)
+            if settings.EMAIL_USE_TLS:
+                server.starttls()
+            if settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD:
+                server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+            
+            server.send_message(msg)
+            server.quit()
+            
+            return True
     except Exception as e:
         logger.error(f"Failed to send email with smtplib: {e}")
         return False

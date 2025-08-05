@@ -243,7 +243,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 EMAIL_HOST_USER = 'jeri.olivarez@gmail.com'
-EMAIL_HOST_PASSWORD = 'snsi pqbb sdjt hsqt'
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD', 'your_new_app_password_here')  # Use environment variable
 EMAIL_TIMEOUT = 30
 
 # AWS Configuration
