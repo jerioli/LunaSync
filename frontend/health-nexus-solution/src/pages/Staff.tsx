@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,7 +17,7 @@ import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
 import { Admin, api, Doctor, Receptionist, StaffMember } from '@/services/api';
 import axios from 'axios';
-import { Edit, Eye, Mail, Phone, Search, Shield, Trash, UserPlus } from 'lucide-react';
+import { CheckSquare, Edit, Eye, Mail, Phone, Search, Shield, Trash, Trash2, UserPlus } from 'lucide-react';
 
 const StaffPage = () => {
   const { currentUser } = useClinic();
@@ -47,6 +48,12 @@ const StaffPage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [staffToDelete, setStaffToDelete] = useState<StaffMember | null>(null);
+  
+  // Bulk delete states
+  const [selectedStaffIds, setSelectedStaffIds] = useState<Set<number>>(new Set());
+  const [isSelectAll, setIsSelectAll] = useState(false);
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   // Fetch staff from backend
   useEffect(() => {
@@ -308,6 +315,110 @@ const StaffPage = () => {
     }
   };
 
+  // Bulk delete functions
+  const getAllStaffIds = () => {
+    const allIds: Set<number> = new Set();
+    doctorsList.forEach(doctor => allIds.add(doctor.id));
+    receptionistsList.forEach(receptionist => allIds.add(receptionist.id));
+    adminsList.forEach(admin => allIds.add(admin.id));
+    return allIds;
+  };
+
+  const handleSelectAll = () => {
+    if (isSelectAll) {
+      setSelectedStaffIds(new Set());
+      setIsSelectAll(false);
+    } else {
+      const allIds = getAllStaffIds();
+      setSelectedStaffIds(allIds);
+      setIsSelectAll(true);
+    }
+  };
+
+  const handleStaffSelect = (staffId: number, checked: boolean) => {
+    setSelectedStaffIds(prev => {
+      const newSelection = new Set(prev);
+      if (checked) {
+        newSelection.add(staffId);
+      } else {
+        newSelection.delete(staffId);
+      }
+      
+      const allIds = getAllStaffIds();
+      setIsSelectAll(newSelection.size === allIds.size);
+      return newSelection;
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedStaffIds.size === 0) {
+      toast({
+        title: "No selection",
+        description: "Please select staff members to delete.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsBulkDeleteDialogOpen(true);
+  };
+
+  const confirmBulkDelete = async () => {
+    setIsBulkDeleting(true);
+    try {
+      const response = await axios.post('bulk/staff/delete/', {
+        staff_ids: Array.from(selectedStaffIds)
+      });
+
+      setIsBulkDeleteDialogOpen(false);
+      setSelectedStaffIds(new Set());
+      setIsSelectAll(false);
+      refreshStaffLists();
+      
+      toast({
+        title: "Bulk deletion completed",
+        description: `Successfully deleted ${response.data.deleted_count} staff members.`,
+      });
+    } catch (error: any) {
+      console.error('Error in bulk delete:', error);
+      toast({
+        title: "Bulk deletion failed",
+        description: error.response?.data?.error || "Failed to delete selected staff members.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
+  const handleSelectAllDelete = async () => {
+    setIsBulkDeleting(true);
+    try {
+      const response = await axios.post('/b ulk/staff/delete/', {
+        select_all: true
+      });
+
+      setIsBulkDeleteDialogOpen(false);
+      setSelectedStaffIds(new Set());
+      setIsSelectAll(false);
+      refreshStaffLists();
+      
+      toast({
+        title: "Bulk deletion completed",
+        description: `Successfully deleted ${response.data.deleted_count} staff members.`,
+      });
+    } catch (error: any) {
+      console.error('Error in select all delete:', error);
+      toast({
+        title: "Bulk deletion failed",
+        description: error.response?.data?.error || "Failed to delete all staff members.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
   // Get permission summary for a staff member
   const getPermissionSummary = (staffMember: Doctor | Receptionist | Admin) => {
     const permissions = [
@@ -332,6 +443,42 @@ const StaffPage = () => {
         </div>
         
         <div className="flex gap-2">
+          {/* Bulk Actions Bar */}
+          {selectedStaffIds.size > 0 && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-md">
+              <span className="text-sm text-blue-700 font-medium">
+                {selectedStaffIds.size} selected
+              </span>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleBulkDelete}
+                className="h-8"
+              >
+                <Trash2 className="mr-1 h-3 w-3" />
+                Delete Selected
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedStaffIds(new Set())}
+                className="h-8"
+              >
+                Clear Selection
+              </Button>
+            </div>
+          )}
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSelectAll}
+            className="h-9"
+          >
+            <CheckSquare className="mr-2 h-4 w-4" />
+            {isSelectAll ? 'Deselect All' : 'Select All'}
+          </Button>
+          
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -496,6 +643,22 @@ const StaffPage = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={isSelectAll && filteredDoctors.every(doctor => selectedStaffIds.has(doctor.id))}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            const newSelection = new Set(selectedStaffIds);
+                            filteredDoctors.forEach(doctor => newSelection.add(doctor.id));
+                            setSelectedStaffIds(newSelection);
+                          } else {
+                            const newSelection = new Set(selectedStaffIds);
+                            filteredDoctors.forEach(doctor => newSelection.delete(doctor.id));
+                            setSelectedStaffIds(newSelection);
+                          }
+                        }}
+                      />
+                    </TableHead>
                     <TableHead>Doctor</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Phone</TableHead>
@@ -507,6 +670,12 @@ const StaffPage = () => {
                 <TableBody>
                   {filteredDoctors.map(doctor => (
                     <TableRow key={doctor.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedStaffIds.has(doctor.id)}
+                          onCheckedChange={(checked) => handleStaffSelect(doctor.id, checked as boolean)}
+                        />
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-3">
                           <Avatar className="h-8 w-8">
@@ -585,6 +754,22 @@ const StaffPage = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={isSelectAll && filteredReceptionists.every(receptionist => selectedStaffIds.has(receptionist.id))}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            const newSelection = new Set(selectedStaffIds);
+                            filteredReceptionists.forEach(receptionist => newSelection.add(receptionist.id));
+                            setSelectedStaffIds(newSelection);
+                          } else {
+                            const newSelection = new Set(selectedStaffIds);
+                            filteredReceptionists.forEach(receptionist => newSelection.delete(receptionist.id));
+                            setSelectedStaffIds(newSelection);
+                          }
+                        }}
+                      />
+                    </TableHead>
                     <TableHead>Receptionist</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Phone</TableHead>
@@ -596,6 +781,12 @@ const StaffPage = () => {
                 <TableBody>
                   {filteredReceptionists.map(receptionist => (
                     <TableRow key={receptionist.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedStaffIds.has(receptionist.id)}
+                          onCheckedChange={(checked) => handleStaffSelect(receptionist.id, checked as boolean)}
+                        />
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-3">
                           <Avatar className="h-8 w-8">
@@ -674,6 +865,22 @@ const StaffPage = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={isSelectAll && filteredAdmins.every(admin => selectedStaffIds.has(admin.id))}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            const newSelection = new Set(selectedStaffIds);
+                            filteredAdmins.forEach(admin => newSelection.add(admin.id));
+                            setSelectedStaffIds(newSelection);
+                          } else {
+                            const newSelection = new Set(selectedStaffIds);
+                            filteredAdmins.forEach(admin => newSelection.delete(admin.id));
+                            setSelectedStaffIds(newSelection);
+                          }
+                        }}
+                      />
+                    </TableHead>
                     <TableHead>Administrator</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Phone</TableHead>
@@ -685,6 +892,12 @@ const StaffPage = () => {
                 <TableBody>
                   {filteredAdmins.map(admin => (
                     <TableRow key={admin.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedStaffIds.has(admin.id)}
+                          onCheckedChange={(checked) => handleStaffSelect(admin.id, checked as boolean)}
+                        />
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-3">
                           <Avatar className="h-8 w-8">
@@ -777,6 +990,31 @@ const StaffPage = () => {
             </Button>
             <Button variant="destructive" onClick={handleDeleteStaff}>
               Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <Dialog open={isBulkDeleteDialogOpen} onOpenChange={setIsBulkDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Multiple Staff Members</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {selectedStaffIds.size} staff member(s)? 
+              This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsBulkDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmBulkDelete}
+              disabled={isBulkDeleting}
+            >
+              {isBulkDeleting ? 'Deleting...' : 'Delete Selected'}
             </Button>
           </DialogFooter>
         </DialogContent>

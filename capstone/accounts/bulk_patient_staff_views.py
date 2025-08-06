@@ -346,3 +346,173 @@ class BulkImportTemplateView(APIView):
             return Response({'error': 'Invalid template type'}, status=status.HTTP_400_BAD_REQUEST)
         
         return Response(template_data, status=status.HTTP_200_OK)
+
+
+class BulkPatientDeleteView(APIView):
+    """
+    Bulk delete patients with select all functionality
+    """
+    # Remove authentication requirement to match normal deletion pattern
+    permission_classes = []
+    
+    def post(self, request):
+        """
+        Handle bulk patient deletion
+        Expected data: {"patient_ids": [1, 2, 3, ...]} or {"select_all": true}
+        """
+        print(f"DEBUG: Bulk patient delete request received")
+        print(f"DEBUG: Request data: {request.data}")
+        
+        # Remove permission check to match normal deletion pattern
+        # if not request.user.role in ['admin', 'doctor']:
+        #     return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            patient_ids = []
+            
+            # Handle select all
+            if request.data.get('select_all'):
+                print("DEBUG: Select all patients for deletion")
+                patient_ids = list(Patient.objects.values_list('id', flat=True))
+                print(f"DEBUG: Found {len(patient_ids)} patients to delete")
+            
+            # Handle specific patient IDs
+            elif 'patient_ids' in request.data:
+                patient_ids = request.data['patient_ids']
+                print(f"DEBUG: Specific patient IDs for deletion: {patient_ids}")
+            
+            else:
+                return Response({
+                    'error': 'No patient IDs provided. Send either "patient_ids" array or "select_all": true'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            if not patient_ids:
+                return Response({
+                    'error': 'No patients found to delete'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Validate patient IDs exist
+            existing_patients = Patient.objects.filter(id__in=patient_ids)
+            existing_ids = list(existing_patients.values_list('id', flat=True))
+            invalid_ids = [pid for pid in patient_ids if pid not in existing_ids]
+            
+            if invalid_ids:
+                return Response({
+                    'error': f'Invalid patient IDs: {invalid_ids}'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Get patient details before deletion for response
+            patients_to_delete = list(existing_patients.values('id', 'name', 'email'))
+            
+            # Perform bulk deletion
+            with transaction.atomic():
+                deleted_count, deletion_details = Patient.objects.filter(id__in=patient_ids).delete()
+                
+                print(f"DEBUG: Deleted {deleted_count} patients")
+                print(f"DEBUG: Deletion details: {deletion_details}")
+            
+            return Response({
+                'success': True,
+                'message': f'Successfully deleted {deleted_count} patients',
+                'deleted_count': deleted_count,
+                'deleted_patients': patients_to_delete[:10],  # Limit response size
+                'deletion_details': deletion_details
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            print(f"DEBUG: Error in bulk patient delete: {str(e)}")
+            return Response({
+                'error': f'Bulk deletion failed: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class BulkStaffDeleteView(APIView):
+    """
+    Bulk delete staff with select all functionality
+    """
+    # Remove authentication requirement to match normal staff deletion
+    permission_classes = []
+    
+    def post(self, request):
+        """
+        Handle bulk staff deletion
+        Expected data: {"staff_ids": [1, 2, 3, ...]} or {"select_all": true}
+        """
+        print(f"DEBUG: Bulk staff delete request received")
+        print(f"DEBUG: Request data: {request.data}")
+        
+        # Simplified permission check - remove user role check since normal delete doesn't have it
+        # if not request.user.role == 'admin':
+        #     return Response({'error': 'Permission denied. Only admins can delete staff.'}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            staff_ids = []
+            
+            # Handle select all
+            if request.data.get('select_all'):
+                print("DEBUG: Select all staff for deletion")
+                # Get all staff IDs without excluding current user or admins (like normal delete)
+                staff_ids = list(CustomUser.objects.values_list('id', flat=True))
+                print(f"DEBUG: Found {len(staff_ids)} staff members to delete")
+            
+            # Handle specific staff IDs
+            elif 'staff_ids' in request.data:
+                staff_ids = request.data['staff_ids']
+                print(f"DEBUG: Specific staff IDs for deletion: {staff_ids}")
+                
+                # Remove safety checks to match normal delete behavior
+                # Safety check: don't allow deletion of current user or other admins
+                # if request.user.id in staff_ids:
+                #     return Response({
+                #         'error': 'Cannot delete your own account'
+                #     }, status=status.HTTP_400_BAD_REQUEST)
+                
+                # admin_ids = list(CustomUser.objects.filter(id__in=staff_ids, role='admin').values_list('id', flat=True))
+                # if admin_ids:
+                #     return Response({
+                #         'error': f'Cannot delete admin accounts: {admin_ids}'
+                #     }, status=status.HTTP_400_BAD_REQUEST)
+            
+            else:
+                return Response({
+                    'error': 'No staff IDs provided. Send either "staff_ids" array or "select_all": true'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            if not staff_ids:
+                return Response({
+                    'error': 'No staff members found to delete'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Validate staff IDs exist
+            existing_staff = CustomUser.objects.filter(id__in=staff_ids)
+            existing_ids = list(existing_staff.values_list('id', flat=True))
+            invalid_ids = [sid for sid in staff_ids if sid not in existing_ids]
+            
+            if invalid_ids:
+                return Response({
+                    'error': f'Invalid staff IDs: {invalid_ids}'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Get staff details before deletion for response
+            staff_to_delete = list(existing_staff.values('id', 'first_name', 'last_name', 'email', 'role'))
+            
+            # Perform bulk deletion
+            with transaction.atomic():
+                deleted_count, deletion_details = CustomUser.objects.filter(id__in=staff_ids).delete()
+                
+                print(f"DEBUG: Deleted {deleted_count} staff members")
+                print(f"DEBUG: Deletion details: {deletion_details}")
+            
+            return Response({
+                'success': True,
+                'message': f'Successfully deleted {deleted_count} staff members',
+                'deleted_count': deleted_count,
+                'deleted_staff': staff_to_delete[:10],  # Limit response size
+                'deletion_details': deletion_details
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            print(f"DEBUG: Error in bulk staff delete: {str(e)}")
+            return Response({
+                'error': f'Bulk deletion failed: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

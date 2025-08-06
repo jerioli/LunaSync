@@ -15,12 +15,15 @@ import random
 import string
 import secrets
 import requests
+import logging
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.shortcuts import get_object_or_404
 from django.core.cache import cache
 from datetime import datetime, timedelta
+
+logger = logging.getLogger(__name__)
 
 class StaffCreateView(APIView):
     def post(self, request):
@@ -32,9 +35,21 @@ class StaffCreateView(APIView):
             if request.data.get('send_email', False):
                 temp_password = request.data.get('temp_password', request.data.get('password'))
                 try:
-                    send_mail(
-                        'Your Account Credentials - Health Nexus',
-                        f'''
+                    # Get clinic settings for email branding
+                    try:
+                        from clinic.models import ClinicSettings
+                        clinic_settings = ClinicSettings.objects.first()
+                        clinic_name = clinic_settings.name if clinic_settings else "Health Nexus"
+                    except:
+                        clinic_name = "Health Nexus"
+                        clinic_settings = None
+                    
+                    # Use the clinic email sender function
+                    from appointments.email_utils import send_notification_email_with_clinic_sender
+                    
+                    # Create email content
+                    subject = f'Your Account Credentials - {clinic_name}'
+                    message = f'''
 Hello {user.get_full_name()},
 
 Your account has been created successfully!
@@ -49,12 +64,62 @@ Please log in and change your password immediately for security.
 Login URL: http://localhost:3000/login
 
 Best regards,
-Health Nexus Team
-                        ''',
-                        settings.DEFAULT_FROM_EMAIL,
-                        [user.email],
-                        fail_silently=False,
+{clinic_name} Team
+                    '''
+                    
+                    html_content = f'''
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <style>
+                            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                            .header {{ background-color: #2563eb; color: white; padding: 20px; text-align: center; }}
+                            .content {{ padding: 20px; background-color: #f9fafb; }}
+                            .credentials {{ background-color: #e0f2fe; padding: 15px; border-radius: 8px; margin: 20px 0; }}
+                            .footer {{ padding: 20px; text-align: center; color: #666; font-size: 12px; }}
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <div class="header">
+                                <h1>{clinic_name}</h1>
+                            </div>
+                            <div class="content">
+                                <h2>Account Created Successfully</h2>
+                                <p>Hello {user.get_full_name()},</p>
+                                <p>Your account has been created successfully!</p>
+                                
+                                <div class="credentials">
+                                    <h3>Login Credentials:</h3>
+                                    <p><strong>Email:</strong> {user.email}</p>
+                                    <p><strong>Username:</strong> {user.username}</p>
+                                    <p><strong>Temporary Password:</strong> {temp_password}</p>
+                                </div>
+                                
+                                <p>Please log in and change your password immediately for security.</p>
+                                <p><strong>Login URL:</strong> <a href="http://localhost:3000/login">http://localhost:3000/login</a></p>
+                            </div>
+                            <div class="footer">
+                                <p>Best regards,<br>{clinic_name} Team</p>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                    '''
+                    
+                    success, error_msg = send_notification_email_with_clinic_sender(
+                        user.email, 
+                        subject, 
+                        message, 
+                        html_content, 
+                        clinic_settings
                     )
+                    
+                    if not success:
+                        print(f"Failed to send email: {error_msg}")
+                        
                 except Exception as e:
                     print(f"Failed to send email: {e}")
             
@@ -260,14 +325,72 @@ class PasswordResetRequestView(APIView):
             token = PasswordResetTokenGenerator().make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             reset_link = f"http://localhost:8080/reset-password/{uid}/{token}/"
-            send_mail(
-                'Password Reset - MedSync',
-                f'Click the link to reset your password: {reset_link}',
-                settings.DEFAULT_FROM_EMAIL,
-                [email],
-                fail_silently=False,
+            
+            # Get clinic settings for email branding
+            try:
+                from clinic.models import ClinicSettings
+                clinic_settings = ClinicSettings.objects.first()
+                clinic_name = clinic_settings.name if clinic_settings else "MedSync"
+            except:
+                clinic_name = "MedSync"
+                clinic_settings = None
+            
+            # Use the clinic email sender function
+            from appointments.email_utils import send_notification_email_with_clinic_sender
+            
+            subject = f'Password Reset - {clinic_name}'
+            message = f'Click the link to reset your password: {reset_link}'
+            
+            html_content = f'''
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                    .header {{ background-color: #2563eb; color: white; padding: 20px; text-align: center; }}
+                    .content {{ padding: 20px; background-color: #f9fafb; }}
+                    .button {{ background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 20px 0; }}
+                    .footer {{ padding: 20px; text-align: center; color: #666; font-size: 12px; }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>{clinic_name}</h1>
+                    </div>
+                    <div class="content">
+                        <h2>Password Reset Request</h2>
+                        <p>You requested a password reset for your account.</p>
+                        <p>Click the button below to reset your password:</p>
+                        
+                        <a href="{reset_link}" class="button">Reset Password</a>
+                        
+                        <p>If you didn't request this reset, please ignore this email.</p>
+                        <p>This link will expire in 24 hours.</p>
+                    </div>
+                    <div class="footer">
+                        <p>Best regards,<br>{clinic_name} Team</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            '''
+            
+            success, error_msg = send_notification_email_with_clinic_sender(
+                email, 
+                subject, 
+                message, 
+                html_content, 
+                clinic_settings
             )
-            return Response({'success': True, 'message': 'Password reset link sent.'})
+            
+            if success:
+                return Response({'success': True, 'message': 'Password reset link sent.'})
+            else:
+                return Response({'success': False, 'message': 'Failed to send email.'}, status=500)
+                
         except User.DoesNotExist:
             return Response({'success': False, 'message': 'No user found with this email address.'}, status=404)
 
@@ -360,15 +483,26 @@ class StaffLoginView(APIView):
             cache.set(f'login_otp_method_{user.id}', otp_method, timeout=300)
 
             if otp_method == 'email':
-                # Send OTP via email
+                # Send OTP via email using smtplib for better control
                 try:
-                    send_mail(
-                        'MedSync Login Verification Code',
-                        f'Your login verification code is: {otp}\n\nThis code expires in 5 minutes.\n\nIf you did not request this, please ignore this email.',
-                        settings.DEFAULT_FROM_EMAIL,
-                        [user.email],
-                        fail_silently=False,
-                    )
+                    # Get clinic settings for email branding
+                    try:
+                        from clinic.models import ClinicSettings
+                        clinic_settings = ClinicSettings.objects.first()
+                    except:
+                        clinic_settings = None
+                    
+                    # Use the new email function
+                    from appointments.email_utils import send_otp_email
+                    success, message = send_otp_email(user.email, otp, clinic_settings)
+                    
+                    if not success:
+                        logger.error(f"Failed to send OTP email: {message}")
+                        return Response({
+                            'success': False,
+                            'error': 'Failed to send OTP email. Please try SMS instead.'
+                        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    
                     return Response({
                         'success': True,
                         'step': 'otp_verification',
@@ -376,6 +510,7 @@ class StaffLoginView(APIView):
                         'method': 'email'
                     })
                 except Exception as e:
+                    logger.error(f"Error in OTP email sending: {str(e)}")
                     return Response({
                         'error': 'Failed to send email verification code'
                     }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -534,13 +669,23 @@ class SendOTPView(APIView):
         # Send OTP via email or SMS
         try:
             if identifier_type == 'email':
-                send_mail(
-                    'MedSync - Your Login Code',
-                    f'Your verification code is: {otp}. This code expires in 5 minutes.',
-                    settings.DEFAULT_FROM_EMAIL,
-                    [identifier],
-                    fail_silently=False,
-                )
+                # Get clinic settings for email branding
+                try:
+                    from clinic.models import ClinicSettings
+                    clinic_settings = ClinicSettings.objects.first()
+                except:
+                    clinic_settings = None
+                
+                # Use the new email function
+                from appointments.email_utils import send_otp_email
+                success, message = send_otp_email(identifier, otp, clinic_settings)
+                
+                if not success:
+                    logger.error(f"Failed to send OTP email: {message}")
+                    return Response({
+                        'success': False,
+                        'error': 'Failed to send OTP email. Please try phone instead.'
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             elif identifier_type == 'phone':
                 # Use iProg SMS service as primary
                 from .iprog_sms_service import iprog_sms_service

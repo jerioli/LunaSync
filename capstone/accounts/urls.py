@@ -5,7 +5,10 @@ from accounts.views import (
     PasswordChangeView, UserProfileUpdateView, UserPreferencesView,
     StaffDetailView, StaffPermissionsView, UserListView, SendOTPView, VerifyOTPView
 )
-from accounts.bulk_patient_staff_views import BulkPatientUploadView, BulkStaffUploadView, BulkImportTemplateView
+from accounts.bulk_patient_staff_views import (
+    BulkPatientUploadView, BulkStaffUploadView, BulkImportTemplateView,
+    BulkPatientDeleteView, BulkStaffDeleteView
+)
 
 
 urlpatterns = [
@@ -37,5 +40,7 @@ urlpatterns = [
     # Bulk operations endpoints
     path('bulk/patients/upload/', BulkPatientUploadView.as_view(), name='bulk-patient-upload'),  # CSV/Excel upload
     path('bulk/staff/upload/', BulkStaffUploadView.as_view(), name='bulk-staff-upload'),  # CSV/Excel upload
+    path('bulk/patients/delete/', BulkPatientDeleteView.as_view(), name='bulk-patient-delete'),  # Bulk delete patients
+    path('bulk/staff/delete/', BulkStaffDeleteView.as_view(), name='bulk-staff-delete'),  # Bulk delete staff
     path('bulk/template/<str:template_type>/', BulkImportTemplateView.as_view(), name='bulk-template'),  # Download templates
 ]
