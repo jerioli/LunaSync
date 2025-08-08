@@ -268,11 +268,18 @@ const Settings = () => {
       await axiosInstance.put('/clinic/', { services });
       toast({ title: 'Services Saved', description: 'Services updated.' });
       setIsEditingServices(false);
+      
+      // Optionally refresh the settings to ensure they persist
+      const res = await axiosInstance.get('/clinic/');
+      if (res.data && res.data.services) {
+        setServices(res.data.services);
+      }
     } catch (err) {
       toast({ title: 'Error', description: 'Failed to save services', variant: 'destructive' });
     } finally {
       setLoading(false);
-    }  };
+    }
+  };
   const handleFaqsSave = async () => {
     setLoading(true);
     try {

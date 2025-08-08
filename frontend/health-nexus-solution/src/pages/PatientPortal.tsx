@@ -45,9 +45,10 @@ const PatientPortal = () => {
     clinic_building_image: '',
   });
   const [loading, setLoading] = useState(true);
-  const [reviewForm, setReviewForm] = useState({ name: '', email: '', rating: 5, comment: '' });
+  const [reviewForm, setReviewForm] = useState({ name: '', email: '', rating: 1, comment: '' });
   const [submitting, setSubmitting] = useState(false);
   const [stayAnonymous, setStayAnonymous] = useState(false);
+  const [showAllReviews, setShowAllReviews] = useState(false);
   const [showGreetingCursor, setShowGreetingCursor] = useState(true);
   const [showArrow, setShowArrow] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -152,14 +153,19 @@ const PatientPortal = () => {
     setSubmitting(true);
     try {
       const reviewData = {
-        ...reviewForm,
+        name: stayAnonymous ? 'Anonymous' : reviewForm.name,
+        email: stayAnonymous ? '' : reviewForm.email,
+        rating: reviewForm.rating,
+        comment: reviewForm.comment,
         date: new Date().toISOString().slice(0, 10),
         anonymous: stayAnonymous,
       };
       
       const response = await axios.post('clinic/reviews/', reviewData);
       
-      setReviewForm({ name: '', email: '', rating: 5, comment: '' });
+      // Reset form with 1 star rating
+      setReviewForm({ name: '', email: '', rating: 1, comment: '' });
+      setStayAnonymous(false); // Reset anonymous checkbox
       await fetchClinic(); // Refresh reviews
       
       // Enhanced success message with email confirmation
@@ -181,7 +187,19 @@ const PatientPortal = () => {
   // Helper for scroll up
   const scrollToSection = (id: string) => {
     const section = document.getElementById(id);
-    if (section) section.scrollIntoView({ behavior: 'smooth' });
+    if (section) {
+      const headerHeight = 10; // Account for fixed header height
+      const elementPosition = section.offsetTop;
+      const offsetPosition = elementPosition - headerHeight;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+      
+      // Update URL hash without triggering scroll
+      history.replaceState(null, '', `#${id}`);
+    }
   };
 
   // Show arrow only when user is near the bottom (footer)
@@ -275,12 +293,9 @@ const PatientPortal = () => {
                         style={{
                           textDecorationColor: isActive ? '#79c942' : undefined,
                         }}
-                        onClick={() => {
-                          const section = document.querySelector(item.href);
-                          if (section) {
-                            section.scrollIntoView({ behavior: 'smooth' });
-                            window.location.hash = item.href;
-                          }
+                        onClick={(e) => {
+                          e.preventDefault();
+                          scrollToSection(item.href.substring(1)); // Remove # from href
                         }}
                       >
                         <span className="whitespace-nowrap">{item.label}</span>
@@ -489,47 +504,64 @@ const PatientPortal = () => {
         </style>
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12 text-[#79c942]">Our Services</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* General Consultation */}
-            <Card className="service-card">
-              <CardHeader>
-                <CardTitle>General Consultation</CardTitle>
-                <CardDescription>Comprehensive health assessments and personalized care plans</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">Our experienced physicians provide thorough examinations and personalized treatment plans for a wide range of health concerns, from routine check-ups to chronic condition management.</p>
-              </CardContent>
-            </Card>
-            {/* Specialized Care */}
-            <Card className="service-card">
-              <CardHeader>
-                <CardTitle>Specialized Care</CardTitle>
-                <CardDescription>Expert care for specific medical needs</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">Access to specialists in cardiology, dermatology, pediatrics, and more, ensuring you receive the best care for your unique health requirements.</p>
-              </CardContent>
-            </Card>
-            {/* Diagnostic Services */}
-            <Card className="service-card">
-              <CardHeader>
-                <CardTitle>Diagnostic Services</CardTitle>
-                <CardDescription>Accurate and timely diagnostics</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">State-of-the-art laboratory and imaging services to support early detection and effective treatment of health conditions.</p>
-              </CardContent>
-            </Card>
-            {/* Preventive Care */}
-            <Card className="service-card">
-              <CardHeader>
-                <CardTitle>Preventive Care</CardTitle>
-                <CardDescription>Proactive health management</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">Vaccinations, screenings, and wellness programs designed to keep you and your family healthy and prevent illness before it starts.</p>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {clinic.services && clinic.services.length > 0 ? (
+              clinic.services.map((service, index) => (
+                <Card key={index} className="service-card">
+                  <CardHeader>
+                    <CardTitle>{service.title}</CardTitle>
+                    <CardDescription>{service.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600">{service.details}</p>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              // Default services if none are configured
+              <>
+                {/* General Consultation */}
+                <Card className="service-card">
+                  <CardHeader>
+                    <CardTitle>General Consultation</CardTitle>
+                    <CardDescription>Comprehensive health assessments and personalized care plans</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600">Our experienced physicians provide thorough examinations and personalized treatment plans for a wide range of health concerns, from routine check-ups to chronic condition management.</p>
+                  </CardContent>
+                </Card>
+                {/* Specialized Care */}
+                <Card className="service-card">
+                  <CardHeader>
+                    <CardTitle>Specialized Care</CardTitle>
+                    <CardDescription>Expert care for specific medical needs</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600">Access to specialists in cardiology, dermatology, pediatrics, and more, ensuring you receive the best care for your unique health requirements.</p>
+                  </CardContent>
+                </Card>
+                {/* Diagnostic Services */}
+                <Card className="service-card">
+                  <CardHeader>
+                    <CardTitle>Diagnostic Services</CardTitle>
+                    <CardDescription>Accurate and timely diagnostics</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600">State-of-the-art laboratory and imaging services to support early detection and effective treatment of health conditions.</p>
+                  </CardContent>
+                </Card>
+                {/* Preventive Care */}
+                <Card className="service-card">
+                  <CardHeader>
+                    <CardTitle>Preventive Care</CardTitle>
+                    <CardDescription>Proactive health management</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600">Vaccinations, screenings, and wellness programs designed to keep you and your family healthy and prevent illness before it starts.</p>
+                  </CardContent>
+                </Card>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -538,29 +570,84 @@ const PatientPortal = () => {
       <section id="reviews" className="py-20 relative">
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12 text-[#79c942]">Patient Reviews</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Left: Leave a Review */}
-            <div className="md:col-span-1">
-              <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-xl mx-auto">
-                <div className="flex items-center mb-2 gap-2">
+          
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Patient Reviews - Left Side (3 columns) */}
+            <div className="lg:col-span-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                {clinic.reviews && clinic.reviews.length > 0 ? 
+                  clinic.reviews.slice(0, showAllReviews ? clinic.reviews.length : 6).map((review, index) => (
+                    <div key={index} className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                      <div className="flex items-start gap-3">
+                        <Avatar className="w-8 h-8">
+                          <AvatarFallback className="text-xs">
+                            {review.anonymous ? "A" : review.name?.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="font-medium text-sm text-gray-900 truncate">
+                              {review.anonymous ? "Anonymous" : review.name}
+                            </h4>
+                            <div className="flex text-yellow-400 ml-2">
+                              {Array(review.rating).fill(0).map((_, i) => (
+                                <svg key={i} className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                </svg>
+                              ))}
+                            </div>
+                          </div>
+                          <p className="text-gray-600 text-sm line-clamp-3 mb-2">{review.comment}</p>
+                          <p className="text-xs text-gray-400">{review.date}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )) : (
+                    <div className="col-span-full text-center py-8">
+                      <p className="text-gray-500">No reviews yet. Be the first to leave a review!</p>
+                    </div>
+                  )
+                }
+              </div>
+              
+              {/* Show More/Less Button */}
+              {clinic.reviews && clinic.reviews.length > 6 && (
+                <div className="text-center">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowAllReviews(!showAllReviews)}
+                    className="border-[#79c942] text-[#79c942] hover:bg-[#79c942] hover:text-white"
+                  >
+                    {showAllReviews ? 'Show Less' : `Show All ${clinic.reviews.length} Reviews`}
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Leave a Review Form - Right Side (1 column) */}
+            <div className="lg:col-span-1">
+              <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 sticky top-8">
+                <h3 className="text-lg font-semibold mb-4 text-gray-900">Leave a Review</h3>
+                
+                <div className="flex items-center mb-3 gap-2">
                   <Checkbox
                     id="stay-anonymous"
                     checked={stayAnonymous}
                     onCheckedChange={checked => setStayAnonymous(checked === true)}
                     className="data-[state=checked]:bg-[#79c942] border-[#79c942] focus:ring-[#79c942]"
                   />
-                  <label htmlFor="stay-anonymous" className="font-medium text-black select-none cursor-pointer">
+                  <label htmlFor="stay-anonymous" className="text-xs font-medium text-gray-700 select-none cursor-pointer">
                     Stay anonymous
                   </label>
                 </div>
-                <h3 className="text-xl font-semibold mb-4 text-black">Leave a Review</h3>
-                <form className="space-y-4 text-black" onSubmit={handleReviewSubmit}>
+                
+                <form className="space-y-3" onSubmit={handleReviewSubmit}>
                   {!stayAnonymous && (
                     <>
                       <div>
                         <Input
                           placeholder="Your Name"
-                          className="bg-white text-black"
+                          className="bg-white text-gray-900 text-sm h-8"
                           value={reviewForm.name}
                           onChange={e => setReviewForm({ ...reviewForm, name: e.target.value })}
                           required={!stayAnonymous}
@@ -570,7 +657,7 @@ const PatientPortal = () => {
                         <Input
                           placeholder="Your Email"
                           type="email"
-                          className="bg-white text-black"
+                          className="bg-white text-gray-900 text-sm h-8"
                           value={reviewForm.email}
                           onChange={e => setReviewForm({ ...reviewForm, email: e.target.value })}
                           required={!stayAnonymous}
@@ -579,12 +666,12 @@ const PatientPortal = () => {
                     </>
                   )}
                   <div>
-                    <label className="block mb-1 font-medium text-black">Rating</label>
+                    <label className="block mb-1 text-xs font-medium text-gray-700">Rating</label>
                     <div className="flex gap-1">
                       {[1,2,3,4,5].map(star => (
                         <span
                           key={star}
-                          style={{ cursor: 'pointer', color: reviewForm.rating >= star ? '#FFD700' : '#E5E7EB', fontSize: 28 }}
+                          style={{ cursor: 'pointer', color: reviewForm.rating >= star ? '#FFD700' : '#E5E7EB', fontSize: 20 }}
                           onClick={() => setReviewForm({ ...reviewForm, rating: star })}
                           role="button"
                           aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
@@ -595,49 +682,21 @@ const PatientPortal = () => {
                   <div>
                     <textarea
                       placeholder="Your Review"
-                      className="w-full p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-clinic-blue min-h-[120px] text-black"
+                      className="w-full p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#79c942] focus:border-[#79c942] min-h-[80px] text-xs text-gray-900 resize-none"
                       value={reviewForm.comment}
                       onChange={e => setReviewForm({ ...reviewForm, comment: e.target.value })}
                       required
                     />
                   </div>
-                  <Button className="w-full bg-[#79c942] hover:bg-[#6bb33a] text-white" type="submit" disabled={submitting}>
+                  <Button 
+                    className="w-full bg-[#79c942] hover:bg-[#6bb33a] text-white text-sm h-8" 
+                    type="submit" 
+                    disabled={submitting}
+                  >
                     {submitting ? 'Submitting...' : 'Submit Review'}
                   </Button>
                 </form>
               </div>
-            </div>
-            {/* Right: Submitted Reviews */}
-            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
-              {clinic.reviews && clinic.reviews.length > 0 ? clinic.reviews.slice(0, 3).map((review, index) => (
-                <Card key={index}>
-                  <CardHeader>
-                    <div className="flex items-center gap-4">
-                      <Avatar>
-                        <AvatarFallback>
-                          {review.anonymous ? "A" : review.name?.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <CardTitle className="text-lg">
-                          {review.anonymous ? "From Anonymous" : review.name}
-                        </CardTitle>
-                        <div className="flex text-yellow-400">
-                          {Array(review.rating).fill(0).map((_, i) => (
-                            <svg key={i} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                            </svg>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600">{review.comment}</p>
-                    <p className="text-sm text-gray-400 mt-4">{review.date}</p>
-                  </CardContent>
-                </Card>
-              )) : null}
             </div>
           </div>
         </div>
@@ -882,6 +941,14 @@ const PatientPortal = () => {
       {/* Add this style block in your component's JSX return, after existing style blocks */}
       <style>
       {`
+        /* Line clamp for review text */
+        .line-clamp-3 {
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        
         /* Fixed width for chat button */
         .chat-button {
           width: 180px;
@@ -980,6 +1047,25 @@ const PatientPortal = () => {
             gap: 0.25rem !important;
           }
         }
+        
+        /* Smooth scrolling and scroll padding for fixed header */
+        html {
+          scroll-behavior: smooth;
+          scroll-padding-top: 80px;
+        }
+        
+        /* Ensure all sections have proper spacing for header */
+        section[id] {
+          scroll-margin-top: 80px;
+        }
+        
+        /* Improve scroll behavior for webkit browsers */
+        @media screen and (-webkit-min-device-pixel-ratio: 0) {
+          html {
+            scroll-behavior: smooth;
+            scroll-snap-type: y proximity;
+          }
+        }
       `}
       </style>
 
@@ -1007,13 +1093,10 @@ const PatientPortal = () => {
                   key={item.href}
                   href={item.href}
                   className="block py-2 text-lg font-medium text-[#79c942]"
-                  onClick={() => {
-                    const section = document.querySelector(item.href);
-                    if (section) {
-                      section.scrollIntoView({ behavior: 'smooth' });
-                      window.location.hash = item.href;
-                      setMobileMenuOpen(false);
-                    }
+                  onClick={(e) => {
+                    e.preventDefault();
+                    scrollToSection(item.href.substring(1)); // Remove # from href
+                    setMobileMenuOpen(false);
                   }}
                 >
                   {item.label}
