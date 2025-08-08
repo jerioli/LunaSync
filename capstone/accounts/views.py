@@ -294,21 +294,41 @@ class AdminListView(APIView):
 @permission_classes([AllowAny])
 @csrf_exempt
 def login_view(request):
+    # Handle both email and username login
+    email = request.data.get('email')
     username = request.data.get('username')
     password = request.data.get('password')
+    
+    # If email is provided, find user by email and use their username for authentication
+    if email and not username:
+        try:
+            user_obj = CustomUser.objects.get(email=email)
+            username = user_obj.username
+        except CustomUser.DoesNotExist:
+            return Response({
+                'success': False,
+                'error': 'Invalid credentials'
+            }, status=status.HTTP_401_UNAUTHORIZED)
     
     user = authenticate(username=username, password=password)
     
     if user:
         # Actually log the user in to create a session
         login(request, user)
+        
+        # Generate tokens (for now using dummy tokens, you can implement JWT later)
+        access_token = f"access_token_for_user_{user.id}"
+        refresh_token = f"refresh_token_for_user_{user.id}"
+        
         return Response({
             'success': True,
             'id': user.id,
             'name': user.get_full_name() or user.username,
             'email': user.email,
             'username': user.username,
-            'role': user.role if hasattr(user, 'role') else 'doctor'
+            'role': user.role if hasattr(user, 'role') else 'doctor',
+            'access': access_token,
+            'refresh': refresh_token
         })
     
     return Response({

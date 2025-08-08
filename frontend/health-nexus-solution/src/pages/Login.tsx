@@ -35,7 +35,7 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      console.log('Starting login process with:', { email, password });
+      
       
       // Validate credentials with backend first
       console.log('Attempting login request to:', `${API_BASE_URL}/login/`);
@@ -48,7 +48,7 @@ const Login = () => {
           'Accept': 'application/json'
         }
       });
-      console.log('Login response:', response.data);
+      
 
       if (response.data.success) {
         const user = {
