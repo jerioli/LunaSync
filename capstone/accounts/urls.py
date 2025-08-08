@@ -3,11 +3,15 @@ from accounts.views import (
     StaffCreateView, DoctorListView, ReceptionistListView, AdminListView, 
     StaffLoginView, CompleteLoginView, PasswordResetRequestView, PasswordResetConfirmView,
     PasswordChangeView, UserProfileUpdateView, UserPreferencesView,
-    StaffDetailView, StaffPermissionsView, UserListView, SendOTPView, VerifyOTPView
+    StaffDetailView, StaffPermissionsView, UserListView, SendOTPView, VerifyOTPView,
+    login_view  # Import the existing login view
 )
 from accounts.bulk_patient_staff_views import (
     BulkPatientUploadView, BulkStaffUploadView, BulkImportTemplateView,
     BulkPatientDeleteView, BulkStaffDeleteView
+)
+from accounts.session_views import (
+    SessionLoginView, SessionStatusView, SessionLogoutView, SessionValidationView
 )
 
 
@@ -36,6 +40,12 @@ urlpatterns = [
     path('auth/send-otp/', SendOTPView.as_view(), name='send-otp'),  # Matches /api/auth/send-otp/
     path('auth/verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),  # Matches /api/auth/verify-otp/
     
+    # Session Management endpoints
+    path('auth/session-login/', SessionLoginView.as_view(), name='session-login'),
+    path('auth/session-status/', SessionStatusView.as_view(), name='session-status'),
+    path('auth/session-logout/', SessionLogoutView.as_view(), name='session-logout'),
+    path('auth/session-validate/', SessionValidationView.as_view(), name='session-validate'),
+    path('login/', login_view, name='login'),  # Backwards compatibility
     
     # Bulk operations endpoints
     path('bulk/patients/upload/', BulkPatientUploadView.as_view(), name='bulk-patient-upload'),  # CSV/Excel upload

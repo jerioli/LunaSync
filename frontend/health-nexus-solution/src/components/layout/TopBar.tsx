@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Bell, MessageSquare, Calendar, User, Clock, Settings, LogOut, ChevronDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,11 +10,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useClinic } from '@/contexts/ClinicContext';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { logoutSession } from '@/utils/sessionManager';
 import axios from 'axios';
+import { Bell, Calendar, Clock, LogOut, MessageSquare, Settings } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export const TopBar: React.FC = () => {
   const { currentUser, setCurrentUser } = useClinic();
@@ -105,10 +106,21 @@ export const TopBar: React.FC = () => {
     }
   }, [showNotifications]);
   // Handle logout
-  const handleLogout = () => {
-    localStorage.removeItem('user');  // Clear user data
-    setCurrentUser(null);             // Reset the context
-    navigate('/login');              // Redirect to login page
+  const handleLogout = async () => {
+    try {
+      // Call the session-based logout
+      await logoutSession();
+      console.log('Session logout successful');
+    } catch (error) {
+      console.error('Session logout failed:', error);
+      // Continue with local cleanup even if server logout fails
+    }
+    
+    // Clear local storage and context
+    localStorage.removeItem('user');
+    localStorage.removeItem('sessionId');
+    setCurrentUser(null);
+    navigate('/login');
   };
   // Handle settings navigation
   const handleSettings = () => {

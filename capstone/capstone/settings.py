@@ -43,10 +43,12 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
 # Session Security
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Store sessions in database
 SESSION_COOKIE_HTTPONLY = False  # Allow JS access for development
 SESSION_COOKIE_AGE = 1800  # 30 minutes
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_DOMAIN = None     # Allow for localhost development
+SESSION_SAVE_EVERY_REQUEST = True  # Update session on every request
 
 # For development - set these to True in production with HTTPS
 SESSION_COOKIE_SECURE = False  # Set to True with HTTPS
@@ -56,6 +58,7 @@ SECURE_SSL_REDIRECT = False    # Set to True in production
 # Allow cross-origin cookies for development
 SESSION_COOKIE_SAMESITE = 'Lax'  # Allow cross-origin requests in development
 CSRF_COOKIE_SAMESITE = 'Lax'     # Allow cross-origin CSRF tokens
+SESSION_COOKIE_NAME = 'sessionid'  # Default session cookie name
 
 # File Upload Security
 FILE_UPLOAD_PERMISSIONS = 0o644  # Secure file permissions
@@ -123,7 +126,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-   
+    'security_app.middleware.SecurityMiddleware',  # Add security middleware
 ]
 AUTH_USER_MODEL = 'accounts.CustomUser'
 AUTHENTICATION_BACKENDS = [

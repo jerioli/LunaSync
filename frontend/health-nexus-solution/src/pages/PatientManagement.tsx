@@ -544,7 +544,7 @@ const PatientManagement = () => {
         };
       }
       
-      console.log('Sending data:', dataToSend); // Debug log
+      
       
       const response = await axios.put(`patients/${patientData.id}/`, dataToSend);
       

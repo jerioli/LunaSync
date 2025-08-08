@@ -1,26 +1,26 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { 
-  User, 
-  Patient, 
-  NewPatient,
-  Appointment, 
-  Prescription, 
-  LabResult,
-  Inventory,
-  Payment,
-
-  users,
-  patients,
-  appointments,
-  prescriptions,
-  labResults,
-  
+import { defaultClinicCustomization } from '@/constants/clinicDefaults';
+import {
+    Appointment,
+    appointments,
+    Inventory,
+    LabResult,
+    labResults,
+    NewPatient,
+    Patient,
+    Payment,
+    Prescription,
+    prescriptions,
+    User,
+    users
 } from '@/lib/mock-data';
 import { ClinicContextType, ClinicCustomization } from '@/types/clinic';
-import { defaultClinicCustomization } from '@/constants/clinicDefaults';
+import { checkSessionStatus } from '@/utils/sessionManager';
 import axios from 'axios';
+import React, { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 
 axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
+// Configure axios for session-based authentication
+axios.defaults.withCredentials = true; // Important for session cookies
 
 export const ClinicContext = createContext<ClinicContextType | undefined>(undefined);
 // Add the useClinic hook
@@ -45,16 +45,66 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setCurrentUserState(user);
     if (user) {
       localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("sessionId", (user as any).sessionId || '');
     } else {
       localStorage.removeItem("user");
+      localStorage.removeItem("sessionId");
     }
   };
 
+  // Manual logout function that clears everything
+  const forceLogout = () => {
+    console.log('🚪 Manual logout triggered');
+    localStorage.removeItem("user");
+    localStorage.removeItem("sessionId");
+    setCurrentUserState(null);
+  };
+
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setCurrentUserState(JSON.parse(storedUser));
-    }
+    const initializeAuth = async () => {
+      // First check if there's a stored user
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        setCurrentUserState(user);
+        
+        // Only validate session if we have both user and sessionId
+        const storedSessionId = localStorage.getItem("sessionId");
+        if (storedSessionId) {
+          try {
+            console.log('🔍 Validating existing session...');
+            const sessionStatus = await checkSessionStatus();
+            console.log('📊 Full session status response:', sessionStatus);
+            
+            if (sessionStatus.authenticated === true) {
+              // Session is valid, update user data if needed
+              console.log('✅ Session is valid');
+              if (sessionStatus.user) {
+                const updatedUser = {
+                  ...user,
+                  ...sessionStatus.user,
+                  sessionId: sessionStatus.session_id
+                };
+                setCurrentUserState(updatedUser);
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+              }
+            } else {
+              // Session is not authenticated, but we'll keep the user logged in locally
+              // This prevents automatic logout on page refresh
+              // The user will be prompted to login again when they try to make authenticated requests
+              console.log('⚠️ Session not authenticated on server, but keeping user logged in locally');
+              console.log('� User can continue using the app and will be prompted to re-authenticate when needed');
+            }
+          } catch (error) {
+            console.error('❌ Session validation failed:', error);
+            // Don't clear user on network errors - let them stay logged in
+            console.log('🔄 Network error during session check, keeping user logged in');
+          }
+        }
+      }
+    };
+
+    initializeAuth();
   }, []);
 
   const addPatient = async (patient: NewPatient) => {
@@ -168,6 +218,7 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       value={{
         currentUser,
         setCurrentUser,
+        forceLogout,
         users,
         
         patients: patientsList,

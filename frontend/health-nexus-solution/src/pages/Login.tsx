@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useClinic } from '@/hooks/useClinicContext';
+import { loginWithSession } from '@/utils/sessionManager';
 import axios from 'axios';
 import { Eye, EyeOff, Mail, Phone, Shield } from 'lucide-react';
 import React, { useState } from 'react';
@@ -34,51 +35,42 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    
     try {
+      console.log('Attempting session-based login...');
       
+      // Use the new session-based authentication
+      const result = await loginWithSession({ email, password });
       
-      // Validate credentials with backend first
-      console.log('Attempting login request to:', `${API_BASE_URL}/login/`);
-      const response = await axios.post(`${API_BASE_URL}/login/`, {
-        email: email,
-        password: password
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
-      });
-      
-
-      if (response.data.success) {
+      if (result.success) {
         const user = {
-          id: String(response.data.id),
-          name: response.data.name || response.data.username,
-          username: response.data.username,
-          email: response.data.email,
-          role: response.data.role || 'doctor',
-          accessToken: response.data.access,
-          refreshToken: response.data.refresh
+          id: String(result.user.id),
+          name: result.user.name,
+          username: result.user.username,
+          email: result.user.email,
+          role: result.user.role || 'doctor',
+          sessionId: result.session_id
         };
-        console.log('Creating user object:', user);
-
+        
+        console.log('Session login successful:', user);
+        
+        // Store user data (no JWT tokens needed for session-based auth)
         localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('accessToken', response.data.access);
-        localStorage.setItem('refreshToken', response.data.refresh);
+        localStorage.setItem('sessionId', result.session_id);
         setCurrentUser(user);
         
-        toast.success(`Welcome back, ${user.name}`);
+        toast.success(`Welcome back, ${user.name}!`);
         navigate('/');
+      } else {
+        toast.error(result.error || 'Login failed');
       }
     } catch (error: any) {
-      console.error('Login error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        headers: error.response?.headers,
-        config: error.config
-      });
-      toast.error('Failed to login. Please try again.');
+      console.error('Session login error:', error);
+      if (error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error('Failed to login. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -127,12 +119,19 @@ const Login = () => {
   };
 
   const handleOTPVerificationSuccess = (userData: any) => {
-    localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('accessToken', userData.accessToken);
-    localStorage.setItem('refreshToken', userData.refreshToken);
-    setCurrentUser(userData);
+    // Store session-based user data (no JWT tokens for session auth)
+    const user = {
+      ...userData,
+      sessionId: userData.sessionId || userData.session_id
+    };
     
-    toast.success(`Welcome back, ${userData.name}`);
+    localStorage.setItem('user', JSON.stringify(user));
+    if (userData.sessionId || userData.session_id) {
+      localStorage.setItem('sessionId', userData.sessionId || userData.session_id);
+    }
+    setCurrentUser(user);
+    
+    toast.success(`Welcome back, ${userData.name}!`);
     navigate('/');
   };
 

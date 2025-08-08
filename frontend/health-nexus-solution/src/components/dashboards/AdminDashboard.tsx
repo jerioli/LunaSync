@@ -5,31 +5,72 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useClinic } from '@/contexts/ClinicContext';
 import { useSecurity } from '@/hooks/useSecurity';
-import { CreditCard, Package, ShieldAlert, Users } from 'lucide-react';
+import axios from 'axios';
+import { Activity, Calendar, ShieldAlert, Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bar, BarChart as ReBarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 const AdminDashboard = () => {
-  const { users, patients, inventory, payments } = useClinic();
+  const { users } = useClinic();
   const { securityData, loading: securityLoading } = useSecurity();
   const navigate = useNavigate();
   
-  // Count staff by role
+  const [appointments, setAppointments] = useState([]);
+  const [patientsCount, setPatientsCount] = useState(0);
+  
+  // Fetch appointments from backend
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        const response = await axios.get('appointments/list/');
+        setAppointments(response.data);
+      } catch (error) {
+        console.error('Error fetching appointments:', error);
+      }
+    };
+    fetchAppointments();
+  }, []);
+  
+  // Fetch patients count from backend
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const response = await axios.get('patients/');
+        setPatientsCount(Array.isArray(response.data) ? response.data.length : 0);
+      } catch (error) {
+        setPatientsCount(0);
+        console.error('Error fetching patients:', error);
+      }
+    };
+    fetchPatients();
+  }, []);
+  
+  // Count staff by role (excluding patients)
+  const staffMembers = users.filter(user => user.role !== 'patient');
   const staffCounts = {
     doctors: users.filter(user => user.role === 'doctor').length,
     receptionists: users.filter(user => user.role === 'receptionist').length,
     admins: users.filter(user => user.role === 'admin').length,
+    total: staffMembers.length
   };
   
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0];
   
+  // Calculate recent appointments (last 30 days)
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   
-  // Calculate total pending amount
-  const totalPendingAmount = payments
-    .filter(payment => payment.status === 'pending')
-    .reduce((sum, payment) => sum + payment.amount, 0);
+  const recentAppointments = appointments.filter(appointment => {
+    const appointmentDate = new Date(appointment.date);
+    return appointmentDate >= thirtyDaysAgo;
+  }).length;
   
-  // Get low stock items
-  const lowStockItems = inventory.filter(item => item.quantity <= item.threshold);
+  // Calculate today's appointments
+  const todayAppointments = appointments.filter(appointment => 
+    appointment.date === today
+  ).length;
   
   // Mock data for patient registrations chart
   const patientRegistrationsData = [
@@ -55,9 +96,9 @@ const AdminDashboard = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{staffCounts.doctors + staffCounts.receptionists + staffCounts.admins}</div>
+            <div className="text-2xl font-bold">{staffCounts.total}</div>
             <p className="text-xs text-muted-foreground">
-              {staffCounts.doctors} doctors, {staffCounts.receptionists} receptionists
+              {staffCounts.doctors} doctors, {staffCounts.receptionists} receptionists, {staffCounts.admins} admins
             </p>
           </CardContent>
         </Card>
@@ -68,27 +109,30 @@ const AdminDashboard = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{patients.length}</div>
+            <div className="text-2xl font-bold">{patientsCount}</div>
             <p className="text-xs text-muted-foreground">Registered in the system</p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Today's Appointments</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-         
+          <CardContent>
+            <div className="text-2xl font-bold">{todayAppointments}</div>
+            <p className="text-xs text-muted-foreground">Scheduled for today</p>
+          </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{lowStockItems.length}</div>
-            <p className="text-xs text-muted-foreground">Need reordering</p>
+            <div className="text-2xl font-bold">{recentAppointments}</div>
+            <p className="text-xs text-muted-foreground">Appointments last 30 days</p>
           </CardContent>
         </Card>
       </div>
