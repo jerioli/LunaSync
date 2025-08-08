@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { useClinic } from '@/contexts/ClinicContext';
 import { toast } from '@/hooks/use-toast';
-import { AlertCircle, ArrowLeft, CheckCircle, Download, Eye, FileText, RefreshCw, Save, Stethoscope, User } from 'lucide-react';
+import { AlertCircle, ArrowLeft, CheckCircle, Download, Eye, FileText, RefreshCw, RotateCcw, Save, Stethoscope, User } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -73,8 +73,6 @@ const DocumentComparison: React.FC = () => {
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const [resultType, setResultType] = useState('');
   const [authorizedBy, setAuthorizedBy] = useState('');
-  const [laboratoryName, setLaboratoryName] = useState('');
-  const [collectionDate, setCollectionDate] = useState('');
   const [isSaving, setSaving] = useState(false);
 
   // Auto-detection states
@@ -84,6 +82,113 @@ const DocumentComparison: React.FC = () => {
     patient: boolean;
     doctor: boolean;
   }>({ patient: false, doctor: false });
+
+  // Enhanced patient matching function from LabResults.tsx (moved inside component)
+  const findPatientFromText = (text: string, detectedName?: string): any | undefined => {
+    if (!patients || patients.length === 0) {
+      console.log('No patients available for matching');
+      return undefined;
+    }
+    
+    const textUpper = text.toUpperCase();
+    const lines = text.split('\n');
+    
+    console.log('Searching for patient in text...');
+    console.log('Text length:', text.length);
+    console.log('Available patients:', patients.map(p => ({ id: p.id, name: p.name })));
+    
+    // Extract potential patient names from structured lines
+    const potentialNames: string[] = [];
+    
+    // Add the detected name if provided
+    if (detectedName) {
+      potentialNames.push(detectedName.toUpperCase());
+    }
+    
+    for (const line of lines) {
+      const trimmed = line.trim();
+      
+      // Look for patient name patterns
+      const patterns = [
+        /(?:patient|name)\s*:?\s*([^\n\r]+)/i,
+        /^(mr|mrs|ms|dr)\.?\s+([a-z\s]+)/i,
+        /name\s*:\s*([^,\n\r]+)/i
+      ];
+      
+      for (const pattern of patterns) {
+        const match = trimmed.match(pattern);
+        if (match) {
+          let extractedName = match[1] || match[2];
+          if (extractedName) {
+            extractedName = extractedName.trim();
+            
+            // Filter out lab/medical terms
+            const excludeTerms = ['pathology', 'medical', 'centre', 'center', 'laboratory', 'lab', 'dr.', 'doctor', 'adithya', 'health', 'clinic'];
+            
+            if (!excludeTerms.some(term => extractedName.toLowerCase().includes(term)) && 
+                extractedName.length > 2 && 
+                extractedName.length < 50) {
+              potentialNames.push(extractedName.toUpperCase());
+              console.log('Extracted potential name:', extractedName);
+            }
+          }
+        }
+      }
+    }
+    
+    // Remove duplicates
+    const uniqueNames = [...new Set(potentialNames)];
+    console.log('Potential patient names found:', uniqueNames);
+    
+    // Match against available patients
+    for (const potentialName of uniqueNames) {
+      for (const patient of patients) {
+        const patientNameUpper = patient.name.toUpperCase();
+        
+        // Exact match
+        if (potentialName === patientNameUpper) {
+          console.log(`Found exact match: ${patient.name} (ID: ${patient.id})`);
+          return patient;
+        }
+        
+        // Contains match (both ways)
+        if (potentialName.includes(patientNameUpper) || patientNameUpper.includes(potentialName)) {
+          console.log(`Found contains match: ${patient.name} (ID: ${patient.id}) with "${potentialName}"`);
+          return patient;
+        }
+      }
+    }
+    
+    // Fallback: search for any patient name directly in text
+    for (const patient of patients) {
+      const nameUpper = patient.name.toUpperCase();
+      if (textUpper.includes(nameUpper)) {
+        console.log(`Found direct text match: ${patient.name} (ID: ${patient.id})`);
+        return patient;
+      }
+    }
+    
+    // Word-by-word matching for partial names
+    for (const patient of patients) {
+      const nameParts = patient.name.toUpperCase().split(' ');
+      let matchCount = 0;
+      
+      for (const part of nameParts) {
+        if (part.length > 2 && textUpper.includes(part)) {
+          matchCount++;
+        }
+      }
+      
+      // Require at least 2 parts to match or 1 long part
+      if (matchCount >= 2 || (matchCount >= 1 && nameParts.some(part => part.length > 5))) {
+        console.log(`Found partial match: ${patient.name} (ID: ${patient.id}) with ${matchCount} matching parts`);
+        return patient;
+      }
+    }
+    
+    console.log('No patient match found');
+    return undefined;
+  };
 
   useEffect(() => {
     // Check if we have the required data
@@ -100,21 +205,19 @@ const DocumentComparison: React.FC = () => {
     // Set the editable text
     setEditableText(state.extractedText);
 
-    // Auto-detect patient and doctor from extracted text
+    // Auto-detect patient and doctor from extracted text with enhanced matching
     const detectedPatient = detectPatientName(state.extractedText);
     const detectedDoctor = detectDoctorName(state.extractedText);
 
     if (detectedPatient) {
       setDetectedPatientName(detectedPatient);
-      // Try to match with existing patients
-      const matchingPatient = patients.find(p => 
-        p.name.toLowerCase().includes(detectedPatient.toLowerCase()) ||
-        detectedPatient.toLowerCase().includes(p.name.toLowerCase())
-      );
+      // Enhanced patient matching logic from LabResults.tsx
+      const matchingPatient = findPatientFromText(state.extractedText, detectedPatient);
       if (matchingPatient) {
         setSelectedPatientId(matchingPatient.id.toString());
         setSelectedPatient(matchingPatient);
         setAutoDetectionResults(prev => ({ ...prev, patient: true }));
+        console.log('Auto-selected patient:', matchingPatient.name, 'ID:', matchingPatient.id);
       }
     }
 
@@ -122,6 +225,30 @@ const DocumentComparison: React.FC = () => {
       setDetectedDoctorName(detectedDoctor);
       setAuthorizedBy(detectedDoctor);
       setAutoDetectionResults(prev => ({ ...prev, doctor: true }));
+      console.log('Auto-extracted doctor:', detectedDoctor);
+    }
+
+    // Enhanced result type detection from LabResults.tsx
+    const resultTypePatterns = [
+      /(HEMATOLOGY|BIOCHEMISTRY|RADIOLOGY|MICROBIOLOGY|URINE\s*ANALYSIS|BLOOD\s*TEST|LAB\s*TEST)/i,
+      /(COMPLETE\s*BLOOD\s*COUNT|CBC|LIVER\s*FUNCTION|KIDNEY\s*FUNCTION)/i
+    ];
+    
+    for (const pattern of resultTypePatterns) {
+      const match = state.extractedText.match(pattern);
+      if (match && match[1]) {
+        let type = match[1].toUpperCase();
+        if (type.includes('URINE')) type = 'Microbiology';
+        else if (type.includes('BLOOD') || type.includes('HEMATOLOGY')) type = 'Hematology';
+        else if (type.includes('BIOCHEMISTRY') || type.includes('CHEMISTRY')) type = 'Chemistry';
+        else if (type.includes('RADIOLOGY')) type = 'Radiology';
+        else if (type.includes('MICROBIOLOGY')) type = 'Microbiology';
+        else type = 'Other';
+        
+        setResultType(type);
+        console.log('Auto-detected result type:', type);
+        break;
+      }
     }
 
     // Pre-fill patient if provided in state
@@ -132,9 +259,6 @@ const DocumentComparison: React.FC = () => {
         setSelectedPatient(patient);
       }
     }
-
-    // Set today's date as default collection date
-    setCollectionDate(new Date().toISOString().split('T')[0]);
 
     // Create object URL for the uploaded image
     const imageUrl = URL.createObjectURL(state.originalFile);
@@ -152,20 +276,18 @@ const DocumentComparison: React.FC = () => {
     setEditableText(newText);
     setHasChanges(newText !== state.extractedText);
 
-    // Re-run auto-detection on text changes
+    // Re-run auto-detection on text changes with enhanced matching
     const detectedPatient = detectPatientName(newText);
     const detectedDoctor = detectDoctorName(newText);
 
     if (detectedPatient && detectedPatient !== detectedPatientName) {
       setDetectedPatientName(detectedPatient);
-      const matchingPatient = patients.find(p => 
-        p.name.toLowerCase().includes(detectedPatient.toLowerCase()) ||
-        detectedPatient.toLowerCase().includes(p.name.toLowerCase())
-      );
+      const matchingPatient = findPatientFromText(newText, detectedPatient);
       if (matchingPatient) {
         setSelectedPatientId(matchingPatient.id.toString());
         setSelectedPatient(matchingPatient);
         setAutoDetectionResults(prev => ({ ...prev, patient: true }));
+        console.log('Re-detected patient:', matchingPatient.name, 'ID:', matchingPatient.id);
       }
     }
 
@@ -173,6 +295,7 @@ const DocumentComparison: React.FC = () => {
       setDetectedDoctorName(detectedDoctor);
       setAuthorizedBy(detectedDoctor);
       setAutoDetectionResults(prev => ({ ...prev, doctor: true }));
+      console.log('Re-detected doctor:', detectedDoctor);
     }
   };
 
@@ -192,11 +315,11 @@ const DocumentComparison: React.FC = () => {
   };
 
   const handleSaveLabResult = async () => {
-    // Validation
+    // Validation - match LabResults.tsx required fields
     if (!selectedPatientId) {
       toast({
-        title: "Validation Error",
-        description: "Please select a patient.",
+        title: "Missing Information",
+        description: "Please fill in all required fields",
         variant: "destructive",
       });
       return;
@@ -204,17 +327,8 @@ const DocumentComparison: React.FC = () => {
 
     if (!resultType) {
       toast({
-        title: "Validation Error",
-        description: "Please select a result type.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!authorizedBy) {
-      toast({
-        title: "Validation Error",
-        description: "Please enter the authorizing doctor.",
+        title: "Missing Information",
+        description: "Please fill in all required fields",
         variant: "destructive",
       });
       return;
@@ -223,39 +337,120 @@ const DocumentComparison: React.FC = () => {
     setSaving(true);
 
     try {
-      // Use the old lab results endpoint with simplified structure
+      console.log('=== LAB RESULT SAVE DEBUG START ===');
+      console.log('Saving lab result...');
+      console.log('Selected patient ID:', selectedPatientId);
+      console.log('Selected patient object:', selectedPatient);
+      console.log('Result type:', resultType);
+      console.log('Authorized by:', authorizedBy);
+      console.log('Editable text length:', editableText?.length);
+      console.log('Original file:', state.originalFile?.name, state.originalFile?.size, 'bytes');
+
+      // Validate required fields before creating FormData
+      const requiredFields = {
+        patient: selectedPatientId,
+        test_name: resultType,
+        test_category: resultType.toLowerCase(),
+        specimen_type: resultType.includes('Urine') || resultType.includes('Microbiology') ? 'urine' : 'blood',
+        laboratory_name: 'Health Nexus Lab',
+        lab_reference_number: `LAB-${Date.now()}`,
+        collection_date: new Date().toISOString().split('T')[0],
+        received_date: new Date().toISOString().split('T')[0],
+        reported_date: new Date().toISOString().split('T')[0],
+        test_results: JSON.stringify([]),
+        interpretation: 'Automated extraction from Google Colab algorithms',
+        processing_notes: 'Processed via Google Colab algorithms with AWS Textract OCR system'
+      };
+      
+      console.log('Required fields validation:', requiredFields);
+
+      // Use the exact same FormData structure as LabResults.tsx
       const formData = new FormData();
       formData.append('patient', selectedPatientId);
-      formData.append('title', `${resultType} - ${selectedPatient?.name}`);
+      formData.append('title', `${resultType} Lab Result`);
+      formData.append('description', `${resultType} test results processed via Google Colab algorithms`);
       formData.append('content', editableText);
-      formData.append('document_date', collectionDate);
+      formData.append('document_date', new Date().toISOString().split('T')[0]);
       formData.append('status', 'completed');
+      formData.append('urgency', 'normal');
+      
+      // Lab result specific fields - required (matching LabResults.tsx exactly)
       formData.append('test_name', resultType);
-      formData.append('test_category', resultType);
-      formData.append('specimen_type', 'Lab Sample');
-      formData.append('laboratory_name', laboratoryName || 'Lab Analysis');
-      formData.append('collection_date', collectionDate);
-      formData.append('authorized_by', authorizedBy);
-      formData.append('processing_notes', `Processed via AWS Textract Document Scanner with manual review and correction. Original file: ${state.originalFile.name} (${(state.originalFile.size / 1024).toFixed(1)} KB). Extraction method: AWS Textract + Manual Review. Auto-detected: Patient=${autoDetectionResults.patient ? 'Yes' : 'No'}, Doctor=${autoDetectionResults.doctor ? 'Yes' : 'No'}.`);
+      formData.append('test_category', resultType.toLowerCase());
+      formData.append('specimen_type', resultType.includes('Urine') || resultType.includes('Microbiology') ? 'urine' : 'blood');
+      formData.append('laboratory_name', 'Health Nexus Lab'); // documentDetails?.laboratoryName || 'Health Nexus Lab' - keeping simple for now
+      formData.append('lab_reference_number', `LAB-${Date.now()}`);
+      formData.append('collection_date', new Date().toISOString().split('T')[0]); // documentDetails?.testDate logic could be added later
+      formData.append('received_date', new Date().toISOString().split('T')[0]);
+      formData.append('reported_date', new Date().toISOString().split('T')[0]);
+      formData.append('test_results', JSON.stringify([])); // extractedTestResults.length > 0 ? extractedTestResults : [] - keeping simple for now
+      formData.append('interpretation', 'Automated extraction from Google Colab algorithms'); // matches LabResults.tsx when no test results
+      formData.append('processing_notes', 'Processed via Google Colab algorithms with AWS Textract OCR system');
+      
+      // Only add authorized_by if we have a value
+      if (authorizedBy && authorizedBy.trim()) {
+        formData.append('authorized_by', authorizedBy.trim());
+      }
       
       // Include the original file
       formData.append('document', state.originalFile);
 
+      // Log FormData contents for debugging
+      console.log('=== DETAILED FORMDATA DEBUG ===');
+      console.log('FormData contents:');
+      for (let [key, value] of formData.entries()) {
+        if (value instanceof File) {
+          console.log(`${key}: [File] ${value.name} (${value.size} bytes, ${value.type})`);
+        } else {
+          console.log(`${key}: ${value}`);
+        }
+      }
+      console.log('=== END FORMDATA DEBUG ===');
+
+      console.log('Making request to:', 'http://localhost:8000/api/medical-documents/lab-results/');
+      
       const response = await fetch('http://localhost:8000/api/medical-documents/lab-results/', {
         method: 'POST',
         body: formData,
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Network error' }));
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+        // Get the actual error response from the server
+        console.log('=== SERVER ERROR RESPONSE DEBUG ===');
+        console.log('Response status:', response.status);
+        console.log('Response statusText:', response.statusText);
+        
+        let errorData;
+        const contentType = response.headers.get('content-type');
+        console.log('Response content-type:', contentType);
+        
+        try {
+          if (contentType && contentType.includes('application/json')) {
+            errorData = await response.json();
+            console.log('Server JSON error response:', JSON.stringify(errorData, null, 2));
+          } else {
+            errorData = await response.text();
+            console.log('Server text error response:', errorData);
+          }
+        } catch (parseError) {
+          console.log('Error parsing server response:', parseError);
+          errorData = `Failed to parse server response. Status: ${response.status}`;
+        }
+        console.log('=== END SERVER ERROR DEBUG ===');
+        
+        throw new Error(errorData?.error || errorData || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const savedLabResult = await response.json();
+      console.log('Lab result saved successfully:', savedLabResult);
+      console.log('=== LAB RESULT SAVE DEBUG END ===');
       
       toast({
-        title: "Lab Result Saved",
-        description: `Lab result for ${selectedPatient?.name} has been saved successfully.`,
+        title: "Success",
+        description: `Lab result saved to ${selectedPatient?.name}'s medical record successfully!`,
       });
 
       // Navigate back to lab results
@@ -268,7 +463,21 @@ const DocumentComparison: React.FC = () => {
       });
 
     } catch (error) {
+      console.log('=== ERROR DEBUG START ===');
       console.error('Error saving lab result:', error);
+      
+      if (error instanceof Error) {
+        console.log('Error message:', error.message);
+        console.log('Error stack:', error.stack);
+      }
+      
+      console.log('Current form state:');
+      console.log('- selectedPatientId:', selectedPatientId);
+      console.log('- resultType:', resultType);
+      console.log('- authorizedBy:', authorizedBy);
+      console.log('- editableText length:', editableText?.length);
+      console.log('=== ERROR DEBUG END ===');
+      
       toast({
         title: "Save Error",
         description: `Failed to save lab result: ${error instanceof Error ? error.message : 'Please try again.'}`,
@@ -331,9 +540,9 @@ const DocumentComparison: React.FC = () => {
               <h3>Patient Information</h3>
               <p><strong>Patient:</strong> ${selectedPatient?.name || 'Not selected'}</p>
               <p><strong>Test Type:</strong> ${resultType || 'Not specified'}</p>
-              <p><strong>Collection Date:</strong> ${collectionDate}</p>
+             
               <p><strong>Authorized By:</strong> ${authorizedBy || 'Not specified'}</p>
-              <p><strong>Laboratory:</strong> ${laboratoryName || 'Not specified'}</p>
+            
             </div>
             <div class="content">
               <h3>Test Results</h3>
@@ -351,9 +560,9 @@ const DocumentComparison: React.FC = () => {
     const content = `Lab Result Report
 Patient: ${selectedPatient?.name || 'Not selected'}
 Test Type: ${resultType || 'Not specified'}
-Collection Date: ${collectionDate}
+
 Authorized By: ${authorizedBy || 'Not specified'}
-Laboratory: ${laboratoryName || 'Not specified'}
+
 
 Results:
 ${editableText}
@@ -416,15 +625,16 @@ ${editableText}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Original Document */}
+      {/* Enhanced Original Document and Extracted Text Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Original Document - Enlarged */}
         <Card className="h-fit">
-          <CardHeader>
+          <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
-              <Eye className="h-5 w-5" />
-              Original Document
+              <Eye className="h-4 w-4" />
+              <span className="text-sm font-medium">Original Document</span>
             </CardTitle>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               File: {state.originalFile.name} ({(state.originalFile.size / 1024).toFixed(1)} KB)
             </p>
           </CardHeader>
@@ -433,7 +643,7 @@ ${editableText}
               <img
                 src={originalImageUrl}
                 alt="Original Document"
-                className="w-full h-auto border rounded-lg shadow-sm max-h-[500px] object-contain"
+                className="w-full h-auto border rounded-lg shadow-sm max-h-[700px] object-contain"
                 style={{ backgroundColor: '#f8f9fa' }}
               />
               <div className="absolute top-2 right-2">
@@ -449,25 +659,25 @@ ${editableText}
           </CardContent>
         </Card>
 
-        {/* Extracted Text */}
+        {/* Extracted Text - Enlarged */}
         <Card className="h-fit">
-          <CardHeader>
+          <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <RefreshCw className="h-5 w-5" />
-                Extracted Text
+                <RefreshCw className="h-4 w-4" />
+                <span className="text-sm font-medium">Extracted Text</span>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={handleResetText}>
-                  <RefreshCw className="h-4 w-4 mr-1" />
+                <Button variant="outline" size="sm" onClick={handleResetText} disabled={!hasChanges}>
+                  <RotateCcw className="h-3 w-3 mr-1" />
                   Reset
                 </Button>
                 <Button variant="outline" size="sm" onClick={handlePreview}>
-                  <Eye className="h-4 w-4 mr-1" />
+                  <Eye className="h-3 w-3 mr-1" />
                   Preview
                 </Button>
                 <Button variant="outline" size="sm" onClick={downloadCorrectedText}>
-                  <Download className="h-4 w-4 mr-1" />
+                  <Download className="h-3 w-3 mr-1" />
                   Download
                 </Button>
               </div>
@@ -478,54 +688,58 @@ ${editableText}
               value={editableText}
               onChange={(e) => handleTextChange(e.target.value)}
               placeholder="Extracted text will appear here..."
-              className="min-h-[300px] font-mono text-sm"
-              style={{ resize: 'vertical' }}
+              className="min-h-[600px] font-mono text-sm leading-relaxed overflow-x-auto whitespace-nowrap"
+              style={{ resize: 'vertical', overflowX: 'auto', whiteSpace: 'pre' }}
             />
-            <div className="flex items-center justify-between text-sm text-muted-foreground mt-2">
+            <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
               <span>Characters: {editableText.length}</span>
               <span>Lines: {editableText.split('\n').length}</span>
             </div>
           </CardContent>
         </Card>
+      </div>
 
-        {/* Lab Result Form */}
-        <Card className="h-fit">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Lab Result Information
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Complete the form to save the lab result
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-4">
+      {/* Lab Result Information Form - Moved to Bottom */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Lab Result Information
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Complete the form to save the lab result
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Auto-Detection Results */}
             {(detectedPatientName || detectedDoctorName) && (
-              <Alert>
-                <CheckCircle className="h-4 w-4" />
-                <AlertDescription>
-                  <div className="space-y-1">
-                    <strong>Auto-detected information:</strong>
-                    {detectedPatientName && (
-                      <div className="flex items-center gap-2">
-                        <Badge variant={autoDetectionResults.patient ? "default" : "secondary"} className="text-xs">
-                          Patient: {detectedPatientName}
-                          {autoDetectionResults.patient && <CheckCircle className="h-3 w-3 ml-1" />}
-                        </Badge>
-                      </div>
-                    )}
-                    {detectedDoctorName && (
-                      <div className="flex items-center gap-2">
-                        <Badge variant={autoDetectionResults.doctor ? "default" : "secondary"} className="text-xs">
-                          Doctor: {detectedDoctorName}
-                          {autoDetectionResults.doctor && <CheckCircle className="h-3 w-3 ml-1" />}
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-                </AlertDescription>
-              </Alert>
+              <div className="col-span-full">
+                <Alert>
+                  <CheckCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="space-y-1">
+                      <strong>Auto-detected information:</strong>
+                      {detectedPatientName && (
+                        <div className="flex items-center gap-2">
+                          <Badge variant={autoDetectionResults.patient ? "default" : "secondary"} className="text-xs">
+                            Patient: {detectedPatientName}
+                            {autoDetectionResults.patient && <CheckCircle className="h-3 w-3 ml-1" />}
+                          </Badge>
+                        </div>
+                      )}
+                      {detectedDoctorName && (
+                        <div className="flex items-center gap-2">
+                          <Badge variant={autoDetectionResults.doctor ? "default" : "secondary"} className="text-xs">
+                            Doctor: {detectedDoctorName}
+                            {autoDetectionResults.doctor && <CheckCircle className="h-3 w-3 ml-1" />}
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              </div>
             )}
 
             {/* Patient Selection */}
@@ -542,7 +756,7 @@ ${editableText}
                 <SelectContent>
                   {patients.map((patient) => (
                     <SelectItem key={patient.id} value={patient.id.toString()}>
-                      {patient.name} - {patient.email}
+                      {patient.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -557,24 +771,23 @@ ${editableText}
 
             {/* Result Type */}
             <div className="space-y-2">
-              <Label>Test Type *</Label>
+              <Label className="flex items-center gap-2">
+                Test Type *
+                {resultType && (
+                  <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full">
+                    Auto-detected
+                  </span>
+                )}
+              </Label>
               <Select value={resultType} onValueChange={setResultType}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select test type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Blood Chemistry">Blood Chemistry</SelectItem>
-                  <SelectItem value="Complete Blood Count">Complete Blood Count</SelectItem>
-                  <SelectItem value="Lipid Profile">Lipid Profile</SelectItem>
-                  <SelectItem value="Liver Function Test">Liver Function Test</SelectItem>
-                  <SelectItem value="Kidney Function Test">Kidney Function Test</SelectItem>
-                  <SelectItem value="Thyroid Function Test">Thyroid Function Test</SelectItem>
-                  <SelectItem value="Urinalysis">Urinalysis</SelectItem>
-                  <SelectItem value="X-Ray">X-Ray</SelectItem>
-                  <SelectItem value="CT Scan">CT Scan</SelectItem>
-                  <SelectItem value="MRI">MRI</SelectItem>
-                  <SelectItem value="Ultrasound">Ultrasound</SelectItem>
-                  <SelectItem value="ECG">ECG</SelectItem>
+                  <SelectItem value="Hematology">Hematology</SelectItem>
+                  <SelectItem value="Chemistry">Chemistry</SelectItem>
+                  <SelectItem value="Radiology">Radiology</SelectItem>
+                  <SelectItem value="Microbiology">Microbiology</SelectItem>
                   <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
@@ -585,56 +798,21 @@ ${editableText}
               <Label className="flex items-center gap-2">
                 <Stethoscope className="h-4 w-4" />
                 Authorized By *
-                {autoDetectionResults.doctor && <CheckCircle className="h-4 w-4 text-green-600" />}
+                {authorizedBy && autoDetectionResults.doctor && (
+                  <span className="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 rounded-full">
+                    Auto-extracted
+                  </span>
+                )}
               </Label>
-              <Select value={authorizedBy} onValueChange={setAuthorizedBy}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select doctor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {detectedDoctorName && (
-                    <SelectItem value={detectedDoctorName}>
-                      {detectedDoctorName} (Auto-detected)
-                    </SelectItem>
-                  )}
-                  {users.filter(user => user.role === 'doctor').map((doctor) => (
-                    <SelectItem key={doctor.id} value={`Dr. ${doctor.first_name} ${doctor.last_name}`}>
-                      Dr. {doctor.first_name} {doctor.last_name}
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="custom">Enter custom name</SelectItem>
-                </SelectContent>
-              </Select>
-              {authorizedBy === 'custom' && (
-                <Input
-                  placeholder="Enter doctor name"
-                  onChange={(e) => setAuthorizedBy(e.target.value)}
-                />
-              )}
-            </div>
-
-            {/* Laboratory Name */}
-            <div className="space-y-2">
-              <Label>Laboratory Name</Label>
               <Input
-                value={laboratoryName}
-                onChange={(e) => setLaboratoryName(e.target.value)}
-                placeholder="e.g., Central Laboratory"
+                value={authorizedBy}
+                onChange={(e) => setAuthorizedBy(e.target.value)}
+                placeholder="Enter doctor name"
               />
             </div>
-
-            {/* Collection Date */}
-            <div className="space-y-2">
-              <Label>Collection Date</Label>
-              <Input
-                type="date"
-                value={collectionDate}
-                onChange={(e) => setCollectionDate(e.target.value)}
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Separator className="my-6" />
 
@@ -646,7 +824,7 @@ ${editableText}
         
         <Button
           onClick={handleSaveLabResult}
-          disabled={isSaving || !selectedPatientId || !resultType || !authorizedBy}
+          disabled={isSaving || !selectedPatientId || !resultType}
           className="min-w-[140px]"
         >
           {isSaving ? (

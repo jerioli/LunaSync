@@ -4,15 +4,12 @@ import ExportButton from '@/components/ExportButton';
 import OCRVisualizer from '@/components/OCRVisualizer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useClinic } from '@/contexts/ClinicContext';
 import { toast } from '@/hooks/use-toast';
-import { medicalDocumentsAPI, type CreateLabResultRequest, type LabTestResult } from '@/services/medicalDocumentsAPI';
-import { Edit, FileText, Image, Loader2, PlusCircle, Search, Upload } from 'lucide-react';
+import { type LabTestResult } from '@/services/medicalDocumentsAPI';
+import { Edit, FileText, Image, Loader2, Search, Upload } from 'lucide-react';
 import React, { useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -85,11 +82,6 @@ const LabResults = () => {
   const [ocrExtractedText, setOcrExtractedText] = useState<string | null>(null);
   const [matchedPatientId, setMatchedPatientId] = useState<string | undefined>(undefined);
   const [authorizedBy, setAuthorizedBy] = useState<string | undefined>(undefined);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedPatient, setSelectedPatient] = useState('');
-  const [resultType, setResultType] = useState('');
-  const [resultNotes, setResultNotes] = useState('');
-  const [resultAuthorizedBy, setResultAuthorizedBy] = useState('');
   const [extractedTestResults, setExtractedTestResults] = useState<LabTestResult[]>([]);
   const [documentDetails, setDocumentDetails] = useState<any>(null);
   
@@ -296,16 +288,11 @@ const LabResults = () => {
   
   // Reset form function
   const resetForm = () => {
-    setSelectedPatient('');
-    setResultType('');
-    setResultNotes('');
-    setResultAuthorizedBy('');
     setOcrExtractedText(null);
     setMatchedPatientId(undefined);
     setAuthorizedBy(undefined);
     setExtractedTestResults([]);
     setDocumentDetails(null);
-    setIsDialogOpen(false);
     setUploadedFile(null);
     setProcessedBlocks([]);
     setEditableText('');
@@ -494,208 +481,6 @@ const LabResults = () => {
     return undefined;
   };
   
-  const handleEditAndAdd = () => {
-    // Use the raw Google Colab extracted text for saving to preserve exact formatting
-    const textToUse = ocrExtractedText; // Always use the raw extraction output, not the edited version
-    if (textToUse) {
-      // Enhanced patient matching with better fallback logic
-      let selectedPatientId = '';
-      
-      if (matchedPatientId) {
-        selectedPatientId = matchedPatientId;
-        console.log('Using matched patient ID from OCR:', matchedPatientId);
-      } else {
-        // Try to find patient again as fallback
-        const foundPatientId = findPatientFromText(textToUse);
-        if (foundPatientId) {
-          selectedPatientId = foundPatientId;
-          console.log('Found patient on edit:', foundPatientId);
-        }
-      }
-      
-      // Verify the patient exists in the current patient list
-      if (selectedPatientId) {
-        const patientExists = patients.find(p => p.id === selectedPatientId);
-        if (patientExists) {
-          setSelectedPatient(selectedPatientId);
-          console.log('Auto-selected patient:', patientExists.name, 'ID:', selectedPatientId);
-        } else {
-          console.log('Patient ID not found in current patient list:', selectedPatientId);
-          setSelectedPatient('');
-        }
-      } else {
-        console.log('No patient match found, clearing selection');
-        setSelectedPatient('');
-      }
-      
-      // Extract result type from OCR text
-      const resultTypePatterns = [
-        /(HEMATOLOGY|BIOCHEMISTRY|RADIOLOGY|MICROBIOLOGY|URINE\s*ANALYSIS|BLOOD\s*TEST|LAB\s*TEST)/i,
-        /(COMPLETE\s*BLOOD\s*COUNT|CBC|LIVER\s*FUNCTION|KIDNEY\s*FUNCTION)/i
-      ];
-      
-      for (const pattern of resultTypePatterns) {
-        const match = textToUse.match(pattern);
-        if (match && match[1]) {
-          let type = match[1].toUpperCase();
-          if (type.includes('URINE')) type = 'Microbiology';
-          else if (type.includes('BLOOD') || type.includes('HEMATOLOGY')) type = 'Hematology';
-          else if (type.includes('BIOCHEMISTRY') || type.includes('CHEMISTRY')) type = 'Chemistry';
-          else if (type.includes('RADIOLOGY')) type = 'Radiology';
-          else if (type.includes('MICROBIOLOGY')) type = 'Microbiology';
-          else type = 'Other';
-          
-          setResultType(type);
-          console.log('Auto-selected result type:', type);
-          break;
-        }
-      }
-      
-      setResultNotes(textToUse);
-      
-      if (authorizedBy) {
-        setResultAuthorizedBy(authorizedBy);
-        console.log('Auto-filled authorized by:', authorizedBy);
-      } else {
-        // Try to extract doctor name from text
-        const doctorName = extractDoctorName(textToUse);
-        if (doctorName) {
-          setResultAuthorizedBy(doctorName);
-          console.log('Auto-extracted doctor name:', doctorName);
-        }
-      }
-      
-      setIsDialogOpen(true);
-    }
-  };
-  
-  const handleSaveResult = async () => {
-    if (!selectedPatient || !resultType) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      // Prepare the lab result data for the medical documents API - minimal version to avoid validation errors
-      const labResultData: CreateLabResultRequest = {
-        // Patient - keep only required fields initially
-        patient: selectedPatient,
-        
-        // Only add authorized_by if we have a valid doctor name (not ID)
-        ...(resultAuthorizedBy && { authorized_by: resultAuthorizedBy }),
-        
-        // Document fields - required - Use raw Google Colab extracted text for consistent formatting
-        title: `${resultType} Lab Result`,
-        description: `${resultType} test results processed via Google Colab algorithms`,
-        content: ocrExtractedText || resultNotes, // Use raw extraction text to preserve Google Colab formatting
-        document_date: new Date().toISOString().split('T')[0],
-        status: 'completed',
-        urgency: 'normal',
-        
-        // Lab result specific fields - required
-        test_name: resultType,
-        test_category: resultType.toLowerCase(),
-        specimen_type: resultType.includes('Urine') || resultType.includes('Microbiology') ? 'urine' : 'blood',
-        laboratory_name: documentDetails?.laboratoryName || 'Health Nexus Lab',
-        lab_reference_number: `LAB-${Date.now()}`,
-        collection_date: documentDetails?.testDate ? new Date(documentDetails.testDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        received_date: new Date().toISOString().split('T')[0],
-        reported_date: new Date().toISOString().split('T')[0],
-        test_results: extractedTestResults.length > 0 ? extractedTestResults : [],
-        interpretation: extractedTestResults.length > 0 ? 'Automated extraction from Google Colab algorithms' : 'Manual entry',
-        processing_notes: 'Processed via Google Colab algorithms with AWS Textract OCR system'
-      };
-
-      console.log('Saving lab result to medical documents API:', JSON.stringify(labResultData, null, 2));
-      console.log('Current user:', currentUser);
-      console.log('Selected patient:', selectedPatient);
-      console.log('Result authorized by:', resultAuthorizedBy);
-
-      // Save to medical documents API
-      const savedLabResult = await medicalDocumentsAPI.createLabResult(labResultData);
-      console.log('Lab result saved successfully:', savedLabResult);
-
-      // Also add to local context for immediate UI update
-      if (addLabResult) {
-        const contextLabResult = {
-          id: savedLabResult.id,
-          patientId: selectedPatient,
-          type: resultType,
-          date: new Date().toISOString(),
-          notes: ocrExtractedText || resultNotes, // Use raw Google Colab extracted text
-          authorizedBy: resultAuthorizedBy,
-          testResults: extractedTestResults,
-          resultUrl: '', // Add missing property for context compatibility
-        };
-        addLabResult(contextLabResult);
-      }
-      
-      toast({
-        title: "Success",
-        description: `Lab result saved to ${patients.find(p => p.id === selectedPatient)?.name}'s medical record successfully!`,
-      });
-      
-      // Reset form
-      resetForm();
-
-    } catch (error) {
-      console.error('Error saving lab result:', error);
-      
-      // Check if it's a validation error and provide specific feedback
-      if (error instanceof Error && error.message.includes('Validation Error')) {
-        toast({
-          title: "Validation Error",
-          description: `Please check the data format: ${error.message}`,
-          variant: "destructive",
-        });
-        return; // Don't try fallback for validation errors
-      }
-      
-      // Fallback to local storage and context if API fails
-      try {
-        if (addLabResult) {
-          const fallbackResult = {
-            id: Date.now().toString(),
-            patientId: selectedPatient,
-            type: resultType,
-            date: new Date().toISOString(),
-            notes: ocrExtractedText || resultNotes, // Use raw Google Colab extracted text
-            authorizedBy: resultAuthorizedBy,
-            testResults: extractedTestResults,
-            resultUrl: '',
-          };
-          addLabResult(fallbackResult);
-          
-          // Also save to localStorage as backup
-          const storageKey = `labresults_patient_${selectedPatient}`;
-          const existingResults = localStorage.getItem(storageKey);
-          const results = existingResults ? JSON.parse(existingResults) : [];
-          results.push(fallbackResult);
-          localStorage.setItem(storageKey, JSON.stringify(results));
-          
-          toast({
-            title: "Warning",
-            description: "Lab result saved locally. API connection failed but data is preserved.",
-            variant: "default",
-          });
-          
-          resetForm();
-        }
-      } catch (fallbackError) {
-        console.error('Fallback save also failed:', fallbackError);
-        toast({
-          title: "Error",
-          description: `Failed to save lab result: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          variant: "destructive",
-        });
-      }
-    }
-  };
-  
   const filteredResults = labResults.filter(result => {
     const patient = patients.find(p => p.id === result.patientId);
     const matchesSearch = 
@@ -745,100 +530,6 @@ const LabResults = () => {
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
-                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button>
-                        <PlusCircle className="h-4 w-4 mr-2" />
-                        Add Result
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Add New Lab Result</DialogTitle>
-                        <DialogDescription>
-                          Enter the details for the new lab result
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="patient" className="flex items-center gap-2">
-                            Patient
-                            {selectedPatient && (
-                              <span className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full">
-                                Auto-selected
-                              </span>
-                            )}
-                          </Label>
-                          <Select value={selectedPatient} onValueChange={setSelectedPatient}>
-                            <SelectTrigger id="patient">
-                              <SelectValue placeholder="Select patient" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {patients.map((patient) => (
-                                <SelectItem key={patient.id} value={patient.id}>
-                                  {patient.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="type" className="flex items-center gap-2">
-                            Result Type
-                            {resultType && (
-                              <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full">
-                                Auto-detected
-                              </span>
-                            )}
-                          </Label>
-                          <Select value={resultType} onValueChange={setResultType}>
-                            <SelectTrigger id="type">
-                              <SelectValue placeholder="Select result type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Hematology">Hematology</SelectItem>
-                              <SelectItem value="Chemistry">Chemistry</SelectItem>
-                              <SelectItem value="Radiology">Radiology</SelectItem>
-                              <SelectItem value="Microbiology">Microbiology</SelectItem>
-                              <SelectItem value="Other">Other</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="authorizedBy" className="flex items-center gap-2">
-                            Authorized By
-                            {resultAuthorizedBy && (
-                              <span className="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 rounded-full">
-                                Auto-extracted
-                              </span>
-                            )}
-                          </Label>
-                          <Input
-                            id="authorizedBy"
-                            value={resultAuthorizedBy}
-                            onChange={(e) => setResultAuthorizedBy(e.target.value)}
-                            placeholder="Enter doctor name"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="notes">Result Notes</Label>
-                          <textarea
-                            id="notes"
-                            className="min-h-[150px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                            placeholder="Enter result details"
-                            value={resultNotes}
-                            onChange={(e) => setResultNotes(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                          Cancel
-                        </Button>
-                        <Button onClick={handleSaveResult}>Save Result</Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
                 </div>
               </div>
             </CardHeader>
@@ -1025,9 +716,6 @@ const LabResults = () => {
                   )}
                   
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={handleEditAndAdd}>
-                      Edit & Add to Lab Results
-                    </Button>
                     <Button 
                       variant="outline" 
                       size="sm"
