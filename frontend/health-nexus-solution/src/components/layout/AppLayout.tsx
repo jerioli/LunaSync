@@ -1,4 +1,3 @@
-
 import React, { ReactNode } from 'react';
 import { Sidebar, SidebarContent, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useClinic } from '@/contexts/ClinicContext';

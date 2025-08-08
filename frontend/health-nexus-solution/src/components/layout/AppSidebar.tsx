@@ -20,7 +20,8 @@ import {
   SidebarHeader, 
   SidebarMenu, 
   SidebarMenuItem, 
-  SidebarMenuButton
+  SidebarMenuButton,
+  useSidebar // Add this import
 } from '@/components/ui/sidebar';
 import { useClinic } from '@/contexts/ClinicContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -29,6 +30,7 @@ import { cn } from '@/lib/utils';
 export const AppSidebar = () => {
   const { currentUser } = useClinic();
   const location = useLocation();
+  const { setOpenMobile } = useSidebar(); // Add this hook
 
   if (!currentUser) return null;
   const getMenuItems = () => {
@@ -64,10 +66,14 @@ export const AppSidebar = () => {
 
   const menuItems = getMenuItems();
 
+  const handleMenuClick = () => {
+    setOpenMobile(false); // Close sidebar on menu click
+  };
+
   return (
     <Sidebar>
       <SidebarHeader className="flex flex-col items-center gap-2 p-4">
-        <div className="text-xl font-bold text-clinic-blue">MedSync</div>
+        <div className="text-xl font-bold text-[#79c942]">MDSync</div>
         <div className="flex items-center gap-2 mt-2">
           <Avatar>
             <AvatarImage src={currentUser.image} alt={currentUser.name} />
@@ -90,9 +96,10 @@ export const AppSidebar = () => {
                     <Link 
                       to={item.path} 
                       className={cn(
-                        "flex items-center gap-2",
-                        location.pathname === item.path ? "bg-accent text-accent-foreground" : ""
+                        "flex items-center gap-2 hover:bg-[#79c942] hover:text-black",
+                        location.pathname === item.path ? "bg-[#79c942] text-black" : ""
                       )}
+                      onClick={handleMenuClick} // Add onClick handler
                     >
                       <item.icon className="h-5 w-5" />
                       <span>{item.title}</span>
