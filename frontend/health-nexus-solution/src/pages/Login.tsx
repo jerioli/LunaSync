@@ -11,8 +11,17 @@ import { Eye, EyeOff, Mail, Phone, Shield } from 'lucide-react';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { cn } from "@/lib/utils";
+import { AuthCard, AuthCardBack, AuthCardFront } from '@/components/auth/AuthCard';
 
 const API_BASE_URL = 'http://localhost:8000/api';
+
+const flipCardStyles = {
+  wrapper: "relative w-full perspective-1000",
+  inner: "relative w-full h-full transition-transform duration-500 transform-style-preserve-3d",
+  front: "absolute w-full backface-hidden",
+  back: "absolute w-full backface-hidden rotate-y-180"  
+};
 
 const Login = () => {
   // Traditional login states
@@ -28,6 +37,7 @@ const Login = () => {
   const [isOtpMode, setIsOtpMode] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [activeTab, setActiveTab] = useState('password');
+  const [isFlipped, setIsFlipped] = useState(false);
   
   const { setCurrentUser } = useClinic();
   const navigate = useNavigate();
@@ -150,6 +160,14 @@ const Login = () => {
     }
   };
 
+  const handleForgotPassword = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsFlipped(true);
+    setTimeout(() => {
+      navigate('/forgot-password');
+    }, 200); // Wait for flip animation
+  };
+
   // If in OTP verification mode, show OTP component
   if (isOtpMode) {
     return (
@@ -163,48 +181,39 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-clinic-gray dark:bg-gray-900 relative">
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-clinic-blue opacity-10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-clinic-teal opacity-10 rounded-full blur-3xl" />
-      </div>
-      <div className="w-full max-w-md px-4">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-clinic-blue">MedSync</h1>
-          <p className="text-gray-500">Staff Login Portal</p>
-        </div>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Login</CardTitle>
-            <CardDescription>Choose your preferred login method</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="password" className="flex items-center gap-2">
-                  <Shield className="h-4 w-4" />
-                  Password
-                </TabsTrigger>
-                <TabsTrigger value="otp" className="flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  OTP
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="password" className="space-y-4 mt-6">
+    <div 
+      className="min-h-screen"
+      style={{
+        background: "linear-gradient(to bottom, #fff 0%, #79c942 300%)",
+      }}
+    >
+    <AuthCard isFlipped={isFlipped}>
+      <AuthCardFront>
+          <div className="w-full max-w-md px-4">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-[#79c942]">MDSync</h1>
+              <p className="text-gray-500">Staff Login Portal</p>
+            </div>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Login</CardTitle>
+                <CardDescription>Enter your credentials to continue</CardDescription>
+              </CardHeader>
+              <CardContent>
                 <form onSubmit={handleLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                  <div className="space-y-2 text-left">
+                    <Label htmlFor="email">Email or Username</Label>
                     <Input 
                       id="email" 
-                      placeholder="Enter your email"
+                      placeholder="Enter your email or username"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      className="focus-visible:ring-[#79c942] focus-visible:ring-2 focus-visible:ring-offset-2"
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 text-left">
                     <Label htmlFor="password">Password</Label>
                     <div className="relative">
                       <Input 
@@ -214,68 +223,39 @@ const Login = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        className="focus-visible:ring-[#79c942] focus-visible:ring-2 focus-visible:ring-offset-2"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#79c942] transition-colors"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
                     <div className="flex justify-end">
-                      <Link 
-                        to="/forgot-password" 
-                        className="text-sm text-clinic-blue hover:text-clinic-blue/80"
+                      <Button 
+                        variant="link"
+                        className="text-[#79c942] hover:text-[#68ab38] underline-offset-4 hover:underline"
+                        onClick={handleForgotPassword}
                       >
                         Forgot password?
-                      </Link>
+                      </Button>
                     </div>
                   </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-[#79c942] hover:bg-[#68ab38] text-white transition-colors" 
+                    disabled={isLoading}
+                  >
                     {isLoading ? 'Logging in...' : 'Login'}
                   </Button>
                 </form>
-              </TabsContent>
-              
-              <TabsContent value="otp" className="space-y-4 mt-6">
-                <form onSubmit={handleSendOTP} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="identifier">
-                      Email or Phone Number
-                    </Label>
-                    <div className="relative">
-                      <Input 
-                        id="identifier" 
-                        placeholder="Enter your email or phone number"
-                        value={otpIdentifier}
-                        onChange={(e) => handleIdentifierChange(e.target.value)}
-                        required
-                      />
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                        {identifierType === 'email' ? (
-                          <Mail className="h-4 w-4" />
-                        ) : (
-                          <Phone className="h-4 w-4" />
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {identifierType === 'email' 
-                        ? 'We\'ll send a verification code to your email' 
-                        : 'We\'ll send a verification code via SMS'
-                      }
-                    </div>
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isSendingOtp || !otpIdentifier}>
-                    {isSendingOtp ? 'Sending OTP...' : `Send OTP via ${identifierType === 'email' ? 'Email' : 'SMS'}`}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      </div>
+              </CardContent>
+            </Card>
+          </div>
+      </AuthCardFront>
+    </AuthCard>
     </div>
   );
 };
