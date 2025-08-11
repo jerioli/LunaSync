@@ -1,4 +1,4 @@
-import { Appointment, Inventory, LabResult, NewPatient, Patient, Payment, Prescription, User } from '@/lib/mock-data';
+import { User, Patient, NewPatient, Appointment, Prescription, LabResult, Inventory, Payment } from '@/lib/mock-data';
 
 // Define clinic branding and customization types
 export type ClinicCustomization = {
@@ -22,7 +22,6 @@ export type ClinicCustomization = {
 export interface ClinicContextType {
   currentUser: User | null;
   setCurrentUser: (user: User | null) => void;
-  forceLogout: () => void;
   users: User[];
   patients: Patient[];
   appointments: Appointment[];

@@ -5,10 +5,10 @@ import PatientPhysicalExamination from '@/components/patients/PatientPhysicalExa
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,7 +18,7 @@ import { Patient } from '@/lib/mock-data';
 import { medicalDocumentsAPI, type LabResult as APILabResult } from '@/services/medicalDocumentsAPI';
 import axios from 'axios';
 import { format } from 'date-fns';
-import { ArrowLeft, Edit, Eye, File, FileText, Heart, Plus, Save, Stethoscope, TestTube, Trash2, Upload, User } from 'lucide-react';
+import { ArrowLeft, Edit, Eye, File, FileText, Heart, Plus, Printer, Save, Stethoscope, TestTube, Trash2, Upload, User } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -47,6 +47,9 @@ const PatientManagement = () => {
   const canEdit = isDoctor || isReceptionist || isAdmin; // Admins can edit
   const canDelete = isDoctor || isAdmin; // Doctors and admins can delete patient records
   
+  // Clinic settings state
+  const [clinicSettings, setClinicSettings] = useState<any>(null);
+  
   // Document management state
   const [certificates, setCertificates] = useState<any[]>([]);
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
@@ -59,6 +62,17 @@ const PatientManagement = () => {
   const [createDocumentType, setCreateDocumentType] = useState<'prescription' | 'soap' | 'blank' | null>(null);
   const [documentData, setDocumentData] = useState<any>({});
   const [prescriptionTab, setPrescriptionTab] = useState('New');
+  
+  // Print functionality state
+  const [showPrintDialog, setShowPrintDialog] = useState(false);
+  const [printSettings, setPrintSettings] = useState({
+    includePrescriptions: false,
+    includeSoapNotes: false,
+    includeClinicalNotes: false,
+    includeLabResults: false,
+    includeMedicalCertificates: false
+  });
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
   
   // Redirect unauthorized users
   React.useEffect(() => {
@@ -157,6 +171,23 @@ const PatientManagement = () => {
     setInitialLoadComplete(false);
     setPatientData(null);
   }, [id]);
+
+  // Fetch clinic settings function
+  const fetchClinicSettings = async () => {
+    try {
+      const response = await axios.get('/clinic/');
+      setClinicSettings(response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching clinic settings:', error);
+      return {};
+    }
+  };
+
+  // Fetch clinic settings on component mount
+  useEffect(() => {
+    fetchClinicSettings();
+  }, []);
 
   // Add loading state
   const [isLoading, setIsLoading] = useState(true);
@@ -342,6 +373,488 @@ const PatientManagement = () => {
       title: 'Document deleted',
       description: 'Document has been deleted successfully.',
     });
+  };
+
+  // Print functionality
+  const handlePrintRecord = () => {
+    setShowPrintDialog(true);
+  };
+
+  const handlePrintSettingsChange = (setting: keyof typeof printSettings, value: boolean) => {
+    setPrintSettings(prev => ({
+      ...prev,
+      [setting]: value
+    }));
+  };
+
+  const generatePrintContent = () => {
+    if (!patientData) return '';
+
+    const clinicInfo = clinicSettings || {};
+    const logoUrl = getLogoUrl(clinicInfo?.logo || '');
+    
+    let content = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Patient Record - ${patientData.name}</title>
+        <meta charset="utf-8">
+        <style>
+          @page {
+            margin: 1in;
+            size: A4;
+          }
+          
+          @media print {
+            .page-break {
+              page-break-before: always;
+            }
+            .no-print {
+              display: none;
+            }
+          }
+          
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.4;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+          }
+          
+          .header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          
+          .logo {
+            max-height: 80px;
+            margin-bottom: 10px;
+          }
+          
+          .clinic-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+          }
+          
+          .clinic-info {
+            font-size: 14px;
+            color: #666;
+          }
+          
+          .patient-header {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+          }
+          
+          .patient-name {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 5px;
+          }
+          
+          .patient-details {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+          }
+          
+          .section {
+            margin-bottom: 30px;
+          }
+          
+          .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+          }
+          
+          .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+          }
+          
+          .info-item {
+            display: flex;
+            gap: 5px;
+          }
+          
+          .info-label {
+            font-weight: bold;
+            min-width: 120px;
+          }
+          
+          .document {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+          }
+          
+          .document-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 16px;
+          }
+          
+          .document-date {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 10px;
+          }
+          
+          .prescription-details {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 3px;
+          }
+          
+          .soap-section {
+            margin-bottom: 10px;
+          }
+          
+          .soap-label {
+            font-weight: bold;
+            color: #444;
+            margin-bottom: 5px;
+          }
+          
+          .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+          }
+        </style>
+      </head>
+      <body>
+    `;
+
+    // Header with clinic info
+    content += `
+      <div class="header">
+        ${logoUrl ? `<img src="${logoUrl}" alt="Clinic Logo" class="logo">` : ''}
+        <div class="clinic-name">${clinicInfo?.clinic_name || 'Medical Clinic'}</div>
+        <div class="clinic-info">
+          ${clinicInfo?.address || ''}<br>
+          ${clinicInfo?.phone || ''} | ${clinicInfo?.email || ''}
+        </div>
+      </div>
+    `;
+
+    // Patient header
+    content += `
+      <div class="patient-header">
+        <div class="patient-name">${patientData.name}</div>
+        <div class="patient-details">
+          <span><strong>ID:</strong> ${patientData.id}</span>
+          <span><strong>Age:</strong> ${patientData.date_of_birth ? 
+            new Date().getFullYear() - new Date(patientData.date_of_birth).getFullYear() : 'N/A'} years</span>
+          <span><strong>Gender:</strong> ${patientData.gender}</span>
+          <span><strong>Date:</strong> ${format(new Date(), 'PPP')}</span>
+        </div>
+      </div>
+    `;
+
+    // Personal Information
+    content += `
+      <div class="section">
+        <div class="section-title">Personal Information</div>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Full Name:</span>
+            <span>${patientData.name}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Date of Birth:</span>
+            <span>${patientData.date_of_birth ? format(new Date(patientData.date_of_birth), 'PPP') : 'N/A'}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Gender:</span>
+            <span class="capitalize">${patientData.gender}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Phone:</span>
+            <span>${patientData.phone}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Email:</span>
+            <span>${patientData.email}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Address:</span>
+            <span>${patientData.address || 'N/A'}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Emergency Contact:</span>
+            <span>${(patientData as any)?.emergency_contact || 'N/A'}</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Physical Examination
+    content += `
+      <div class="section">
+        <div class="section-title">Physical Examination</div>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Height:</span>
+            <span>${patientData.physical_examination?.height || 'Not recorded'}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Weight:</span>
+            <span>${patientData.physical_examination?.weight || 'Not recorded'}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Blood Pressure:</span>
+            <span>${patientData.physical_examination?.bloodPressure || 'Not recorded'}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Temperature:</span>
+            <span>${patientData.physical_examination?.temperature || 'Not recorded'}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Pulse Rate:</span>
+            <span>${patientData.physical_examination?.pulseRate || 'Not recorded'}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Respiratory Rate:</span>
+            <span>${patientData.physical_examination?.respiratoryRate || 'Not recorded'}</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Medical Information
+    content += `
+      <div class="section">
+        <div class="section-title">Medical Information</div>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Blood Type:</span>
+            <span>${patientData.medical_info?.bloodType || 'N/A'}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Known Allergies:</span>
+            <span>${patientData.medical_info?.allergies?.join(', ') || 'None recorded'}</span>
+          </div>
+        </div>
+        ${patientData.medical_info?.medicalHistory ? `
+          <div class="info-item">
+            <span class="info-label">Medical History:</span>
+            <div style="margin-top: 5px;">${patientData.medical_info.medicalHistory}</div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+
+    // Documents sections
+    if (printSettings.includePrescriptions && prescriptions.length > 0) {
+      content += `<div class="page-break"></div>`;
+      prescriptions.forEach((prescription, index) => {
+        const prescriptionId = `${Date.now().toString().slice(-8).toUpperCase()}`;
+        const clinicData = clinicSettings || {};
+        content += `
+          <div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; font-family: Arial, sans-serif;">
+            <!-- Header with Logo and QR -->
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+              <div>
+                ${clinicData.logo ? 
+                  `<img src="${getLogoUrl(clinicData.logo)}" alt="Clinic Logo" style="height: 50px; width: auto; margin-bottom: 10px;">` : 
+                  `<div style="width: 50px; height: 50px; background: #f0f0f0; margin-bottom: 10px;"></div>`
+                }
+                <div style="font-size: 14px; color: #333;">${clinicData.clinic_name || 'Medical Center'}</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="width: 80px; height: 80px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666;">
+                  QR CODE
+                </div>
+              </div>
+            </div>
+
+            <!-- Prescription ID -->
+            <div style="text-align: center; margin-bottom: 20px;">
+              <div style="font-weight: bold; font-size: 14px;">PRESCRIPTION ID: ${prescriptionId}</div>
+            </div>
+
+            <!-- Location and Date -->
+            <div style="text-align: center; margin-bottom: 30px; font-size: 12px; color: #666;">
+              <div>${clinicData.address || 'Clinic Address'}</div>
+              <div style="margin-top: 10px;">
+                Prescribed on: ${format(new Date(prescription.dateCreated), 'MMMM dd, yyyy')}
+              </div>
+              <div>${format(new Date(prescription.dateCreated), 'hh:mm a')} PHT</div>
+            </div>
+
+            <!-- Patient Info -->
+            <div style="margin-bottom: 20px; font-size: 12px;">
+              <div><strong>Patient:</strong> ${patientData?.name}</div>
+              <div><strong>Age:</strong> ${patientData?.date_of_birth ? Math.floor((new Date().getTime() - new Date(patientData.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 'N/A'} years old</div>
+              <div><strong>Gender:</strong> ${patientData?.gender || 'Not specified'}</div>
+            </div>
+
+            <!-- Rx Symbol -->
+            <div style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">Rx</div>
+
+            <!-- Prescription Details -->
+            <div style="margin-bottom: 40px; font-size: 14px; line-height: 1.6;">
+              <div style="font-weight: bold; margin-bottom: 5px;">${prescription.data.name}</div>
+              <div style="margin-bottom: 10px;">${prescription.data.dosage} ${prescription.data.quantity}</div>
+              ${prescription.data.description ? `<div style="margin-left: 20px; color: #555;">${prescription.data.description}</div>` : ''}
+            </div>
+
+            <!-- Doctor Signature Area -->
+            <div style="text-align: right; margin-top: 60px;">
+              <div style="border-bottom: 1px solid #000; width: 200px; margin-left: auto; margin-bottom: 5px;"></div>
+              <div style="font-size: 12px;">Dr. ${currentUser?.first_name || currentUser?.name} ${currentUser?.last_name || ''}</div>
+            </div>
+
+            <!-- Footer -->
+            <div style="text-align: center; margin-top: 40px; font-size: 10px; color: #999;">
+              <div style="width: 30px; height: 30px; border-radius: 50%; background: #f0f0f0; margin: 0 auto;"></div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    if (printSettings.includeSoapNotes && soapNotes.length > 0) {
+      content += `<div class="page-break"></div>`;
+      content += `
+        <div class="section">
+          <div class="section-title">SOAP Notes</div>
+      `;
+      soapNotes.forEach((note, index) => {
+        content += `
+          <div class="document">
+            <div class="document-title">SOAP Note #${index + 1}</div>
+            <div class="document-date">Created: ${format(new Date(note.dateCreated), 'PPP')}</div>
+            <div class="soap-section">
+              <div class="soap-label">Subjective:</div>
+              <div>${note.data.subjective}</div>
+            </div>
+            <div class="soap-section">
+              <div class="soap-label">Objective:</div>
+              <div>${note.data.objective}</div>
+            </div>
+            <div class="soap-section">
+              <div class="soap-label">Assessment:</div>
+              <div>${note.data.assessment}</div>
+            </div>
+            <div class="soap-section">
+              <div class="soap-label">Plan:</div>
+              <div>${note.data.plan}</div>
+            </div>
+          </div>
+        `;
+      });
+      content += `</div>`;
+    }
+
+    if (printSettings.includeClinicalNotes && blankNotes.length > 0) {
+      content += `<div class="page-break"></div>`;
+      content += `
+        <div class="section">
+          <div class="section-title">Clinical Notes</div>
+      `;
+      blankNotes.forEach((note, index) => {
+        content += `
+          <div class="document">
+            <div class="document-title">${note.data.title}</div>
+            <div class="document-date">Created: ${format(new Date(note.dateCreated), 'PPP')}</div>
+            <div>${note.data.content}</div>
+          </div>
+        `;
+      });
+      content += `</div>`;
+    }
+
+    if (printSettings.includeLabResults && labResults.length > 0) {
+      content += `<div class="page-break"></div>`;
+      content += `
+        <div class="section">
+          <div class="section-title">Lab Results</div>
+      `;
+      labResults.forEach((result, index) => {
+        content += `
+          <div class="document">
+            <div class="document-title">Lab Result #${index + 1}</div>
+            <div class="document-date">Date: ${format(new Date((result as any)?.test_date || (result as any)?.date || new Date()), 'PPP')}</div>
+            <div><strong>Test Type:</strong> ${(result as any)?.test_type || (result as any)?.type || 'N/A'}</div>
+            ${(result as any)?.laboratory_name ? `<div><strong>Laboratory:</strong> ${(result as any).laboratory_name}</div>` : ''}
+            ${(result as any)?.doctor_notes ? `<div><strong>Doctor's Notes:</strong> ${(result as any).doctor_notes}</div>` : ''}
+          </div>
+        `;
+      });
+      content += `</div>`;
+    }
+
+    if (printSettings.includeMedicalCertificates && certificates.length > 0) {
+      certificates.forEach((cert, index) => {
+        content += `<div class="page-break"></div>`;
+        
+        // Extract just the certificate content without the full HTML wrapper
+        let certificateContent = cert.content;
+        
+        // Remove HTML, HEAD, and BODY tags if present
+        certificateContent = certificateContent.replace(/<html[^>]*>/gi, '');
+        certificateContent = certificateContent.replace(/<\/html>/gi, '');
+        certificateContent = certificateContent.replace(/<head[^>]*>[\s\S]*?<\/head>/gi, '');
+        certificateContent = certificateContent.replace(/<body[^>]*>/gi, '');
+        certificateContent = certificateContent.replace(/<\/body>/gi, '');
+        
+        // Add the clean certificate content
+        content += certificateContent;
+      });
+    }
+
+    content += `
+        <div class="footer">
+          <div>Generated on ${format(new Date(), 'PPP')} by ${currentUser?.name || 'Medical Staff'}</div>
+          <div>This is a computer-generated document.</div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return content;
+  };
+
+  const handlePreviewPrint = () => {
+    const content = generatePrintContent();
+    const newWindow = window.open('', '_blank');
+    if (newWindow) {
+      newWindow.document.write(content);
+      newWindow.document.close();
+      setShowPrintPreview(true);
+    }
+  };
+
+  const handleConfirmPrint = () => {
+    const content = generatePrintContent();
+    const newWindow = window.open('', '_blank');
+    if (newWindow) {
+      newWindow.document.write(content);
+      newWindow.document.close();
+      newWindow.onload = () => {
+        newWindow.print();
+        newWindow.close();
+      };
+    }
+    setShowPrintDialog(false);
+    setShowPrintPreview(false);
   };
 
   const handleDocumentInputChange = (field: string, value: string) => {
@@ -780,10 +1293,10 @@ const PatientManagement = () => {
                         <div className="flex-1">
                           <div className="text-sm font-medium text-gray-900">{prescription.data.name}</div>
                           <div className="text-xs text-blue-600">
-                            {prescription.data.dose} | {prescription.data.frequency}
+                            {prescription.data.dosage}
                           </div>
                           <div className="text-xs text-gray-500">
-                            Created: {new Date(prescription.dateCreated).toLocaleDateString()}
+                            Qty: {prescription.data.quantity} | Created: {new Date(prescription.dateCreated).toLocaleDateString()}
                           </div>
                         </div>
                       </div>
@@ -791,7 +1304,18 @@ const PatientManagement = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => {
+                          onClick={async () => {
+                            // Fetch current clinic settings
+                            let currentClinicSettings = clinicSettings;
+                            if (!currentClinicSettings) {
+                              try {
+                                currentClinicSettings = await fetchClinicSettings();
+                              } catch (error) {
+                                console.error('Failed to fetch clinic settings:', error);
+                                currentClinicSettings = {};
+                              }
+                            }
+                            
                             // Helper function to get proper logo URL
                             const getFullLogoUrl = (logo: string) => {
                               if (!logo) return null;
@@ -807,7 +1331,7 @@ const PatientManagement = () => {
                               return `http://127.0.0.1:8000${logo.startsWith('/') ? logo : '/' + logo}`;
                             };
                             
-                            const logoUrl = getFullLogoUrl(clinicCustomization?.logo);
+                            const logoUrl = getFullLogoUrl(currentClinicSettings?.logo);
                             const content = `
                               <!DOCTYPE html>
                               <html>
@@ -816,164 +1340,73 @@ const PatientManagement = () => {
                                 <style>
                                   body { 
                                     font-family: Arial, sans-serif; 
-                                    padding: 20px; 
                                     margin: 0;
-                                    background-color: #f8fafc;
-                                  }
-                                  .prescription-container {
-                                    max-width: 800px;
-                                    margin: 0 auto;
+                                    padding: 20px;
                                     background: white;
-                                    border-radius: 10px;
-                                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                                    overflow: hidden;
-                                  }
-                                  .logo-header {
-                                    background: white;
-                                    padding: 30px 20px 20px 20px;
-                                    text-align: center;
-                                    border-bottom: 3px solid #3b82f6;
-                                  }
-                                  .logo-header img {
-                                    max-height: 100px;
-                                    max-width: 400px;
-                                    margin-bottom: 15px;
-                                    object-fit: contain;
-                                  }
-                                  .clinic-info {
-                                    color: #6b7280;
-                                    font-size: 14px;
-                                    line-height: 1.5;
-                                  }
-                                  .clinic-info .clinic-name {
-                                    font-size: 24px;
-                                    font-weight: bold;
-                                    color: #3b82f6;
-                                    margin-bottom: 10px;
-                                  }
-                                  .header {
-                                    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-                                    color: white;
-                                    padding: 20px;
-                                    text-align: center;
-                                  }
-                                  .rx-symbol {
-                                    display: inline-block;
-                                    background: rgba(255,255,255,0.2);
-                                    color: white;
-                                    width: 40px;
-                                    height: 40px;
-                                    border-radius: 50%;
-                                    line-height: 40px;
-                                    text-align: center;
-                                    font-weight: bold;
-                                    font-size: 18px;
-                                    margin-right: 10px;
-                                    border: 2px solid rgba(255,255,255,0.3);
-                                  }
-                                  .content {
-                                    padding: 30px;
-                                  }
-                                  .prescription-details {
-                                    background: #f8fafc;
-                                    border-left: 4px solid #3b82f6;
-                                    padding: 20px;
-                                    margin: 20px 0;
-                                    border-radius: 0 8px 8px 0;
-                                  }
-                                  .detail-row {
-                                    margin: 10px 0;
-                                    display: flex;
-                                    align-items: center;
-                                  }
-                                  .detail-label {
-                                    font-weight: bold;
-                                    min-width: 120px;
-                                    color: #374151;
-                                  }
-                                  .detail-value {
-                                    color: #1f2937;
-                                  }
-                                  .footer {
-                                    background: #f1f5f9;
-                                    padding: 20px;
-                                    text-align: center;
-                                    border-top: 1px solid #e2e8f0;
-                                    font-size: 12px;
-                                    color: #6b7280;
                                   }
                                   @media print {
-                                    body { background: white; }
-                                    .prescription-container { box-shadow: none; }
+                                    body { margin: 0; padding: 0; }
                                   }
                                 </style>
                               </head>
                               <body>
-                                <div class="prescription-container">
-                                  <div class="logo-header">
-                                    ${logoUrl ? `
-                                      <img src="${logoUrl}" alt="${clinicCustomization?.name || 'Clinic'} Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
-                                      <div class="clinic-name" style="display: none;">${clinicCustomization?.name || 'Medical Clinic'}</div>
-                                    ` : `
-                                      <div class="clinic-name">${clinicCustomization?.name || 'Medical Clinic'}</div>
-                                    `}
-                                    <div class="clinic-info">
-                                      <div>${clinicCustomization?.address || ''}</div>
-                                      <div>${clinicCustomization?.phone || ''}</div>
+                                <div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; font-family: Arial, sans-serif;">
+                                  <!-- Header with Logo and QR -->
+                                  <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+                                    <div>
+                                      ${currentClinicSettings?.logo ? 
+                                        `<img src="${getFullLogoUrl(currentClinicSettings.logo)}" alt="Clinic Logo" style="height: 50px; width: auto; margin-bottom: 10px;">` : 
+                                        `<div style="width: 50px; height: 50px; background: #f0f0f0; margin-bottom: 10px;"></div>`
+                                      }
+                                      <div style="font-size: 14px; color: #333;">${currentClinicSettings?.clinic_name || 'Medical Center'}</div>
                                     </div>
-                                  </div>
-                                  
-                                  <div class="header">
-                                    <span class="rx-symbol">Rx</span>
-                                    <h1 style="margin: 0; display: inline-block; vertical-align: middle;">Electronic Prescription</h1>
-                                  </div>
-                                  
-                                  <div class="content">
-                                    <div class="prescription-details">
-                                      <div class="detail-row">
-                                        <span class="detail-label">Patient:</span>
-                                        <span class="detail-value">${prescription.patientName}</span>
-                                      </div>
-                                      <div class="detail-row">
-                                        <span class="detail-label">Date:</span>
-                                        <span class="detail-value">${new Date(prescription.dateCreated).toLocaleDateString()}</span>
-                                      </div>
-                                      <div class="detail-row">
-                                        <span class="detail-label">Medication:</span>
-                                        <span class="detail-value"><strong>${prescription.data.name}</strong> (${prescription.data.nameType})</span>
-                                      </div>
-                                      <div class="detail-row">
-                                        <span class="detail-label">Dose:</span>
-                                        <span class="detail-value">${prescription.data.dose}</span>
-                                      </div>
-                                      <div class="detail-row">
-                                        <span class="detail-label">Quantity:</span>
-                                        <span class="detail-value">${prescription.data.quantity}</span>
-                                      </div>
-                                      <div class="detail-row">
-                                        <span class="detail-label">Frequency:</span>
-                                        <span class="detail-value">${prescription.data.frequency === 'custom' ? prescription.data.customFrequency : prescription.data.frequency}</span>
-                                      </div>
-                                      <div class="detail-row">
-                                        <span class="detail-label">Duration:</span>
-                                        <span class="detail-value">${prescription.data.startDate} to ${prescription.data.endDate}</span>
-                                      </div>
-                                      ${prescription.data.notes ? `
-                                        <div class="detail-row">
-                                          <span class="detail-label">Notes:</span>
-                                          <span class="detail-value">${prescription.data.notes}</span>
-                                        </div>
-                                      ` : ''}
-                                      <div class="detail-row">
-                                        <span class="detail-label">Prescribed by:</span>
-                                        <span class="detail-value">${prescription.createdBy}</span>
+                                    <div style="text-align: center;">
+                                      <div style="width: 80px; height: 80px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666;">
+                                        QR CODE
                                       </div>
                                     </div>
                                   </div>
-                                  
-                                  <div class="footer">
-                                    <p>This is an electronically generated prescription. Please present this document to your pharmacist.</p>
-                                    <p>For verification, contact ${clinicCustomization?.name || 'our clinic'} at ${clinicCustomization?.phone || ''}</p>
+
+                                  <!-- Prescription ID -->
+                                  <div style="text-align: center; margin-bottom: 20px;">
+                                    <div style="font-weight: bold; font-size: 14px;">PRESCRIPTION ID: ${Date.now().toString().slice(-8).toUpperCase()}</div>
+                                  </div>
+
+                                  <!-- Location and Date -->
+                                  <div style="text-align: center; margin-bottom: 30px; font-size: 12px; color: #666;">
+                                    <div>${currentClinicSettings?.address || 'Clinic Address'}</div>
+                                    <div style="margin-top: 10px;">
+                                      Prescribed on: ${format(new Date(prescription.dateCreated), 'MMMM dd, yyyy')}
+                                    </div>
+                                    <div>${format(new Date(prescription.dateCreated), 'hh:mm a')} PHT</div>
+                                  </div>
+
+                                  <!-- Patient Info -->
+                                  <div style="margin-bottom: 20px; font-size: 12px;">
+                                    <div><strong>Patient:</strong> ${patientData?.name}</div>
+                                    <div><strong>Age:</strong> ${patientData?.date_of_birth ? Math.floor((new Date().getTime() - new Date(patientData.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 'N/A'} years old</div>
+                                    <div><strong>Gender:</strong> ${patientData?.gender || 'Not specified'}</div>
+                                  </div>
+
+                                  <!-- Rx Symbol -->
+                                  <div style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">Rx</div>
+
+                                  <!-- Prescription Details -->
+                                  <div style="margin-bottom: 40px; font-size: 14px; line-height: 1.6;">
+                                    <div style="font-weight: bold; margin-bottom: 5px;">${prescription.data.name}</div>
+                                    <div style="margin-bottom: 10px;">${prescription.data.dosage} ${prescription.data.quantity}</div>
+                                    ${prescription.data.description ? `<div style="margin-left: 20px; color: #555;">${prescription.data.description}</div>` : ''}
+                                  </div>
+
+                                  <!-- Doctor Signature Area -->
+                                  <div style="text-align: right; margin-top: 60px;">
+                                    <div style="border-bottom: 1px solid #000; width: 200px; margin-left: auto; margin-bottom: 5px;"></div>
+                                    <div style="font-size: 12px;">Dr. ${currentUser?.first_name || currentUser?.name} ${currentUser?.last_name || ''}</div>
+                                  </div>
+
+                                  <!-- Footer -->
+                                  <div style="text-align: center; margin-top: 40px; font-size: 10px; color: #999;">
+                                    <div style="width: 30px; height: 30px; border-radius: 50%; background: #f0f0f0; margin: 0 auto;"></div>
                                   </div>
                                 </div>
                               </body>
@@ -1382,6 +1815,10 @@ const PatientManagement = () => {
               </>
             ) : (
               <>
+                <Button variant="outline" onClick={handlePrintRecord}>
+                  <Printer className="mr-2 h-4 w-4" />
+                  Print Record
+                </Button>
                 {canDelete && (
                   <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
                     <Trash2 className="mr-2 h-4 w-4" />
@@ -1518,35 +1955,21 @@ const PatientManagement = () => {
           <div className="space-y-4">
             {createDocumentType === 'prescription' && (
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Medication Type</Label>
-                    <Select value={documentData.nameType} onValueChange={(value) => handleDocumentInputChange('nameType', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Generic">Generic</SelectItem>
-                        <SelectItem value="Brand">Brand</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Medication Name</Label>
-                    <Input 
-                      value={documentData.name || ''} 
-                      onChange={(e) => handleDocumentInputChange('name', e.target.value)}
-                      placeholder="Enter medication name"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label>Medication Name</Label>
+                  <Input 
+                    value={documentData.name || ''} 
+                    onChange={(e) => handleDocumentInputChange('name', e.target.value)}
+                    placeholder="Enter medication name"
+                  />
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Dose</Label>
+                    <Label>Dosage</Label>
                     <Input 
-                      value={documentData.dose || ''} 
-                      onChange={(e) => handleDocumentInputChange('dose', e.target.value)}
+                      value={documentData.dosage || ''} 
+                      onChange={(e) => handleDocumentInputChange('dosage', e.target.value)}
                       placeholder="e.g., 500mg"
                     />
                   </div>
@@ -1555,63 +1978,16 @@ const PatientManagement = () => {
                     <Input 
                       value={documentData.quantity || ''} 
                       onChange={(e) => handleDocumentInputChange('quantity', e.target.value)}
-                      placeholder="e.g., 30 tablets"
+                      placeholder="e.g., Capsule #21"
                     />
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>Frequency</Label>
-                  <Select value={documentData.frequency} onValueChange={(value) => handleDocumentInputChange('frequency', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select frequency" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Once daily">Once daily</SelectItem>
-                      <SelectItem value="Twice daily">Twice daily</SelectItem>
-                      <SelectItem value="Three times daily">Three times daily</SelectItem>
-                      <SelectItem value="Four times daily">Four times daily</SelectItem>
-                      <SelectItem value="As needed">As needed</SelectItem>
-                      <SelectItem value="custom">Custom</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {documentData.frequency === 'custom' && (
-                  <div className="space-y-2">
-                    <Label>Custom Frequency</Label>
-                    <Input 
-                      value={documentData.customFrequency || ''} 
-                      onChange={(e) => handleDocumentInputChange('customFrequency', e.target.value)}
-                      placeholder="Enter custom frequency"
-                    />
-                  </div>
-                )}
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Start Date</Label>
-                    <Input 
-                      type="date"
-                      value={documentData.startDate || ''} 
-                      onChange={(e) => handleDocumentInputChange('startDate', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>End Date</Label>
-                    <Input 
-                      type="date"
-                      value={documentData.endDate || ''} 
-                      onChange={(e) => handleDocumentInputChange('endDate', e.target.value)}
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Notes</Label>
+                  <Label>Description</Label>
                   <Textarea 
-                    value={documentData.notes || ''} 
-                    onChange={(e) => handleDocumentInputChange('notes', e.target.value)}
+                    value={documentData.description || ''} 
+                    onChange={(e) => handleDocumentInputChange('description', e.target.value)}
                     placeholder="Additional instructions or notes"
                     rows={3}
                   />
@@ -1690,6 +2066,98 @@ const PatientManagement = () => {
             <Button onClick={handleSaveDocument}>
               Save {createDocumentType === 'prescription' ? 'Prescription' : 
                    createDocumentType === 'soap' ? 'SOAP Note' : 'Note'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Print Settings Dialog */}
+      <Dialog open={showPrintDialog} onOpenChange={setShowPrintDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Print Patient Record</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="text-sm text-muted-foreground">
+              Personal information, physical examination, and medical information will always be included.
+              Select additional documents to include:
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="prescriptions"
+                  checked={printSettings.includePrescriptions}
+                  onCheckedChange={(checked) => handlePrintSettingsChange('includePrescriptions', !!checked)}
+                  disabled={prescriptions.length === 0}
+                />
+                <label htmlFor="prescriptions" className={prescriptions.length === 0 ? 'text-muted-foreground' : ''}>
+                  E-Prescriptions ({prescriptions.length})
+                </label>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="soapNotes"
+                  checked={printSettings.includeSoapNotes}
+                  onCheckedChange={(checked) => handlePrintSettingsChange('includeSoapNotes', !!checked)}
+                  disabled={soapNotes.length === 0}
+                />
+                <label htmlFor="soapNotes" className={soapNotes.length === 0 ? 'text-muted-foreground' : ''}>
+                  SOAP Notes ({soapNotes.length})
+                </label>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="clinicalNotes"
+                  checked={printSettings.includeClinicalNotes}
+                  onCheckedChange={(checked) => handlePrintSettingsChange('includeClinicalNotes', !!checked)}
+                  disabled={blankNotes.length === 0}
+                />
+                <label htmlFor="clinicalNotes" className={blankNotes.length === 0 ? 'text-muted-foreground' : ''}>
+                  Clinical Notes ({blankNotes.length})
+                </label>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="labResults"
+                  checked={printSettings.includeLabResults}
+                  onCheckedChange={(checked) => handlePrintSettingsChange('includeLabResults', !!checked)}
+                  disabled={labResults.length === 0}
+                />
+                <label htmlFor="labResults" className={labResults.length === 0 ? 'text-muted-foreground' : ''}>
+                  Lab Results ({labResults.length})
+                </label>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="certificates"
+                  checked={printSettings.includeMedicalCertificates}
+                  onCheckedChange={(checked) => handlePrintSettingsChange('includeMedicalCertificates', !!checked)}
+                  disabled={certificates.length === 0}
+                />
+                <label htmlFor="certificates" className={certificates.length === 0 ? 'text-muted-foreground' : ''}>
+                  Medical Certificates ({certificates.length})
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPrintDialog(false)}>
+              Cancel
+            </Button>
+            <Button variant="outline" onClick={handlePreviewPrint}>
+              <Eye className="mr-2 h-4 w-4" />
+              Preview
+            </Button>
+            <Button onClick={handleConfirmPrint}>
+              <Printer className="mr-2 h-4 w-4" />
+              Print
             </Button>
           </DialogFooter>
         </DialogContent>

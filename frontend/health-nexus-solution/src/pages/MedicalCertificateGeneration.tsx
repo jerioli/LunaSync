@@ -1,26 +1,53 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useClinic } from '@/contexts/ClinicContext';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save, Mail, FileText, Download, Eye } from 'lucide-react';
-import { toast } from 'sonner';
+import { Textarea } from '@/components/ui/textarea';
+import { useClinic } from '@/contexts/ClinicContext';
+import {
+  generateMedicalCertificateHTML,
+  MedicalCertificateTemplateData
+} from '@/utils/medicalCertificateTemplate';
 import axios from 'axios';
+import { ArrowLeft, Eye, FileText, Mail, Save } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 // Configure axios
 axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
 
 interface CertificateFormData {
+  // Patient information
   patientName: string;
   patientEmail: string;
   patientPhone: string;
   patientDob: string;
+  patientAge: string;
+  
+  // Certificate details
   certificateType: string;
-  content: string;
+  diagnosis: string;
+  recommendations: string;
+  
+  // Work fitness details
+  fitForWork: 'fit' | 'unfit' | 'limited';
+  restFromDate: string;
+  restToDate: string;
+  limitations: string;
+  followUpDate: string;
+  
+  // Hospital and doctor info
+  hospitalName: string;
+  hospitalAddress: string;
+  hospitalContact: string;
+  doctorName: string;
+  doctorLicense: string;
+  doctorPRC: string;
+  doctorPTR: string;
+  
+  // Additional fields
   doctorNotes: string;
   requestId?: number;
 }
@@ -43,12 +70,35 @@ const MedicalCertificateGeneration: React.FC = () => {
   const state = location.state as LocationState;
 
   const [formData, setFormData] = useState<CertificateFormData>({
+    // Patient information
     patientName: state?.patientName || '',
     patientEmail: state?.patientEmail || '',
     patientPhone: state?.patientPhone || '',
     patientDob: state?.patientDob || '',
+    patientAge: '',
+    
+    // Certificate details
     certificateType: state?.certificateType || 'general',
-    content: '',
+    diagnosis: '',
+    recommendations: '',
+    
+    // Work fitness details
+    fitForWork: 'unfit',
+    restFromDate: new Date().toISOString().split('T')[0],
+    restToDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    limitations: '',
+    followUpDate: '',
+    
+    // Hospital and doctor info
+    hospitalName: 'HealthNexus Medical Center',
+    hospitalAddress: '123 Medical Plaza, City, State 12345',
+    hospitalContact: 'Phone: (555) 123-4567 | Email: info@healthnexus.com',
+    doctorName: currentUser?.name || 'Dr. [Doctor Name]',
+    doctorLicense: '',
+    doctorPRC: '',
+    doctorPTR: '',
+    
+    // Additional fields
     doctorNotes: '',
     requestId: state?.requestId
   });
@@ -56,6 +106,22 @@ const MedicalCertificateGeneration: React.FC = () => {
   const [isPreview, setIsPreview] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSending, setIsSending] = useState(false);
+
+  // Calculate patient age when DOB changes
+  useEffect(() => {
+    if (formData.patientDob) {
+      const dob = new Date(formData.patientDob);
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const monthDifference = today.getMonth() - dob.getMonth();
+      
+      if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
+      
+      setFormData(prev => ({ ...prev, patientAge: age.toString() }));
+    }
+  }, [formData.patientDob]);
 
   const certificateTypes = {
     'sick_leave': 'Sick Leave Certificate',
@@ -66,102 +132,79 @@ const MedicalCertificateGeneration: React.FC = () => {
 
   // Generate template content based on certificate type
   const generateTemplateContent = () => {
-    const currentDate = new Date().toLocaleDateString();
-    const doctorName = currentUser?.name || 'Dr. [Doctor Name]';
-    
-    const templates = {
-      'sick_leave': `MEDICAL CERTIFICATE - SICK LEAVE
-
-This is to certify that ${formData.patientName} (DOB: ${formData.patientDob}) has been examined by me and is suffering from a medical condition that requires rest and recovery.
-
-The patient is advised to take sick leave from work/school for a period of [X] days, starting from ${currentDate}.
-
-During this period, the patient should:
-- Take adequate rest
-- Follow prescribed medication
-- Avoid strenuous activities
-- Return for follow-up as advised
-
-This certificate is issued for official purposes.
-
-Date: ${currentDate}
-Doctor: ${doctorName}
-Medical License: [License Number]`,
-
-      'fitness': `MEDICAL FITNESS CERTIFICATE
-
-This is to certify that ${formData.patientName} (DOB: ${formData.patientDob}) has been examined by me and is found to be medically fit for:
-
-☐ Employment
-☐ Physical activities
-☐ Sports participation
-☐ Travel
-☐ Other: ________________
-
-The patient shows no signs of any medical condition that would prevent them from the above activities.
-
-This certificate is valid for a period of [X] months from the date of issue.
-
-Date: ${currentDate}
-Doctor: ${doctorName}
-Medical License: [License Number]`,
-
-      'vaccination': `VACCINATION CERTIFICATE
-
-This is to certify that ${formData.patientName} (DOB: ${formData.patientDob}) has received the following vaccination(s):
-
-Vaccine Name: [Vaccine Name]
-Batch Number: [Batch Number]
-Date of Administration: ${currentDate}
-Next Dose Due: [Date if applicable]
-
-The patient has been observed for any immediate adverse reactions and is cleared for normal activities.
-
-Date: ${currentDate}
-Doctor: ${doctorName}
-Medical License: [License Number]`,
-
-      'general': `MEDICAL CERTIFICATE
-
-This is to certify that ${formData.patientName} (DOB: ${formData.patientDob}) has been examined by me on ${currentDate}.
-
-Clinical Findings:
-[Clinical findings and observations]
-
-Diagnosis:
-[Diagnosis]
-
-Recommendations:
-[Medical recommendations and advice]
-
-This certificate is issued for official purposes as requested by the patient.
-
-Date: ${currentDate}
-Doctor: ${doctorName}
-Medical License: [License Number]`
+    const templateData: MedicalCertificateTemplateData = {
+      hospitalName: formData.hospitalName,
+      hospitalAddress: formData.hospitalAddress,
+      hospitalContact: formData.hospitalContact,
+      hospitalLicense: '',
+      doctorName: formData.doctorName,
+      doctorLicense: formData.doctorLicense,
+      doctorPRC: formData.doctorPRC,
+      doctorPTR: formData.doctorPTR,
+      patientName: formData.patientName,
+      patientAge: formData.patientAge,
+      diagnosis: formData.diagnosis,
+      recommendations: formData.recommendations,
+      restFromDate: formData.restFromDate,
+      restToDate: formData.restToDate,
+      fitForWork: formData.fitForWork,
+      limitations: formData.limitations,
+      followUpDate: formData.followUpDate,
+      dateIssued: new Date().toISOString().split('T')[0],
+      certificateType: formData.certificateType
     };
 
-    return templates[formData.certificateType] || templates['general'];
+    return generateMedicalCertificateHTML(templateData);
   };
 
   const handleUseTemplate = () => {
+    // Set default values based on certificate type
+    const templates = {
+      'sick_leave': {
+        diagnosis: 'Acute upper respiratory tract infection',
+        recommendations: 'Complete bed rest, adequate hydration, and prescribed medication',
+        fitForWork: 'unfit' as const
+      },
+      'fitness': {
+        diagnosis: 'No significant medical findings',
+        recommendations: 'Patient is medically cleared for physical activities',
+        fitForWork: 'fit' as const
+      },
+      'vaccination': {
+        diagnosis: 'Vaccination administered as per schedule',
+        recommendations: 'Continue normal activities, observe for any adverse reactions',
+        fitForWork: 'fit' as const
+      },
+      'general': {
+        diagnosis: 'Medical evaluation completed',
+        recommendations: 'Follow prescribed treatment plan',
+        fitForWork: 'fit' as const
+      }
+    };
+
+    const template = templates[formData.certificateType] || templates['general'];
+    
     setFormData(prev => ({
       ...prev,
-      content: generateTemplateContent()
+      diagnosis: template.diagnosis,
+      recommendations: template.recommendations,
+      fitForWork: template.fitForWork
     }));
   };
 
   const handleSaveAndSend = async () => {
-    if (!formData.content.trim()) {
-      toast.error('Please enter certificate content');
+    if (!formData.diagnosis.trim() || !formData.recommendations.trim()) {
+      toast.error('Please enter diagnosis and recommendations');
       return;
     }
 
     setIsSending(true);
     try {
+      const certificateHTML = generateTemplateContent();
+      
       const payload = {
         action: 'doctor_approve',
-        certificate_content: formData.content,
+        certificate_content: certificateHTML,
         doctor_notes: formData.doctorNotes
       };
 
@@ -180,8 +223,8 @@ Medical License: [License Number]`
   };
 
   const handleSaveOnly = async () => {
-    if (!formData.content.trim()) {
-      toast.error('Please enter certificate content');
+    if (!formData.diagnosis.trim() || !formData.recommendations.trim()) {
+      toast.error('Please enter diagnosis and recommendations');
       return;
     }
 
@@ -245,25 +288,17 @@ Medical License: [License Number]`
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="bg-white p-8 border rounded-lg shadow-lg">
-              <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold mb-2">MEDICAL CERTIFICATE</h1>
-                <p className="text-sm text-gray-600">
-                  {certificateTypes[formData.certificateType]}
-                </p>
+            <div 
+              className="bg-white border rounded-lg shadow-lg"
+              dangerouslySetInnerHTML={{ __html: generateTemplateContent() }}
+            />
+            
+            {formData.doctorNotes && (
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h3 className="font-semibold mb-2">Doctor's Notes:</h3>
+                <p className="text-sm">{formData.doctorNotes}</p>
               </div>
-              
-              <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                {formData.content}
-              </div>
-              
-              {formData.doctorNotes && (
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                  <h3 className="font-semibold mb-2">Doctor's Notes:</h3>
-                  <p className="text-sm">{formData.doctorNotes}</p>
-                </div>
-              )}
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -291,7 +326,7 @@ Medical License: [License Number]`
           </Button>
           <Button
             onClick={handlePreview}
-            disabled={!formData.content.trim()}
+            disabled={!formData.diagnosis.trim() || !formData.recommendations.trim()}
             variant="outline"
           >
             <Eye className="h-4 w-4 mr-2" />
@@ -374,15 +409,119 @@ Medical License: [License Number]`
             </div>
           )}
 
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="hospitalName">Hospital Name</Label>
+              <Input
+                id="hospitalName"
+                value={formData.hospitalName}
+                onChange={(e) => setFormData(prev => ({ ...prev, hospitalName: e.target.value }))}
+                placeholder="Enter hospital name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="doctorName">Doctor Name</Label>
+              <Input
+                id="doctorName"
+                value={formData.doctorName}
+                onChange={(e) => setFormData(prev => ({ ...prev, doctorName: e.target.value }))}
+                placeholder="Enter doctor name"
+              />
+            </div>
+          </div>
+
           <div>
-            <Label htmlFor="content">Certificate Content</Label>
+            <Label htmlFor="hospitalAddress">Hospital Address</Label>
+            <Input
+              id="hospitalAddress"
+              value={formData.hospitalAddress}
+              onChange={(e) => setFormData(prev => ({ ...prev, hospitalAddress: e.target.value }))}
+              placeholder="Enter hospital address"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="diagnosis">Diagnosis</Label>
             <Textarea
-              id="content"
-              value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-              placeholder="Enter the medical certificate content..."
-              rows={15}
-              className="font-mono"
+              id="diagnosis"
+              value={formData.diagnosis}
+              onChange={(e) => setFormData(prev => ({ ...prev, diagnosis: e.target.value }))}
+              placeholder="Enter patient diagnosis..."
+              rows={4}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="recommendations">Medical Recommendations</Label>
+            <Textarea
+              id="recommendations"
+              value={formData.recommendations}
+              onChange={(e) => setFormData(prev => ({ ...prev, recommendations: e.target.value }))}
+              placeholder="Enter medical recommendations..."
+              rows={4}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="fitForWork">Fitness for Work</Label>
+            <Select
+              value={formData.fitForWork}
+              onValueChange={(value: 'fit' | 'unfit' | 'limited') => setFormData(prev => ({ ...prev, fitForWork: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="fit">Fit for Work</SelectItem>
+                <SelectItem value="unfit">Unfit for Work</SelectItem>
+                <SelectItem value="limited">Limited Work Capacity</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {formData.fitForWork === 'unfit' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="restFromDate">Rest From</Label>
+                <Input
+                  id="restFromDate"
+                  type="date"
+                  value={formData.restFromDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, restFromDate: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="restToDate">Rest To</Label>
+                <Input
+                  id="restToDate"
+                  type="date"
+                  value={formData.restToDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, restToDate: e.target.value }))}
+                />
+              </div>
+            </div>
+          )}
+
+          {formData.fitForWork === 'limited' && (
+            <div>
+              <Label htmlFor="limitations">Work Limitations</Label>
+              <Textarea
+                id="limitations"
+                value={formData.limitations}
+                onChange={(e) => setFormData(prev => ({ ...prev, limitations: e.target.value }))}
+                placeholder="Specify work limitations..."
+                rows={3}
+              />
+            </div>
+          )}
+
+          <div>
+            <Label htmlFor="followUpDate">Follow-up Date (Optional)</Label>
+            <Input
+              id="followUpDate"
+              type="date"
+              value={formData.followUpDate}
+              onChange={(e) => setFormData(prev => ({ ...prev, followUpDate: e.target.value }))}
             />
           </div>
 
@@ -400,7 +539,7 @@ Medical License: [License Number]`
           <div className="flex justify-end space-x-2">
             <Button
               onClick={handleSaveOnly}
-              disabled={isSaving || !formData.content.trim()}
+              disabled={isSaving || !formData.diagnosis.trim() || !formData.recommendations.trim()}
               variant="outline"
             >
               <Save className="h-4 w-4 mr-2" />
@@ -408,7 +547,7 @@ Medical License: [License Number]`
             </Button>
             <Button
               onClick={handlePreview}
-              disabled={!formData.content.trim()}
+              disabled={!formData.diagnosis.trim() || !formData.recommendations.trim()}
             >
               <Eye className="h-4 w-4 mr-2" />
               Preview Certificate
