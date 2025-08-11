@@ -1,6 +1,5 @@
 import { cn } from "@/lib/utils";
 import React from "react";
-import { Card } from "@/components/ui/card";
 
 interface AuthCardProps {
   children: React.ReactNode;
@@ -21,7 +20,7 @@ export const AuthCard = ({ children, isFlipped, className }: AuthCardProps) => {
         </div>
       </div>
 
-      <style jsx global>{`
+       <style>{`
         .flip-card-container {
           perspective: 1000px;
           width: 100%;

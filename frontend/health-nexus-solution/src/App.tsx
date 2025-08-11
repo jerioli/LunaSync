@@ -96,7 +96,14 @@ const App = () => {
               </StaffRoute>
             } />
             
-            {/* Reset password */}
+            {/* Reset password (OTP-based) */}
+            <Route path="/reset-password" element={
+              <PublicRoute>
+                <ResetPassword />
+              </PublicRoute>
+            } />
+            
+            {/* Reset password (Email link-based) */}
             <Route path="/reset-password/:uidb64/:token" element={
               <PublicRoute>
                 <ResetPassword />

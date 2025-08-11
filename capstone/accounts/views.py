@@ -819,3 +819,60 @@ class VerifyOTPView(APIView):
                 'refreshToken': 'dummy_refresh_token'  # In production, generate refresh token
             }
         })
+
+class ResetPasswordOTPView(APIView):
+    permission_classes = [AllowAny]
+    
+    def post(self, request):
+        identifier = request.data.get('identifier')
+        identifier_type = request.data.get('identifier_type')
+        new_password = request.data.get('new_password')
+        
+        if not identifier or not identifier_type or not new_password:
+            return Response({
+                'success': False,
+                'error': 'identifier, identifier_type, and new_password are required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Validate password length
+        if len(new_password) < 8:
+            return Response({
+                'success': False,
+                'error': 'Password must be at least 8 characters long'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Find user
+        try:
+            if identifier_type == 'email':
+                user = CustomUser.objects.get(email=identifier)
+            elif identifier_type == 'phone':
+                user = CustomUser.objects.get(phone=identifier)
+            else:
+                return Response({
+                    'success': False,
+                    'error': 'identifier_type must be email or phone'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        except CustomUser.DoesNotExist:
+            return Response({
+                'success': False,
+                'error': 'User not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            # Update user password
+            user.set_password(new_password)
+            user.save()
+            
+            logger.info(f"Password reset successfully for user {user.username} via OTP")
+            
+            return Response({
+                'success': True,
+                'message': 'Password has been reset successfully'
+            })
+            
+        except Exception as e:
+            logger.error(f"Error resetting password for user {user.username}: {str(e)}")
+            return Response({
+                'success': False,
+                'error': 'Failed to reset password. Please try again.'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

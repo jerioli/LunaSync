@@ -1,16 +1,15 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { AuthCard, AuthCardFront } from '@/components/auth/AuthCard';
+import { OTPVerification } from '@/components/auth/OTPVerification';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
-import { Mail, Phone, Info } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AuthCard, AuthCardFront } from '@/components/auth/AuthCard';
-import { OTPVerification } from '@/components/auth/OTPVerification';
+import axios from 'axios';
+import { Info, Mail, Phone } from 'lucide-react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const API_BASE_URL = 'http://localhost:8000/api';
 
@@ -86,6 +85,10 @@ const ForgotPassword = () => {
 
   const handleVerificationSuccess = (userData: any) => {
     toast.success('Verification successful!');
+    // For password reset flow, we need to pass the verified identifier
+    // Store it temporarily in sessionStorage for the reset password page
+    sessionStorage.setItem('verified_identifier', activeTab === 'email' ? emailIdentifier : phoneIdentifier);
+    sessionStorage.setItem('verified_identifier_type', activeTab);
     navigate('/reset-password');
   };
 

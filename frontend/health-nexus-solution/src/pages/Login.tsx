@@ -1,18 +1,16 @@
+import { AuthCard, AuthCardFront } from '@/components/auth/AuthCard';
 import { OTPVerification } from '@/components/auth/OTPVerification';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useClinic } from '@/hooks/useClinicContext';
 import { loginWithSession } from '@/utils/sessionManager';
 import axios from 'axios';
-import { Eye, EyeOff, Mail, Phone, Shield } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { cn } from "@/lib/utils";
-import { AuthCard, AuthCardBack, AuthCardFront } from '@/components/auth/AuthCard';
 
 const API_BASE_URL = 'http://localhost:8000/api';
 
@@ -31,6 +29,10 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
+  // Error states for visual feedback
+  const [loginError, setLoginError] = useState('');
+  const [hasLoginError, setHasLoginError] = useState(false);
+  
   // OTP login states
   const [otpIdentifier, setOtpIdentifier] = useState('');
   const [identifierType, setIdentifierType] = useState<'email' | 'phone'>('email');
@@ -42,9 +44,28 @@ const Login = () => {
   const { setCurrentUser } = useClinic();
   const navigate = useNavigate();
 
+  // Clear error state when user starts typing
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+    if (hasLoginError) {
+      setHasLoginError(false);
+      setLoginError('');
+    }
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+    if (hasLoginError) {
+      setHasLoginError(false);
+      setLoginError('');
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setLoginError('');
+    setHasLoginError(false);
     
     try {
       console.log('Attempting session-based login...');
@@ -72,15 +93,16 @@ const Login = () => {
         toast.success(`Welcome back, ${user.name}!`);
         navigate('/');
       } else {
-        toast.error(result.error || 'Login failed');
+        // Set error state for invalid credentials
+        setLoginError('Invalid username or password');
+        setHasLoginError(true);
       }
     } catch (error: any) {
       console.error('Session login error:', error);
-      if (error.message) {
-        toast.error(error.message);
-      } else {
-        toast.error('Failed to login. Please try again.');
-      }
+      
+      // Set error state for any login failure
+      setLoginError('Invalid username or password');
+      setHasLoginError(true);
     } finally {
       setIsLoading(false);
     }
@@ -208,9 +230,11 @@ const Login = () => {
                       id="email" 
                       placeholder="Enter your email or username"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={handleEmailChange}
                       required
-                      className="focus-visible:ring-[#79c942] focus-visible:ring-2 focus-visible:ring-offset-2"
+                      className={`focus-visible:ring-[#79c942] focus-visible:ring-2 focus-visible:ring-offset-2 ${
+                        hasLoginError ? 'border-red-500 focus-visible:ring-red-500' : ''
+                      }`}
                     />
                   </div>
                   <div className="space-y-2 text-left">
@@ -221,9 +245,11 @@ const Login = () => {
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password" 
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={handlePasswordChange}
                         required
-                        className="focus-visible:ring-[#79c942] focus-visible:ring-2 focus-visible:ring-offset-2"
+                        className={`focus-visible:ring-[#79c942] focus-visible:ring-2 focus-visible:ring-offset-2 ${
+                          hasLoginError ? 'border-red-500 focus-visible:ring-red-500' : ''
+                        }`}
                       />
                       <button
                         type="button"
@@ -235,6 +261,7 @@ const Login = () => {
                     </div>
                     <div className="flex justify-end">
                       <Button 
+                        type="button"
                         variant="link"
                         className="text-[#79c942] hover:text-[#68ab38] underline-offset-4 hover:underline"
                         onClick={handleForgotPassword}
@@ -243,6 +270,14 @@ const Login = () => {
                       </Button>
                     </div>
                   </div>
+                  
+                  {/* Error message display */}
+                  {hasLoginError && (
+                    <div className="text-red-500 text-sm text-center mt-2">
+                      {loginError}
+                    </div>
+                  )}
+                  
                   <Button 
                     type="submit" 
                     className="w-full bg-[#79c942] hover:bg-[#68ab38] text-white transition-colors" 

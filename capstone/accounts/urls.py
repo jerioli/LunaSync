@@ -4,7 +4,7 @@ from accounts.views import (
     StaffLoginView, CompleteLoginView, PasswordResetRequestView, PasswordResetConfirmView,
     PasswordChangeView, UserProfileUpdateView, UserPreferencesView,
     StaffDetailView, StaffPermissionsView, UserListView, SendOTPView, VerifyOTPView,
-    login_view  # Import the existing login view
+    ResetPasswordOTPView, login_view  # Import the existing login view
 )
 from accounts.bulk_patient_staff_views import (
     BulkPatientUploadView, BulkStaffUploadView, BulkImportTemplateView,
@@ -39,6 +39,7 @@ urlpatterns = [
     # OTP Authentication endpoints
     path('auth/send-otp/', SendOTPView.as_view(), name='send-otp'),  # Matches /api/auth/send-otp/
     path('auth/verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),  # Matches /api/auth/verify-otp/
+    path('auth/reset-password-otp/', ResetPasswordOTPView.as_view(), name='reset-password-otp'),  # Matches /api/auth/reset-password-otp/
     
     # Session Management endpoints
     path('auth/session-login/', SessionLoginView.as_view(), name='session-login'),
