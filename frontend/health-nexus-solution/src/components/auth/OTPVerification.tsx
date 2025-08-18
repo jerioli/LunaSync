@@ -63,6 +63,11 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
       });
 
       if (response.data.success) {
+        console.log('=== OTP API Response ===');
+        console.log('Full API response:', response.data);
+        console.log('force_password_change from API:', response.data.force_password_change);
+        console.log('force_password_change type:', typeof response.data.force_password_change);
+        
         const userData = {
           id: String(response.data.user.id),
           name: response.data.user.name || response.data.user.username,
@@ -71,8 +76,13 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
           phone: response.data.user.phone,
           role: response.data.user.role || 'doctor',
           accessToken: response.data.user.accessToken,
-          refreshToken: response.data.user.refreshToken
+          refreshToken: response.data.user.refreshToken,
+          force_password_change: response.data.force_password_change
         };
+
+        console.log('=== UserData Created ===');
+        console.log('userData object:', userData);
+        console.log('userData.force_password_change:', userData.force_password_change);
 
         toast.success('🎉 Login successful! Welcome to MedSync.');
         onVerificationSuccess(userData);

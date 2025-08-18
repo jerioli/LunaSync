@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from '
 import { Textarea } from '@/components/ui/textarea';
 import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
+import { parseApiError } from '@/utils/errorHandler';
 import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -157,9 +158,13 @@ const AddPatient = () => {
       navigate('/patients');
     } catch (error: any) {
       console.error('Error saving patient:', error);
+      
+      // Use the error handler utility to get a better error message
+      const parsedError = parseApiError(error, 'Failed to save patient. Please try again.');
+      
       toast({
-        title: 'Error',
-        description: 'Failed to save patient. Please try again.',
+        title: parsedError.title,
+        description: parsedError.message,
         variant: 'destructive',
       });
     } finally {

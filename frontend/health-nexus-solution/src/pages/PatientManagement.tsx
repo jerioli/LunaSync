@@ -16,6 +16,7 @@ import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
 import { Patient } from '@/lib/mock-data';
 import { medicalDocumentsAPI, type LabResult as APILabResult } from '@/services/medicalDocumentsAPI';
+import { parseApiError } from '@/utils/errorHandler';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { ArrowLeft, Edit, Eye, File, FileText, Heart, Plus, Printer, Save, Stethoscope, TestTube, Trash2, Upload, User } from 'lucide-react';
@@ -1084,16 +1085,13 @@ const PatientManagement = () => {
       });
     } catch (error) {
       console.error('Error updating patient:', error);
-      let errorMessage = 'Failed to update patient. Please try again later.';
       
-      if (error.response?.data) {
-        // Show specific validation errors if available
-        errorMessage = JSON.stringify(error.response.data);
-      }
+      // Use the error handler utility to get a better error message
+      const parsedError = parseApiError(error, 'Failed to update patient. Please try again later.');
       
       toast({
-        title: 'Error',
-        description: errorMessage,
+        title: parsedError.title,
+        description: parsedError.message,
         variant: 'destructive',
       });
     } finally {
@@ -1166,9 +1164,13 @@ const PatientManagement = () => {
       navigate('/patients');
     } catch (error) {
       console.error('Error deleting patient:', error);
+      
+      // Use the error handler utility to get a better error message
+      const parsedError = parseApiError(error, 'Failed to delete patient. Please try again later.');
+      
       toast({
-        title: 'Error',
-        description: 'Failed to delete patient. Please try again later.',
+        title: parsedError.title,
+        description: parsedError.message,
         variant: 'destructive',
       });
     } finally {

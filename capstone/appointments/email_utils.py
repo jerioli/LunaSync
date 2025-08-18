@@ -647,3 +647,34 @@ Best regards,
     except Exception as email_error:
         logger.error(f"Failed to create OTP email: {str(email_error)}")
         return False
+
+
+def send_notification_email_with_clinic_sender(to_email, subject, plain_content, html_content, clinic_settings):
+    """
+    Send notification email using clinic's email configuration
+    Returns (success: bool, error_message: str)
+    """
+    try:
+        clinic_name = clinic_settings.name if clinic_settings else "Health Nexus"
+        
+        # Use the existing email function
+        success = send_email_with_embedded_logo(
+            to_email=to_email,
+            subject=subject,
+            html_content=html_content,
+            plain_content=plain_content,
+            clinic_name=clinic_name
+        )
+        
+        if success:
+            logger.info(f"Notification email sent successfully to {to_email}")
+            return True, None
+        else:
+            error_msg = "Failed to send notification email"
+            logger.error(error_msg)
+            return False, error_msg
+            
+    except Exception as e:
+        error_msg = f"Error sending notification email: {str(e)}"
+        logger.error(error_msg)
+        return False, error_msg

@@ -31,6 +31,13 @@ class StaffCreateView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             
+            # Set force_password_change to True for new staff
+            user.force_password_change = True
+            user.save()
+            
+            # Debug: Verify user creation with force_password_change
+            print(f"[DEBUG] StaffCreateView - Created user {user.username} with force_password_change: {user.force_password_change}")
+            
             # Send email with credentials if requested
             if request.data.get('send_email', False):
                 temp_password = request.data.get('temp_password', request.data.get('password'))
@@ -207,10 +214,34 @@ class PasswordChangeView(APIView):
                 'error': 'Current password is incorrect'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Validate new password length
+        # Comprehensive password validation
+        import re
+        
+        password_errors = []
+        
+        # Length requirement
         if len(new_password) < 8:
+            password_errors.append('At least 8 characters')
+            
+        # Uppercase requirement
+        if not re.search(r'[A-Z]', new_password):
+            password_errors.append('One uppercase letter')
+            
+        # Lowercase requirement
+        if not re.search(r'[a-z]', new_password):
+            password_errors.append('One lowercase letter')
+            
+        # Number requirement
+        if not re.search(r'\d', new_password):
+            password_errors.append('One number')
+            
+        # Special character requirement
+        if not re.search(r'[!@#$%^&*()_+\-=\[\]{};\':"\\|,.<>\/?]', new_password):
+            password_errors.append('One special character')
+        
+        if password_errors:
             return Response({
-                'error': 'New password must be at least 8 characters long'
+                'error': f'Password must have: {", ".join(password_errors)}'
             }, status=status.HTTP_400_BAD_REQUEST)
         
         # Set new password
@@ -568,6 +599,56 @@ class StaffLoginView(APIView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
+class SessionLoginView(APIView):
+    """Simple session-based login without OTP"""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email')
+        password = request.data.get('password')
+        
+        if not email or not password:
+            return Response({
+                'error': 'Please provide both email and password'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Use username parameter to trigger EmailOrUsernameBackend
+        user = authenticate(request, username=email, password=password)
+
+        if user is not None:
+            # Debug: Check user's force_password_change status
+            print(f"[DEBUG] SessionLoginView - User {user.username} force_password_change: {user.force_password_change}")
+            print(f"[DEBUG] SessionLoginView - User created: {user.date_joined}")
+            print(f"[DEBUG] SessionLoginView - User role: {user.role}")
+            
+            # Create session
+            login(request, user)
+            
+            # Return user data
+            response_data = {
+                'success': True,
+                'message': 'Login successful',
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'name': user.get_full_name() or user.username,
+                    'email': user.email,
+                    'role': user.role,
+                },
+                'session_id': request.session.session_key,
+                'force_password_change': getattr(user, 'force_password_change', False)
+            }
+            
+            print(f"[DEBUG] SessionLoginView - Response data: {response_data}")
+            
+            return Response(response_data)
+        else:
+            return Response({
+                'success': False,
+                'error': 'Invalid credentials'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+
 class CompleteLoginView(APIView):
     """Complete login after OTP verification"""
     permission_classes = [AllowAny]
@@ -623,7 +704,11 @@ class CompleteLoginView(APIView):
             cache.delete(f'login_otp_{user.id}')
             cache.delete(f'login_otp_method_{user.id}')
             
-            return Response({
+            # Debug: Check user's force_password_change status
+            print(f"[DEBUG] CompleteLoginView - User {user.username} force_password_change: {user.force_password_change}")
+            
+            # Check if user needs to change password
+            response_data = {
                 'success': True,
                 'message': 'Login successful',
                 'user': {
@@ -631,8 +716,13 @@ class CompleteLoginView(APIView):
                     'email': user.email,
                     'name': user.name,
                     'role': user.role
-                }
-            })
+                },
+                'force_password_change': user.force_password_change
+            }
+            
+            print(f"[DEBUG] CompleteLoginView - Response data: {response_data}")
+            
+            return Response(response_data)
         else:
             return Response({
                 'success': False,
@@ -806,6 +896,9 @@ class VerifyOTPView(APIView):
         # Clear the OTP from cache
         cache.delete(cache_key)
         
+        # Debug: Check user's force_password_change status
+        print(f"[DEBUG] User {user.username} force_password_change: {user.force_password_change}")
+        
         # Return user data (similar to login response)
         return Response({
             'success': True,
@@ -817,7 +910,8 @@ class VerifyOTPView(APIView):
                 'role': user.role,
                 'accessToken': 'dummy_access_token',  # In production, generate JWT token
                 'refreshToken': 'dummy_refresh_token'  # In production, generate refresh token
-            }
+            },
+            'force_password_change': getattr(user, 'force_password_change', False)
         })
 
 class ResetPasswordOTPView(APIView):

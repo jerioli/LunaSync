@@ -1,10 +1,12 @@
+import AppointmentCalendar from '@/components/ui/AppointmentCalendar';
 import { Avatar, AvatarFallback, } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useClinic } from '@/contexts/ClinicContext';
 import axios from 'axios';
-import { Calendar, Clock, Users } from 'lucide-react';
+import { Calendar, CalendarDays, Clock, List, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -16,6 +18,7 @@ const ReceptionistDashboard = () => {
   const [appointments, setAppointments] = useState([]);
   const [patientsCount, setPatientsCount] = useState(0);
   const [patientDetails, setPatientDetails] = useState({});
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
   const navigate = useNavigate();
 
   // Fetch appointments from backend
@@ -101,6 +104,19 @@ const ReceptionistDashboard = () => {
     });
     // eslint-disable-next-line
   }, [todaysAppointments, upcomingAppointments]);
+
+  // Handler for when an appointment is clicked in the calendar
+  const handleAppointmentClick = (appointment) => {
+    setSelectedAppointment(appointment);
+    console.log('Appointment clicked:', appointment);
+    // You can add more functionality here, like opening a modal or navigating to appointment details
+  };
+
+  // Handler for when a date is clicked in the calendar
+  const handleDateClick = (date) => {
+    console.log('Date clicked:', date);
+    // You can add functionality here, like filtering appointments by date or creating a new appointment
+  };
   
   return (
     <div className="space-y-6">
@@ -140,125 +156,161 @@ const ReceptionistDashboard = () => {
             </div>
           </CardFooter>
         </Card>
-        
-       
-       
       </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Today's Appointments</CardTitle>
-            <CardDescription>Check in patients and manage today's schedule</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y">
-              {todaysAppointments.length > 0 ? (
-                todaysAppointments.map((appointment) => {
-                  const patientId = appointment.patientId || appointment.patient;
-                  let patient = patients.find(p => String(p.id) === String(patientId));
-                  if (!patient && patientDetails[patientId]) {
-                    patient = patientDetails[patientId];
-                  }
-                  const consultationType = appointment.type || appointment.appointment_type || 'Consultation';
-                  return (
-                    <div key={appointment.id} className="flex items-center justify-between p-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarFallback>{patient?.name ? patient.name.charAt(0) : '?'}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">{patient?.name || 'Unknown Patient'}</div>
-                          <div className="text-sm text-muted-foreground">{consultationType}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            <span className="text-sm">{appointment.time}</span>
+
+      <Tabs defaultValue="list" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="list" className="flex items-center gap-2">
+            <List className="h-4 w-4" />
+            List View
+          </TabsTrigger>
+          <TabsTrigger value="calendar" className="flex items-center gap-2">
+            <CalendarDays className="h-4 w-4" />
+            Calendar View
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="list" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="col-span-1">
+              <CardHeader>
+                <CardTitle>Today's Appointments</CardTitle>
+                <CardDescription>Check in patients and manage today's schedule</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="divide-y">
+                  {todaysAppointments.length > 0 ? (
+                    todaysAppointments.map((appointment) => {
+                      const patientId = appointment.patientId || appointment.patient;
+                      let patient = patients.find(p => String(p.id) === String(patientId));
+                      if (!patient && patientDetails[patientId]) {
+                        patient = patientDetails[patientId];
+                      }
+                      const consultationType = appointment.type || appointment.appointment_type || 'Consultation';
+                      return (
+                        <div key={appointment.id} className="flex items-center justify-between p-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar>
+                              <AvatarFallback>{patient?.name ? patient.name.charAt(0) : '?'}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-medium">{patient?.name || 'Unknown Patient'}</div>
+                              <div className="text-sm text-muted-foreground">{consultationType}</div>
+                            </div>
                           </div>
-                          <Badge 
-                            variant={appointment.status === 'scheduled' ? 'outline' : 'secondary'}
-                            className="mt-1"
-                          >
-                            {appointment.status === 'scheduled' ? 'Not checked in' : 'Checked in'}
-                          </Badge>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                <span className="text-sm">{appointment.time}</span>
+                              </div>
+                              <Badge 
+                                variant={appointment.status === 'scheduled' ? 'outline' : 'secondary'}
+                                className="mt-1"
+                              >
+                                {appointment.status === 'scheduled' ? 'Not checked in' : 'Checked in'}
+                              </Badge>
+                            </div>
+                            {appointment.status === 'scheduled' && (
+                              <Button size="sm">Check in</Button>
+                            )}
+                          </div>
                         </div>
-                        {appointment.status === 'scheduled' && (
-                          <Button size="sm">Check in</Button>
-                        )}
-                      </div>
+                      );
+                    })
+                  ) : (
+                    <div className="py-8 text-center text-muted-foreground">
+                      No appointments scheduled for today
                     </div>
-                  );
-                })
-              ) : (
-                <div className="py-8 text-center text-muted-foreground">
-                  No appointments scheduled for today
+                  )}
                 </div>
-              )}
-            </div>
-          </CardContent>
-          <CardFooter className="border-t bg-muted/50 px-6 py-3">
-            <Button variant="ghost" className="w-full" onClick={() => navigate('/appointments')}>
-              View all appointments
-            </Button>
-          </CardFooter>
-        </Card>
+              </CardContent>
+              <CardFooter className="border-t bg-muted/50 px-6 py-3">
+                <Button variant="ghost" className="w-full" onClick={() => navigate('/appointments')}>
+                  View all appointments
+                </Button>
+              </CardFooter>
+            </Card>
+            
+            <Card className="col-span-1">
+              <CardHeader>
+                <CardTitle>Upcoming Appointments</CardTitle>
+                <CardDescription>Next scheduled appointments</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="divide-y">
+                  {upcomingAppointments.length > 0 ? (
+                    upcomingAppointments.map((appointment) => {
+                      const patientId = appointment.patientId || appointment.patient;
+                      let patient = patients.find(p => String(p.id) === String(patientId));
+                      if (!patient && patientDetails[patientId]) {
+                        patient = patientDetails[patientId];
+                      }
+                      const consultationType = appointment.appointment_type || appointment.type || 'Consultation';
+                      return (
+                        <div key={appointment.id} className="flex items-center justify-between p-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar>
+                              <AvatarFallback>{patient?.name ? patient.name.charAt(0) : '?'}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-medium">{patient?.name || 'Unknown Patient'}</div>
+                              <div className="text-sm text-muted-foreground">{consultationType}</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <div className="font-medium">{new Date(appointment.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                              <div className="text-sm text-muted-foreground">{appointment.time}</div>
+                            </div>
+                            <Button size="sm" variant="outline" onClick={() => navigate(`/patients/${patient?.id}`)}>
+                              View Patient
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="py-8 text-center text-muted-foreground">
+                      No upcoming appointments
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+              <CardFooter className="border-t bg-muted/50 px-6 py-3">
+                <Button variant="ghost" className="w-full" onClick={() => navigate('/appointments')}>
+                  View all appointments
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </TabsContent>
         
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Upcoming Appointments</CardTitle>
-            <CardDescription>Next scheduled appointments</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y">
-              {upcomingAppointments.length > 0 ? (
-                upcomingAppointments.map((appointment) => {
-                  const patientId = appointment.patientId || appointment.patient;
-                  let patient = patients.find(p => String(p.id) === String(patientId));
-                  if (!patient && patientDetails[patientId]) {
-                    patient = patientDetails[patientId];
-                  }
-                  const consultationType = appointment.appointment_type || appointment.type || 'Consultation';
-                  return (
-                    <div key={appointment.id} className="flex items-center justify-between p-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarFallback>{patient?.name ? patient.name.charAt(0) : '?'}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">{patient?.name || 'Unknown Patient'}</div>
-                          <div className="text-sm text-muted-foreground">{consultationType}</div>
-                        </div>
-                      </div>                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <div className="font-medium">{new Date(appointment.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                          <div className="text-sm text-muted-foreground">{appointment.time}</div>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => navigate(`/patients/${patient?.id}`)}>
-                          View Patient
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="py-8 text-center text-muted-foreground">
-                  No upcoming appointments
+        <TabsContent value="calendar" className="space-y-6">
+          <AppointmentCalendar
+            appointments={appointments}
+            onAppointmentClick={handleAppointmentClick}
+            onDateClick={handleDateClick}
+            patientDetails={patientDetails}
+            patients={patients}
+          />
+          {selectedAppointment && (
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle>Selected Appointment Details</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <p><strong>Date:</strong> {new Date(selectedAppointment.date).toLocaleDateString()}</p>
+                  <p><strong>Time:</strong> {selectedAppointment.time}</p>
+                  <p><strong>Status:</strong> {selectedAppointment.status}</p>
+                  <p><strong>Type:</strong> {selectedAppointment.appointment_type || 'Consultation'}</p>
                 </div>
-              )}
-            </div>
-          </CardContent>
-          <CardFooter className="border-t bg-muted/50 px-6 py-3">
-            <Button variant="ghost" className="w-full" onClick={() => navigate('/appointments')}>
-              View all appointments
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
-      
-      
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

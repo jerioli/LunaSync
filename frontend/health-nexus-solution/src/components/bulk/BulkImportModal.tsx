@@ -32,7 +32,6 @@ export default function BulkImportModal({ type, onUploadComplete }: BulkImportMo
       const formData = new FormData();
       formData.append('file', file);
       
-      // Simple POST request without authentication
       const response = await axios.post(`bulk/${type}/upload/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -47,7 +46,6 @@ export default function BulkImportModal({ type, onUploadComplete }: BulkImportMo
       setIsOpen(false);
       setUploadFile(null);
       
-      // Call the callback to refresh the parent component
       if (onUploadComplete) {
         onUploadComplete();
       }
@@ -80,8 +78,8 @@ export default function BulkImportModal({ type, onUploadComplete }: BulkImportMo
     
     const csvContent = headers.join(',') + '\n' + 
       (type === 'patients' 
-        ? 'John Doe,john.doe@email.com,+1234567890,1990-01-01,male,"123 Main St",single'
-        : 'Jane,Smith,jane.smith@hospital.com,+1234567890,doctor,cardiology,MD12345');
+        ? 'John Doe,john.doe@email.com,+1234567890,1990-01-01,male,"123 Main St",single\nJane Smith,jane.smith@email.com,+0987654321,1985-05-15,female,"456 Oak Ave",married'
+        : 'Jane,Smith,jane.smith@hospital.com,+1234567890,doctor,cardiology,MD12345\nJohn,Doe,john.doe@hospital.com,+0987654321,nurse,emergency,RN67890');
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -100,143 +98,140 @@ export default function BulkImportModal({ type, onUploadComplete }: BulkImportMo
           Bulk Add {type === 'patients' ? 'Patients' : 'Staff'}
         </Button>
       </DialogTrigger>
-      
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
+      {/* ✅ Centered modal with fixed header */}
+      <DialogContent className="w-[900px] h-[600px] max-w-none flex flex-col fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <DialogHeader className="flex-shrink-0 border-b pb-4">
           <DialogTitle className="flex items-center gap-2">
             {type === 'patients' ? <Users className="h-5 w-5" /> : <UserPlus className="h-5 w-5" />}
             Bulk Import {type === 'patients' ? 'Patients' : 'Staff'}
           </DialogTitle>
         </DialogHeader>
-
-            <Tabs defaultValue="upload" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="upload">File Upload</TabsTrigger>
-                <TabsTrigger value="manual">Manual Entry</TabsTrigger>
-                <TabsTrigger value="template">Download Template</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="upload" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Upload className="h-5 w-5" />
-                      Upload CSV/Excel File
-                    </CardTitle>
-                    <CardDescription>
-                      Upload a CSV or Excel file containing {type} data. Make sure the file follows the required format.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="file-upload">Select File</Label>
-                      <Input
-                        id="file-upload"
-                        type="file"
-                        accept=".csv,.xlsx,.xls"
-                        onChange={handleFileSelect}
-                        disabled={isUploading}
-                      />
-                    </div>
-                    
-                    {uploadFile && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-600">
-                          Selected: {uploadFile.name} ({(uploadFile.size / 1024).toFixed(1)} KB)
-                        </p>
-                      </div>
-                    )}
-
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => uploadFile && handleFileUpload(uploadFile)}
-                        disabled={!uploadFile || isUploading}
-                        className="flex-1"
-                      >
-                        {isUploading ? 'Uploading...' : 'Upload & Import'}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={downloadTemplate}
-                      >
-                        Download Template
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="manual" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Manual Bulk Entry</CardTitle>
-                    <CardDescription>
-                      Enter multiple {type} records manually using a form interface.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ManualBulkEntry 
-                      type={type} 
-                      onComplete={() => {
-                        setIsOpen(false);
-                        if (onUploadComplete) {
-                          onUploadComplete();
-                        }
-                      }} 
+        <Tabs defaultValue="upload" className="w-full flex flex-col flex-1 overflow-hidden">
+          <div className="flex-shrink-0 bg-white pb-2 px-8 border-b">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="upload">File Upload</TabsTrigger>
+              <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+              <TabsTrigger value="template">Download Template</TabsTrigger>
+            </TabsList>
+          </div>
+          <div className="flex-1 overflow-y-auto pt-4">
+            <TabsContent value="upload" className="space-y-4 flex-1">
+              <Card className="h-full">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Upload className="h-5 w-5" />
+                    Upload CSV/Excel File
+                  </CardTitle>
+                  <CardDescription>
+                    Upload a CSV or Excel file containing {type} data. Make sure the file follows the required format.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="file-upload">Select File</Label>
+                    <Input
+                      id="file-upload"
+                      type="file"
+                      accept=".csv,.xlsx,.xls"
+                      onChange={handleFileSelect}
+                      disabled={isUploading}
                     />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="template" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      Template & Instructions
-                    </CardTitle>
-                    <CardDescription>
-                      Download the template file and learn about the required format.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-3">
-                      <h4 className="font-medium">Required Fields:</h4>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        {type === 'patients' ? (
-                          <>
-                            <div>• name (required)</div>
-                            <div>• email (required, unique)</div>
-                            <div>• phone (required)</div>
-                            <div>• date_of_birth (YYYY-MM-DD)</div>
-                            <div>• gender (male/female/other)</div>
-                            <div>• address (optional)</div>
-                            <div>• marital_status (optional)</div>
-                          </>
-                        ) : (
-                          <>
-                            <div>• first_name (required)</div>
-                            <div>• last_name (required)</div>
-                            <div>• email (required, unique)</div>
-                            <div>• phone (required)</div>
-                            <div>• role (doctor/receptionist/admin)</div>
-                            <div>• department (optional)</div>
-                            <div>• license_number (for doctors)</div>
-                          </>
-                        )}
-                      </div>
+                  </div>
+                  {uploadFile && (
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-600">
+                        Selected: {uploadFile.name} ({(uploadFile.size / 1024).toFixed(1)} KB)
+                      </p>
                     </div>
-                    
-                    <Button onClick={downloadTemplate} className="w-full">
-                      <FileText className="h-4 w-4 mr-2" />
-                      Download {type === 'patients' ? 'Patient' : 'Staff'} Template
+                  )}
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => uploadFile && handleFileUpload(uploadFile)}
+                      disabled={!uploadFile || isUploading}
+                      className="flex-1"
+                    >
+                      {isUploading ? 'Uploading...' : 'Upload & Import'}
                     </Button>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </DialogContent>
-        </Dialog>
+                    <Button
+                      variant="outline"
+                      onClick={downloadTemplate}
+                    >
+                      Download Template
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="manual" className="space-y-4 flex-1">
+              <Card className="h-full">
+                <CardHeader>
+                  <CardTitle>Manual Bulk Entry</CardTitle>
+                  <CardDescription>
+                    Enter multiple {type} records manually using a form interface.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ManualBulkEntry 
+                    type={type} 
+                    onComplete={() => {
+                      setIsOpen(false);
+                      if (onUploadComplete) {
+                        onUploadComplete();
+                      }
+                    }} 
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="template" className="space-y-4 flex-1">
+              <Card className="h-full">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Template & Instructions
+                  </CardTitle>
+                  <CardDescription>
+                    Download the template file and learn about the required format.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <h4 className="font-medium">Required Fields:</h4>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      {type === 'patients' ? (
+                        <>
+                          <div>• name (required)</div>
+                          <div>• email (required, unique)</div>
+                          <div>• phone (required)</div>
+                          <div>• date_of_birth (YYYY-MM-DD)</div>
+                          <div>• gender (male/female/other)</div>
+                          <div>• address (optional)</div>
+                          <div>• marital_status (optional)</div>
+                        </>
+                      ) : (
+                        <>
+                          <div>• first_name (required)</div>
+                          <div>• last_name (required)</div>
+                          <div>• email (required, unique)</div>
+                          <div>• phone (required)</div>
+                          <div>• role (doctor/receptionist/admin)</div>
+                          <div>• department (optional)</div>
+                          <div>• license_number (for doctors)</div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <Button onClick={downloadTemplate} className="w-full">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Download {type === 'patients' ? 'Patient' : 'Staff'} Template
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </div>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -271,7 +266,6 @@ function ManualBulkEntry({ type, onComplete }: { type: 'patients' | 'staff'; onC
     setIsSubmitting(true);
     
     try {
-      // Simple POST request without authentication
       const response = await axios.post(`bulk/${type}/upload/`, { data: entries });
 
       const result = response.data;

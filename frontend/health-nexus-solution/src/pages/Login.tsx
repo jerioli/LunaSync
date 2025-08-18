@@ -74,24 +74,49 @@ const Login = () => {
       const result = await loginWithSession({ email, password });
       
       if (result.success) {
+        console.log('=== Session Login Success ===');
+        console.log('Full result received:', result);
+        console.log('force_password_change value:', result.force_password_change);
+        console.log('force_password_change type:', typeof result.force_password_change);
+        
         const user = {
           id: String(result.user.id),
           name: result.user.name,
           username: result.user.username,
           email: result.user.email,
           role: result.user.role || 'doctor',
-          sessionId: result.session_id
+          sessionId: result.session_id,
+          force_password_change: result.force_password_change // Include force_password_change
         };
         
         console.log('Session login successful:', user);
+        console.log('User force_password_change value:', user.force_password_change);
+        console.log('User force_password_change type:', typeof user.force_password_change);
         
         // Store user data (no JWT tokens needed for session-based auth)
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('sessionId', result.session_id);
         setCurrentUser(user);
         
-        toast.success(`Welcome back, ${user.name}!`);
-        navigate('/');
+        // Check if user needs to change password
+        console.log('Checking force_password_change condition...');
+        if (user.force_password_change) {
+          console.log('User needs to change password - navigating directly');
+          toast.success('Welcome! Please change your password to continue.');
+          
+          // Navigate directly to change-password page
+          setTimeout(() => {
+            navigate('/change-password');
+          }, 100);
+        } else {
+          console.log('Normal login flow - redirecting to dashboard');
+          toast.success(`Welcome back, ${user.name}!`);
+          
+          // Use setTimeout to ensure state is updated before navigation
+          setTimeout(() => {
+            navigate('/');
+          }, 100);
+        }
       } else {
         // Set error state for invalid credentials
         setLoginError('Invalid username or password');
@@ -151,6 +176,11 @@ const Login = () => {
   };
 
   const handleOTPVerificationSuccess = (userData: any) => {
+    console.log('=== OTP Verification Success ===');
+    console.log('Full userData received:', userData);
+    console.log('force_password_change value:', userData.force_password_change);
+    console.log('force_password_change type:', typeof userData.force_password_change);
+    
     // Store session-based user data (no JWT tokens for session auth)
     const user = {
       ...userData,
@@ -163,8 +193,25 @@ const Login = () => {
     }
     setCurrentUser(user);
     
-    toast.success(`Welcome back, ${userData.name}!`);
-    navigate('/');
+    // Check if user needs to change password
+    console.log('Checking force_password_change condition...');
+    if (userData.force_password_change) {
+      console.log('User needs to change password - navigating directly');
+      toast.success('Welcome! Please change your password to continue.');
+      
+      // Navigate directly to change-password page
+      setTimeout(() => {
+        navigate('/change-password');
+      }, 100);
+    } else {
+      console.log('Normal login flow - redirecting to dashboard');
+      toast.success(`Welcome back, ${userData.name}!`);
+      
+      // Use setTimeout to ensure state is updated before navigation
+      setTimeout(() => {
+        navigate('/');
+      }, 100);
+    }
   };
 
   const handleBackToLogin = () => {

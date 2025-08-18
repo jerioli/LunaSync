@@ -25,7 +25,8 @@ export const loginWithSession = async (credentials) => {
         success: true,
         user: data.user,
         session_id: data.session_id,
-        message: data.message
+        message: data.message,
+        force_password_change: data.force_password_change
       };
     } else {
       throw new Error(response.data.error || 'Login failed');

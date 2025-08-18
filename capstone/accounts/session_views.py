@@ -77,7 +77,8 @@ class SessionLoginView(APIView):
                         'role': getattr(user, 'role', 'doctor'),
                     },
                     'session_id': request.session.session_key,
-                    'message': 'Login successful'
+                    'message': 'Login successful',
+                    'force_password_change': getattr(user, 'force_password_change', False)
                 })
             
             print(f"[DEBUG] Authentication failed for email: {email}, username: {username}")

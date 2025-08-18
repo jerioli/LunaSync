@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useClinic } from '@/hooks/useClinicContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
+import { useClinic } from '@/hooks/useClinicContext';
 import axios from 'axios';
 import { Eye, EyeOff, KeyRound } from 'lucide-react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const API_BASE_URL = 'http://localhost:8000/api';
 
@@ -22,6 +22,30 @@ const ChangePassword = () => {
   const { currentUser, setCurrentUser } = useClinic();
   const navigate = useNavigate();
 
+  // Password strength validation function
+  const validatePasswordStrength = (password: string) => {
+    const requirements = {
+      minLength: password.length >= 8,
+      hasUppercase: /[A-Z]/.test(password),
+      hasLowercase: /[a-z]/.test(password),
+      hasNumber: /\d/.test(password),
+      hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+    };
+
+    const errors = [];
+    if (!requirements.minLength) errors.push('At least 8 characters');
+    if (!requirements.hasUppercase) errors.push('One uppercase letter');
+    if (!requirements.hasLowercase) errors.push('One lowercase letter');
+    if (!requirements.hasNumber) errors.push('One number');
+    if (!requirements.hasSpecialChar) errors.push('One special character');
+
+    return {
+      isValid: Object.values(requirements).every(req => req),
+      requirements,
+      errors
+    };
+  };
+
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -33,8 +57,10 @@ const ChangePassword = () => {
       return;
     }
 
-    if (newPassword.length < 8) {
-      toast.error('Password must be at least 8 characters long');
+    // Strong password validation
+    const passwordValidation = validatePasswordStrength(newPassword);
+    if (!passwordValidation.isValid) {
+      toast.error(`Password must have: ${passwordValidation.errors.join(', ')}`);
       setIsLoading(false);
       return;
     }
@@ -57,10 +83,15 @@ const ChangePassword = () => {
         
         // Update user context to remove force_password_change flag
         if (currentUser) {
-          setCurrentUser({
+          const updatedUser = {
             ...currentUser,
             force_password_change: false
-          });
+          };
+          
+          setCurrentUser(updatedUser);
+          
+          // Update localStorage as well
+          localStorage.setItem('user', JSON.stringify(updatedUser));
         }
 
         // Navigate to appropriate dashboard based on role
@@ -126,7 +157,7 @@ const ChangePassword = () => {
                 <Input
                   id="newPassword"
                   type={showNewPassword ? 'text' : 'password'}
-                  placeholder="Enter your new password"
+                  placeholder="Create a strong password (8+ chars, upper, lower, number, special)"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
@@ -145,9 +176,53 @@ const ChangePassword = () => {
                   )}
                 </Button>
               </div>
-              <p className="text-sm text-gray-500">
-                Password must be at least 8 characters long
-              </p>
+              
+              {/* Password Strength Indicator */}
+              {newPassword && (
+                <div className="space-y-3 p-3 bg-gray-50 rounded-lg border">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-medium text-gray-700">Password Strength:</div>
+                    <div className={`text-xs font-medium px-2 py-1 rounded ${
+                      validatePasswordStrength(newPassword).isValid 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-red-100 text-red-700'
+                    }`}>
+                      {validatePasswordStrength(newPassword).isValid ? 'Strong' : 'Weak'}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2 text-xs">
+                    {(() => {
+                      const validation = validatePasswordStrength(newPassword);
+                      return [
+                        { label: 'At least 8 characters', met: validation.requirements.minLength },
+                        { label: 'One uppercase letter (A-Z)', met: validation.requirements.hasUppercase },
+                        { label: 'One lowercase letter (a-z)', met: validation.requirements.hasLowercase },
+                        { label: 'One number (0-9)', met: validation.requirements.hasNumber },
+                        { label: 'One special character (!@#$%...)', met: validation.requirements.hasSpecialChar }
+                      ].map((req, index) => (
+                        <div key={index} className={`flex items-center gap-2 transition-colors ${
+                          req.met ? 'text-green-600' : 'text-gray-500'
+                        }`}>
+                          <div className={`w-3 h-3 rounded-full border-2 flex items-center justify-center ${
+                            req.met 
+                              ? 'bg-green-500 border-green-500' 
+                              : 'border-gray-300'
+                          }`}>
+                            {req.met && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
+                          </div>
+                          <span className={req.met ? 'font-medium' : ''}>{req.label}</span>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                </div>
+              )}
+              
+              {!newPassword && (
+                <p className="text-sm text-gray-500">
+                  Password must include uppercase, lowercase, number, and special character
+                </p>
+              )}
             </div>
 
             {/* Confirm Password */}
@@ -181,7 +256,14 @@ const ChangePassword = () => {
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={isLoading}
+              disabled={
+                isLoading || 
+                !newPassword || 
+                !confirmPassword || 
+                !currentPassword ||
+                newPassword !== confirmPassword ||
+                !validatePasswordStrength(newPassword).isValid
+              }
             >
               {isLoading ? 'Changing Password...' : 'Change Password'}
             </Button>

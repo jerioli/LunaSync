@@ -1,24 +1,22 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { 
-  User, 
-  Patient, 
-  NewPatient,
-  Appointment, 
-  Prescription, 
-  LabResult,
-  Inventory,
-  Payment,
-
-  users,
-  patients,
+import { defaultClinicCustomization } from '@/constants/clinicDefaults';
+import {
+  Appointment,
   appointments,
-  prescriptions,
+  Inventory,
+  LabResult,
   labResults,
-  
+  NewPatient,
+  Patient,
+  Payment,
+  Prescription,
+  prescriptions,
+  User,
+  users
 } from '@/lib/mock-data';
 import { ClinicContextType, ClinicCustomization } from '@/types/clinic';
-import { defaultClinicCustomization } from '@/constants/clinicDefaults';
+import { parseApiError } from '@/utils/errorHandler';
 import axios from 'axios';
+import React, { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 
 axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
 
@@ -83,9 +81,19 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
       setPatientsList(prev => [...prev, newPatient]);
       return newPatient;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding patient:', error);
-      throw error;
+      
+      // Use the error handler utility to parse the error
+      const parsedError = parseApiError(error, 'Failed to add patient. Please try again.');
+      
+      // Create a more detailed error object
+      const detailedError = new Error(parsedError.message);
+      (detailedError as any).isValidationError = parsedError.isValidationError;
+      (detailedError as any).validationErrors = parsedError.validationErrors;
+      (detailedError as any).title = parsedError.title;
+      
+      throw detailedError;
     }
   };
 

@@ -1,18 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useClinic } from '@/contexts/ClinicContext';
-import { Calendar, Clock, Users, Bell, FileText } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useClinic } from '@/contexts/ClinicContext';
+import axios from 'axios';
+import { Bell, Calendar as CalendarIcon, Clock, FileText, Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const DoctorDashboard = () => {
-  const { patients } = useClinic();
+  const { patients, currentUser } = useClinic();
   const [appointments, setAppointments] = useState([]);
   const [patientsCount, setPatientsCount] = useState(0);
   const [patientDetails, setPatientDetails] = useState({});
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const navigate = useNavigate();
 
   // Fetch appointments from backend
@@ -55,13 +58,23 @@ const DoctorDashboard = () => {
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];
   
-  // Filter today's appointments
-  const todaysAppointments = appointments
+  // Determine current doctor's ID (supports different field names)
+  const doctorId = currentUser?.id;
+
+  // Scope appointments to the current doctor if available
+  const appointmentsForDoctor = appointments.filter(appt => {
+    const apptDoctorId = appt.doctorId || appt.doctor;
+    if (!doctorId) return true;
+    return String(apptDoctorId) === String(doctorId);
+  });
+
+  // Filter today's appointments for the doctor
+  const todaysAppointments = appointmentsForDoctor
     .filter(appointment => appointment.date === today)
     .sort((a, b) => a.time.localeCompare(b.time));
   
   // Filter patients with upcoming follow-up appointments
-  const upcomingFollowUps = appointments
+  const upcomingFollowUps = appointmentsForDoctor
     .filter(appointment => 
       appointment.status === 'scheduled' && 
       (appointment.appointment_type?.toLowerCase().includes('follow') || appointment.type?.toLowerCase().includes('follow')) &&
@@ -70,7 +83,7 @@ const DoctorDashboard = () => {
     .slice(0, 3);
   
   // Filter general upcoming appointments (future dates)
-  const upcomingAppointments = appointments
+  const upcomingAppointments = appointmentsForDoctor
     .filter(appointment => {
       const appointmentDate = new Date(appointment.date);
       const currentDate = new Date();
@@ -85,8 +98,13 @@ const DoctorDashboard = () => {
   // Count today's appointments
   const totalTodaysAppointments = todaysAppointments.length;
   
-  // Count pending lab results
-  const pendingLabResults = 2; // Mock number for prototype
+  // Helper to add days (used for demo legend when no data)
+  const addDays = (date: Date, days: number) => {
+    const d = new Date(date);
+    d.setDate(d.getDate() + days);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  };
 
   useEffect(() => {
     // For each appointment today, ensure we have the patient name
@@ -107,6 +125,27 @@ const DoctorDashboard = () => {
     // eslint-disable-next-line
   }, [todaysAppointments, upcomingAppointments]);
   
+  // Build lists for calendar modifiers
+  const todayDateOnly = new Date();
+  todayDateOnly.setHours(0,0,0,0);
+
+  const todayScheduledDates = Array.from(new Set(
+    appointmentsForDoctor
+      .filter(a => a.status === 'scheduled' && a.date === today)
+      .map(a => a.date)
+  )).map(d => new Date(`${d}T00:00:00`));
+
+  const upcomingScheduledDates = Array.from(new Set(
+    appointmentsForDoctor
+      .filter(a => a.status === 'scheduled' && a.date > today)
+      .map(a => a.date)
+  )).map(d => new Date(`${d}T00:00:00`));
+
+  // If there are no appointments, create mock dates to demonstrate legend
+  const useMockLegend = todayScheduledDates.length === 0 && upcomingScheduledDates.length === 0;
+  const mockTodayDates = [addDays(new Date(), 0)];
+  const mockUpcomingDates = [addDays(new Date(), 2), addDays(new Date(), 5)];
+
   return (
     <div className="space-y-6">
       <div>
@@ -129,24 +168,13 @@ const DoctorDashboard = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Today's Appointments</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalTodaysAppointments}</div>
             <p className="text-xs text-muted-foreground">
               {todaysAppointments.filter(a => a.status === 'scheduled').length} awaiting consultation
             </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Pending Results</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{pendingLabResults}</div>
-            <p className="text-xs text-muted-foreground">Requires your review</p>
           </CardContent>
         </Card>
         
@@ -160,10 +188,68 @@ const DoctorDashboard = () => {
             <p className="text-xs text-muted-foreground">Upcoming this week</p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Document Requests</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">Awaiting your approval</p>
+          </CardContent>
+        </Card>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="col-span-1">
+        <Card className="col-span-1 lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Calendar</CardTitle>
+            <CardDescription>Select a date to view and plan</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              className="w-full rounded-md border"
+              classNames={{
+                months: "w-full",
+                month: "w-full",
+                table: "w-full",
+                head_row: "grid grid-cols-7",
+                head_cell: "text-muted-foreground rounded-md font-normal text-[0.8rem] text-center",
+                row: "grid grid-cols-7 w-full mt-2",
+                cell: "p-0",
+                day: "w-full h-10 sm:h-12 md:h-14 flex items-center justify-center aria-selected:opacity-100"
+              }}
+              modifiers={{
+                todayAppointments: useMockLegend ? mockTodayDates : todayScheduledDates,
+                upcomingAppointments: useMockLegend ? mockUpcomingDates : upcomingScheduledDates,
+              }}
+              modifiersClassNames={{
+                todayAppointments: "relative bg-primary/20",
+                upcomingAppointments: "relative bg-accent/40",
+              }}
+              disabled={(date) => date < new Date()}
+            />
+            <div className="flex items-center gap-4 px-6 py-3 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-3 w-3 rounded-sm bg-primary/20" />
+                <span>Today's scheduled appointments</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-3 w-3 rounded-sm bg-accent/40" />
+                <span>Upcoming scheduled appointments</span>
+              </div>
+              {useMockLegend && (
+                <span className="text-muted-foreground">(mock legend example)</span>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="col-span-1 order-2 lg:order-1">
           <CardHeader>
             <CardTitle>Today's Appointments</CardTitle>
             <CardDescription>Manage today's patient consultations</CardDescription>
@@ -223,7 +309,7 @@ const DoctorDashboard = () => {
           </CardFooter>
         </Card>
         
-        <Card className="col-span-1">
+        <Card className="col-span-1 order-1 lg:order-2">
           <CardHeader>
             <CardTitle>Upcoming Appointments</CardTitle>
             <CardDescription>Next scheduled appointments</CardDescription>
@@ -279,4 +365,3 @@ const DoctorDashboard = () => {
 };
 
 export default DoctorDashboard;
-

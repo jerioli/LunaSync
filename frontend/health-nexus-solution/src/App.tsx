@@ -40,6 +40,28 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" replace />;
   }
   
+  // Check if user needs to change password - redirect to change password page
+  if (currentUser.force_password_change) {
+    return <Navigate to="/change-password" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Password change route (for users who need to change password after login)
+const PasswordChangeRoute = ({ children }: { children: React.ReactNode }) => {
+  const { currentUser } = useClinic();
+  
+  // Allow access if user is authenticated (even if they need password change)
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  // If user doesn't need password change, redirect to dashboard
+  if (!currentUser.force_password_change) {
+    return <Navigate to="/" replace />;
+  }
+  
   return <>{children}</>;
 };
 
@@ -112,9 +134,9 @@ const App = () => {
             
             {/* Change password for first-time users */}
             <Route path="/change-password" element={
-              <ProtectedRoute>
+              <PasswordChangeRoute>
                 <ChangePassword />
-              </ProtectedRoute>
+              </PasswordChangeRoute>
             } />
             
             {/* Staff protected routes */}
