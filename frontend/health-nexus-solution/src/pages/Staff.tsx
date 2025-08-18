@@ -10,7 +10,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useClinic } from '@/contexts/ClinicContext';
@@ -31,7 +30,6 @@ const StaffPage = () => {
     phone: "",
     role: "",
     password:"",
-    status: "active",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -248,16 +246,16 @@ const StaffPage = () => {
         first_name: newStaff.name.split(' ')[0], // Extract first name
         last_name: newStaff.name.split(' ').slice(1).join(' '), // Extract last name
         role: newStaff.role,
-        is_active: newStaff.status === 'active',
+        is_active: true, // Always set to active
         is_staff: newStaff.role !== 'doctor', // Doctors are not Django staff by default
-        is_superuser: newStaff.role === 'admin', // Only admins are superusers
+        is_superuser: false, // Admins can't create superusers - only superadmins can
         send_email: true, // Flag to send email with credentials
         temp_password: tempPassword, // Send temp password for email
       });
       console.log('Staff added successfully:', response.data);
   
       alert('Staff member added successfully! Login credentials have been sent to their email.');
-      setNewStaff({ name: "", username: "", email: "", phone: "", role: "", status: "active", password: ""});
+      setNewStaff({ name: "", username: "", email: "", phone: "", role: "", password: ""});
       setIsDialogOpen(false); // Close the dialog
       
       // Refresh the staff lists without reloading the page
@@ -514,7 +512,7 @@ const StaffPage = () => {
               <DialogHeader>
                 <DialogTitle>Add New Staff Member</DialogTitle>
                 <DialogDescription>
-                  Create a new account for a staff member. A temporary password will be sent to their email.
+                  Create a new doctor or receptionist account. All staff members are created as active. A temporary password will be sent to their email.
                 </DialogDescription>
               </DialogHeader>
 
@@ -597,27 +595,7 @@ const StaffPage = () => {
                     </option>
                     <option value="doctor">Doctor</option>
                     <option value="receptionist">Receptionist</option>
-                    <option value="admin">Administrator</option>
                   </select>
-                </div>
-
-                {/* Status */}
-                <div className="grid grid-cols-4 items-start gap-4">
-                  <Label className="text-right pt-2">Status</Label>
-                  <RadioGroup
-                    defaultValue="active"
-                    className="col-span-3"
-                    onValueChange={(value) => setNewStaff((prev) => ({ ...prev, status: value }))}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="active" id="active" />
-                      <Label htmlFor="active">Active</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="inactive" id="inactive" />
-                      <Label htmlFor="inactive">Inactive</Label>
-                    </div>
-                  </RadioGroup>
                 </div>
 
                 {/* Submit Button */}
