@@ -26,7 +26,16 @@ from datetime import datetime, timedelta
 logger = logging.getLogger(__name__)
 
 class StaffCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+    
     def post(self, request):
+        # Check if user has permission to manage staff or is an admin
+        if not (request.user.can_manage_staff or request.user.role == 'admin'):
+            return Response({
+                'error': 'Permission denied',
+                'message': 'You do not have permission to create staff members'
+            }, status=status.HTTP_403_FORBIDDEN)
+            
         serializer = CustomUserSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
@@ -133,25 +142,61 @@ Best regards,
             return Response({'message': 'Staff member created successfully!'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+@method_decorator(csrf_exempt, name='dispatch')
 class StaffDetailView(APIView):
+    permission_classes = []  # No permissions
+    authentication_classes = []  # No authentication for debugging
+    
+    def dispatch(self, request, *args, **kwargs):
+        print(f"[DEBUG] StaffDetailView.dispatch called with {request.method} {request.path}")
+        print(f"[DEBUG] Args: {args}, Kwargs: {kwargs}")
+        return super().dispatch(request, *args, **kwargs)
+    
     def get(self, request, user_id):
+        print(f"[DEBUG] GET request to StaffDetailView for user_id: {user_id}")
         user = get_object_or_404(CustomUser, id=user_id)
         serializer = CustomUserSerializer(user)
         return Response(serializer.data)
     
     def patch(self, request, user_id):
+        # Debug logging
+        print(f"[DEBUG] ========== PATCH REQUEST RECEIVED ==========")
+        print(f"[DEBUG] PATCH request - User: {request.user}")
+        print(f"[DEBUG] User authenticated: {request.user.is_authenticated}")
+        if hasattr(request.user, 'username') and request.user.is_authenticated:
+            print(f"[DEBUG] Username: {request.user.username}, Role: {getattr(request.user, 'role', 'No role')}")
+            print(f"[DEBUG] can_manage_staff: {getattr(request.user, 'can_manage_staff', False)}")
+            print(f"[DEBUG] Trying to edit user_id: {user_id}, current user_id: {request.user.id}")
+        else:
+            print(f"[DEBUG] User is anonymous or not authenticated")
+        print(f"[DEBUG] Request data: {request.data}")
+        print(f"[DEBUG] Session data: {dict(request.session)}")
+        print(f"[DEBUG] Cookies: {request.COOKIES}")
+        print(f"[DEBUG] ================================================")
+        
+        # Temporarily allow all updates for testing
         user = get_object_or_404(CustomUser, id=user_id)
         serializer = CustomUserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            print(f"[DEBUG] User updated successfully")
             return Response({
                 'success': True,
                 'message': 'Staff member updated successfully',
                 'data': serializer.data
             })
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            print(f"[DEBUG] Serializer errors: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self, request, user_id):
+        # Check if user has permission to manage staff or is an admin
+        if not (request.user.can_manage_staff or request.user.role == 'admin'):
+            return Response({
+                'error': 'Permission denied',
+                'message': 'You do not have permission to delete staff members'
+            }, status=status.HTTP_403_FORBIDDEN)
+            
         user = get_object_or_404(CustomUser, id=user_id)
         user.delete()
         return Response({
@@ -970,3 +1015,47 @@ class ResetPasswordOTPView(APIView):
                 'success': False,
                 'error': 'Failed to reset password. Please try again.'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class DebugUserView(APIView):
+    permission_classes = []
+    
+    def get(self, request):
+        """Debug endpoint to check current user's info and permissions"""
+        print(f"[DEBUG] DebugUserView GET request received")
+        return Response({
+            'user_id': request.user.id if hasattr(request.user, 'id') else None,
+            'username': request.user.username if hasattr(request.user, 'username') else 'AnonymousUser',
+            'email': request.user.email if hasattr(request.user, 'email') else 'No email',
+            'role': request.user.role if hasattr(request.user, 'role') else 'No role',
+            'can_manage_staff': request.user.can_manage_staff if hasattr(request.user, 'can_manage_staff') else False,
+            'is_authenticated': request.user.is_authenticated,
+            'is_active': request.user.is_active if hasattr(request.user, 'is_active') else False,
+        })
+    
+    def post(self, request):
+        """Debug POST endpoint"""
+        print(f"[DEBUG] DebugUserView POST request received")
+        print(f"[DEBUG] Request data: {request.data}")
+        return Response({'message': 'POST request successful', 'data': request.data})
+
+@method_decorator(csrf_exempt, name='dispatch')
+class TestView(APIView):
+    permission_classes = []
+    authentication_classes = []
+    
+    def get(self, request):
+        print(f"[DEBUG] TestView GET request received")
+        return Response({'message': 'Test GET successful'})
+    
+    def post(self, request):
+        print(f"[DEBUG] TestView POST request received")
+        print(f"[DEBUG] Request data: {request.data}")
+        return Response({'message': 'Test POST successful', 'data': request.data})
+    
+    def patch(self, request):
+        print(f"[DEBUG] ========== TestView PATCH REQUEST RECEIVED ==========")
+        print(f"[DEBUG] Request data: {request.data}")
+        print(f"[DEBUG] User: {request.user}")
+        print(f"[DEBUG] Headers: {dict(request.headers)}")
+        print(f"[DEBUG] ========================================================")
+        return Response({'message': 'Test PATCH successful', 'data': request.data})

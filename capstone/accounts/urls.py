@@ -4,7 +4,7 @@ from accounts.views import (
     StaffLoginView, CompleteLoginView, PasswordResetRequestView, PasswordResetConfirmView,
     PasswordChangeView, UserProfileUpdateView, UserPreferencesView,
     StaffDetailView, StaffPermissionsView, UserListView, SendOTPView, VerifyOTPView,
-    ResetPasswordOTPView, login_view  # Import the existing login view
+    ResetPasswordOTPView, login_view, DebugUserView, TestView  # Import the debug and test views
 )
 from accounts.bulk_patient_staff_views import (
     BulkPatientUploadView, BulkStaffUploadView, BulkImportTemplateView,
@@ -17,6 +17,7 @@ from accounts.session_views import (
 
 urlpatterns = [
     path('staff/', StaffCreateView.as_view(), name='create-staff'),  # Matches /api/staff/
+    path('staff/list/', UserListView.as_view(), name='staff-list'),  # Matches /api/staff/list/
     path('staff/<int:user_id>/', StaffDetailView.as_view(), name='staff-detail'),
     path('staff/<int:user_id>/permissions/', StaffPermissionsView.as_view(), name='staff-permissions'),
     path('doctors/', DoctorListView.as_view(), name='doctor-list'),  # Matches /api/doctors/
@@ -47,6 +48,10 @@ urlpatterns = [
     path('auth/session-logout/', SessionLogoutView.as_view(), name='session-logout'),
     path('auth/session-validate/', SessionValidationView.as_view(), name='session-validate'),
     path('login/', login_view, name='login'),  # Backwards compatibility
+    
+    # Debug endpoint
+    path('debug/user/', DebugUserView.as_view(), name='debug-user'),
+    path('test/', TestView.as_view(), name='test-view'),
     
     # Bulk operations endpoints
     path('bulk/patients/upload/', BulkPatientUploadView.as_view(), name='bulk-patient-upload'),  # CSV/Excel upload

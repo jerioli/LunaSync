@@ -5,9 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
 import { StaffMember, api } from '@/services/api';
-import { Calendar, Mail, Settings, Shield, User } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 interface StaffEditModalProps {
@@ -20,25 +19,18 @@ interface StaffEditModalProps {
 const StaffEditModal: React.FC<StaffEditModalProps> = ({ staff, isOpen, onClose, onUpdate }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<Partial<StaffMember>>({});
-  const [permissions, setPermissions] = useState<Partial<StaffMember>>({});
+  const [fullName, setFullName] = useState('');
+  const { toast } = useToast();
 
   useEffect(() => {
     if (staff) {
       setFormData({
-        first_name: staff.first_name,
-        last_name: staff.last_name,
         email: staff.email,
         username: staff.username,
         phone: staff.phone,
         is_active: staff.is_active,
       });
-      setPermissions({
-        can_manage_appointments: staff.can_manage_appointments,
-        can_manage_patients: staff.can_manage_patients,
-        can_manage_staff: staff.can_manage_staff,
-        can_view_reports: staff.can_view_reports,
-        can_manage_clinic_settings: staff.can_manage_clinic_settings,
-      });
+      setFullName(`${staff.first_name} ${staff.last_name}`);
     }
   }, [staff]);
 
@@ -48,33 +40,33 @@ const StaffEditModal: React.FC<StaffEditModalProps> = ({ staff, isOpen, onClose,
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handlePermissionChange = (permission: keyof StaffMember, value: boolean) => {
-    setPermissions(prev => ({ ...prev, [permission]: value }));
-  };
-
   const handleSaveProfile = async () => {
     setIsLoading(true);
     try {
-      await api.staff.update(staff.id, formData);
+      // Split full name into first_name and last_name
+      const nameParts = fullName.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      const updateData = {
+        ...formData,
+        first_name: firstName,
+        last_name: lastName,
+      };
+      
+      await api.staff.update(staff.id, updateData);
       onUpdate();
-      alert('Profile updated successfully!');
+      toast({
+        title: "Profile Updated",
+        description: "Staff member profile has been updated successfully.",
+      });
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Failed to update profile');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSavePermissions = async () => {
-    setIsLoading(true);
-    try {
-      await api.staff.updatePermissions(staff.id, permissions);
-      onUpdate();
-      alert('Permissions updated successfully!');
-    } catch (error) {
-      console.error('Error updating permissions:', error);
-      alert('Failed to update permissions');
+      toast({
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -92,48 +84,6 @@ const StaffEditModal: React.FC<StaffEditModalProps> = ({ staff, isOpen, onClose,
         return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
-
-  const getPermissionIcon = (permission: string) => {
-    switch (permission) {
-      case 'can_manage_appointments':
-        return <Calendar className="h-4 w-4" />;
-      case 'can_manage_patients':
-        return <User className="h-4 w-4" />;
-      case 'can_manage_staff':
-        return <Shield className="h-4 w-4" />;
-      case 'can_view_reports':
-        return <Mail className="h-4 w-4" />;
-      case 'can_manage_clinic_settings':
-        return <Settings className="h-4 w-4" />;
-      default:
-        return <Shield className="h-4 w-4" />;
-    }
-  };
-
-  const getPermissionLabel = (permission: string) => {
-    switch (permission) {
-      case 'can_manage_appointments':
-        return 'Manage Appointments';
-      case 'can_manage_patients':
-        return 'Manage Patients';
-      case 'can_manage_staff':
-        return 'Manage Staff';
-      case 'can_view_reports':
-        return 'View Reports';
-      case 'can_manage_clinic_settings':
-        return 'Manage Clinic Settings';
-      default:
-        return permission;
-    }
-  };
-
-  const permissionList = [
-    { key: 'can_manage_appointments', label: 'Manage Appointments', description: 'Create, view, and modify appointments' },
-    { key: 'can_manage_patients', label: 'Manage Patients', description: 'Add, view, and edit patient records' },
-    { key: 'can_manage_staff', label: 'Manage Staff', description: 'Add, edit, and remove staff members' },
-    { key: 'can_view_reports', label: 'View Reports', description: 'Access system reports and analytics' },
-    { key: 'can_manage_clinic_settings', label: 'Manage Clinic Settings', description: 'Configure clinic-wide settings' },
-  ];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -159,104 +109,63 @@ const StaffEditModal: React.FC<StaffEditModalProps> = ({ staff, isOpen, onClose,
             </div>
           </div>
 
-          <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="profile">Profile</TabsTrigger>
-              <TabsTrigger value="permissions">Permissions</TabsTrigger>
-            </TabsList>
+          {/* Profile Form */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="full_name">Full Name</Label>
+              <Input
+                id="full_name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Enter full name"
+              />
+            </div>
             
-            <TabsContent value="profile" className="space-y-4 mt-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="first_name">First Name</Label>
-                  <Input
-                    id="first_name"
-                    value={formData.first_name || ''}
-                    onChange={(e) => handleInputChange('first_name', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="last_name">Last Name</Label>
-                  <Input
-                    id="last_name"
-                    value={formData.last_name || ''}
-                    onChange={(e) => handleInputChange('last_name', e.target.value)}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email || ''}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={formData.phone || ''}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  placeholder="e.g., +639123456789"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  value={formData.username || ''}
-                  onChange={(e) => handleInputChange('username', e.target.value)}
-                />
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="is_active"
-                  checked={formData.is_active || false}
-                  onCheckedChange={(checked) => handleInputChange('is_active', checked)}
-                />
-                <Label htmlFor="is_active">Active Account</Label>
-              </div>
-              
-              <div className="flex justify-end pt-4">
-                <Button onClick={handleSaveProfile} disabled={isLoading}>
-                  {isLoading ? 'Saving...' : 'Save Profile'}
-                </Button>
-              </div>
-            </TabsContent>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email || ''}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+              />
+            </div>
             
-            <TabsContent value="permissions" className="space-y-4 mt-6">
-              <div className="space-y-4">
-                {permissionList.map(({ key, label, description }) => (
-                  <div key={key} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-start space-x-3">
-                      {getPermissionIcon(key)}
-                      <div>
-                        <div className="font-medium">{label}</div>
-                        <div className="text-sm text-muted-foreground">{description}</div>
-                      </div>
-                    </div>
-                    <Switch
-                      checked={permissions[key as keyof StaffMember] as boolean || false}
-                      onCheckedChange={(checked) => handlePermissionChange(key as keyof StaffMember, checked)}
-                    />
-                  </div>
-                ))}
-              </div>
-              
-              <div className="flex justify-end pt-4">
-                <Button onClick={handleSavePermissions} disabled={isLoading}>
-                  {isLoading ? 'Saving...' : 'Save Permissions'}
-                </Button>
-              </div>
-            </TabsContent>
-          </Tabs>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={formData.phone || ''}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+                placeholder="e.g., +639123456789"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                value={formData.username || ''}
+                onChange={(e) => handleInputChange('username', e.target.value)}
+              />
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="is_active"
+                checked={formData.is_active || false}
+                onCheckedChange={(checked) => handleInputChange('is_active', checked)}
+              />
+              <Label htmlFor="is_active">Active Account</Label>
+            </div>
+            
+            <div className="flex justify-end pt-4">
+              <Button onClick={handleSaveProfile} disabled={isLoading}>
+                {isLoading ? 'Saving...' : 'Save Profile'}
+              </Button>
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

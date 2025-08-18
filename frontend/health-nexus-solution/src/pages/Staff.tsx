@@ -16,7 +16,7 @@ import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
 import { Admin, api, Doctor, Receptionist, StaffMember } from '@/services/api';
 import axios from 'axios';
-import { CheckSquare, Edit, Eye, Mail, Phone, Search, Shield, Trash, Trash2, UserPlus } from 'lucide-react';
+import { CheckSquare, Edit, Eye, Mail, Phone, Search, Trash, Trash2, UserPlus } from 'lucide-react';
 
 const StaffPage = () => {
   const { currentUser } = useClinic();
@@ -39,6 +39,9 @@ const StaffPage = () => {
   const [isLoadingReceptionists, setIsLoadingReceptionists] = useState(false);
   const [adminsList, setAdminsList] = useState<Admin[]>([]);
   const [isLoadingAdmins, setIsLoadingAdmins] = useState(false);
+  
+  // Tab state
+  const [currentTab, setCurrentTab] = useState("doctors");
   
   // Modal states
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
@@ -441,19 +444,6 @@ const StaffPage = () => {
     }
   };
 
-  // Get permission summary for a staff member
-  const getPermissionSummary = (staffMember: Doctor | Receptionist | Admin) => {
-    const permissions = [
-      staffMember.can_manage_appointments && 'Appointments',
-      staffMember.can_manage_patients && 'Patients',
-      staffMember.can_manage_staff && 'Staff',
-      staffMember.can_view_reports && 'Reports',
-      staffMember.can_manage_clinic_settings && 'Settings',
-    ].filter(Boolean);
-    
-    return permissions.length > 0 ? permissions.join(', ') : 'No permissions assigned';
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -466,7 +456,7 @@ const StaffPage = () => {
         
         <div className="flex gap-2">
           {/* Bulk Actions Bar */}
-          {selectedStaffIds.size > 0 && (
+          {selectedStaffIds.size > 0 && currentTab !== "admins" && (
             <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-md">
               <span className="text-sm text-blue-700 font-medium">
                 {selectedStaffIds.size} selected
@@ -491,15 +481,17 @@ const StaffPage = () => {
             </div>
           )}
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSelectAll}
-            className="h-9"
-          >
-            <CheckSquare className="mr-2 h-4 w-4" />
-            {isSelectAll ? 'Deselect All' : 'Select All'}
-          </Button>
+          {currentTab !== "admins" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSelectAll}
+              className="h-9"
+            >
+              <CheckSquare className="mr-2 h-4 w-4" />
+              {isSelectAll ? 'Deselect All' : 'Select All'}
+            </Button>
+          )}
           
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -620,7 +612,7 @@ const StaffPage = () => {
         />
       </div>
       
-      <Tabs defaultValue="doctors">
+      <Tabs value={currentTab} onValueChange={setCurrentTab}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="doctors">Doctors</TabsTrigger>
           <TabsTrigger value="receptionists">Receptionists</TabsTrigger>
@@ -664,7 +656,6 @@ const StaffPage = () => {
                     <TableHead>Doctor</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Phone</TableHead>
-                    <TableHead>Permissions</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -699,14 +690,6 @@ const StaffPage = () => {
                         <div className="flex items-center">
                           <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
                           {doctor.phone || 'Not provided'}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-1">
-                          <Shield className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground truncate max-w-[150px]" title={getPermissionSummary(doctor)}>
-                            {getPermissionSummary(doctor)}
-                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -775,7 +758,6 @@ const StaffPage = () => {
                     <TableHead>Receptionist</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Phone</TableHead>
-                    <TableHead>Permissions</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -813,14 +795,6 @@ const StaffPage = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center space-x-1">
-                          <Shield className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground truncate max-w-[150px]" title={getPermissionSummary(receptionist)}>
-                            {getPermissionSummary(receptionist)}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
                         <Badge 
                           variant={receptionist.is_active !== false ? "secondary" : "destructive"} 
                           className={receptionist.is_active !== false ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"}
@@ -850,6 +824,13 @@ const StaffPage = () => {
         </TabsContent>
         
         <TabsContent value="admins" className="space-y-4 mt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold">Administrators</h3>
+              <p className="text-sm text-muted-foreground">View-only access. Contact superadmin for administrative changes.</p>
+            </div>
+          </div>
+          
           {isLoadingAdmins ? (
             <Card>
               <CardContent className="text-center py-6 text-muted-foreground">
@@ -867,26 +848,9 @@ const StaffPage = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-12">
-                      <Checkbox
-                        checked={isSelectAll && filteredAdmins.every(admin => selectedStaffIds.has(admin.id))}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            const newSelection = new Set(selectedStaffIds);
-                            filteredAdmins.forEach(admin => newSelection.add(admin.id));
-                            setSelectedStaffIds(newSelection);
-                          } else {
-                            const newSelection = new Set(selectedStaffIds);
-                            filteredAdmins.forEach(admin => newSelection.delete(admin.id));
-                            setSelectedStaffIds(newSelection);
-                          }
-                        }}
-                      />
-                    </TableHead>
                     <TableHead>Administrator</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Phone</TableHead>
-                    <TableHead>Permissions</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -894,12 +858,6 @@ const StaffPage = () => {
                 <TableBody>
                   {filteredAdmins.map(admin => (
                     <TableRow key={admin.id}>
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedStaffIds.has(admin.id)}
-                          onCheckedChange={(checked) => handleStaffSelect(admin.id, checked as boolean)}
-                        />
-                      </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-3">
                           <Avatar className="h-8 w-8">
@@ -924,14 +882,6 @@ const StaffPage = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center space-x-1">
-                          <Shield className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground truncate max-w-[150px]" title={getPermissionSummary(admin)}>
-                            {getPermissionSummary(admin)}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
                         <Badge 
                           variant={admin.is_active !== false ? "secondary" : "destructive"} 
                           className={admin.is_active !== false ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"}
@@ -943,12 +893,6 @@ const StaffPage = () => {
                         <div className="flex justify-end space-x-1">
                           <Button variant="outline" size="sm" onClick={() => handleViewDetails(admin)} title="View Details">
                             <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleEditStaff(admin)} title="Edit Staff">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleDeleteClick(admin)} title="Delete Staff" className="text-red-600 hover:text-red-700">
-                            <Trash className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
