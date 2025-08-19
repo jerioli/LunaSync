@@ -56,8 +56,8 @@ CSRF_COOKIE_SECURE = False     # Set to True with HTTPS
 SECURE_SSL_REDIRECT = False    # Set to True in production
 
 # Allow cross-origin cookies for development
-SESSION_COOKIE_SAMESITE = 'Lax'  # Allow cross-origin requests in development
-CSRF_COOKIE_SAMESITE = 'Lax'     # Allow cross-origin CSRF tokens
+SESSION_COOKIE_SAMESITE = None  # Allow cross-origin requests in development (changed from 'Lax')
+CSRF_COOKIE_SAMESITE = None     # Allow cross-origin CSRF tokens (changed from 'Lax')
 SESSION_COOKIE_NAME = 'sessionid'  # Default session cookie name
 
 # File Upload Security
@@ -88,9 +88,11 @@ INSTALLED_APPS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = False  # More secure than True
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",  # React dev server
+    "http://localhost:8081",  # React dev server alternative port
     "http://localhost:3000",  # React dev server alternative port
     "http://localhost:5173",  # Vite dev server default port
     "http://localhost:4173",  # Vite preview port
@@ -115,6 +117,7 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'x-session-id',  # Allow custom session ID header for development
 ]
 
 MIDDLEWARE = [
@@ -124,6 +127,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',  # Temporarily disable CSRF
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'dev_session_middleware.DevSessionMiddleware',  # Custom session middleware for development
+    'debug_middleware.DebugMiddleware',  # Add debug middleware after authentication
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # 'security_app.middleware.SecurityMiddleware',  # Temporarily disable security middleware

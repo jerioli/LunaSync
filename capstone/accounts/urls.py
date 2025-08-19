@@ -4,7 +4,9 @@ from accounts.views import (
     StaffLoginView, CompleteLoginView, PasswordResetRequestView, PasswordResetConfirmView,
     PasswordChangeView, UserProfileUpdateView, UserPreferencesView,
     StaffDetailView, StaffPermissionsView, UserListView, SendOTPView, VerifyOTPView,
-    ResetPasswordOTPView, login_view, DebugUserView, TestView  # Import the debug and test views
+    ResetPasswordOTPView, login_view, DebugUserView, TestView,  # Import the debug and test views
+    AuditLogsView, UsageReportsView, IntegrationsView, SecurityTestingView,  # New superadmin views
+    CurrentUserView  # Add current user view
 )
 from accounts.bulk_patient_staff_views import (
     BulkPatientUploadView, BulkStaffUploadView, BulkImportTemplateView,
@@ -20,9 +22,22 @@ urlpatterns = [
     path('staff/list/', UserListView.as_view(), name='staff-list'),  # Matches /api/staff/list/
     path('staff/<int:user_id>/', StaffDetailView.as_view(), name='staff-detail'),
     path('staff/<int:user_id>/permissions/', StaffPermissionsView.as_view(), name='staff-permissions'),
+    path('permissions/', StaffPermissionsView.as_view(), name='permissions-list'),  # GET all permissions
+    path('permissions/<int:user_id>/', StaffPermissionsView.as_view(), name='user-permissions'),  # GET/PATCH user permissions
+    
+    # Current user endpoint
+    path('auth/current-user/', CurrentUserView.as_view(), name='current-user'),
+    
     path('doctors/', DoctorListView.as_view(), name='doctor-list'),  # Matches /api/doctors/
     path('receptionists/', ReceptionistListView.as_view(), name='receptionist-list'),  # Matches /api/receptionists/
     path('admins/', AdminListView.as_view(), name='admin-list'),  # Matches /api/admins/
+    
+    # Superadmin specific endpoints
+    path('audit-logs/', AuditLogsView.as_view(), name='audit-logs'),
+    path('usage-reports/', UsageReportsView.as_view(), name='usage-reports'),
+    path('integrations/', IntegrationsView.as_view(), name='integrations'),
+    path('integrations/<int:integration_id>/', IntegrationsView.as_view(), name='integration-detail'),
+    path('security-testing/', SecurityTestingView.as_view(), name='security-testing'),
     path('staff/create/', StaffCreateView.as_view(), name='staff-create'),
     path('staff/login/', StaffLoginView.as_view(), name='staff-login'),
     path('auth/complete-login/', CompleteLoginView.as_view(), name='complete-login'),

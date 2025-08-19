@@ -11,6 +11,21 @@ const axiosInstance = axios.create({
   },
 });
 
+// Add request interceptor to include session ID for development
+axiosInstance.interceptors.request.use(
+  (config) => {
+    // Get session ID from localStorage (stored during login)
+    const sessionId = localStorage.getItem('sessionId');
+    if (sessionId) {
+      config.headers['X-Session-ID'] = sessionId;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 export interface Doctor {
   image: string;
   id: number;
@@ -25,6 +40,11 @@ export interface Doctor {
   can_manage_staff?: boolean;
   can_view_reports?: boolean;
   can_manage_clinic_settings?: boolean;
+  can_manage_permissions?: boolean;
+  can_access_integrations?: boolean;
+  can_view_audit_logs?: boolean;
+  can_view_usage_reports?: boolean;
+  can_access_security_testing?: boolean;
 }
 
 export interface Receptionist {
@@ -41,6 +61,11 @@ export interface Receptionist {
   can_manage_staff?: boolean;
   can_view_reports?: boolean;
   can_manage_clinic_settings?: boolean;
+  can_manage_permissions?: boolean;
+  can_access_integrations?: boolean;
+  can_view_audit_logs?: boolean;
+  can_view_usage_reports?: boolean;
+  can_access_security_testing?: boolean;
 }
 
 export interface Admin {
@@ -57,6 +82,11 @@ export interface Admin {
   can_manage_staff?: boolean;
   can_view_reports?: boolean;
   can_manage_clinic_settings?: boolean;
+  can_manage_permissions?: boolean;
+  can_access_integrations?: boolean;
+  can_view_audit_logs?: boolean;
+  can_view_usage_reports?: boolean;
+  can_access_security_testing?: boolean;
 }
 
 export interface StaffMember {
@@ -73,6 +103,11 @@ export interface StaffMember {
   can_manage_staff: boolean;
   can_view_reports: boolean;
   can_manage_clinic_settings: boolean;
+  can_manage_permissions?: boolean;
+  can_access_integrations?: boolean;
+  can_view_audit_logs?: boolean;
+  can_view_usage_reports?: boolean;
+  can_access_security_testing?: boolean;
   image?: string;
 }
 
@@ -145,6 +180,11 @@ export const api = {
           can_manage_staff: permissions.can_manage_staff,
           can_view_reports: permissions.can_view_reports,
           can_manage_clinic_settings: permissions.can_manage_clinic_settings,
+          can_manage_permissions: permissions.can_manage_permissions,
+          can_access_integrations: permissions.can_access_integrations,
+          can_view_audit_logs: permissions.can_view_audit_logs,
+          can_view_usage_reports: permissions.can_view_usage_reports,
+          can_access_security_testing: permissions.can_access_security_testing,
         }
       });
       return response.data.data;
@@ -206,11 +246,65 @@ export const api = {
         password: password
       });
       return response.data;
+    },
+    getCurrentUser: async () => {
+      const response = await axiosInstance.get('/auth/current-user/');
+      return response.data;
     }
   },
   patients: {
     getAll: async () => {
       const response = await axiosInstance.get('/patients/patients/');
+      return response.data;
+    }
+  },
+  permissions: {
+    getAll: async () => {
+      const response = await axiosInstance.get('/permissions/');
+      return response.data;
+    },
+    getUser: async (userId: number) => {
+      const response = await axiosInstance.get(`/permissions/${userId}/`);
+      return response.data;
+    },
+    update: async (userId: number, permissions: any) => {
+      const response = await axiosInstance.patch(`/permissions/${userId}/`, { permissions });
+      return response.data;
+    }
+  },
+  auditLogs: {
+    getAll: async () => {
+      const response = await axiosInstance.get('/audit-logs/');
+      return response.data;
+    }
+  },
+  usageReports: {
+    get: async () => {
+      const response = await axiosInstance.get('/usage-reports/');
+      return response.data;
+    }
+  },
+  integrations: {
+    getAll: async () => {
+      const response = await axiosInstance.get('/integrations/');
+      return response.data;
+    },
+    create: async (data: any) => {
+      const response = await axiosInstance.post('/integrations/', data);
+      return response.data;
+    },
+    update: async (integrationId: number, data: any) => {
+      const response = await axiosInstance.patch(`/integrations/${integrationId}/`, data);
+      return response.data;
+    }
+  },
+  securityTesting: {
+    getAll: async () => {
+      const response = await axiosInstance.get('/security-testing/');
+      return response.data;
+    },
+    runTest: async (testType: string) => {
+      const response = await axiosInstance.post('/security-testing/', { test_type: testType });
       return response.data;
     }
   }

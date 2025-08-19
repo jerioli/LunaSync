@@ -17,6 +17,7 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
     ROLE_CHOICES = (
+        ('superadmin', 'Super Admin'),
         ('admin', 'Admin'),
         ('receptionist', 'Receptionist'),
         ('doctor', 'Doctor'),
@@ -31,6 +32,13 @@ class CustomUser(AbstractUser):
     can_view_reports = models.BooleanField(default=False)
     can_manage_clinic_settings = models.BooleanField(default=False)
     
+    # Superadmin exclusive permissions
+    can_manage_permissions = models.BooleanField(default=False)
+    can_access_integrations = models.BooleanField(default=False)
+    can_view_audit_logs = models.BooleanField(default=False)
+    can_view_usage_reports = models.BooleanField(default=False)
+    can_access_security_testing = models.BooleanField(default=False)
+    
     objects = CustomUserManager()
     
     class Meta:
@@ -41,24 +49,55 @@ class CustomUser(AbstractUser):
     
     def save(self, *args, **kwargs):
         # Set default permissions based on role
-        if self.role == 'admin':
+        if self.role == 'superadmin':
+            # Superadmin has all permissions
             self.can_manage_appointments = True
             self.can_manage_patients = True
             self.can_manage_staff = True
             self.can_view_reports = True
             self.can_manage_clinic_settings = True
+            self.can_manage_permissions = True
+            self.can_access_integrations = True
+            self.can_view_audit_logs = True
+            self.can_view_usage_reports = True
+            self.can_access_security_testing = True
+        elif self.role == 'admin':
+            # Admin has all basic permissions but no superadmin exclusive ones
+            self.can_manage_appointments = True
+            self.can_manage_patients = True
+            self.can_manage_staff = True
+            self.can_view_reports = True
+            self.can_manage_clinic_settings = True
+            # Superadmin exclusive permissions - disabled for admin
+            self.can_manage_permissions = False
+            self.can_access_integrations = False
+            self.can_view_audit_logs = False
+            self.can_view_usage_reports = False
+            self.can_access_security_testing = False
         elif self.role == 'receptionist':
             self.can_manage_appointments = True
             self.can_manage_patients = True
             self.can_manage_staff = False
             self.can_view_reports = False
             self.can_manage_clinic_settings = False
+            # Superadmin exclusive permissions - disabled
+            self.can_manage_permissions = False
+            self.can_access_integrations = False
+            self.can_view_audit_logs = False
+            self.can_view_usage_reports = False
+            self.can_access_security_testing = False
         elif self.role == 'doctor':
             self.can_manage_appointments = False
             self.can_manage_patients = True
             self.can_manage_staff = False
             self.can_view_reports = True
             self.can_manage_clinic_settings = False
+            # Superadmin exclusive permissions - disabled
+            self.can_manage_permissions = False
+            self.can_access_integrations = False
+            self.can_view_audit_logs = False
+            self.can_view_usage_reports = False
+            self.can_access_security_testing = False
         
         super().save(*args, **kwargs)
 

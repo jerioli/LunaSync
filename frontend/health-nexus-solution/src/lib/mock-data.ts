@@ -6,11 +6,23 @@ export type User = {
   username: string;
   first_name?: string;
   last_name?: string;
-  role: 'doctor' | 'receptionist' | 'admin' | 'patient';
+  role: 'doctor' | 'receptionist' | 'admin' | 'patient' | 'superadmin';
   image?: string;
   phone?: string;
   speciality?: string;
   force_password_change?: boolean;
+  // Superadmin permissions
+  can_manage_permissions?: boolean;
+  can_access_integrations?: boolean;
+  can_view_audit_logs?: boolean;
+  can_view_usage_reports?: boolean;
+  can_access_security_testing?: boolean;
+  // Other permissions
+  can_manage_staff?: boolean;
+  can_manage_appointments?: boolean;
+  can_manage_patients?: boolean;
+  can_view_reports?: boolean;
+  can_manage_clinic_settings?: boolean;
 };
 
 export type Patient = {

@@ -11,11 +11,13 @@ import { AppLayout } from "./components/layout/AppLayout";
 import AddPatient from "./components/patients/AddPatient_clean";
 import Appointments from "./pages/Appointments";
 import AppointmentScheduling from "./pages/AppointmentScheduling";
+import AuditLogs from "./pages/AuditLogs";
 import ChangePassword from "./pages/ChangePassword";
 import Dashboard from "./pages/Dashboard";
 import DocumentComparison from "./pages/DocumentComparison";
 import ForgotPassword from "./pages/ForgotPassword";
 import Index from "./pages/Index";
+import Integrations from "./pages/Integrations";
 import LabResults from "./pages/LabResults";
 import Login from "./pages/Login";
 import MedicalCertificateGeneration from "./pages/MedicalCertificateGeneration";
@@ -24,12 +26,15 @@ import NotFound from "./pages/NotFound";
 import PatientManagement from "./pages/PatientManagement";
 import PatientPortal from "./pages/PatientPortal";
 import PatientsList from "./pages/PatientsList";
+import PermissionManagement from "./pages/PermissionManagement";
 import PrescriptionManagement from "./pages/PrescriptionManagement";
 import Prescriptions from "./pages/Prescriptions";
 import ResetPassword from "./pages/ResetPassword";
 import Schedule from "./pages/Schedule";
+import SecurityTesting from "./pages/SecurityTesting";
 import Settings from "./pages/Settings";
 import Staff from "./pages/Staff";
+import UsageReports from "./pages/UsageReports";
 import UserSettings from "./pages/UserSettings";
 
 // Auth route guard component
@@ -236,6 +241,48 @@ const App = () => {
                 </AppLayout>
               </ProtectedRoute>
             } />
+            
+            {/* Superadmin routes */}
+            <Route path="/permissions" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <PermissionManagement />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/audit-logs" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <AuditLogs />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/usage-reports" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <UsageReports />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/integrations" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Integrations />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/security-testing" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <SecurityTesting />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+            
               {/* Settings route for admin */}
             <Route path="/settings" element={
               <ProtectedRoute>

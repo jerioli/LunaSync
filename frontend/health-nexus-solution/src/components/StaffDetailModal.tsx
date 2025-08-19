@@ -1,9 +1,9 @@
-import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Mail, Phone, Shield, User, Calendar, Settings } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { StaffMember } from '@/services/api';
+import { BarChart, Calendar, FileText, Key, Mail, Plug, Settings, Shield, ShieldCheck, User } from 'lucide-react';
+import React from 'react';
 
 interface StaffDetailModalProps {
   staff: StaffMember | null;
@@ -16,6 +16,8 @@ const StaffDetailModal: React.FC<StaffDetailModalProps> = ({ staff, isOpen, onCl
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
+      case 'superadmin':
+        return 'bg-purple-50 text-purple-700 border-purple-200';
       case 'admin':
         return 'bg-red-50 text-red-700 border-red-200';
       case 'doctor':
@@ -39,6 +41,16 @@ const StaffDetailModal: React.FC<StaffDetailModalProps> = ({ staff, isOpen, onCl
         return <Mail className="h-4 w-4" />;
       case 'can_manage_clinic_settings':
         return <Settings className="h-4 w-4" />;
+      case 'can_manage_permissions':
+        return <Key className="h-4 w-4" />;
+      case 'can_access_integrations':
+        return <Plug className="h-4 w-4" />;
+      case 'can_view_audit_logs':
+        return <FileText className="h-4 w-4" />;
+      case 'can_view_usage_reports':
+        return <BarChart className="h-4 w-4" />;
+      case 'can_access_security_testing':
+        return <ShieldCheck className="h-4 w-4" />;
       default:
         return <Shield className="h-4 w-4" />;
     }
@@ -56,18 +68,37 @@ const StaffDetailModal: React.FC<StaffDetailModalProps> = ({ staff, isOpen, onCl
         return 'View Reports';
       case 'can_manage_clinic_settings':
         return 'Manage Clinic Settings';
+      case 'can_manage_permissions':
+        return 'Manage Permissions';
+      case 'can_access_integrations':
+        return 'Access Integrations';
+      case 'can_view_audit_logs':
+        return 'View Audit Logs';
+      case 'can_view_usage_reports':
+        return 'View Usage Reports';
+      case 'can_access_security_testing':
+        return 'Access Security Testing';
       default:
         return permission;
     }
   };
 
-  const permissions = [
+  // Define all possible permissions
+  const allPermissions = [
     { key: 'can_manage_appointments', value: staff.can_manage_appointments },
     { key: 'can_manage_patients', value: staff.can_manage_patients },
     { key: 'can_manage_staff', value: staff.can_manage_staff },
     { key: 'can_view_reports', value: staff.can_view_reports },
     { key: 'can_manage_clinic_settings', value: staff.can_manage_clinic_settings },
+    { key: 'can_manage_permissions', value: staff.can_manage_permissions },
+    { key: 'can_access_integrations', value: staff.can_access_integrations },
+    { key: 'can_view_audit_logs', value: staff.can_view_audit_logs },
+    { key: 'can_view_usage_reports', value: staff.can_view_usage_reports },
+    { key: 'can_access_security_testing', value: staff.can_access_security_testing },
   ];
+
+  // Filter permissions to only show ones that are defined (not undefined)
+  const permissions = allPermissions.filter(permission => permission.value !== undefined);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -118,7 +149,7 @@ const StaffDetailModal: React.FC<StaffDetailModalProps> = ({ staff, isOpen, onCl
           {/* Permissions */}
           <div>
             <h4 className="font-medium text-sm text-muted-foreground mb-3">Permissions</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {permissions.map(({ key, value }) => (
                 <div key={key} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-2">

@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import AdminDashboard from '@/components/dashboards/AdminDashboard';
 import DoctorDashboard from '@/components/dashboards/DoctorDashboard';
 import ReceptionistDashboard from '@/components/dashboards/ReceptionistDashboard';
-import AdminDashboard from '@/components/dashboards/AdminDashboard';
+import { useEffect, useState } from 'react';
 
 
 const Dashboard = () => {
@@ -27,6 +27,8 @@ const Dashboard = () => {
       return <ReceptionistDashboard />;
     case 'admin':
       return <AdminDashboard />;
+    case 'superadmin':
+      return <AdminDashboard />; // Superadmin uses the same dashboard as admin but with extended permissions
     default:
       return <div>Unknown role</div>;
   }

@@ -18,6 +18,8 @@ import { Admin, api, Doctor, Receptionist, StaffMember } from '@/services/api';
 import axios from 'axios';
 import { CheckSquare, Edit, Eye, Mail, Phone, Search, Trash, Trash2, UserPlus } from 'lucide-react';
 
+export type Role = "doctor" | "receptionist" | "admin" | "patient" | "superadmin";
+
 const StaffPage = () => {
   const { currentUser } = useClinic();
   const { toast } = useToast();
@@ -39,6 +41,8 @@ const StaffPage = () => {
   const [isLoadingReceptionists, setIsLoadingReceptionists] = useState(false);
   const [adminsList, setAdminsList] = useState<Admin[]>([]);
   const [isLoadingAdmins, setIsLoadingAdmins] = useState(false);
+  const [superAdminsList, setSuperAdminsList] = useState<StaffMember[]>([]);
+  const [isLoadingSuperAdmins, setIsLoadingSuperAdmins] = useState(false);
   
   // Tab state
   const [currentTab, setCurrentTab] = useState("doctors");
@@ -114,13 +118,35 @@ const StaffPage = () => {
     fetchAdmins();
   }, []);
 
-  if (currentUser?.role !== 'admin') {
+  useEffect(() => {
+    if (currentUser?.role === 'superadmin') {
+      const fetchSuperAdmins = async () => {
+        setIsLoadingSuperAdmins(true);
+        try {
+          const response = await axios.get('http://127.0.0.1:8000/api/staff/list/?role=superadmin');
+          setSuperAdminsList(response.data);
+        } catch (error) {
+          console.error('Error fetching super admins:', error);
+          toast({
+            title: "Error",
+            description: "Failed to fetch super administrators",
+            variant: "destructive",
+          });
+        } finally {
+          setIsLoadingSuperAdmins(false);
+        }
+      };
+      fetchSuperAdmins();
+    }
+  }, [currentUser?.role, toast]);
+
+  if (!['admin', 'superadmin'].includes(currentUser?.role || '')) {
     return (
       <div className="flex items-center justify-center h-full">
         <Card className="w-[400px]">
           <CardHeader>
             <CardTitle>Access Denied</CardTitle>
-            <CardDescription>Only administrators can access the staff management page.</CardDescription>
+            <CardDescription>Only administrators and superadmins can access the staff management page.</CardDescription>
           </CardHeader>
         </Card>
       </div>
@@ -272,7 +298,7 @@ const StaffPage = () => {
   };
 
   // Handle viewing staff details
-  const handleViewDetails = async (staffMember: Doctor | Receptionist | Admin) => {
+  const handleViewDetails = async (staffMember: Doctor | Receptionist | Admin | StaffMember) => {
     try {
       const details = await api.staff.getDetails(staffMember.id);
       setSelectedStaff(details);
@@ -288,7 +314,7 @@ const StaffPage = () => {
   };
 
   // Handle editing staff
-  const handleEditStaff = async (staffMember: Doctor | Receptionist | Admin) => {
+  const handleEditStaff = async (staffMember: Doctor | Receptionist | Admin | StaffMember) => {
     try {
       const details = await api.staff.getDetails(staffMember.id);
       setSelectedStaff(details);
@@ -419,7 +445,7 @@ const StaffPage = () => {
   const handleSelectAllDelete = async () => {
     setIsBulkDeleting(true);
     try {
-      const response = await axios.post('/b ulk/staff/delete/', {
+      const response = await axios.post('/bulk/staff/delete/', {
         select_all: true
       });
 
@@ -587,6 +613,10 @@ const StaffPage = () => {
                     </option>
                     <option value="doctor">Doctor</option>
                     <option value="receptionist">Receptionist</option>
+                    <option value="admin">Admin</option>
+                    {currentUser?.role === 'superadmin' && (
+                      <option value="superadmin">Super Admin</option>
+                    )}
                   </select>
                 </div>
 
@@ -613,10 +643,13 @@ const StaffPage = () => {
       </div>
       
       <Tabs value={currentTab} onValueChange={setCurrentTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className={`grid w-full ${currentUser?.role === 'superadmin' ? 'grid-cols-4' : 'grid-cols-3'}`}>
           <TabsTrigger value="doctors">Doctors</TabsTrigger>
           <TabsTrigger value="receptionists">Receptionists</TabsTrigger>
           <TabsTrigger value="admins">Administrators</TabsTrigger>
+          {currentUser?.role === 'superadmin' && (
+            <TabsTrigger value="superadmins">Super Admins</TabsTrigger>
+          )}
         </TabsList>
         
         <TabsContent value="doctors" className="space-y-4 mt-6">
@@ -892,6 +925,81 @@ const StaffPage = () => {
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-1">
                           <Button variant="outline" size="sm" onClick={() => handleViewDetails(admin)} title="View Details">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Superadmins Tab Content */}
+        <TabsContent value="superadmins" className="space-y-4 mt-6">
+          {isLoadingSuperAdmins ? (
+            <Card>
+              <CardContent className="text-center py-6 text-muted-foreground">
+                Loading super administrators...
+              </CardContent>
+            </Card>
+          ) : superAdminsList.length === 0 ? (
+            <Card>
+              <CardContent className="text-center py-6 text-muted-foreground">
+                No super administrators found.
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Super Administrator</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {superAdminsList.map(superAdmin => (
+                    <TableRow key={superAdmin.id}>
+                      <TableCell>
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={superAdmin.image} alt={`${superAdmin.first_name} ${superAdmin.last_name}`} />
+                            <AvatarFallback>{superAdmin.first_name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">{`${superAdmin.first_name} ${superAdmin.last_name}`}</div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
+                          {superAdmin.email}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
+                          {superAdmin.phone || 'Not provided'}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant={superAdmin.is_active !== false ? "secondary" : "destructive"} 
+                          className={superAdmin.is_active !== false ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"}
+                        >
+                          {superAdmin.is_active !== false ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-1">
+                          <Button variant="outline" size="sm" onClick={() => handleViewDetails(superAdmin)} title="View Details">
                             <Eye className="h-4 w-4" />
                           </Button>
                         </div>

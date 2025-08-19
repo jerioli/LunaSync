@@ -1,33 +1,33 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  Calendar, 
-  User, 
-  FileText, 
-  Home, 
-  Users, 
-  Settings, 
-  Bell,
-  Pill,
-  Image,
-  ClipboardList,
-  FileCheck
-} from 'lucide-react';
-import { 
-  Sidebar, 
-  SidebarContent, 
-  SidebarGroup, 
-  SidebarGroupLabel, 
-  SidebarGroupContent, 
-  SidebarHeader, 
-  SidebarMenu, 
-  SidebarMenuItem, 
-  SidebarMenuButton,
-  useSidebar
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarGroup,
+    SidebarGroupContent,
+    SidebarGroupLabel,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    useSidebar
 } from '@/components/ui/sidebar';
 import { useClinic } from '@/contexts/ClinicContext';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import {
+    BarChart3,
+    Calendar,
+    ClipboardList,
+    FileCheck,
+    FileText,
+    Home,
+    Image,
+    Pill,
+    Plug,
+    Settings,
+    Shield,
+    Users
+} from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 
 export const AppSidebar = () => {
   const { currentUser } = useClinic();
@@ -63,6 +63,18 @@ export const AppSidebar = () => {
           { title: 'Dashboard', icon: Home, path: '/' },
           { title: 'Staff', icon: Users, path: '/staff' },
           { title: 'Patients', icon: Users, path: '/patients' },
+          { title: 'Settings', icon: Settings, path: '/settings' },
+        ];
+      case 'superadmin':
+        return [
+          { title: 'Dashboard', icon: Home, path: '/' },
+          { title: 'Staff', icon: Users, path: '/staff' },
+          { title: 'Patients', icon: Users, path: '/patients' },
+          { title: 'Permission Management', icon: Shield, path: '/permissions' },
+          { title: 'Audit Logs', icon: FileText, path: '/audit-logs' },
+          { title: 'Usage Reports', icon: BarChart3, path: '/usage-reports' },
+          { title: 'Integrations', icon: Plug, path: '/integrations' },
+          { title: 'Security Testing', icon: Shield, path: '/security-testing' },
           { title: 'Settings', icon: Settings, path: '/settings' },
         ];
       default:

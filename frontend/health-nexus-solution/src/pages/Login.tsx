@@ -86,7 +86,18 @@ const Login = () => {
           email: result.user.email,
           role: result.user.role || 'doctor',
           sessionId: result.session_id,
-          force_password_change: result.force_password_change // Include force_password_change
+          force_password_change: result.force_password_change, // Include force_password_change
+          // Include all permission fields
+          can_manage_appointments: result.user.can_manage_appointments,
+          can_manage_patients: result.user.can_manage_patients,
+          can_manage_staff: result.user.can_manage_staff,
+          can_view_reports: result.user.can_view_reports,
+          can_manage_clinic_settings: result.user.can_manage_clinic_settings,
+          can_manage_permissions: result.user.can_manage_permissions,
+          can_access_integrations: result.user.can_access_integrations,
+          can_view_audit_logs: result.user.can_view_audit_logs,
+          can_view_usage_reports: result.user.can_view_usage_reports,
+          can_access_security_testing: result.user.can_access_security_testing,
         };
         
         console.log('Session login successful:', user);

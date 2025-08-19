@@ -87,8 +87,8 @@ const Settings = () => {
 
   useEffect(() => {
     const fetchSettings = async () => {
-      if (!currentUser || currentUser.role !== 'admin') {
-        return; // Don't fetch settings if user is not an admin
+      if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
+        return; // Don't fetch settings if user is not an admin or superadmin
       }
       
       setLoading(true);
@@ -147,13 +147,13 @@ const Settings = () => {
     fetchSettings();
   }, [currentUser]);
 
-  if (currentUser?.role !== 'admin') {
+  if (currentUser?.role !== 'admin' && currentUser?.role !== 'superadmin') {
     return (
       <div className="flex items-center justify-center h-full">
         <Card className="w-[400px]">
           <CardHeader>
             <CardTitle>Access Denied</CardTitle>
-            <CardDescription>Only administrators can access clinic settings.</CardDescription>
+            <CardDescription>Only administrators and superadministrators can access clinic settings.</CardDescription>
           </CardHeader>
         </Card>
       </div>
@@ -163,7 +163,7 @@ const Settings = () => {
   const handleGeneralSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!currentUser || currentUser.role !== 'admin') {
+    if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
       toast({ title: 'Error', description: 'Unauthorized access', variant: 'destructive' });
       return;
     }
@@ -195,7 +195,7 @@ const Settings = () => {
   };
 
   const handleAwsSave = async () => {
-    if (!currentUser || currentUser.role !== 'admin') {
+    if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
       toast({ title: 'Error', description: 'Unauthorized access', variant: 'destructive' });
       return;
     }
