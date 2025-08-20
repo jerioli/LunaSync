@@ -69,7 +69,80 @@ class Appointment(models.Model):
 
     def save(self, *args, **kwargs):
         self.clean()
+        is_new = self.pk is None
+        old_status = None
+        
+        # Get the old status if this is an update
+        if not is_new:
+            try:
+                old_appointment = Appointment.objects.get(pk=self.pk)
+                old_status = old_appointment.status
+            except Appointment.DoesNotExist:
+                pass
+        
         super().save(*args, **kwargs)
+        
+        # Update corresponding TimeSlot booking status
+        if self.doctor:
+            try:
+                from doctor_availability.models import DoctorAvailability, TimeSlot
+                
+                # Find the corresponding availability and time slot
+                availability = DoctorAvailability.objects.filter(
+                    doctor=self.doctor,
+                    date=self.date
+                ).first()
+                
+                if availability:
+                    # Find the time slot that matches this appointment time
+                    time_slot = TimeSlot.objects.filter(
+                        availability=availability,
+                        start_time=self.time
+                    ).first()
+                    
+                    if time_slot:
+                        # Mark as booked if appointment is active (pending or scheduled)
+                        should_be_booked = self.status in ['pending', 'scheduled']
+                        
+                        if time_slot.is_booked != should_be_booked:
+                            time_slot.is_booked = should_be_booked
+                            time_slot.save()
+                            status_text = "booked" if should_be_booked else "available"
+                            logger.info(f"Marked time slot {time_slot.id} as {status_text} for appointment {self.id}")
+                    else:
+                        logger.warning(f"No matching time slot found for appointment {self.id} at {self.time}")
+                else:
+                    logger.warning(f"No availability found for doctor {self.doctor.id} on {self.date}")
+            except Exception as e:
+                logger.error(f"Error updating time slot booking status: {str(e)}")
+                # Don't raise the error to prevent appointment save failure
+    
+    def delete(self, *args, **kwargs):
+        # Mark the time slot as available before deleting the appointment
+        if self.doctor:
+            try:
+                from doctor_availability.models import DoctorAvailability, TimeSlot
+                
+                availability = DoctorAvailability.objects.filter(
+                    doctor=self.doctor,
+                    date=self.date
+                ).first()
+                
+                if availability:
+                    time_slot = TimeSlot.objects.filter(
+                        availability=availability,
+                        start_time=self.time,
+                        is_booked=True
+                    ).first()
+                    
+                    if time_slot:
+                        time_slot.is_booked = False
+                        time_slot.save()
+                        logger.info(f"Marked time slot {time_slot.id} as available after deleting appointment {self.id}")
+            except Exception as e:
+                logger.error(f"Error updating time slot after appointment deletion: {str(e)}")
+        
+        super().delete(*args, **kwargs)
 
     def get_patient_name(self):
         if self.patient:

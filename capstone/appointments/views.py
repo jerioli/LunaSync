@@ -18,6 +18,7 @@ from django.conf import settings
 from .email_utils import send_appointment_confirmation_email
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.core.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +74,23 @@ class AppointmentCreateView(APIView):
                 logger.info(f"Appointment created successfully: {appointment.id}")
                 # Return the serialized appointment data
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
+            except ValidationError as ve:
+                logger.error(f"Validation error saving appointment: {str(ve)}")
+                # Check if this is a time slot conflict
+                if "already booked" in str(ve):
+                    return Response(
+                        {
+                            'error': 'TIME_SLOT_CONFLICT',
+                            'message': 'This time slot is already booked',
+                            'detail': 'The selected time slot has just been booked by another patient. Please select a different time.'
+                        },
+                        status=status.HTTP_409_CONFLICT
+                    )
+                else:
+                    return Response(
+                        {'error': 'VALIDATION_ERROR', 'message': str(ve)},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
             except Exception as e:
                 logger.error(f"Error saving appointment: {str(e)}")
                 logger.error(traceback.format_exc())

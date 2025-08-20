@@ -20,6 +20,10 @@ export type MessageType = {
   dateSelector?: boolean;
   timeSelector?: boolean;
   times?: string[];
+  timesDisabled?: boolean; // To disable time slots after selection
+  availableDates?: Date[]; // For popover date selector
+  selectedDate?: Date; // For popover date selector
+  selectedTime?: string; // For popover time selector
   fileUpload?: boolean;
   fileUploadLabel?: string;
   fileUploadAccept?: string;

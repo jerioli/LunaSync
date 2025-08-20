@@ -7,7 +7,7 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { AppointmentForm, FormField, MedicalRecordRequestForm, MessageType, PrescriptionRequestForm } from './types';
-import { appointmentTypes, generateTimeSlots } from './utils';
+import { appointmentTypes } from './utils';
 
 export const useChatbotLogic = () => {
   const { users, appointments, addAppointment, currentUser, clinicCustomization } = useClinic();
@@ -109,10 +109,14 @@ export const useChatbotLogic = () => {
     fileUploadLabel?: string, 
     fileUploadAccept?: string,
     messageType?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form',
-    formFields?: FormField[]
+    formFields?: FormField[],
+    availableDates?: Date[],
+    selectedDate?: Date,
+    selectedTime?: string
   ) => {
     const messageId = uuidv4();
-    const messageKey = options ? messageId : undefined;
+    // Create messageKey for options or timeSelector (for disabling functionality)
+    const messageKey = (options || timeSelector) ? messageId : undefined;
 
     setMessages(prev => [...prev, {
       id: messageId,
@@ -123,6 +127,9 @@ export const useChatbotLogic = () => {
       dateSelector,
       timeSelector,
       times,
+      availableDates,
+      selectedDate,
+      selectedTime,
       fileUpload,
       fileUploadLabel,
       fileUploadAccept,
@@ -605,7 +612,7 @@ export const useChatbotLogic = () => {
           setChatStep(3);
         }, 500);
       }
-    } else if (chatStep === 3) {
+    } else if (chatMode === 'medicalRecord' && chatStep === 3) {
       addMessage('user', input);
       setMedicalRecordForm(prev => ({ ...prev, patientName: input }));
       setInput('');
@@ -614,7 +621,7 @@ export const useChatbotLogic = () => {
         addMessage('bot', 'Please enter your date of birth (MM/DD/YYYY):');
         setChatStep(4);
       }, 500);
-    } else if (chatStep === 4) {
+    } else if (chatMode === 'medicalRecord' && chatStep === 4) {
       addMessage('user', input);
       setMedicalRecordForm(prev => ({ ...prev, dateOfBirth: input }));
       setInput('');
@@ -623,7 +630,7 @@ export const useChatbotLogic = () => {
         addMessage('bot', 'Please enter your email address:');
         setChatStep(5);
       }, 500);
-    } else if (chatStep === 5) {
+    } else if (chatMode === 'medicalRecord' && chatStep === 5) {
       // Validate email
       if (!validateEmail(input)) {
         addMessage('user', input);
@@ -642,7 +649,7 @@ export const useChatbotLogic = () => {
         addMessage('bot', 'Please enter your phone number:');
         setChatStep(6);
       }, 500);
-    } else if (chatStep === 6) {
+    } else if (chatMode === 'medicalRecord' && chatStep === 6) {
       // Validate phone
       if (!validatePhone(input)) {
         addMessage('user', input);
@@ -658,7 +665,22 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'For identity verification, please upload a photo of your government-issued ID:', undefined, undefined, undefined, undefined, true, "Upload ID", "image/*");
+        addMessage(
+          'bot', 
+          'For identity verification, please upload a photo of your government-issued ID:', 
+          undefined, // options
+          false, // dateSelector
+          false, // timeSelector
+          undefined, // times
+          true, // fileUpload
+          "Upload ID", // fileUploadLabel
+          "image/*", // fileUploadAccept
+          undefined, // messageType
+          undefined, // formFields
+          undefined, // availableDates
+          undefined, // selectedDate
+          undefined // selectedTime
+        );
         setChatStep(7);
       }, 500);
     } else if (chatStep === 8) {
@@ -724,7 +746,7 @@ export const useChatbotLogic = () => {
         addMessage('bot', 'How long should the medication be taken? (e.g., 7 days):');
         setChatStep(5);
       }, 500);
-    } else if (chatStep === 5) {
+    } else if (chatMode === 'prescription' && chatStep === 5) {
       addMessage('user', input);
       setPrescriptionForm(prev => ({ ...prev, duration: input }));
       setInput('');
@@ -733,7 +755,7 @@ export const useChatbotLogic = () => {
         addMessage('bot', 'Please enter your full name:');
         setChatStep(6);
       }, 500);
-    } else if (chatStep === 6) {
+    } else if (chatMode === 'prescription' && chatStep === 6) {
       addMessage('user', input);
       setPrescriptionForm(prev => ({ ...prev, patientName: input }));
       setInput('');
@@ -891,13 +913,17 @@ export const useChatbotLogic = () => {
     if (messageKey) {
       setDisabledMessages(prev => new Set([...prev, messageKey]));
       
-      // Update the specific message to disable its options
+      // Update the specific message to disable its options or time slots
       setMessages(prevMessages => 
         prevMessages.map(msg => 
           msg.messageKey === messageKey 
             ? {
                 ...msg,
-                options: msg.options?.map(option => ({ ...option, disabled: true }))
+                // Disable regular options
+                options: msg.options?.map(option => ({ ...option, disabled: true })),
+                // Keep timeSelector visible but mark times as disabled and set selected time
+                timesDisabled: msg.timeSelector ? true : undefined,
+                selectedTime: msg.timeSelector ? value : msg.selectedTime
               }
             : msg
         )
@@ -994,6 +1020,24 @@ export const useChatbotLogic = () => {
       setTimeout(() => {
         addMessage('bot', 'Please enter the name of the medication you need:');
         setChatStep(2);
+      }, 500);
+    } else if (value === 'retry-appointment') {
+      // Handle retry appointment after error
+      addMessage('user', 'Yes, try again');
+      setChatMode('appointment');
+      
+      // Go back to appointment confirmation
+      setTimeout(() => {
+        const selectedDoctor = doctors.find(d => d.id.toString() === appointmentForm.doctorId);
+        const doctorName = selectedDoctor 
+          ? `Dr. ${selectedDoctor.first_name} ${selectedDoctor.last_name}`
+          : 'Selected Doctor';
+        
+        addMessage('bot', `Please confirm your appointment details:\n\n• Doctor: ${doctorName}\n• Date: ${appointmentForm.date?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}\n• Time: ${appointmentForm.time}\n• Type: ${appointmentForm.type}\n• Notes: ${appointmentForm.notes || 'None'}`, [
+          { label: 'Confirm Appointment', value: 'confirm-appointment' },
+          { label: 'Cancel', value: 'cancel-appointment' }
+        ]);
+        setChatStep(20);
       }, 500);
     } else if (chatMode === 'appointment') {
       if (chatStep === 11) {
@@ -1123,10 +1167,21 @@ export const useChatbotLogic = () => {
               });
               
               // Check if the error is about time slot already being booked
-              if (error.response?.status === 500 || 
+              if (error.response?.status === 409 || 
+                  error.response?.status === 500 || 
                   (error.response?.data && 
-                   (error.response.data.includes?.('already booked') || 
-                    error.response.data.message?.includes?.('already booked')))) {
+                   (error.response.data.error === 'TIME_SLOT_CONFLICT' ||
+                    (typeof error.response.data === 'string' && error.response.data.includes('already booked')) ||
+                    (error.response.data.message && error.response.data.message.includes('already booked')) ||
+                    (error.response.data.error && error.response.data.error.includes('already booked')) ||
+                    (error.message && error.message.includes('already booked'))))) {
+                
+                toast({
+                  title: "Time Slot Unavailable",
+                  description: "This time slot has just been booked by another patient. Please select a different time.",
+                  variant: "destructive"
+                });
+                
                 addMessage('bot', 'I apologize, but the selected time slot has just been booked by another patient. Please select a different time slot.');
                 
                 // Refresh and show available time slots again
@@ -1135,17 +1190,33 @@ export const useChatbotLogic = () => {
                     if (times.length === 0) {
                       addMessage('bot', 'Unfortunately, there are no more available time slots for this doctor on the selected date. Please select a different date or doctor.');
                       // Reset to date selection
-                      const availableDates = getAvailableDates();
-                      addMessage('bot', 'Please select a different date:', 
-                        availableDates.map(date => ({
-                          label: date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
-                          value: date.toISOString()
-                        }))
-                      );
-                      setChatStep(4);
-                      setIsInputDisabled(true); // Disable input when showing dates
+                      getAvailableDates().then(availableDates => {
+                        addMessage('bot', 'Please select a different date:', 
+                          availableDates.map(date => ({
+                            label: date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
+                            value: date.toISOString()
+                          }))
+                        );
+                        setChatStep(4);
+                        setIsInputDisabled(true); // Disable input when showing dates
+                      });
                     } else {
-                      addMessage('bot', 'Please select an available time slot:', undefined, undefined, true, times);
+                      addMessage(
+                        'bot', 
+                        'Please select an available time slot:', 
+                        undefined, // options
+                        false, // dateSelector
+                        true, // timeSelector
+                        times, // times
+                        false, // fileUpload
+                        undefined, // fileUploadLabel
+                        undefined, // fileUploadAccept
+                        'slot', // messageType
+                        undefined, // formFields
+                        undefined, // availableDates
+                        undefined, // selectedDate
+                        undefined // selectedTime
+                      );
                       setChatStep(5); // Go back to time selection
                       setIsInputDisabled(true); // Disable input when showing time slots
                     }
@@ -1157,6 +1228,16 @@ export const useChatbotLogic = () => {
                   description: "Failed to submit appointment. Please try again.",
                   variant: "destructive"
                 });
+                
+                addMessage('bot', 'I apologize, but there was an error processing your appointment. Please try again or contact our reception directly.');
+                
+                // Go back to appointment confirmation
+                setTimeout(() => {
+                  addMessage('bot', 'Would you like to try again?', [
+                    { label: 'Yes, Try Again', value: 'retry-appointment' },
+                    { label: 'Cancel', value: 'cancel' }
+                  ]);
+                }, 500);
               }
             });
         } else if (value === 'cancel') {
@@ -1178,23 +1259,79 @@ export const useChatbotLogic = () => {
           addMessage('user', 'Confirm appointment');
           addMessage('bot', 'Please wait while we process your appointment...');
           
-          // Submit appointment request
-          await submitAppointmentRequest();
-          
-          setTimeout(() => {
-            addMessage('bot', 'Your appointment has been successfully scheduled! You will receive a confirmation email shortly.');
+          try {
+            // Submit appointment request
+            await submitAppointmentRequest();
             
             setTimeout(() => {
-              addMessage('bot', 'Is there anything else I can help you with?', [
-                { label: 'Schedule Another Appointment', value: 'appointment' },
-                { label: 'Request E-Prescription', value: 'prescription' },
-                { label: 'Request Medical Records', value: 'medical-records' },
-                { label: 'No, Thank You', value: 'end' }
-              ]);
-              setChatStep(1);
-              resetForms();
-            }, 1000);
-          }, 2000);
+              addMessage('bot', 'Your appointment has been successfully scheduled! You will receive a confirmation email shortly.');
+              
+              setTimeout(() => {
+                addMessage('bot', 'Is there anything else I can help you with?', [
+                  { label: 'Schedule Another Appointment', value: 'appointment' },
+                  { label: 'Request E-Prescription', value: 'prescription' },
+                  { label: 'Request Medical Records', value: 'medical-records' },
+                  { label: 'No, Thank You', value: 'end' }
+                ]);
+                setChatStep(1);
+                resetForms();
+              }, 1000);
+            }, 2000);
+          } catch (error) {
+            if (error.message === 'TIME_SLOT_CONFLICT') {
+              // Handle time slot conflict - go back to time selection
+              addMessage('bot', 'I apologize, but the selected time slot has just been booked by another patient. Please select a different time slot.');
+              
+              // Refresh and show available time slots again
+              getAvailableTimeSlotsForDoctor(appointmentForm.doctorId, appointmentForm.date!).then((times) => {
+                setTimeout(() => {
+                  if (times.length === 0) {
+                    addMessage('bot', 'Unfortunately, there are no more available time slots for this doctor on the selected date. Please select a different date or doctor.');
+                    // Reset to date selection
+                    getAvailableDates().then(availableDates => {
+                      addMessage('bot', 'Please select a different date:', 
+                        availableDates.map(date => ({
+                          label: date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
+                          value: date.toISOString()
+                        }))
+                      );
+                      setChatStep(4);
+                      setIsInputDisabled(true); // Disable input when showing dates
+                    });
+                  } else {
+                    addMessage(
+                      'bot', 
+                      'Please select an available time slot:', 
+                      undefined, // options
+                      false, // dateSelector
+                      true, // timeSelector
+                      times, // times
+                      false, // fileUpload
+                      undefined, // fileUploadLabel
+                      undefined, // fileUploadAccept
+                      'slot', // messageType
+                      undefined, // formFields
+                      undefined, // availableDates
+                      undefined, // selectedDate
+                      undefined // selectedTime
+                    );
+                    setChatStep(5); // Go back to time selection
+                    setIsInputDisabled(true); // Disable input when showing time slots
+                  }
+                }, 500);
+              });
+            } else {
+              // Handle other errors
+              addMessage('bot', 'I apologize, but there was an error processing your appointment. Please try again or contact our reception directly.');
+              
+              setTimeout(() => {
+                addMessage('bot', 'Would you like to try again?', [
+                  { label: 'Yes, Try Again', value: 'retry-appointment' },
+                  { label: 'Cancel', value: 'cancel' }
+                ]);
+              }, 500);
+            }
+          }
         } else if (value === 'cancel-appointment') {
           addMessage('user', 'Cancel appointment');
           
@@ -1283,8 +1420,25 @@ export const useChatbotLogic = () => {
     if (chatStep === 2) {
       if (value === 'doctor-first') {
         addMessage('user', 'I want to select a doctor first');
-        fetchDoctors().then((response) => {
-          const doctorOptions = response.map(doctor => ({
+        
+        // Show loading message while checking doctor availability
+        addMessage('bot', 'Let me check which doctors have available appointments...');
+        
+        fetchDoctorsWithAvailability().then((doctorsWithAvailability) => {
+          if (doctorsWithAvailability.length === 0) {
+            setTimeout(() => {
+              addMessage('bot', 'I apologize, but no doctors have available appointments in the next 2 weeks. Please try again later or contact us directly.');
+              // Reset chat to initial state
+              setTimeout(() => {
+                setMessages([]);
+                setChatStep(0);
+                resetForms();
+              }, 2000);
+            }, 500);
+            return;
+          }
+
+          const doctorOptions = doctorsWithAvailability.map(doctor => ({
             label: `Dr. ${doctor.first_name} ${doctor.last_name}`,
             value: doctor.id.toString()
           }));
@@ -1297,16 +1451,43 @@ export const useChatbotLogic = () => {
         });
       } else if (value === 'date-first') {
         addMessage('user', 'I want to select a date first');
-        const availableDates = getAvailableDates();
         
-        setTimeout(() => {
-          addMessage('bot', 'Please select a date:', availableDates.map(date => ({
-            label: date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
-            value: date.toISOString()
-          })));
-          setChatStep(4);
-          setIsInputDisabled(true); // Disable input when showing dates
-        }, 500);
+        // Show loading message while fetching available dates
+        addMessage('bot', 'Let me check available dates...');
+        
+        getAvailableDates().then(availableDates => {
+          setTimeout(() => {
+            if (availableDates.length === 0) {
+              addMessage('bot', 'I apologize, but there are no available dates in the next 2 weeks. Please try again later or contact us directly.');
+              // Reset chat to initial state
+              setTimeout(() => {
+                setMessages([]);
+                setChatStep(0);
+                resetForms();
+              }, 2000);
+              return;
+            }
+            
+            addMessage(
+              'bot', 
+              'Please select a date:', 
+              undefined, // options
+              true, // dateSelector
+              false, // timeSelector
+              undefined, // times
+              false, // fileUpload
+              undefined, // fileUploadLabel
+              undefined, // fileUploadAccept
+              'date', // messageType
+              undefined, // formFields
+              availableDates, // availableDates
+              undefined, // selectedDate
+              undefined // selectedTime
+            );
+            setChatStep(4);
+            setIsInputDisabled(true); // Disable input when showing dates
+          }, 500);
+        });
       }
     } else if (chatStep === 3) {
       // Doctor first flow - doctor selected
@@ -1318,11 +1499,21 @@ export const useChatbotLogic = () => {
         
         getAvailableDatesForDoctor(value).then(availableDates => {
           setTimeout(() => {
-            addMessage('bot', `Dr. ${selectedDoctor.first_name} ${selectedDoctor.last_name} is available on the following dates:`, 
-              availableDates.map(date => ({
-                label: date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
-                value: date.toISOString()
-              }))
+            addMessage(
+              'bot', 
+              `Dr. ${selectedDoctor.first_name} ${selectedDoctor.last_name} is available on the following dates:`, 
+              undefined, // options
+              true, // dateSelector
+              false, // timeSelector
+              undefined, // times
+              false, // fileUpload
+              undefined, // fileUploadLabel
+              undefined, // fileUploadAccept
+              'date', // messageType
+              undefined, // formFields
+              availableDates, // availableDates
+              undefined, // selectedDate
+              undefined // selectedTime
             );
             setChatStep(4);
             setIsInputDisabled(true); // Disable input when showing dates
@@ -1357,7 +1548,22 @@ export const useChatbotLogic = () => {
                 }, 500);
               });
             } else {
-              addMessage('bot', 'Please select a time slot:', undefined, undefined, true, times);
+              addMessage(
+                'bot', 
+                'Please select a time slot:', 
+                undefined, // options
+                false, // dateSelector
+                true, // timeSelector
+                times, // times
+                false, // fileUpload
+                undefined, // fileUploadLabel
+                undefined, // fileUploadAccept
+                'slot', // messageType
+                undefined, // formFields
+                undefined, // availableDates
+                undefined, // selectedDate
+                undefined // selectedTime
+              );
               setChatStep(5);
               setIsInputDisabled(true); // Disable input when showing time slots
             }
@@ -1374,15 +1580,16 @@ export const useChatbotLogic = () => {
             setTimeout(() => {
               addMessage('bot', 'I apologize, but there are no doctors available on this date. Please select a different date.');
               // Show available dates again
-              const availableDates = getAvailableDates();
-              addMessage('bot', 'Please select a different date:', 
-                availableDates.map(date => ({
-                  label: date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
-                  value: date.toISOString()
-                }))
-              );
-              setChatStep(4);
-              setIsInputDisabled(true); // Disable input when showing dates
+              getAvailableDates().then(availableDates => {
+                addMessage('bot', 'Please select a different date:', 
+                  availableDates.map(date => ({
+                    label: date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
+                    value: date.toISOString()
+                  }))
+                );
+                setChatStep(4);
+                setIsInputDisabled(true); // Disable input when showing dates
+              });
             }, 500);
             return;
           }
@@ -1407,7 +1614,7 @@ export const useChatbotLogic = () => {
           });
         });
       }
-    } else if (chatStep === 5) {
+    } else if (chatMode === 'appointment' && chatStep === 5) {
       if (!appointmentForm.doctorId) {
         // Date first flow - doctor selected
         const selectedDoctor = doctors.find(doctor => doctor.id.toString() === value);
@@ -1435,20 +1642,36 @@ export const useChatbotLogic = () => {
                       setChatStep(5);
                     } else {
                       addMessage('bot', 'No other doctors are available on this date. Please select a different date.');
-                      const availableDates = getAvailableDates();
-                      addMessage('bot', 'Please select a different date:', 
-                        availableDates.map(date => ({
-                          label: date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
-                          value: date.toISOString()
-                        }))
-                      );
-                      setChatStep(4);
-                      setIsInputDisabled(true); // Disable input when showing dates
+                      getAvailableDates().then(availableDates => {
+                        addMessage('bot', 'Please select a different date:', 
+                          availableDates.map(date => ({
+                            label: date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
+                            value: date.toISOString()
+                          }))
+                        );
+                        setChatStep(4);
+                        setIsInputDisabled(true); // Disable input when showing dates
+                      });
                     }
                   }, 500);
                 });
               } else {
-                addMessage('bot', 'Please select a time slot:', undefined, undefined, true, times);
+                addMessage(
+                  'bot', 
+                  'Please select a time slot:', 
+                  undefined, // options
+                  false, // dateSelector
+                  true, // timeSelector
+                  times, // times
+                  false, // fileUpload
+                  undefined, // fileUploadLabel
+                  undefined, // fileUploadAccept
+                  'slot', // messageType
+                  undefined, // formFields
+                  undefined, // availableDates
+                  undefined, // selectedDate
+                  undefined // selectedTime
+                );
                 setChatStep(6);
                 setIsInputDisabled(true); // Disable input when showing time slots
               }
@@ -1466,7 +1689,7 @@ export const useChatbotLogic = () => {
           setChatStep(6);
         }, 500);
       }
-    } else if (chatStep === 6) {
+    } else if (chatMode === 'appointment' && chatStep === 6) {
       addMessage('user', `I need a ${value}`);
       setAppointmentForm(prev => ({ ...prev, type: value }));
       
@@ -1533,8 +1756,7 @@ export const useChatbotLogic = () => {
                 options: [
                   { value: 'Male', label: 'Male' },
                   { value: 'Female', label: 'Female' },
-                  { value: 'Other', label: 'Other' },
-                  { value: 'Prefer not to say', label: 'Prefer not to say' }
+                 
                 ]
               },
               {
@@ -1777,12 +1999,39 @@ export const useChatbotLogic = () => {
 
     } catch (error) {
       console.error('Error creating appointment:', error);
-      toast({
-        title: "Error",
-        description: "Failed to schedule appointment. Please try again.",
-        variant: "destructive"
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
       });
-      throw error;
+      
+      // Check if the error is about time slot already being booked
+      if (error.response?.status === 409 || 
+          error.response?.status === 500 || 
+          (error.response?.data && 
+           (error.response.data.error === 'TIME_SLOT_CONFLICT' ||
+            (typeof error.response.data === 'string' && error.response.data.includes('already booked')) ||
+            (error.response.data.message && error.response.data.message.includes('already booked')) ||
+            (error.response.data.error && error.response.data.error.includes('already booked')) ||
+            (error.message && error.message.includes('already booked'))))) {
+        
+        toast({
+          title: "Time Slot Unavailable",
+          description: "This time slot has just been booked by another patient. Please select a different time.",
+          variant: "destructive"
+        });
+        
+        // Don't throw error, handle gracefully by going back to time selection
+        // The calling function should handle this specific case
+        throw new Error('TIME_SLOT_CONFLICT');
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to schedule appointment. Please try again.",
+          variant: "destructive"
+        });
+        throw error;
+      }
     }
   };
 
@@ -2218,10 +2467,66 @@ export const useChatbotLogic = () => {
       setAppointmentForm(prev => ({ ...prev, date }));
       addMessage('user', `I'd like an appointment on ${date.toLocaleDateString()}`);
       
+      // Update the date selector message to show the selected date
+      setMessages(prevMessages => 
+        prevMessages.map(msg => 
+          msg.dateSelector && msg.availableDates
+            ? {
+                ...msg,
+                selectedDate: date,
+                timesDisabled: true // Disable after selection
+              }
+            : msg
+        )
+      );
+      
       setTimeout(() => {
-        const times = generateTimeSlots();
-        addMessage('bot', 'What time works best for you?', undefined, undefined, true, times);
-        setChatStep(3);
+        if (appointmentForm.doctorId) {
+          // Doctor first flow - show time slots for selected doctor
+          getAvailableTimeSlotsForDoctor(appointmentForm.doctorId, date).then((times) => {
+            setTimeout(() => {
+              if (times.length === 0) {
+                addMessage('bot', 'I apologize, but all time slots for this doctor are already booked on the selected date. Please select a different date.');
+              } else {
+                addMessage(
+                  'bot', 
+                  'Please select a time slot:', 
+                  undefined, // options
+                  false, // dateSelector
+                  true, // timeSelector
+                  times, // times
+                  false, // fileUpload
+                  undefined, // fileUploadLabel
+                  undefined, // fileUploadAccept
+                  'slot', // messageType
+                  undefined, // formFields
+                  undefined, // availableDates
+                  undefined, // selectedDate
+                  undefined // selectedTime
+                );
+                setChatStep(5);
+                setIsInputDisabled(true);
+              }
+            }, 500);
+          });
+        } else {
+          // Date first flow - show available doctors
+          getAvailableDoctorsForDate(date).then(availableDoctors => {
+            setTimeout(() => {
+              if (availableDoctors.length === 0) {
+                addMessage('bot', 'No doctors are available on this date. Please select a different date.');
+              } else {
+                const doctorOptions = availableDoctors.map(doctor => ({
+                  label: `Dr. ${doctor.first_name} ${doctor.last_name}`,
+                  value: doctor.id.toString()
+                }));
+                addMessage('bot', 'Please select a doctor:', doctorOptions);
+                setChatStep(5);
+                setIsInputDisabled(true);
+              }
+            }, 500);
+          });
+        }
       }, 500);
     }
   };
@@ -2233,26 +2538,108 @@ export const useChatbotLogic = () => {
     resetForms();
   };
 
-  const getAvailableDates = () => {
-    const today = new Date();
-    const availableDates: Date[] = [];
-    let daysToCheck = 14; // Check next 2 weeks
-    
-    for (let i = 1; i <= daysToCheck; i++) {
-      const checkDate = new Date(today);
-      checkDate.setDate(today.getDate() + i);
+  const getAvailableDates = async () => {
+    try {
+      console.log('Getting available dates across all doctors...');
       
-      if (checkDate.getDay() === 0 || checkDate.getDay() === 6) continue; // Skip weekends
-      
-      const dateString = checkDate.toISOString().split('T')[0];
-      const appointmentsOnDate = appointments.filter(app => app.date === dateString);
-      
-      if (appointmentsOnDate.length < 20) { // Maximum appointments per day
-        availableDates.push(checkDate);
+      // First get all doctors
+      const allDoctors = await fetchDoctors();
+      if (!allDoctors || allDoctors.length === 0) {
+        console.error('No doctors found');
+        return [];
       }
+
+      const today = new Date();
+      const availableDates: Date[] = [];
+      let daysToCheck = 60; // Check next 2 months to give users more options
+      
+      // Check each date in the next 2 months
+      for (let i = 1; i <= daysToCheck; i++) {
+        const checkDate = new Date(today);
+        checkDate.setDate(today.getDate() + i);
+        
+        // Skip weekends
+        if (checkDate.getDay() === 0 || checkDate.getDay() === 6) continue;
+        
+        const year = checkDate.getFullYear();
+        const month = String(checkDate.getMonth() + 1).padStart(2, '0');
+        const day = String(checkDate.getDate()).padStart(2, '0');
+        const dateString = `${year}-${month}-${day}`;
+        
+        // Check if any doctor has available time slots on this date
+        let hasAvailableSlots = false;
+        console.log(`Checking date ${dateString} for available doctors...`);
+        
+        for (const doctor of allDoctors) {
+          try {
+            console.log(`Checking doctor ${doctor.id} (${doctor.first_name} ${doctor.last_name}) for ${dateString}`);
+            const response = await api.availability.getTimeSlots(doctor.id.toString(), dateString);
+            console.log(`Doctor ${doctor.id} response:`, response);
+            
+            if (response && Array.isArray(response) && response.length > 0) {
+              const availability = response[0];
+              if (availability && availability.time_slots && Array.isArray(availability.time_slots)) {
+                console.log(`Doctor ${doctor.id} has ${availability.time_slots.length} time slots`);
+                
+                // Check if there are any available (non-booked) slots
+                const availableSlots = availability.time_slots.filter(slot => {
+                  const isBooked = Boolean(
+                    slot.is_booked === true || 
+                    slot.is_booked === 1 || 
+                    slot.is_booked === "true" || 
+                    slot.is_booked === "1" ||
+                    slot.is_booked === "True" ||
+                    slot.is_booked === "TRUE" ||
+                    slot.is_booked === "yes" ||
+                    slot.is_booked === "YES" ||
+                    slot.is_booked === "Yes"
+                  );
+                  console.log(`Slot ${slot.start_time}: is_booked=${slot.is_booked}, filtered out=${isBooked}`);
+                  return !isBooked;
+                });
+                
+                console.log(`Doctor ${doctor.id} has ${availableSlots.length} available slots on ${dateString}`);
+                if (availableSlots.length > 0) {
+                  hasAvailableSlots = true;
+                  console.log(`✅ Date ${dateString} has available slots with doctor ${doctor.id}`);
+                  break; // Found available slots, no need to check other doctors for this date
+                }
+              } else {
+                console.log(`Doctor ${doctor.id} has no time_slots data`);
+              }
+            } else {
+              console.log(`Doctor ${doctor.id} has no availability response or empty response`);
+            }
+          } catch (error) {
+            console.error(`Error checking availability for doctor ${doctor.id} on ${dateString}:`, error);
+            // Continue checking other doctors
+          }
+        }
+        
+        console.log(`Date ${dateString}: hasAvailableSlots = ${hasAvailableSlots}`);
+        if (hasAvailableSlots) {
+          availableDates.push(checkDate);
+        }
+      }
+      
+      console.log('Available dates found:', availableDates.map(d => d.toISOString().split('T')[0]));
+      return availableDates;
+    } catch (error) {
+      console.error('Error getting available dates:', error);
+      // Fallback to old logic if API fails
+      const today = new Date();
+      const fallbackDates: Date[] = [];
+      
+      for (let i = 1; i <= 7; i++) {
+        const checkDate = new Date(today);
+        checkDate.setDate(today.getDate() + i);
+        if (checkDate.getDay() !== 0 && checkDate.getDay() !== 6) {
+          fallbackDates.push(checkDate);
+        }
+      }
+      
+      return fallbackDates;
     }
-    
-    return availableDates;
   };
 
   const getAvailableDatesForDoctor = async (doctorId: string) => {
@@ -2278,9 +2665,18 @@ export const useChatbotLogic = () => {
         return date;
       });
 
-      console.log('Processed available dates:', availableDates);
+      // Filter to only include dates within the next 2 weeks (14 days)
+      const today = new Date();
+      const twoWeeksFromNow = new Date();
+      twoWeeksFromNow.setDate(today.getDate() + 14);
       
-      return availableDates;
+      const filteredDates = availableDates.filter(date => {
+        return date >= today && date <= twoWeeksFromNow;
+      });
+
+      console.log('Processed available dates (filtered to 2 weeks):', filteredDates);
+      
+      return filteredDates;
     } catch (error) {
       console.error('Error fetching available dates:', error);
       
@@ -2306,8 +2702,18 @@ export const useChatbotLogic = () => {
 
   const getAvailableDoctorsForDate = async (date: Date) => {
     try {
-      const dateString = date.toISOString().split('T')[0];
-      console.log('Checking availability for date:', dateString);
+      // Use the same date formatting as getAvailableDates to avoid timezone issues
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
+      
+      console.log('🔍 getAvailableDoctorsForDate called with:');
+      console.log('  - Input date object:', date);
+      console.log('  - Formatted dateString (manual):', dateString);
+      console.log('  - Formatted dateString (ISO):', date.toISOString().split('T')[0]);
+      console.log('  - Date.toLocaleDateString():', date.toLocaleDateString());
+      console.log('  - Date.toDateString():', date.toDateString());
       
       // First, get all doctors
       const allDoctors = await fetchDoctors();
@@ -2338,7 +2744,10 @@ export const useChatbotLogic = () => {
                     slot.is_booked === "true" || 
                     slot.is_booked === "1" ||
                     slot.is_booked === "True" ||
-                    slot.is_booked === "TRUE"
+                    slot.is_booked === "TRUE" ||
+                    slot.is_booked === "yes" ||
+                    slot.is_booked === "YES" ||
+                    slot.is_booked === "Yes"
                   );
                   return !isBooked;
                 });
@@ -2425,19 +2834,6 @@ export const useChatbotLogic = () => {
         console.log(`Slot ${slot.start_time}: is_booked=${slot.is_booked} (type: ${typeof slot.is_booked})`);
       });
       
-      const bookedSlots = availability.time_slots.filter(slot => {
-        // Handle all possible truthy representations of "booked"
-        const isBooked = Boolean(
-          slot.is_booked === true || 
-          slot.is_booked === 1 || 
-          slot.is_booked === "true" || 
-          slot.is_booked === "1" ||
-          slot.is_booked === "True" ||
-          slot.is_booked === "TRUE"
-        );
-        return isBooked;
-      });
-      
       const availableSlots = availability.time_slots.filter(slot => {
         // Handle all possible truthy representations of "booked"
         const isBooked = Boolean(
@@ -2446,13 +2842,16 @@ export const useChatbotLogic = () => {
           slot.is_booked === "true" || 
           slot.is_booked === "1" ||
           slot.is_booked === "True" ||
-          slot.is_booked === "TRUE"
+          slot.is_booked === "TRUE" ||
+          slot.is_booked === "yes" ||
+          slot.is_booked === "YES" ||
+          slot.is_booked === "Yes"
         );
         return !isBooked;
       });
       
-      console.log('Booked slots:', bookedSlots);
-      console.log('Available slots before formatting:', availableSlots);
+      console.log('Available slots count:', availableSlots.length);
+      console.log('Available slots before formatting:', availableSlots.map(s => `${s.start_time} (is_booked: ${s.is_booked})`));
       
       // Filter out booked slots and format for display
       const formattedAvailableSlots = availableSlots.map(slot => {
@@ -2503,6 +2902,49 @@ export const useChatbotLogic = () => {
       toast({
         title: "Error",
         description: "Failed to fetch doctors. Please try again.",
+        variant: "destructive"
+      });
+      return [];
+    } finally {
+      setIsLoadingDoctors(false);
+    }
+  };
+
+  const fetchDoctorsWithAvailability = async () => {
+    try {
+      setIsLoadingDoctors(true);
+      console.log('Fetching doctors with availability...');
+      
+      // First fetch all doctors
+      const allDoctors = await api.doctors.getAll();
+      console.log('All doctors:', allDoctors);
+      
+      // Check availability for each doctor
+      const doctorsWithAvailability = [];
+      
+      for (const doctor of allDoctors) {
+        try {
+          const availableDates = await getAvailableDatesForDoctor(doctor.id.toString());
+          if (availableDates.length > 0) {
+            doctorsWithAvailability.push(doctor);
+            console.log(`Doctor ${doctor.first_name} ${doctor.last_name} has ${availableDates.length} available dates`);
+          } else {
+            console.log(`Doctor ${doctor.first_name} ${doctor.last_name} has no available dates`);
+          }
+        } catch (error) {
+          console.error(`Error checking availability for doctor ${doctor.id}:`, error);
+          // Skip this doctor if there's an error checking availability
+        }
+      }
+      
+      console.log('Doctors with availability:', doctorsWithAvailability);
+      setDoctors(doctorsWithAvailability);
+      return doctorsWithAvailability;
+    } catch (error) {
+      console.error('Error fetching doctors with availability:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch available doctors. Please try again.",
         variant: "destructive"
       });
       return [];

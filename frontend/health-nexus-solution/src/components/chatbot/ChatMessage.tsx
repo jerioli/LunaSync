@@ -1,10 +1,11 @@
-import React from 'react';
-import { MessageType, AppointmentForm } from './types';
-import { MessageSender } from './MessageSender';
-import { MessageOptions } from './MessageOptions';
+import { DatePopover } from './DatePopover';
 import { DateSelector } from './DateSelector';
-import { TimeSelector } from './TimeSelector';
 import { FileUpload } from './FileUpload';
+import { MessageOptions } from './MessageOptions';
+import { MessageSender } from './MessageSender';
+import { TimePopover } from './TimePopover';
+import { TimeSelector } from './TimeSelector';
+import { AppointmentForm, MessageType } from './types';
 
 interface ChatMessageProps {
   message: MessageType;
@@ -45,17 +46,36 @@ export const ChatMessage = ({
         )}
         
         {message.dateSelector && (
-          <DateSelector 
-            selectedDate={appointmentForm.date} 
-            onDateSelect={onDateSelect} 
-          />
+          message.availableDates ? (
+            <DatePopover 
+              availableDates={message.availableDates}
+              selectedDate={message.selectedDate || appointmentForm.date} 
+              onDateSelect={(date) => onDateSelect(date)}
+              disabled={message.timesDisabled || false}
+            />
+          ) : (
+            <DateSelector 
+              selectedDate={appointmentForm.date} 
+              onDateSelect={onDateSelect} 
+            />
+          )
         )}
         
         {message.timeSelector && message.times && (
-          <TimeSelector 
-            times={message.times} 
-            onTimeSelect={(value) => onOptionSelect(value, message.messageKey)} 
-          />
+          message.times.length > 0 ? (
+            <TimePopover 
+              times={message.times}
+              selectedTime={message.selectedTime}
+              onTimeSelect={(value) => onOptionSelect(value, message.messageKey)}
+              disabled={message.timesDisabled || false}
+            />
+          ) : (
+            <TimeSelector 
+              times={message.times} 
+              onTimeSelect={(value) => onOptionSelect(value, message.messageKey)}
+              disabled={message.timesDisabled || false}
+            />
+          )
         )}
 
         {message.fileUpload && onFileUpload && (
