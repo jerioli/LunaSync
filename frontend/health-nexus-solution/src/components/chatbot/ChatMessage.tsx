@@ -5,6 +5,7 @@ import { MessageOptions } from './MessageOptions';
 import { MessageSender } from './MessageSender';
 import { TimePopover } from './TimePopover';
 import { TimeSelector } from './TimeSelector';
+import { TypingIndicator } from './TypingIndicator';
 import { AppointmentForm, MessageType } from './types';
 
 interface ChatMessageProps {
@@ -23,6 +24,18 @@ export const ChatMessage = ({
   onFileUpload
 }: ChatMessageProps) => {
   const isUserMessage = message.sender === 'user';
+  
+  // Handle typing indicator
+  if (message.type === 'typing' || message.isTyping) {
+    return (
+      <div className="mb-4 flex justify-start">
+        <div className="max-w-[80%] bg-gray-100 rounded-lg p-3">
+          <MessageSender name="Dr. MDSync" />
+          <TypingIndicator />
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div 

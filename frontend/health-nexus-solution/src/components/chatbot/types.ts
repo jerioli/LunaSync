@@ -15,7 +15,7 @@ export type MessageType = {
   id: string;
   sender: 'user' | 'bot';
   text: string;
-  type?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form';
+  type?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form' | 'typing';
   options?: { value: string; label: string; disabled?: boolean }[];
   dateSelector?: boolean;
   timeSelector?: boolean;
@@ -29,6 +29,7 @@ export type MessageType = {
   fileUploadAccept?: string;
   messageKey?: string; // To identify which set of options this message contains
   formFields?: FormField[];
+  isTyping?: boolean; // For typing animation
 };
 
 export type Doctor = {

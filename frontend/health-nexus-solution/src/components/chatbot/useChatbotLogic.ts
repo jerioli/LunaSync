@@ -75,6 +75,9 @@ export const useChatbotLogic = () => {
   // Track existing patient data for pre-population
   const [existingPatient, setExistingPatient] = useState<Patient | null>(null);
 
+  // Track typing animation state
+  const [isTyping, setIsTyping] = useState(false);
+
   const faqs = clinicCustomization.faqs || [];
 
   // Helper: Find best matching FAQ (simple substring match, case-insensitive)
@@ -94,7 +97,7 @@ export const useChatbotLogic = () => {
   useEffect(() => {
     if (showChat) {
       setTimeout(() => {
-        addMessage('bot', "Hello! I'm Dr.MDSync, your healthcare assistant. Say hi to start conversation?", [
+        addBotMessage("Hello! I'm Dr.MDSync, your healthcare assistant. Say hi to start conversation?", [
           { label: "Hi", value: "hi" }
         ]);
       }, 500);
@@ -139,6 +142,68 @@ export const useChatbotLogic = () => {
       type: messageType,
       formFields
     }]);
+  };
+
+  // Enhanced bot message function with typing animation
+  const addBotMessage = (
+    text: string, 
+    options?: { label: string; value: string }[], 
+    dateSelector?: boolean, 
+    timeSelector?: boolean, 
+    times?: string[], 
+    fileUpload?: boolean, 
+    fileUploadLabel?: string, 
+    fileUploadAccept?: string,
+    messageType?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form',
+    formFields?: FormField[],
+    availableDates?: Date[],
+    selectedDate?: Date,
+    selectedTime?: string,
+    typingDuration: number = 1000
+  ) => {
+    // Show typing indicator
+    setIsTyping(true);
+    const typingId = uuidv4();
+    
+    setMessages(prev => [...prev, {
+      id: typingId,
+      sender: 'bot',
+      text: '',
+      type: 'typing',
+      isTyping: true
+    }]);
+
+    // After typing duration, remove typing indicator and add actual message
+    setTimeout(() => {
+      setIsTyping(false);
+      setMessages(prev => {
+        // Remove typing indicator
+        const withoutTyping = prev.filter(msg => msg.id !== typingId);
+        
+        // Add actual message
+        const messageId = uuidv4();
+        const messageKey = (options || timeSelector) ? messageId : undefined;
+
+        return [...withoutTyping, {
+          id: messageId,
+          messageKey,
+          sender: 'bot' as const,
+          text,
+          options,
+          dateSelector,
+          timeSelector,
+          times,
+          availableDates,
+          selectedDate,
+          selectedTime,
+          fileUpload,
+          fileUploadLabel,
+          fileUploadAccept,
+          type: messageType,
+          formFields
+        }];
+      });
+    }, typingDuration);
   };
 
   const validateEmail = (email: string): boolean => {
@@ -271,7 +336,7 @@ export const useChatbotLogic = () => {
     }
     
     if (containsProfanity(userInput)) {
-      addMessage('bot', t('chatbot.keepRespectful'));
+      addBotMessage(t('chatbot.keepRespectful'));
       return true;
     }
     return false;
@@ -291,7 +356,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', t('chatbot.howCanIHelp'), [
+        addBotMessage(t('chatbot.howCanIHelp'), [
           { label: t('appointment.schedule'), value: 'appointment' },
           { label: t('chatbot.requestMedicalRecord'), value: 'medicalRecord' },
           { label: t('chatbot.requestPrescription'), value: 'prescription' },
@@ -333,7 +398,7 @@ export const useChatbotLogic = () => {
         addMessage('user', input);
         // If input doesn't match any option, show the menu again with guidance
         setTimeout(() => {
-          addMessage('bot', 'I didn\'t understand that. Please choose one of the following options by typing the number or service name:', [
+          addBotMessage('I didn\'t understand that. Please choose one of the following options by typing the number or service name:', [
             { label: '1. ' + t('appointment.schedule'), value: 'appointment' },
             { label: '2. ' + t('chatbot.requestMedicalRecord'), value: 'medicalRecord' },
             { label: '3. ' + t('chatbot.requestPrescription'), value: 'prescription' },
@@ -357,13 +422,13 @@ export const useChatbotLogic = () => {
       setInput('');
       setTimeout(() => {
         if (match) {
-          addMessage('bot', match.answer);
+          addBotMessage(match.answer);
         } else {
-          addMessage('bot', t('chatbot.couldntFindAnswer'));
+          addBotMessage(t('chatbot.couldntFindAnswer'));
         }
         // Show FAQ options again or allow return
         setTimeout(() => {
-          addMessage('bot', t('chatbot.askAnotherQuestion'), [
+          addBotMessage(t('chatbot.askAnotherQuestion'), [
             ...faqs.map((faq, i) => ({ label: faq.question, value: `faq_${i}` })),
             { label: t('chatbot.mainMenu'), value: 'main' },
           ]);
@@ -394,7 +459,7 @@ export const useChatbotLogic = () => {
           // Show user message for unrecognized input with helpful guidance
           addMessage('user', input);
           setTimeout(() => {
-            addMessage('bot', 'I didn\'t understand that. Please choose how you\'d like to schedule:', [
+            addBotMessage('I didn\'t understand that. Please choose how you\'d like to schedule:', [
               { label: '1. Select Doctor First', value: 'doctor-first' },
               { label: '2. Select Date First', value: 'date-first' }
             ]);
@@ -407,7 +472,7 @@ export const useChatbotLogic = () => {
           addMessage('user', input);
           setInput('');
           setTimeout(() => {
-            addMessage('bot', 'Please enter a valid email address:');
+            addBotMessage('Please enter a valid email address:');
           }, 500);
           return;
         }
@@ -419,7 +484,7 @@ export const useChatbotLogic = () => {
         // Check if patient already exists (for returning patients only)
         setTimeout(async () => {
           try {
-            addMessage('bot', 'Looking up your information...');
+            addBotMessage('Looking up your information...');
             
             const response = await api.patients.checkByEmail(input);
             
@@ -427,7 +492,7 @@ export const useChatbotLogic = () => {
               setExistingPatient(response.patient);
               
               setTimeout(() => {
-                addMessage('bot', `Welcome back, ${response.patient.name}! I found your information in our system. Would you like me to use your existing details or update them?`, [
+                addBotMessage(`Welcome back, ${response.patient.name}! I found your information in our system. Would you like me to use your existing details or update them?`, [
                   { label: 'Use Existing Info', value: 'use-existing-info' },
                   { label: 'Update My Info', value: 'update-info' }
                 ]);
@@ -437,16 +502,16 @@ export const useChatbotLogic = () => {
             } else {
               setExistingPatient(null);
               setTimeout(() => {
-                addMessage('bot', `I couldn't find any records with the email ${input}. It looks like you might be a new patient. Let me guide you through our registration process.`);
+                addBotMessage(`I couldn't find any records with the email ${input}. It looks like you might be a new patient. Let me guide you through our registration process.`);
                 
                 setTimeout(() => {
-                  addMessage('bot', 'Before we proceed, I need to inform you that we will be collecting some personal information to process your appointment request.');
+                  addBotMessage('Before we proceed, I need to inform you that we will be collecting some personal information to process your appointment request.');
                   
                   setTimeout(() => {
-                    addMessage('bot', 'This includes your full name, phone number, and appointment details. Your information will be kept secure and used only for healthcare purposes.');
+                    addBotMessage('This includes your full name, phone number, and appointment details. Your information will be kept secure and used only for healthcare purposes.');
                     
                     setTimeout(() => {
-                      addMessage('bot', 'Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
+                      addBotMessage('Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
                         { label: '✓ I agree to Terms & Conditions and Privacy Policy', value: 'agree-terms' },
                         { label: '✗ I do not agree', value: 'decline-terms' }
                       ]);
@@ -462,16 +527,16 @@ export const useChatbotLogic = () => {
             // Treat as new patient if API fails
             setExistingPatient(null);
             setTimeout(() => {
-              addMessage('bot', 'I apologize, but I\'m having trouble accessing our records right now. Let me help you as a new patient.');
+              addBotMessage('I apologize, but I\'m having trouble accessing our records right now. Let me help you as a new patient.');
               
               setTimeout(() => {
-                addMessage('bot', 'Before we proceed, I need to inform you that we will be collecting some personal information to process your appointment request.');
+                addBotMessage('Before we proceed, I need to inform you that we will be collecting some personal information to process your appointment request.');
                 
                 setTimeout(() => {
-                  addMessage('bot', 'This includes your full name, phone number, and appointment details. Your information will be kept secure and used only for healthcare purposes.');
+                  addBotMessage('This includes your full name, phone number, and appointment details. Your information will be kept secure and used only for healthcare purposes.');
                   
                   setTimeout(() => {
-                    addMessage('bot', 'Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
+                    addBotMessage('Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
                       { label: '✓ I agree to Terms & Conditions and Privacy Policy', value: 'agree-terms' },
                       { label: '✗ I do not agree', value: 'decline-terms' }
                     ]);
@@ -496,7 +561,7 @@ export const useChatbotLogic = () => {
         setInput('');
         
         setTimeout(() => {
-          addMessage('bot', t('chatbot.enterEmail'));
+          addBotMessage(t('chatbot.enterEmail'));
           setChatStep(8);
         }, 500);
       } else if (chatStep === 8) {
@@ -505,7 +570,7 @@ export const useChatbotLogic = () => {
           addMessage('user', input);
           setInput('');
           setTimeout(() => {
-            addMessage('bot', t('chatbot.enterValidEmail'));
+            addBotMessage(t('chatbot.enterValidEmail'));
           }, 500);
           return;
         }
@@ -517,7 +582,7 @@ export const useChatbotLogic = () => {
         // Check if patient already exists
         setTimeout(async () => {
           try {
-            addMessage('bot', 'Checking if you are a returning patient...');
+            addBotMessage('Checking if you are a returning patient...');
             
             const response = await api.patients.checkByEmail(input);
             
@@ -525,7 +590,7 @@ export const useChatbotLogic = () => {
               setExistingPatient(response.patient);
               
               setTimeout(() => {
-                addMessage('bot', `Welcome back, ${response.patient.name}! I found your information in our system. Would you like me to use your existing details or update them?`, [
+                addBotMessage(`Welcome back, ${response.patient.name}! I found your information in our system. Would you like me to use your existing details or update them?`, [
                   { label: 'Use Existing Info', value: 'use-existing-info' },
                   { label: 'Update My Info', value: 'update-info' }
                 ]);
@@ -534,7 +599,7 @@ export const useChatbotLogic = () => {
             } else {
               setExistingPatient(null);
               setTimeout(() => {
-                addMessage('bot', t('chatbot.enterPhone'));
+                addBotMessage(t('chatbot.enterPhone'));
                 setChatStep(9);
               }, 1000);
             }
@@ -543,7 +608,7 @@ export const useChatbotLogic = () => {
             // Continue with normal flow if API fails
             setExistingPatient(null);
             setTimeout(() => {
-              addMessage('bot', t('chatbot.enterPhone'));
+              addBotMessage(t('chatbot.enterPhone'));
               setChatStep(9);
             }, 1000);
           }
@@ -554,7 +619,7 @@ export const useChatbotLogic = () => {
           addMessage('user', input);
           setInput('');
           setTimeout(() => {
-            addMessage('bot', 'Please enter a valid phone number with exactly 11 digits (e.g., 09123456789):');
+            addBotMessage('Please enter a valid phone number with exactly 11 digits (e.g., 09123456789):');
           }, 500);
           return;
         }
@@ -564,7 +629,7 @@ export const useChatbotLogic = () => {
         setInput('');
         
         setTimeout(() => {
-          addMessage('bot', 'Please enter your date of birth (MM/DD/YYYY):');
+          addBotMessage('Please enter your date of birth (MM/DD/YYYY):');
           setChatStep(10);
         }, 500);
       } else if (chatStep === 10) {
@@ -574,7 +639,7 @@ export const useChatbotLogic = () => {
           addMessage('user', input);
           setInput('');
           setTimeout(() => {
-            addMessage('bot', 'Please enter a valid date in MM/DD/YYYY format:');
+            addBotMessage('Please enter a valid date in MM/DD/YYYY format:');
           }, 500);
           return;
         }
@@ -590,7 +655,7 @@ export const useChatbotLogic = () => {
           addMessage('user', input);
           setInput('');
           setTimeout(() => {
-            addMessage('bot', 'Please enter a valid date of birth (between 1 and 100 years ago):');
+            addBotMessage('Please enter a valid date of birth (between 1 and 100 years ago):');
           }, 500);
           return;
         }
@@ -600,7 +665,7 @@ export const useChatbotLogic = () => {
         setInput('');
         
         setTimeout(() => {
-          addMessage('bot', t('chatbot.selectGender'), [
+          addBotMessage(t('chatbot.selectGender'), [
             { label: t('chatbot.male'), value: 'male' },
             { label: t('chatbot.female'), value: 'female' },
             { label: t('chatbot.other'), value: 'other' }
@@ -622,7 +687,7 @@ export const useChatbotLogic = () => {
         setInput('');
         
         setTimeout(() => {
-          addMessage('bot', 'Please select your marital status:', [
+          addBotMessage('Please select your marital status:', [
             { label: 'Single', value: 'single' },
             { label: 'Married', value: 'married' },
             { label: 'Divorced', value: 'divorced' },
@@ -646,7 +711,7 @@ export const useChatbotLogic = () => {
         setInput('');
         
         setTimeout(() => {
-          addMessage('bot', t('chatbot.appointmentSummary'));
+          addBotMessage(t('chatbot.appointmentSummary'));
           
           setTimeout(() => {
             // Split name into first and last name
@@ -667,7 +732,7 @@ export const useChatbotLogic = () => {
               Notes: ${appointmentForm.notes || 'None'}
             `;
             
-            addMessage('bot', summary, [
+            addBotMessage(summary, [
               { label: 'Confirm Appointment', value: 'confirm' },
               { label: 'Cancel', value: 'cancel' }
             ]);
@@ -723,7 +788,7 @@ export const useChatbotLogic = () => {
         setMedicalRecordForm(prev => ({ ...prev, requestType: input }));
         
         setTimeout(() => {
-          addMessage('bot', 'Please enter your full name as it appears on your medical records:');
+          addBotMessage('Please enter your full name as it appears on your medical records:');
           setChatStep(3);
         }, 500);
       }
@@ -733,7 +798,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please enter your date of birth (MM/DD/YYYY):');
+       addBotMessage( 'Please enter your date of birth (MM/DD/YYYY):');
         setChatStep(4);
       }, 500);
     } else if (chatMode === 'medicalRecord' && chatStep === 4) {
@@ -742,7 +807,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please enter your email address:');
+       addBotMessage('Please enter your email address:');
         setChatStep(5);
       }, 500);
     } else if (chatMode === 'medicalRecord' && chatStep === 5) {
@@ -751,7 +816,7 @@ export const useChatbotLogic = () => {
         addMessage('user', input);
         setInput('');
         setTimeout(() => {
-          addMessage('bot', 'Please enter a valid email address (e.g., john.doe@example.com):');
+        addBotMessage( 'Please enter a valid email address (e.g., john.doe@example.com):');
         }, 500);
         return;
       }
@@ -761,7 +826,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please enter your phone number:');
+       addBotMessage( 'Please enter your phone number:');
         setChatStep(6);
       }, 500);
     } else if (chatMode === 'medicalRecord' && chatStep === 6) {
@@ -770,7 +835,7 @@ export const useChatbotLogic = () => {
         addMessage('user', input);
         setInput('');
         setTimeout(() => {
-          addMessage('bot', 'Please enter a valid phone number with exactly 11 digits (e.g., 09123456789):');
+        addBotMessage( 'Please enter a valid phone number with exactly 11 digits (e.g., 09123456789):');
         }, 500);
         return;
       }
@@ -780,8 +845,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage(
-          'bot', 
+       addBotMessage(
           'For identity verification, please upload a photo of your government-issued ID:', 
           undefined, // options
           false, // dateSelector
@@ -817,7 +881,7 @@ export const useChatbotLogic = () => {
             Additional Info: ${medicalRecordForm.additionalInfo || 'None'}
           `;
           
-          addMessage('bot', summary, [
+         addBotMessage( summary, [
             { label: 'Submit Request', value: 'submit-record-request' },
             { label: 'Cancel', value: 'cancel-record-request' }
           ]);
@@ -840,7 +904,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please enter the dosage (e.g., 500mg):');
+       addBotMessage( 'Please enter the dosage (e.g., 500mg):');
         setChatStep(3);
       }, 500);
     } else if (chatStep === 3) {
@@ -849,7 +913,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'How often should the medication be taken? (e.g., twice daily):');
+       addBotMessage( 'How often should the medication be taken? (e.g., twice daily):');
         setChatStep(4);
       }, 500);
     } else if (chatStep === 4) {
@@ -858,7 +922,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'How long should the medication be taken? (e.g., 7 days):');
+       addBotMessage('How long should the medication be taken? (e.g., 7 days):');
         setChatStep(5);
       }, 500);
     } else if (chatMode === 'prescription' && chatStep === 5) {
@@ -867,7 +931,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please enter your full name:');
+       addBotMessage('Please enter your full name:');
         setChatStep(6);
       }, 500);
     } else if (chatMode === 'prescription' && chatStep === 6) {
@@ -876,7 +940,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please enter your date of birth (MM/DD/YYYY):');
+    addBotMessage( 'Please enter your date of birth (MM/DD/YYYY):');
         setChatStep(7);
       }, 500);
     } else if (chatStep === 7) {
@@ -885,7 +949,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please enter your email address:');
+       addBotMessage( 'Please enter your email address:');
         setChatStep(8);
       }, 500);
     } else if (chatStep === 8) {
@@ -894,7 +958,7 @@ export const useChatbotLogic = () => {
         addMessage('user', input);
         setInput('');
         setTimeout(() => {
-          addMessage('bot', 'Please enter a valid email address (e.g., john.doe@example.com):');
+         addBotMessage( 'Please enter a valid email address (e.g., john.doe@example.com):');
         }, 500);
         return;
       }
@@ -904,7 +968,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please enter your phone number:');
+       addBotMessage( 'Please enter your phone number:');
         setChatStep(9);
       }, 500);
     } else if (chatStep === 9) {
@@ -913,7 +977,7 @@ export const useChatbotLogic = () => {
         addMessage('user', input);
         setInput('');
         setTimeout(() => {
-          addMessage('bot', 'Please enter a valid phone number with exactly 11 digits (e.g., 09123456789):');
+          addBotMessage( 'Please enter a valid phone number with exactly 11 digits (e.g., 09123456789):');
         }, 500);
         return;
       }
@@ -923,7 +987,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'For identity verification, please upload a photo of your government-issued ID:', undefined, undefined, undefined, undefined, true, "Upload ID", "image/*");
+        addBotMessage('For identity verification, please upload a photo of your government-issued ID:', undefined, undefined, undefined, undefined, true, "Upload ID", "image/*");
         setChatStep(10);
       }, 500);
     } else if (chatStep === 12) {
@@ -949,7 +1013,7 @@ export const useChatbotLogic = () => {
             Additional Notes: ${prescriptionForm.additionalNotes || 'None'}
           `;
           
-          addMessage('bot', summary, [
+         addBotMessage( summary, [
             { label: 'Submit Request', value: 'submit-prescription' },
             { label: 'Cancel', value: 'cancel-prescription' }
           ]);
@@ -997,7 +1061,7 @@ export const useChatbotLogic = () => {
       addMessage('user', `Uploaded ID: ${file.name}`);
       
       setTimeout(() => {
-        addMessage('bot', 'Is there any additional information you would like to provide for your medical records request? (Optional)');
+       addBotMessage( 'Is there any additional information you would like to provide for your medical records request? (Optional)');
         setChatStep(8);
       }, 500);
     } else if (chatMode === 'prescription' && chatStep === 10) {
@@ -1006,7 +1070,7 @@ export const useChatbotLogic = () => {
       addMessage('user', `Uploaded ID: ${file.name}`);
       
       setTimeout(() => {
-        addMessage('bot', 'Please upload an image of your previous prescription or relevant medical document (optional):', [
+       addBotMessage( 'Please upload an image of your previous prescription or relevant medical document (optional):', [
           { label: 'Skip Upload', value: 'skip-prescription-image' }
         ], undefined, undefined, undefined, true, "Upload Prescription", "image/*");
         setChatStep(11);
@@ -1017,7 +1081,7 @@ export const useChatbotLogic = () => {
       addMessage('user', `Uploaded prescription: ${file.name}`);
       
       setTimeout(() => {
-        addMessage('bot', 'Any additional notes about your prescription request? (Optional)');
+        addBotMessage( 'Any additional notes about your prescription request? (Optional)');
         setChatStep(12);
       }, 500);
     }
@@ -1050,7 +1114,7 @@ export const useChatbotLogic = () => {
       addMessage('user', 'Hi');
       setChatStep(1);
       setTimeout(() => {
-        addMessage('bot', t('chatbot.howCanIHelp'), [
+        addBotMessage(t('chatbot.howCanIHelp'), [
           { label: t('appointment.schedule'), value: 'appointment' },
           { label: t('chatbot.requestMedicalRecord'), value: 'medicalRecord' },
           { label: t('chatbot.requestPrescription'), value: 'prescription' },
@@ -1064,7 +1128,7 @@ export const useChatbotLogic = () => {
       setChatMode('faq');
       addMessage('user', 'FAQs');
       setTimeout(() => {
-        addMessage('bot', 'Here are some frequently asked questions. Please select one or type your own:',
+        addBotMessage('Here are some frequently asked questions. Please select one or type your own:',
           [
             ...faqs.map((faq, i) => ({ label: faq.question, value: `faq_${i}` })),
             { label: 'Back to Main Menu', value: 'main' },
@@ -1079,7 +1143,7 @@ export const useChatbotLogic = () => {
       if (value === 'main') {
         setChatMode(null);
         setTimeout(() => {
-          addMessage('bot', 'How can I assist you today?', [
+          addBotMessage('How can I assist you today?', [
             { label: 'Schedule an Appointment', value: 'appointment' },
             { label: 'Request a Medical Certificate', value: 'medicalRecord' },
             { label: 'Request E-Prescription', value: 'prescription' },
@@ -1094,9 +1158,9 @@ export const useChatbotLogic = () => {
         if (faq) {
           addMessage('user', faq.question);
           setTimeout(() => {
-            addMessage('bot', faq.answer);
+            addBotMessage(faq.answer);
             setTimeout(() => {
-              addMessage('bot', 'Would you like to ask another question or return to the main menu?', [
+              addBotMessage('Would you like to ask another question or return to the main menu?', [
                 ...faqs.map((faq, i) => ({ label: faq.question, value: `faq_${i}` })),
                 { label: 'Back to Main Menu', value: 'main' },
               ]);
@@ -1111,7 +1175,7 @@ export const useChatbotLogic = () => {
       setChatMode('appointment');
       addMessage('user', 'Schedule Appointment');
       setTimeout(() => {
-        addMessage('bot', 'How would you like to schedule your appointment?', [
+        addBotMessage('How would you like to schedule your appointment?', [
           { label: '1. Select Doctor First', value: 'doctor-first' },
           { label: '2. Select Date First', value: 'date-first' }
         ]);
@@ -1121,7 +1185,7 @@ export const useChatbotLogic = () => {
       setChatMode('medicalRecord');
       addMessage('user', 'Request Medical Records');
       setTimeout(() => {
-        addMessage('bot', 'What type of medical records do you need?', [
+        addBotMessage('What type of medical records do you need?', [
           { label: '1. Lab Results', value: 'lab' },
           { label: '2. Imaging Reports', value: 'imaging' },
           { label: '3. Visit History', value: 'history' },
@@ -1133,14 +1197,14 @@ export const useChatbotLogic = () => {
       setChatMode('prescription');
       addMessage('user', 'Request Prescription');
       setTimeout(() => {
-        addMessage('bot', 'Please enter the name of the medication you need:');
+        addBotMessage('Please enter the name of the medication you need:');
         setChatStep(2);
       }, 500);
     } else if (value === 'returning-patient') {
       // Handle returning patient selection
       addMessage('user', 'Returning Patient');
       setTimeout(() => {
-        addMessage('bot', 'Great! Please provide your email address so I can look up your information:');
+        addBotMessage('Great! Please provide your email address so I can look up your information:');
         setChatStep(6.1); // Email input for returning patients
         setIsInputDisabled(false);
       }, 500);
@@ -1148,13 +1212,13 @@ export const useChatbotLogic = () => {
       // Handle first visit selection
       addMessage('user', 'First Visit');
       setTimeout(() => {
-        addMessage('bot', 'Welcome! Before we proceed, I need to inform you that we will be collecting some personal information to process your appointment request.');
+        addBotMessage('Welcome! Before we proceed, I need to inform you that we will be collecting some personal information to process your appointment request.');
         
         setTimeout(() => {
-          addMessage('bot', 'This includes your full name, email, phone number, and appointment details. Your information will be kept secure and used only for healthcare purposes.');
+          addBotMessage('This includes your full name, email, phone number, and appointment details. Your information will be kept secure and used only for healthcare purposes.');
           
           setTimeout(() => {
-            addMessage('bot', 'Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
+            addBotMessage('Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
               { label: '✓ I agree to Terms & Conditions and Privacy Policy', value: 'agree-terms' },
               { label: '✗ I do not agree', value: 'decline-terms' }
             ]);
@@ -1188,7 +1252,7 @@ export const useChatbotLogic = () => {
         setAppointmentForm(prev => ({ ...prev, gender: value }));
         
         setTimeout(() => {
-          addMessage('bot', 'Please enter your address:');
+          addBotMessage( 'Please enter your address:');
           setChatStep(12);
         }, 500);
       } else if (chatStep === 13) {
@@ -1197,7 +1261,7 @@ export const useChatbotLogic = () => {
         setAppointmentForm(prev => ({ ...prev, maritalStatus: value }));
         
         setTimeout(() => {
-          addMessage('bot', 'Any additional notes for your appointment? (Optional)');
+         addBotMessage( 'Any additional notes for your appointment? (Optional)');
           setChatStep(14);
         }, 500);
       } else if (chatStep === 15) {
@@ -1282,7 +1346,7 @@ export const useChatbotLogic = () => {
               }, 100);
               
               setTimeout(() => {
-                addMessage('bot', 'Your appointment request has been submitted and is pending review. Our reception team will review your request and send you a confirmation email once approved. A patient record will be created after the appointment is confirmed.');
+                addBotMessage( 'Your appointment request has been submitted and is pending review. Our reception team will review your request and send you a confirmation email once approved. A patient record will be created after the appointment is confirmed.');
                 
                 toast({
                   title: "Appointment Request Submitted",
@@ -1290,7 +1354,7 @@ export const useChatbotLogic = () => {
                 });
                 
                 setTimeout(() => {
-                  addMessage('bot', 'Is there anything else I can help you with?', [
+                  addBotMessage( 'Is there anything else I can help you with?', [
                     { label: 'Schedule Another Appointment', value: 'appointment' },
                     { label: 'Request Medical Records', value: 'medicalRecord' },
                     { label: 'No, Thank You', value: 'end' }
@@ -1324,16 +1388,16 @@ export const useChatbotLogic = () => {
                   variant: "destructive"
                 });
                 
-                addMessage('bot', 'I apologize, but the selected time slot has just been booked by another patient. Please select a different time slot.');
+                addBotMessage( 'I apologize, but the selected time slot has just been booked by another patient. Please select a different time slot.');
                 
                 // Refresh and show available time slots again
                 getAvailableTimeSlotsForDoctor(appointmentForm.doctorId, appointmentForm.date!).then((times) => {
                   setTimeout(() => {
                     if (times.length === 0) {
-                      addMessage('bot', 'Unfortunately, there are no more available time slots for this doctor on the selected date. Please select a different date or doctor.');
+                      addBotMessage( 'Unfortunately, there are no more available time slots for this doctor on the selected date. Please select a different date or doctor.');
                       // Reset to date selection
                       getAvailableDates().then(availableDates => {
-                        addMessage('bot', 'Please select a different date:', 
+                        addBotMessage( 'Please select a different date:', 
                           availableDates.map(date => ({
                             label: date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
                             value: date.toISOString()
@@ -1343,8 +1407,7 @@ export const useChatbotLogic = () => {
                         setIsInputDisabled(true); // Disable input when showing dates
                       });
                     } else {
-                      addMessage(
-                        'bot', 
+                      addBotMessage(
                         'Please select an available time slot:', 
                         undefined, // options
                         false, // dateSelector
@@ -1371,11 +1434,11 @@ export const useChatbotLogic = () => {
                   variant: "destructive"
                 });
                 
-                addMessage('bot', 'I apologize, but there was an error processing your appointment. Please try again or contact our reception directly.');
+                addBotMessage( 'I apologize, but there was an error processing your appointment. Please try again or contact our reception directly.');
                 
                 // Go back to appointment confirmation
                 setTimeout(() => {
-                  addMessage('bot', 'Would you like to try again?', [
+                 addBotMessage( 'Would you like to try again?', [
                     { label: 'Yes, Try Again', value: 'retry-appointment' },
                     { label: 'Cancel', value: 'cancel' }
                   ]);
@@ -1386,7 +1449,7 @@ export const useChatbotLogic = () => {
           addMessage('user', 'Cancel');
           
           setTimeout(() => {
-            addMessage('bot', 'Appointment booking cancelled. Is there anything else I can help you with?', [
+            addBotMessage( 'Appointment booking cancelled. Is there anything else I can help you with?', [
               { label: 'Schedule Appointment', value: 'appointment' },
               { label: 'Request Medical Records', value: 'medicalRecord' },
               { label: 'No, Thank You', value: 'end' }
@@ -1399,17 +1462,17 @@ export const useChatbotLogic = () => {
         // Step 20: Appointment confirmation
         if (value === 'confirm-appointment') {
           addMessage('user', 'Confirm appointment');
-          addMessage('bot', 'Please wait while we process your appointment...');
+         addBotMessage( 'Please wait while we process your appointment...');
           
           try {
             // Submit appointment request
             await submitAppointmentRequest();
             
             setTimeout(() => {
-              addMessage('bot', 'Your appointment has been successfully scheduled! You will receive a confirmation email shortly.');
+             addBotMessage( 'Your appointment has been successfully scheduled! You will receive a confirmation email shortly.');
               
               setTimeout(() => {
-                addMessage('bot', 'Is there anything else I can help you with?', [
+               addBotMessage( 'Is there anything else I can help you with?', [
                   { label: 'Schedule Another Appointment', value: 'appointment' },
                   { label: 'Request E-Prescription', value: 'prescription' },
                   { label: 'Request Medical Records', value: 'medical-records' },
@@ -1422,16 +1485,16 @@ export const useChatbotLogic = () => {
           } catch (error) {
             if (error.message === 'TIME_SLOT_CONFLICT') {
               // Handle time slot conflict - go back to time selection
-              addMessage('bot', 'I apologize, but the selected time slot has just been booked by another patient. Please select a different time slot.');
+             addBotMessage( 'I apologize, but the selected time slot has just been booked by another patient. Please select a different time slot.');
               
               // Refresh and show available time slots again
               getAvailableTimeSlotsForDoctor(appointmentForm.doctorId, appointmentForm.date!).then((times) => {
                 setTimeout(() => {
                   if (times.length === 0) {
-                    addMessage('bot', 'Unfortunately, there are no more available time slots for this doctor on the selected date. Please select a different date or doctor.');
+                  addBotMessage( 'Unfortunately, there are no more available time slots for this doctor on the selected date. Please select a different date or doctor.');
                     // Reset to date selection
                     getAvailableDates().then(availableDates => {
-                      addMessage('bot', 'Please select a different date:', 
+                    addBotMessage( 'Please select a different date:', 
                         availableDates.map(date => ({
                           label: date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
                           value: date.toISOString()
@@ -1441,8 +1504,7 @@ export const useChatbotLogic = () => {
                       setIsInputDisabled(true); // Disable input when showing dates
                     });
                   } else {
-                    addMessage(
-                      'bot', 
+                   addBotMessage(
                       'Please select an available time slot:', 
                       undefined, // options
                       false, // dateSelector
@@ -1464,10 +1526,10 @@ export const useChatbotLogic = () => {
               });
             } else {
               // Handle other errors
-              addMessage('bot', 'I apologize, but there was an error processing your appointment. Please try again or contact our reception directly.');
+            addBotMessage( 'I apologize, but there was an error processing your appointment. Please try again or contact our reception directly.');
               
               setTimeout(() => {
-                addMessage('bot', 'Would you like to try again?', [
+               addBotMessage( 'Would you like to try again?', [
                   { label: 'Yes, Try Again', value: 'retry-appointment' },
                   { label: 'Cancel', value: 'cancel' }
                 ]);
@@ -1478,7 +1540,7 @@ export const useChatbotLogic = () => {
           addMessage('user', 'Cancel appointment');
           
           setTimeout(() => {
-            addMessage('bot', 'Appointment cancelled. Is there anything else I can help you with?', [
+          addBotMessage( 'Appointment cancelled. Is there anything else I can help you with?', [
               { label: 'Schedule an Appointment', value: 'appointment' },
               { label: 'Request E-Prescription', value: 'prescription' },
               { label: 'Request Medical Records', value: 'medical-records' },
@@ -1500,7 +1562,7 @@ export const useChatbotLogic = () => {
         await submitMedicalRecordRequest();
         
         setTimeout(() => {
-          addMessage('bot', 'Is there anything else I can help you with?', [
+         addBotMessage( 'Is there anything else I can help you with?', [
             { label: 'Schedule an Appointment', value: 'appointment' },
             { label: 'Request E-Prescription', value: 'prescription' },
             { label: 'No, Thank You', value: 'end' }
@@ -1512,7 +1574,7 @@ export const useChatbotLogic = () => {
         addMessage('user', 'Cancel request');
         
         setTimeout(() => {
-          addMessage('bot', 'Medical record request cancelled. Is there anything else I can help you with?', [
+       addBotMessage( 'Medical record request cancelled. Is there anything else I can help you with?', [
             { label: 'Schedule an Appointment', value: 'appointment' },
             { label: 'Request E-Prescription', value: 'prescription' },
             { label: 'No, Thank You', value: 'end' }
@@ -1532,7 +1594,7 @@ export const useChatbotLogic = () => {
         await submitPrescriptionRequest();
         
         setTimeout(() => {
-          addMessage('bot', 'Is there anything else I can help you with?', [
+        addBotMessage( 'Is there anything else I can help you with?', [
             { label: 'Schedule an Appointment', value: 'appointment' },
             { label: 'Request Medical Records', value: 'medicalRecord' },
             { label: 'No, Thank You', value: 'end' }
@@ -1544,7 +1606,7 @@ export const useChatbotLogic = () => {
         addMessage('user', 'Cancel request');
         
         setTimeout(() => {
-          addMessage('bot', 'Prescription request cancelled. Is there anything else I can help you with?', [
+        addBotMessage( 'Prescription request cancelled. Is there anything else I can help you with?', [
             { label: 'Schedule an Appointment', value: 'appointment' },
             { label: 'Request Medical Records', value: 'medicalRecord' },
             { label: 'No, Thank You', value: 'end' }
@@ -1564,12 +1626,12 @@ export const useChatbotLogic = () => {
         addMessage('user', 'I want to select a doctor first');
         
         // Show loading message while checking doctor availability
-        addMessage('bot', 'Let me check which doctors have available appointments...');
+       addBotMessage( 'Let me check which doctors have available appointments...');
         
         fetchDoctorsWithAvailability().then((doctorsWithAvailability) => {
           if (doctorsWithAvailability.length === 0) {
             setTimeout(() => {
-              addMessage('bot', 'I apologize, but no doctors have available appointments in the next 2 weeks. Please try again later or contact us directly.');
+           addBotMessage( 'I apologize, but no doctors have available appointments in the next 2 weeks. Please try again later or contact us directly.');
               // Reset chat to initial state
               setTimeout(() => {
                 setMessages([]);
@@ -1586,7 +1648,7 @@ export const useChatbotLogic = () => {
           }));
           
           setTimeout(() => {
-            addMessage('bot', 'Please select a doctor:', doctorOptions);
+         addBotMessage( 'Please select a doctor:', doctorOptions);
             setChatStep(3);
             setIsInputDisabled(true); // Disable input when showing doctor options
           }, 500);
@@ -1595,12 +1657,12 @@ export const useChatbotLogic = () => {
         addMessage('user', 'I want to select a date first');
         
         // Show loading message while fetching available dates
-        addMessage('bot', 'Let me check available dates...');
+      addBotMessage( 'Let me check available dates...');
         
         getAvailableDates().then(availableDates => {
           setTimeout(() => {
             if (availableDates.length === 0) {
-              addMessage('bot', 'I apologize, but there are no available dates in the next 2 weeks. Please try again later or contact us directly.');
+            addBotMessage( 'I apologize, but there are no available dates in the next 2 weeks. Please try again later or contact us directly.');
               // Reset chat to initial state
               setTimeout(() => {
                 setMessages([]);
@@ -1610,8 +1672,7 @@ export const useChatbotLogic = () => {
               return;
             }
             
-            addMessage(
-              'bot', 
+           addBotMessage( 
               'Please select a date:', 
               undefined, // options
               true, // dateSelector
@@ -1641,8 +1702,7 @@ export const useChatbotLogic = () => {
         
         getAvailableDatesForDoctor(value).then(availableDates => {
           setTimeout(() => {
-            addMessage(
-              'bot', 
+           addBotMessage(
               `Dr. ${selectedDoctor.first_name} ${selectedDoctor.last_name} is available on the following dates:`, 
               undefined, // options
               true, // dateSelector
@@ -1675,11 +1735,11 @@ export const useChatbotLogic = () => {
         getAvailableTimeSlotsForDoctor(appointmentForm.doctorId, selectedDate).then((times) => {
           setTimeout(() => {
             if (times.length === 0) {
-              addMessage('bot', 'I apologize, but all time slots for this doctor are already booked on the selected date. Please select a different date.');
+           addBotMessage( 'I apologize, but all time slots for this doctor are already booked on the selected date. Please select a different date.');
               // Show available dates again for the same doctor
               getAvailableDatesForDoctor(appointmentForm.doctorId).then(availableDates => {
                 setTimeout(() => {
-                  addMessage('bot', 'Please select a different date:', 
+                addBotMessage( 'Please select a different date:', 
                     availableDates.map(date => ({
                       label: date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
                       value: date.toISOString()
@@ -1690,8 +1750,7 @@ export const useChatbotLogic = () => {
                 }, 500);
               });
             } else {
-              addMessage(
-                'bot', 
+              addBotMessage(
                 'Please select a time slot:', 
                 undefined, // options
                 false, // dateSelector
@@ -1720,10 +1779,10 @@ export const useChatbotLogic = () => {
           if (!availableDoctors || availableDoctors.length === 0) {
             console.log('No doctors available, showing error message');
             setTimeout(() => {
-              addMessage('bot', 'I apologize, but there are no doctors available on this date. Please select a different date.');
+            addBotMessage( 'I apologize, but there are no doctors available on this date. Please select a different date.');
               // Show available dates again
               getAvailableDates().then(availableDates => {
-                addMessage('bot', 'Please select a different date:', 
+               addBotMessage( 'Please select a different date:', 
                   availableDates.map(date => ({
                     label: date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
                     value: date.toISOString()
@@ -1743,8 +1802,7 @@ export const useChatbotLogic = () => {
               value: doctor.id.toString()
             }));
             console.log('Doctor options for display:', doctorOptions);
-            
-            addMessage('bot', 'The following doctors are available on this date:', doctorOptions);
+          addBotMessage('The following doctors are available on this date:', doctorOptions);
             setChatStep(5);
           }, 500);
         }).catch(error => {
@@ -1768,7 +1826,7 @@ export const useChatbotLogic = () => {
           getAvailableTimeSlotsForDoctor(value, appointmentForm.date!).then((times) => {
             setTimeout(() => {
               if (times.length === 0) {
-                addMessage('bot', 'I apologize, but all time slots for this doctor are already booked on the selected date. Please select a different doctor.');
+              addBotMessage( 'I apologize, but all time slots for this doctor are already booked on the selected date. Please select a different doctor.');
                 // Get available doctors again for the same date
                 getAvailableDoctorsForDate(appointmentForm.date!).then(availableDoctors => {
                   setTimeout(() => {
@@ -1780,12 +1838,12 @@ export const useChatbotLogic = () => {
                       }));
                     
                     if (doctorOptions.length > 0) {
-                      addMessage('bot', 'Please select a different doctor:', doctorOptions);
+                   addBotMessage( 'Please select a different doctor:', doctorOptions);
                       setChatStep(5);
                     } else {
-                      addMessage('bot', 'No other doctors are available on this date. Please select a different date.');
+                     addBotMessage( 'No other doctors are available on this date. Please select a different date.');
                       getAvailableDates().then(availableDates => {
-                        addMessage('bot', 'Please select a different date:', 
+                       addBotMessage( 'Please select a different date:', 
                           availableDates.map(date => ({
                             label: date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
                             value: date.toISOString()
@@ -1798,8 +1856,7 @@ export const useChatbotLogic = () => {
                   }, 500);
                 });
               } else {
-                addMessage(
-                  'bot', 
+               addBotMessage( 
                   'Please select a time slot:', 
                   undefined, // options
                   false, // dateSelector
@@ -1827,7 +1884,7 @@ export const useChatbotLogic = () => {
         setIsInputDisabled(false); // Re-enable input after time slot selection
         
         setTimeout(() => {
-          addMessage('bot', 'What type of appointment do you need?', appointmentTypes);
+          addBotMessage( 'What type of appointment do you need?', appointmentTypes);
           setChatStep(6);
         }, 500);
       }
@@ -1836,7 +1893,7 @@ export const useChatbotLogic = () => {
       setAppointmentForm(prev => ({ ...prev, type: value }));
       
       setTimeout(() => {
-        addMessage('bot', 'Perfect! Are you a returning patient or is this your first visit with us?', [
+        addBotMessage('Perfect! Are you a returning patient or is this your first visit with us?', [
           { label: 'Returning Patient', value: 'returning-patient' },
           { label: 'First Visit', value: 'first-visit' }
         ]);
@@ -1861,7 +1918,7 @@ export const useChatbotLogic = () => {
           }));
           
           setTimeout(() => {
-            addMessage('bot', `Great! I've pre-filled your information. Let me summarize your appointment details:`);
+            addBotMessage( `Great! I've pre-filled your information. Let me summarize your appointment details:`);
             
             setTimeout(() => {
               const selectedDoctor = doctors.find(d => d.id.toString() === appointmentForm.doctorId);
@@ -1883,10 +1940,10 @@ export const useChatbotLogic = () => {
  Marital Status: ${existingPatient.marital_status || 'Not specified'}
               `.trim();
 
-              addMessage('bot', appointmentDetails);
+             addBotMessage( appointmentDetails);
 
               setTimeout(() => {
-                addMessage('bot', 'Would you like to confirm this appointment?', [
+               addBotMessage( 'Would you like to confirm this appointment?', [
                   { label: ' Yes, confirm appointment', value: 'confirm-appointment' },
                   { label: ' No, make changes', value: 'cancel-appointment' }
                 ]);
@@ -1913,13 +1970,13 @@ export const useChatbotLogic = () => {
         }
         
         setTimeout(() => {
-          addMessage('bot', 'Perfect! Before we proceed, I need to inform you that we will be collecting some personal information to process your appointment request.');
+          addBotMessage( 'Perfect! Before we proceed, I need to inform you that we will be collecting some personal information to process your appointment request.');
           
           setTimeout(() => {
-            addMessage('bot', 'This includes your full name, phone number, and appointment details. Your information will be kept secure and used only for healthcare purposes.');
+           addBotMessage('This includes your full name, phone number, and appointment details. Your information will be kept secure and used only for healthcare purposes.');
             
             setTimeout(() => {
-              addMessage('bot', 'Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
+              addBotMessage( 'Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
                 { label: '✓ I agree to Terms & Conditions and Privacy Policy', value: 'agree-terms' },
                 { label: '✗ I do not agree', value: 'decline-terms' }
               ]);
@@ -1937,10 +1994,10 @@ export const useChatbotLogic = () => {
         addMessage('user', 'I agree to the Terms & Conditions and Privacy Policy');
         
         setTimeout(() => {
-          addMessage('bot', 'Great! Now I need some information about you.');
+         addBotMessage('Great! Now I need some information about you.');
           
           setTimeout(() => {
-            addMessage('bot', 'Please fill out the form below with your personal information:', undefined, undefined, undefined, undefined, undefined, undefined, undefined, 'form', [
+            addBotMessage('Please fill out the form below with your personal information:', undefined, undefined, undefined, undefined, undefined, undefined, undefined, 'form', [
               {
                 name: 'name',
                 label: 'Full Name',
@@ -2008,10 +2065,10 @@ export const useChatbotLogic = () => {
         addMessage('user', 'I do not agree to the terms');
         
         setTimeout(() => {
-          addMessage('bot', 'I understand. Unfortunately, I cannot proceed with booking an appointment without your consent to our Terms & Conditions and Privacy Policy.');
+         addBotMessage( 'I understand. Unfortunately, I cannot proceed with booking an appointment without your consent to our Terms & Conditions and Privacy Policy.');
           
           setTimeout(() => {
-            addMessage('bot', 'If you change your mind, please feel free to start a new conversation. Is there anything else I can help you with today?');
+           addBotMessage( 'If you change your mind, please feel free to start a new conversation. Is there anything else I can help you with today?');
             setChatStep(1); // Reset to main menu
           }, 1000);
         }, 500);
@@ -2023,7 +2080,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please enter your email address:');
+        addBotMessage('Please enter your email address:');
         setChatStep(8);
       }, 500);
     } else if (chatStep === 8) {
@@ -2032,7 +2089,7 @@ export const useChatbotLogic = () => {
         addMessage('user', input);
         setInput('');
         setTimeout(() => {
-          addMessage('bot', 'Please enter a valid email address (e.g., john.doe@example.com):');
+         addBotMessage( 'Please enter a valid email address (e.g., john.doe@example.com):');
         }, 500);
         return;
       }
@@ -2042,7 +2099,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please enter your phone number:');
+        addBotMessage( 'Please enter your phone number:');
         setChatStep(9);
       }, 500);
     } else if (chatStep === 9) {
@@ -2051,7 +2108,7 @@ export const useChatbotLogic = () => {
         addMessage('user', input);
         setInput('');
         setTimeout(() => {
-          addMessage('bot', 'Please enter a valid phone number with exactly 11 digits (e.g., 09123456789):');
+          addBotMessage( 'Please enter a valid phone number with exactly 11 digits (e.g., 09123456789):');
         }, 500);
         return;
       }
@@ -2061,7 +2118,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please enter your date of birth (MM/DD/YYYY):');
+      addBotMessage('Please enter your date of birth (MM/DD/YYYY):');
         setChatStep(10);
       }, 500);
     } else if (chatStep === 10) {
@@ -2071,7 +2128,7 @@ export const useChatbotLogic = () => {
         addMessage('user', input);
         setInput('');
         setTimeout(() => {
-          addMessage('bot', 'Please enter a valid date in MM/DD/YYYY format:');
+          addBotMessage( 'Please enter a valid date in MM/DD/YYYY format:');
         }, 500);
         return;
       }
@@ -2087,7 +2144,7 @@ export const useChatbotLogic = () => {
         addMessage('user', input);
         setInput('');
         setTimeout(() => {
-          addMessage('bot', 'Please enter a valid date of birth (between 1 and 100 years ago):');
+          addBotMessage( 'Please enter a valid date of birth (between 1 and 100 years ago):');
         }, 500);
         return;
       }
@@ -2097,7 +2154,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please select your gender:', [
+        addBotMessage( 'Please select your gender:', [
           { label: 'Male', value: 'male' },
           { label: 'Female', value: 'female' },
           { label: 'Other', value: 'other' }
@@ -2113,7 +2170,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please select your marital status:', [
+       addBotMessage( 'Please select your marital status:', [
           { label: 'Single', value: 'single' },
           { label: 'Married', value: 'married' },
           { label: 'Divorced', value: 'divorced' },
@@ -2131,7 +2188,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Thank you! Here is a summary of your appointment:');
+        addBotMessage('Thank you! Here is a summary of your appointment:');
         
         setTimeout(() => {
           const summary = `
@@ -2148,7 +2205,7 @@ export const useChatbotLogic = () => {
             Notes: ${appointmentForm.notes || 'None'}
           `;
           
-          addMessage('bot', summary, [
+         addBotMessage( summary, [
             { label: 'Confirm Appointment', value: 'confirm' },
             { label: 'Cancel', value: 'cancel' }
           ]);
@@ -2280,7 +2337,7 @@ export const useChatbotLogic = () => {
 
       console.log('Response received:', response);
       if (response.status === 200 || response.status === 201) {
-        addMessage('bot', 'Your medical records request has been submitted successfully! Our team will review your request and contact you within 2-3 business days.');
+        addBotMessage( 'Your medical records request has been submitted successfully! Our team will review your request and contact you within 2-3 business days.');
         
         toast({
           title: "Medical Records Request Submitted",
@@ -2291,7 +2348,7 @@ export const useChatbotLogic = () => {
       }
     } catch (error) {
       console.error('Error submitting medical record request:', error);
-      addMessage('bot', 'Sorry, there was an error submitting your request. Please try again or contact us directly.');
+     addBotMessage( 'Sorry, there was an error submitting your request. Please try again or contact us directly.');
       
       toast({
         title: "Submission Error",
@@ -2333,7 +2390,7 @@ export const useChatbotLogic = () => {
 
       console.log('Response received:', response);
       if (response.status === 200 || response.status === 201) {
-        addMessage('bot', 'Your prescription request has been submitted successfully! Our team will review your request and contact you within 2-3 business days.');
+       addBotMessage( 'Your prescription request has been submitted successfully! Our team will review your request and contact you within 2-3 business days.');
         
         toast({
           title: "Prescription Request Submitted",
@@ -2344,7 +2401,7 @@ export const useChatbotLogic = () => {
       }
     } catch (error) {
       console.error('Error submitting prescription request:', error);
-      addMessage('bot', 'Sorry, there was an error submitting your request. Please try again or contact us directly.');
+      addBotMessage( 'Sorry, there was an error submitting your request. Please try again or contact us directly.');
       
       toast({
         title: "Submission Error",
@@ -2361,7 +2418,7 @@ export const useChatbotLogic = () => {
       setMedicalRecordForm(prev => ({ ...prev, requestType: value }));
       
       setTimeout(() => {
-        addMessage('bot', 'Please enter your full name:');
+        addBotMessage( 'Please enter your full name:');
         setChatStep(3);
       }, 500);
     } else if (chatStep === 3) {
@@ -2371,7 +2428,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please enter your date of birth (MM/DD/YYYY):');
+        addBotMessage( 'Please enter your date of birth (MM/DD/YYYY):');
         setChatStep(4);
       }, 500);
     } else if (chatStep === 4) {
@@ -2381,7 +2438,7 @@ export const useChatbotLogic = () => {
         addMessage('user', input);
         setInput('');
         setTimeout(() => {
-          addMessage('bot', 'Please enter a valid date in MM/DD/YYYY format:');
+         addBotMessage( 'Please enter a valid date in MM/DD/YYYY format:');
         }, 500);
         return;
       }
@@ -2391,7 +2448,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please enter your email address:');
+        addBotMessage('Please enter your email address:');
         setChatStep(5);
       }, 500);
     } else if (chatStep === 5) {
@@ -2400,7 +2457,7 @@ export const useChatbotLogic = () => {
         addMessage('user', input);
         setInput('');
         setTimeout(() => {
-          addMessage('bot', 'Please enter a valid email address (e.g., john.doe@example.com):');
+          addBotMessage( 'Please enter a valid email address (e.g., john.doe@example.com):');
         }, 500);
         return;
       }
@@ -2410,7 +2467,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please enter your phone number:');
+        addBotMessage( 'Please enter your phone number:');
         setChatStep(6);
       }, 500);
     } else if (chatStep === 6) {
@@ -2419,7 +2476,7 @@ export const useChatbotLogic = () => {
         addMessage('user', input);
         setInput('');
         setTimeout(() => {
-          addMessage('bot', 'Please enter a valid phone number with exactly 11 digits (e.g., 09123456789):');
+         addBotMessage( 'Please enter a valid phone number with exactly 11 digits (e.g., 09123456789):');
         }, 500);
         return;
       }
@@ -2429,13 +2486,13 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please upload an image of your ID for verification (required):', undefined, undefined, undefined, undefined, true, "Upload ID", "image/*");
+        addBotMessage( 'Please upload an image of your ID for verification (required):', undefined, undefined, undefined, undefined, true, "Upload ID", "image/*");
         setChatStep(7);
       }, 500);
     } else if (chatStep === 7) {
       // ID verification upload handled by file upload component
       setTimeout(() => {
-        addMessage('bot', 'Any additional information about your request? (Optional)');
+        addBotMessage( 'Any additional information about your request? (Optional)');
         setChatStep(8);
       }, 500);
     } else if (chatStep === 8) {
@@ -2445,7 +2502,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Thank you! Here is a summary of your medical records request:');
+       addBotMessage( 'Thank you! Here is a summary of your medical records request:');
         
         setTimeout(() => {
           const summary = `
@@ -2458,7 +2515,7 @@ export const useChatbotLogic = () => {
             Additional Info: ${medicalRecordForm.additionalInfo || 'None'}
           `;
           
-          addMessage('bot', summary, [
+          addBotMessage( summary, [
             { label: 'Submit Request', value: 'submit-record-request' },
             { label: 'Cancel', value: 'cancel-record-request' }
           ]);
@@ -2469,7 +2526,7 @@ export const useChatbotLogic = () => {
       addMessage('user', 'No, thank you');
       
       setTimeout(() => {
-        addMessage('bot', 'Thank you for chatting with MedySync! If you need assistance in the future, just say hi to start a new conversation.');
+        addBotMessage('Thank you for chatting with MedySync! If you need assistance in the future, just say hi to start a new conversation.');
       }, 500);
     }
   };
@@ -2482,7 +2539,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please enter the dosage (e.g., 500mg, 1 tablet):');
+      addBotMessage( 'Please enter the dosage (e.g., 500mg, 1 tablet):');
         setChatStep(3);
       }, 500);
     } else if (chatStep === 3) {
@@ -2492,7 +2549,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'How often should this medication be taken? (e.g., twice daily, every 8 hours):');
+       addBotMessage( 'How often should this medication be taken? (e.g., twice daily, every 8 hours):');
         setChatStep(4);
       }, 500);
     } else if (chatStep === 4) {
@@ -2502,7 +2559,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'For how long should this medication be taken? (e.g., 7 days, 2 weeks):');
+        addBotMessage( 'For how long should this medication be taken? (e.g., 7 days, 2 weeks):');
         setChatStep(5);
       }, 500);
     } else if (chatStep === 5) {
@@ -2512,7 +2569,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please enter your full name:');
+        addBotMessage( 'Please enter your full name:');
         setChatStep(6);
       }, 500);
     } else if (chatStep === 6) {
@@ -2522,7 +2579,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please enter your date of birth (MM/DD/YYYY):');
+        addBotMessage( 'Please enter your date of birth (MM/DD/YYYY):');
         setChatStep(7);
       }, 500);
     } else if (chatStep === 7) {
@@ -2532,7 +2589,7 @@ export const useChatbotLogic = () => {
         addMessage('user', input);
         setInput('');
         setTimeout(() => {
-          addMessage('bot', 'Please enter a valid date in MM/DD/YYYY format:');
+          addBotMessage( 'Please enter a valid date in MM/DD/YYYY format:');
         }, 500);
         return;
       }
@@ -2542,7 +2599,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please enter your email address:');
+        addBotMessage( 'Please enter your email address:');
         setChatStep(8);
       }, 500);
     } else if (chatStep === 8) {
@@ -2551,7 +2608,7 @@ export const useChatbotLogic = () => {
         addMessage('user', input);
         setInput('');
         setTimeout(() => {
-          addMessage('bot', 'Please enter a valid email address (e.g., john.doe@example.com):');
+         addBotMessage( 'Please enter a valid email address (e.g., john.doe@example.com):');
         }, 500);
         return;
       }
@@ -2561,7 +2618,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please enter your phone number:');
+       addBotMessage( 'Please enter your phone number:');
         setChatStep(9);
       }, 500);
     } else if (chatStep === 9) {
@@ -2570,7 +2627,7 @@ export const useChatbotLogic = () => {
         addMessage('user', input);
         setInput('');
         setTimeout(() => {
-          addMessage('bot', 'Please enter a valid phone number with exactly 11 digits (e.g., 09123456789):');
+        addBotMessage( 'Please enter a valid phone number with exactly 11 digits (e.g., 09123456789):');
         }, 500);
         return;
       }
@@ -2580,13 +2637,13 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Please upload an image of your ID for verification (required):', undefined, undefined, undefined, undefined, true, "Upload ID", "image/*");
+       addBotMessage( 'Please upload an image of your ID for verification (required):', undefined, undefined, undefined, undefined, true, "Upload ID", "image/*");
         setChatStep(10);
       }, 500);
     } else if (chatStep === 10) {
       // ID verification upload handled by file upload component
       setTimeout(() => {
-        addMessage('bot', 'Please upload an image of your previous prescription or relevant medical document (optional):', undefined, undefined, undefined, undefined, true, "Upload Prescription", "image/*");
+      addBotMessage( 'Please upload an image of your previous prescription or relevant medical document (optional):', undefined, undefined, undefined, undefined, true, "Upload Prescription", "image/*");
         setChatStep(11);
       }, 500);
     } else if (chatStep === 11) {
@@ -2595,7 +2652,7 @@ export const useChatbotLogic = () => {
         addMessage('user', 'Skip prescription image upload');
         
         setTimeout(() => {
-          addMessage('bot', 'Any additional notes about your prescription request? (Optional)');
+       addBotMessage( 'Any additional notes about your prescription request? (Optional)');
           setChatStep(12);
         }, 500);
         return;
@@ -2603,7 +2660,7 @@ export const useChatbotLogic = () => {
       
       // Prescription image upload handled by file upload component
       setTimeout(() => {
-        addMessage('bot', 'Any additional notes about your prescription request? (Optional)');
+      addBotMessage( 'Any additional notes about your prescription request? (Optional)');
         setChatStep(12);
       }, 500);
     } else if (chatStep === 12) {
@@ -2613,7 +2670,7 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addMessage('bot', 'Thank you! Here is a summary of your prescription request:');
+     addBotMessage('Thank you! Here is a summary of your prescription request:');
         
         setTimeout(() => {
           const summary = `
@@ -2630,7 +2687,7 @@ export const useChatbotLogic = () => {
             Additional Notes: ${prescriptionForm.additionalNotes || 'None'}
           `;
           
-          addMessage('bot', summary, [
+       addBotMessage( summary, [
             { label: 'Submit Request', value: 'submit-prescription' },
             { label: 'Cancel', value: 'cancel-prescription' }
           ]);
@@ -2707,10 +2764,9 @@ export const useChatbotLogic = () => {
           getAvailableTimeSlotsForDoctor(appointmentForm.doctorId, date).then((times) => {
             setTimeout(() => {
               if (times.length === 0) {
-                addMessage('bot', 'I apologize, but all time slots for this doctor are already booked on the selected date. Please select a different date.');
+              addBotMessage( 'I apologize, but all time slots for this doctor are already booked on the selected date. Please select a different date.');
               } else {
-                addMessage(
-                  'bot', 
+               addBotMessage(
                   'Please select a time slot:', 
                   undefined, // options
                   false, // dateSelector
@@ -2735,13 +2791,13 @@ export const useChatbotLogic = () => {
           getAvailableDoctorsForDate(date).then(availableDoctors => {
             setTimeout(() => {
               if (availableDoctors.length === 0) {
-                addMessage('bot', 'No doctors are available on this date. Please select a different date.');
+                addBotMessage( 'No doctors are available on this date. Please select a different date.');
               } else {
                 const doctorOptions = availableDoctors.map(doctor => ({
                   label: `Dr. ${doctor.first_name} ${doctor.last_name}`,
                   value: doctor.id.toString()
                 }));
-                addMessage('bot', 'Please select a doctor:', doctorOptions);
+                addBotMessage( 'Please select a doctor:', doctorOptions);
                 setChatStep(5);
                 setIsInputDisabled(true);
               }
@@ -3194,7 +3250,7 @@ export const useChatbotLogic = () => {
 
     // Continue with the next step
     setTimeout(() => {
-      addMessage('bot', 'Thank you for providing your information! Let me summarize your appointment details:');
+     addMessage('bot',  'Thank you for providing your information! Let me summarize your appointment details:');
       
       setTimeout(() => {
         const appointmentDetails = `
@@ -3209,7 +3265,7 @@ export const useChatbotLogic = () => {
 ⚧ Gender: ${formData.gender}
         `.trim();
 
-        addMessage('bot', appointmentDetails);
+       addBotMessage( appointmentDetails);
 
         setTimeout(() => {
           addMessage('bot', 'Would you like to confirm this appointment?', [
@@ -3238,6 +3294,7 @@ export const useChatbotLogic = () => {
     isLoadingDoctors,
     isLoadingProfanityWords,
     profanityWordsCount: profanityWords.length,
-    isInputDisabled
+    isInputDisabled,
+    isTyping
   };
 };
