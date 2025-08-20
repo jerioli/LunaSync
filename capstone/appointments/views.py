@@ -362,25 +362,35 @@ class AppointmentUpdateStatusView(APIView):
             
             # Check if appointment already has a patient (new format)
             if hasattr(appointment, 'patient_name') and appointment.patient_name:
-                # Create patient from the new appointment fields
+                # Check if patient with this email already exists
                 try:
-                    patient = Patient.objects.create(
-                        name=appointment.patient_name,
-                        email=appointment.patient_email,
-                        phone=appointment.patient_phone,
-                        date_of_birth=appointment.patient_date_of_birth,
-                        gender=appointment.patient_gender,
-                        address=appointment.patient_address,
-                        marital_status=appointment.patient_marital_status
-                    )
-                    
-                    # Link the patient to the appointment
-                    appointment.patient = patient
-                    appointment._patient_created = True
-                    logger.info(f"Created patient {patient.id} for appointment {appointment.id}")
-                    
-                except Exception as patient_error:
-                    logger.error(f"Error creating patient from appointment fields: {str(patient_error)}")
+                    existing_patient = Patient.objects.get(email=appointment.patient_email)
+                    # Patient exists, use the existing one
+                    appointment.patient = existing_patient
+                    logger.info(f"Using existing patient {existing_patient.id} (email: {appointment.patient_email}) for appointment {appointment.id}")
+                except Patient.DoesNotExist:
+                    # Create patient from the new appointment fields
+                    try:
+                        patient = Patient.objects.create(
+                            name=appointment.patient_name,
+                            email=appointment.patient_email,
+                            phone=appointment.patient_phone,
+                            date_of_birth=appointment.patient_date_of_birth,
+                            gender=appointment.patient_gender,
+                            address=appointment.patient_address,
+                            marital_status=appointment.patient_marital_status
+                        )
+                        
+                        # Link the patient to the appointment
+                        appointment.patient = patient
+                        appointment._patient_created = True
+                        logger.info(f"Created new patient {patient.id} for appointment {appointment.id}")
+                        
+                    except Exception as patient_error:
+                        logger.error(f"Error creating patient from appointment fields: {str(patient_error)}")
+                
+                except Exception as lookup_error:
+                    logger.error(f"Error checking for existing patient: {str(lookup_error)}")
             
             # Check if appointment has patient details in notes (old format)
             elif appointment.notes and 'Patient Details (Pending):' in appointment.notes:
@@ -429,7 +439,7 @@ class AppointmentUpdateStatusView(APIView):
                         logger.warning(f"Phone number truncated from {len(patient_details['phone'])} to 20 characters")
                     
                     # Debug logging to identify the problematic field
-                    logger.info(f"Creating patient with data:")
+                    logger.info(f"Processing patient with data:")
                     logger.info(f"  name: '{patient_details['name']}' (length: {len(patient_details['name']) if patient_details['name'] else 0})")
                     logger.info(f"  email: '{patient_details['email']}' (length: {len(patient_details['email']) if patient_details['email'] else 0})")
                     logger.info(f"  phone: '{phone}' (length: {len(phone) if phone else 0})")
@@ -438,25 +448,34 @@ class AppointmentUpdateStatusView(APIView):
                     logger.info(f"  marital_status: '{marital_status}' (length: {len(marital_status) if marital_status else 0})")
                     logger.info(f"  date_of_birth: '{date_of_birth}'")
                     
-                    patient = Patient.objects.create(
-                        name=patient_details['name'],
-                        email=patient_details['email'],
-                        phone=phone,
-                        date_of_birth=date_of_birth,
-                        gender=gender,
-                        address=patient_details.get('address'),
-                        marital_status=marital_status
-                    )
-                    
-                    # Update appointment with patient reference and clean up notes
-                    appointment.patient = patient
-                    appointment._patient_created = True
+                    # Check if patient with this email already exists
+                    try:
+                        existing_patient = Patient.objects.get(email=patient_details['email'])
+                        # Patient exists, use the existing one
+                        patient = existing_patient
+                        appointment.patient = patient
+                        logger.info(f"Using existing patient {patient.id} (email: {patient_details['email']}) for appointment {appointment.id}")
+                    except Patient.DoesNotExist:
+                        # Create new patient record
+                        patient = Patient.objects.create(
+                            name=patient_details['name'],
+                            email=patient_details['email'],
+                            phone=phone,
+                            date_of_birth=date_of_birth,
+                            gender=gender,
+                            address=patient_details.get('address'),
+                            marital_status=marital_status
+                        )
+                        
+                        # Update appointment with patient reference and clean up notes
+                        appointment.patient = patient
+                        appointment._patient_created = True
+                        logger.info(f"Created new patient {patient.id} from notes for appointment {appointment.id}")
                     
                     # Remove patient details from notes, keep only user notes
                     if 'Patient Details (Pending):' in appointment.notes:
                         appointment.notes = appointment.notes.split('Patient Details (Pending):')[0].strip()
                     
-                    logger.info(f"Created patient {patient.id} from notes for appointment {appointment.id}")
                     
                 except (json.JSONDecodeError, KeyError) as parse_error:
                     logger.error(f"Error parsing patient details from notes: {str(parse_error)}")
