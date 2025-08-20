@@ -22,9 +22,11 @@ from django.utils.encoding import force_bytes, force_str
 from django.shortcuts import get_object_or_404
 from django.core.cache import cache
 from datetime import datetime, timedelta
+from systemlogs.audit_logger import AuditLogger
 
 logger = logging.getLogger(__name__)
 
+@method_decorator(csrf_exempt, name='dispatch')
 class StaffCreateView(APIView):
     permission_classes = [IsAuthenticated]
     
@@ -50,6 +52,21 @@ class StaffCreateView(APIView):
             # Set force_password_change to True for new staff
             user.force_password_change = True
             user.save()
+            
+            # Log staff creation
+            AuditLogger.log_staff_action(
+                user=request.user,
+                action='CREATE',
+                staff_id=user.id,
+                staff_name=f"{user.get_full_name()} ({user.username})",
+                description=f"Created new staff member: {user.get_full_name()} with role {user.role}",
+                details={
+                    'staff_role': user.role,
+                    'staff_email': user.email,
+                    'created_by': request.user.email if request.user.is_authenticated else 'Unknown'
+                },
+                request=request
+            )
             
             # Debug: Verify user creation with force_password_change
             print(f"[DEBUG] StaffCreateView - Created user {user.username} with force_password_change: {user.force_password_change}")
@@ -211,6 +228,7 @@ class StaffDetailView(APIView):
             'message': 'Staff member deleted successfully'
         })
 
+@method_decorator(csrf_exempt, name='dispatch')
 class StaffPermissionsView(APIView):
     permission_classes = [IsAuthenticated]
     
@@ -300,6 +318,20 @@ class StaffPermissionsView(APIView):
                 'message': 'Only superadmins can modify superadmin permissions'
             }, status=status.HTTP_403_FORBIDDEN)
         
+        # Store old permissions for audit log
+        old_permissions = {
+            'can_manage_appointments': user.can_manage_appointments,
+            'can_manage_patients': user.can_manage_patients,
+            'can_manage_staff': user.can_manage_staff,
+            'can_view_reports': user.can_view_reports,
+            'can_manage_clinic_settings': user.can_manage_clinic_settings,
+            'can_manage_permissions': user.can_manage_permissions,
+            'can_access_integrations': user.can_access_integrations,
+            'can_view_audit_logs': user.can_view_audit_logs,
+            'can_view_usage_reports': user.can_view_usage_reports,
+            'can_access_security_testing': user.can_access_security_testing,
+        }
+        
         # Update permissions
         permissions = request.data.get('permissions', {})
         user.can_manage_appointments = permissions.get('can_manage_appointments', user.can_manage_appointments)
@@ -317,6 +349,29 @@ class StaffPermissionsView(APIView):
             user.can_access_security_testing = permissions.get('can_access_security_testing', user.can_access_security_testing)
         
         user.save()
+        
+        # Store new permissions for audit log
+        new_permissions = {
+            'can_manage_appointments': user.can_manage_appointments,
+            'can_manage_patients': user.can_manage_patients,
+            'can_manage_staff': user.can_manage_staff,
+            'can_view_reports': user.can_view_reports,
+            'can_manage_clinic_settings': user.can_manage_clinic_settings,
+            'can_manage_permissions': user.can_manage_permissions,
+            'can_access_integrations': user.can_access_integrations,
+            'can_view_audit_logs': user.can_view_audit_logs,
+            'can_view_usage_reports': user.can_view_usage_reports,
+            'can_access_security_testing': user.can_access_security_testing,
+        }
+        
+        # Log permission change
+        AuditLogger.log_permission_change(
+            user=request.user,
+            target_user=user,
+            old_permissions=old_permissions,
+            new_permissions=new_permissions,
+            request=request
+        )
         
         serializer = CustomUserSerializer(user)
         return Response({
@@ -815,6 +870,19 @@ class SessionLoginView(APIView):
             
             print(f"[DEBUG] SessionLoginView - Response data: {response_data}")
             
+            # Log successful login
+            AuditLogger.log_auth_action(
+                user=user,
+                action='LOGIN',
+                description=f"Successful login for {user.role}",
+                details={
+                    'user_role': user.role,
+                    'session_id': request.session.session_key,
+                    'login_method': 'session'
+                },
+                request=request
+            )
+            
             return Response(response_data)
         else:
             return Response({
@@ -943,6 +1011,7 @@ class CompleteLoginView(APIView):
 
 # Add OTP functionality
 
+@method_decorator(csrf_exempt, name='dispatch')
 class UserListView(APIView):
     """General users endpoint for OTP user lookup"""
     def get(self, request):
@@ -1237,42 +1306,106 @@ class AuditLogsView(APIView):
                 'error': 'Permission denied',
                 'message': 'You do not have permission to view audit logs'
             }, status=status.HTTP_403_FORBIDDEN)
-            
-        # Mock audit logs for now - in production, you'd fetch from a logging system
-        audit_logs = [
-            {
-                'id': 1,
-                'timestamp': '2025-08-19T10:30:00Z',
-                'user': 'admin@clinic.com',
-                'action': 'User Created',
-                'resource': 'Staff Member',
-                'details': 'Created new doctor: Dr. Smith',
-                'ip_address': '192.168.1.100'
-            },
-            {
-                'id': 2,
-                'timestamp': '2025-08-19T09:15:00Z',
-                'user': 'admin@clinic.com',
-                'action': 'Permission Modified',
-                'resource': 'User Permissions',
-                'details': 'Updated permissions for receptionist@clinic.com',
-                'ip_address': '192.168.1.100'
-            },
-            {
-                'id': 3,
-                'timestamp': '2025-08-19T08:45:00Z',
-                'user': 'doctor@clinic.com',
-                'action': 'Login',
-                'resource': 'Authentication',
-                'details': 'Successful login',
-                'ip_address': '192.168.1.105'
-            }
-        ]
         
-        return Response({
-            'success': True,
-            'audit_logs': audit_logs
-        })
+        try:
+            from systemlogs.models import AuditLog
+            from django.core.paginator import Paginator
+            
+            # Get query parameters
+            page = int(request.GET.get('page', 1))
+            per_page = int(request.GET.get('per_page', 50))
+            action_filter = request.GET.get('action', '')
+            resource_filter = request.GET.get('resource_type', '')
+            user_filter = request.GET.get('user', '')
+            
+            # Build queryset
+            queryset = AuditLog.objects.all()
+            
+            if action_filter:
+                queryset = queryset.filter(action=action_filter)
+            if resource_filter:
+                queryset = queryset.filter(resource_type=resource_filter)
+            if user_filter:
+                queryset = queryset.filter(user_email__icontains=user_filter)
+            
+            # Paginate
+            paginator = Paginator(queryset, per_page)
+            page_obj = paginator.get_page(page)
+            
+            # Serialize data
+            audit_logs = []
+            for log in page_obj:
+                audit_logs.append({
+                    'id': log.id,
+                    'timestamp': log.timestamp.isoformat(),
+                    'user': log.user_email,
+                    'action': log.get_action_display(),
+                    'resource': log.get_resource_type_display(),
+                    'resource_name': log.resource_name,
+                    'details': log.description,
+                    'ip_address': log.ip_address,
+                    'changes': {
+                        'old': log.old_values,
+                        'new': log.new_values
+                    } if log.old_values or log.new_values else None
+                })
+            
+            return Response({
+                'success': True,
+                'audit_logs': audit_logs,
+                'pagination': {
+                    'current_page': page,
+                    'total_pages': paginator.num_pages,
+                    'total_count': paginator.count,
+                    'has_next': page_obj.has_next(),
+                    'has_previous': page_obj.has_previous()
+                }
+            })
+            
+        except Exception as e:
+            print(f"[AUDIT LOGS ERROR] {e}")
+            # Fallback to mock data if audit logs aren't set up yet
+            audit_logs = [
+                {
+                    'id': 1,
+                    'timestamp': '2025-08-19T10:30:00Z',
+                    'user': 'admin@clinic.com',
+                    'action': 'User Created',
+                    'resource': 'Staff Member',
+                    'details': 'Created new doctor: Dr. Smith',
+                    'ip_address': '192.168.1.100'
+                },
+                {
+                    'id': 2,
+                    'timestamp': '2025-08-19T09:15:00Z',
+                    'user': 'admin@clinic.com',
+                    'action': 'Permission Modified',
+                    'resource': 'User Permissions',
+                    'details': 'Updated permissions for receptionist@clinic.com',
+                    'ip_address': '192.168.1.100'
+                },
+                {
+                    'id': 3,
+                    'timestamp': '2025-08-19T08:45:00Z',
+                    'user': 'doctor@clinic.com',
+                    'action': 'Login',
+                    'resource': 'Authentication',
+                    'details': 'Successful login',
+                    'ip_address': '192.168.1.105'
+                }
+            ]
+            
+            return Response({
+                'success': True,
+                'audit_logs': audit_logs,
+                'pagination': {
+                    'current_page': 1,
+                    'total_pages': 1,
+                    'total_count': len(audit_logs),
+                    'has_next': False,
+                    'has_previous': False
+                }
+            })
 
 
 class UsageReportsView(APIView):

@@ -35,7 +35,7 @@ SECRET_KEY = 'django-insecure-(7t38w67gl69j@dltx41uxo#zfm)k6j4km_qkt#2r@)!g6h0m)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
 # Security Settings
 SECURE_BROWSER_XSS_FILTER = True
@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     'medical_documents',
     'medical_requests',
     'security_app',  # Security management
+    'systemlogs',  # Audit logging system
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -97,6 +98,22 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # Vite dev server default port
     "http://localhost:4173",  # Vite preview port
 ]
+
+# CSRF Trusted Origins for development
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8080",  # React dev server
+    "http://localhost:8081",  # React dev server alternative port
+    "http://localhost:3000",  # React dev server alternative port
+    "http://localhost:5173",  # Vite dev server default port
+    "http://localhost:4173",  # Vite preview port
+]
+
+# Disable CSRF for development
+CSRF_USE_SESSIONS = False
+CSRF_COOKIE_NAME = None
+
+# Disable CSRF protection completely for development  
+CSRF_CHECK_DISABLED = True
 
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -125,9 +142,11 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'disable_csrf_middleware.DisableCSRFMiddleware',  # Disable CSRF completely for development
     # 'django.middleware.csrf.CsrfViewMiddleware',  # Temporarily disable CSRF
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'dev_session_middleware.DevSessionMiddleware',  # Custom session middleware for development
+    'systemlogs.middleware.AuditMiddleware',  # Audit logging middleware
     'debug_middleware.DebugMiddleware',  # Add debug middleware after authentication
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',

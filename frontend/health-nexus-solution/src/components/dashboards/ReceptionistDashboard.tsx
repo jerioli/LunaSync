@@ -5,13 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useClinic } from '@/contexts/ClinicContext';
-import axios from 'axios';
+import { axiosInstance } from '@/services/api';
 import { Calendar, CalendarDays, Clock, List, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-// Set axios base URL to include the API prefix
-axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
 
 const ReceptionistDashboard = () => {
   const { patients } = useClinic();
@@ -25,7 +22,7 @@ const ReceptionistDashboard = () => {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const response = await axios.get('appointments/list/');
+        const response = await axiosInstance.get('appointments/list/');
         setAppointments(response.data);
       } catch (error) {
         console.error('Error fetching appointments:', error);
@@ -37,7 +34,7 @@ const ReceptionistDashboard = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await axios.get('patients/');
+        const response = await axiosInstance.get('patients/');
         setPatientsCount(Array.isArray(response.data) ? response.data.length : 0);
       } catch (error) {
         setPatientsCount(0);
@@ -51,7 +48,7 @@ const ReceptionistDashboard = () => {
   const fetchPatientById = async (id) => {
     if (!id || patientDetails[id]) return;
     try {
-      const response = await axios.get(`patients/${id}/`);
+      const response = await axiosInstance.get(`patients/${id}/`);
       setPatientDetails(prev => ({ ...prev, [id]: response.data }));
     } catch (error) {
       setPatientDetails(prev => ({ ...prev, [id]: { name: 'Unknown Patient' } }));

@@ -14,8 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
-import { Admin, api, Doctor, Receptionist, StaffMember } from '@/services/api';
-import axios from 'axios';
+import { Admin, api, axiosInstance, Doctor, Receptionist, StaffMember } from '@/services/api';
 import { CheckSquare, Edit, Eye, Mail, Phone, Search, Trash, Trash2, UserPlus } from 'lucide-react';
 
 export type Role = "doctor" | "receptionist" | "admin" | "patient" | "superadmin";
@@ -64,7 +63,7 @@ const StaffPage = () => {
   useEffect(() => {
     const fetchStaff = async () => {
       try {
-        const response = await axios.get<any[]>('/staff/list/');
+        const response = await axiosInstance.get('/staff/list/');
         setStaff(response.data);
       } catch (error) {
         console.error('Error fetching staff:', error);
@@ -123,7 +122,7 @@ const StaffPage = () => {
       const fetchSuperAdmins = async () => {
         setIsLoadingSuperAdmins(true);
         try {
-          const response = await axios.get('http://127.0.0.1:8000/api/staff/list/?role=superadmin');
+          const response = await axiosInstance.get('/staff/list/?role=superadmin');
           setSuperAdminsList(response.data);
         } catch (error) {
           console.error('Error fetching super admins:', error);
@@ -267,7 +266,7 @@ const StaffPage = () => {
       // Generate a strong temporary password
       const tempPassword = generateStrongPassword();
       
-      const response = await axios.post('http://127.0.0.1:8000/api/staff/', {
+      const response = await axiosInstance.post('/staff/', {
         username: newStaff.username || newStaff.email, // Use username or fallback to email
         email: newStaff.email,
         phone: newStaff.phone, // Include phone number
@@ -417,7 +416,7 @@ const StaffPage = () => {
   const confirmBulkDelete = async () => {
     setIsBulkDeleting(true);
     try {
-      const response = await axios.post('bulk/staff/delete/', {
+      const response = await axiosInstance.post('/api/bulk/staff/delete/', {
         staff_ids: Array.from(selectedStaffIds)
       });
 
@@ -445,7 +444,7 @@ const StaffPage = () => {
   const handleSelectAllDelete = async () => {
     setIsBulkDeleting(true);
     try {
-      const response = await axios.post('/bulk/staff/delete/', {
+      const response = await axiosInstance.post('/api/bulk/staff/delete/', {
         select_all: true
       });
 

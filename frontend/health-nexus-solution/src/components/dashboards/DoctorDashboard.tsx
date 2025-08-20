@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useClinic } from '@/contexts/ClinicContext';
-import axios from 'axios';
+import { axiosInstance } from '@/services/api';
 import { Bell, Calendar as CalendarIcon, Clock, FileText, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -22,7 +22,7 @@ const DoctorDashboard = () => {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const response = await axios.get('appointments/list/');
+        const response = await axiosInstance.get('appointments/list/');
         setAppointments(response.data);
       } catch (error) {
         console.error('Error fetching appointments:', error);
@@ -34,7 +34,7 @@ const DoctorDashboard = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await axios.get('patients/');
+        const response = await axiosInstance.get('patients/');
         setPatientsCount(Array.isArray(response.data) ? response.data.length : 0);
       } catch (error) {
         setPatientsCount(0);
@@ -48,7 +48,7 @@ const DoctorDashboard = () => {
   const fetchPatientById = async (id) => {
     if (!id || patientDetails[id]) return;
     try {
-      const response = await axios.get(`patients/${id}/`);
+      const response = await axiosInstance.get(`patients/${id}/`);
       setPatientDetails(prev => ({ ...prev, [id]: response.data }));
     } catch (error) {
       setPatientDetails(prev => ({ ...prev, [id]: { name: 'Unknown Patient' } }));

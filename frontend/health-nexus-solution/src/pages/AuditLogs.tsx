@@ -1,11 +1,11 @@
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
-import { api } from '@/services/api';
-import { Activity, Calendar, FileText, Search, User } from 'lucide-react';
+import { Activity, Calendar, Eye, FileText, MapPin, Search, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface AuditLog {
@@ -13,9 +13,25 @@ interface AuditLog {
   timestamp: string;
   user: string;
   action: string;
-  resource: string;
-  details: string;
+  resource_type: string;
+  resource_id?: string;
+  resource_name?: string;
+  details: string | Record<string, any>;
   ip_address: string;
+  session_id?: string;
+  changes?: Record<string, { old: any; new: any }>;
+}
+
+interface AuditLogResponse {
+  success: boolean;
+  audit_logs: AuditLog[];
+  pagination: {
+    current_page: number;
+    total_pages: number;
+    total_count: number;
+    has_next: boolean;
+    has_previous: boolean;
+  };
 }
 
 const AuditLogs = () => {
@@ -24,15 +40,64 @@ const AuditLogs = () => {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [actionFilter, setActionFilter] = useState('');
+  const [resourceFilter, setResourceFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    total_pages: 1,
+    total_count: 0,
+    has_next: false,
+    has_previous: false
+  });
+  const [expandedLogs, setExpandedLogs] = useState<Set<number>>(new Set());
+  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchAuditLogs();
-  }, []);
+  }, [currentPage, actionFilter, resourceFilter, searchTerm]);
 
   const fetchAuditLogs = async () => {
     try {
-      const response = await api.auditLogs.getAll();
-      setLogs(response.audit_logs);
+      setLoading(true);
+      
+      // Build query parameters
+      const params = new URLSearchParams();
+      params.append('page', currentPage.toString());
+      if (actionFilter) params.append('action', actionFilter);
+      if (resourceFilter) params.append('resource_type', resourceFilter);
+      if (searchTerm) params.append('user', searchTerm);
+      
+      console.log('Fetching audit logs from:', `/api/audit-logs/?${params.toString()}`);
+      
+      const response = await fetch(`/api/audit-logs/?${params.toString()}`, {
+        headers: {
+          'X-Session-ID': localStorage.getItem('sessionId') || '',
+        },
+      });
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.log('Error response text:', errorText);
+        throw new Error(`Failed to fetch audit logs: ${response.status} ${response.statusText}`);
+      }
+      
+      const responseText = await response.text();
+      console.log('Response text:', responseText.substring(0, 200));
+      
+      try {
+        const data: AuditLogResponse = JSON.parse(responseText);
+        setLogs(data.audit_logs);
+        setPagination(data.pagination);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        console.log('Full response:', responseText);
+        throw new Error('Invalid JSON response from server');
+      }
     } catch (error) {
       console.error('Error fetching audit logs:', error);
       toast({
@@ -43,6 +108,65 @@ const AuditLogs = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleActionFilter = (action: string) => {
+    setActionFilter(action === 'all' ? '' : action);
+    setCurrentPage(1);
+  };
+
+  const handleResourceFilter = (resource: string) => {
+    setResourceFilter(resource === 'all' ? '' : resource);
+    setCurrentPage(1);
+  };
+
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+    setCurrentPage(1);
+  };
+
+  const formatDateTime = (timestamp: string) => {
+    return new Date(timestamp).toLocaleString();
+  };
+
+  const formatChanges = (changes: Record<string, { old: any; new: any }>) => {
+    if (!changes || Object.keys(changes).length === 0) return null;
+    
+    return (
+      <div className="mt-2 space-y-1">
+        {Object.entries(changes).map(([field, change]) => (
+          <div key={field} className="text-sm">
+            <span className="font-medium">{field}:</span>
+            <div className="ml-2">
+              <span className="text-red-600">Old: {JSON.stringify(change.old)}</span>
+              <br />
+              <span className="text-green-600">New: {JSON.stringify(change.new)}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const toggleLogExpansion = (logId: number) => {
+    setExpandedLogs(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(logId)) {
+        newSet.delete(logId);
+      } else {
+        newSet.add(logId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleViewLogDetails = (log: AuditLog) => {
+    setSelectedLog(log);
+    setIsModalOpen(true);
   };
 
   if (!currentUser?.can_view_audit_logs) {
@@ -57,13 +181,6 @@ const AuditLogs = () => {
       </div>
     );
   }
-
-  const filteredLogs = logs.filter(log =>
-    log.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    log.resource.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    log.details.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const getActionBadgeColor = (action: string) => {
     switch (action.toLowerCase()) {
@@ -104,16 +221,44 @@ const AuditLogs = () => {
         </div>
       </div>
 
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-4 mb-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            placeholder="Search logs..."
+            placeholder="Search by user..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             className="pl-10"
           />
         </div>
+        
+        <select
+          value={actionFilter}
+          onChange={(e) => handleActionFilter(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">All Actions</option>
+          <option value="CREATE">Create</option>
+          <option value="READ">Read</option>
+          <option value="UPDATE">Update</option>
+          <option value="DELETE">Delete</option>
+          <option value="LOGIN">Login</option>
+          <option value="LOGOUT">Logout</option>
+        </select>
+        
+        <select
+          value={resourceFilter}
+          onChange={(e) => handleResourceFilter(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">All Resources</option>
+          <option value="PATIENT">Patient</option>
+          <option value="STAFF">Staff</option>
+          <option value="APPOINTMENT">Appointment</option>
+          <option value="MEDICAL_REQUEST">Medical Request</option>
+          <option value="MEDICAL_DOCUMENT">Medical Document</option>
+          <option value="AUTH">Authentication</option>
+        </select>
       </div>
 
       <Card>
@@ -131,49 +276,59 @@ const AuditLogs = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
+                  <TableHead >
                     Timestamp
                   </TableHead>
-                  <TableHead className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
+                  <TableHead >
                     User
                   </TableHead>
                   <TableHead>Action</TableHead>
-                  <TableHead>Resource</TableHead>
                   <TableHead>Details</TableHead>
                   <TableHead>IP Address</TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredLogs.length === 0 ? (
+                {logs.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
-                      No audit logs found matching your search criteria.
+                      No audit logs found.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredLogs.map(log => (
-                    <TableRow key={log.id}>
+                  logs.map(log => (
+                    <TableRow key={log.id} className="hover:bg-gray-50">
                       <TableCell className="font-mono text-sm">
-                        {formatTimestamp(log.timestamp)}
+                        {formatDateTime(log.timestamp)}
                       </TableCell>
                       <TableCell>
-                        <div className="font-medium">{log.user}</div>
+                        <div className="font-medium">{log.user || 'System'}</div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getActionBadgeColor(log.action)}>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getActionBadgeColor(log.action)}`}>
                           {log.action}
-                        </Badge>
+                        </span>
                       </TableCell>
-                      <TableCell>
-                        <span className="font-medium">{log.resource}</span>
+                      <TableCell className="max-w-xs">
+                        <div className="text-sm text-gray-900 truncate">
+                          {typeof log.details === 'string' ? log.details : JSON.stringify(log.details)}
+                        </div>
                       </TableCell>
-                      <TableCell>
-                        <span className="text-sm">{log.details}</span>
+                      <TableCell className="text-sm text-gray-600">
+                        {log.ip_address || 'N/A'}
                       </TableCell>
-                      <TableCell>
-                        <span className="font-mono text-sm">{log.ip_address}</span>
+                      <TableCell className="text-center">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewLogDetails(log);
+                          }}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
@@ -181,8 +336,164 @@ const AuditLogs = () => {
               </TableBody>
             </Table>
           </div>
+          
+          {/* Pagination */}
+          {pagination.total_pages > 1 && (
+            <div className="mt-4 flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                Showing {((pagination.current_page - 1) * 20) + 1} to {Math.min(pagination.current_page * 20, pagination.total_count)} of {pagination.total_count} entries
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => handlePageChange(pagination.current_page - 1)}
+                  disabled={!pagination.has_previous}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  Previous
+                </button>
+                <span className="text-sm text-gray-600">
+                  Page {pagination.current_page} of {pagination.total_pages}
+                </span>
+                <button
+                  onClick={() => handlePageChange(pagination.current_page + 1)}
+                  disabled={!pagination.has_next}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Audit Log Details Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Audit Log Details
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedLog && (
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-semibold text-gray-600">Timestamp</label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Calendar className="h-4 w-4 text-gray-400" />
+                      <span className="font-mono text-sm">{formatDateTime(selectedLog.timestamp)}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-semibold text-gray-600">User</label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <User className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm">{selectedLog.user || 'System'}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-semibold text-gray-600">IP Address</label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <MapPin className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm font-mono">{selectedLog.ip_address || 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-semibold text-gray-600">Action</label>
+                    <div className="mt-1">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getActionBadgeColor(selectedLog.action)}`}>
+                        {selectedLog.action}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {selectedLog.resource_type && (
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600">Resource Type</label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <FileText className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm">{selectedLog.resource_type}</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {selectedLog.resource_id && (
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600">Resource ID</label>
+                      <div className="mt-1">
+                        <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">{selectedLog.resource_id}</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {selectedLog.session_id && (
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600">Session ID</label>
+                      <div className="mt-1">
+                        <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded break-all">{selectedLog.session_id}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Details Section */}
+              <div>
+                <label className="text-sm font-semibold text-gray-600">Details</label>
+                <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                  <pre className="text-sm text-gray-800 whitespace-pre-wrap">
+                    {typeof selectedLog.details === 'string' 
+                      ? selectedLog.details 
+                      : JSON.stringify(selectedLog.details, null, 2)}
+                  </pre>
+                </div>
+              </div>
+              
+              {/* Changes Section */}
+              {selectedLog.changes && Object.keys(selectedLog.changes).length > 0 && (
+                <div>
+                  <label className="text-sm font-semibold text-gray-600">Changes Made</label>
+                  <div className="mt-2 space-y-3">
+                    {Object.entries(selectedLog.changes).map(([field, change]) => (
+                      <div key={field} className="p-3 bg-gray-50 rounded-lg">
+                        <div className="font-medium text-sm text-gray-700 mb-2">{field}</div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <span className="text-xs font-semibold text-red-600">BEFORE</span>
+                            <div className="mt-1 p-2 bg-red-50 border border-red-200 rounded text-sm">
+                              <pre className="whitespace-pre-wrap text-red-800">
+                                {JSON.stringify(change.old, null, 2)}
+                              </pre>
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-xs font-semibold text-green-600">AFTER</span>
+                            <div className="mt-1 p-2 bg-green-50 border border-green-200 rounded text-sm">
+                              <pre className="whitespace-pre-wrap text-green-800">
+                                {JSON.stringify(change.new, null, 2)}
+                              </pre>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useClinic } from '@/contexts/ClinicContext';
 import { useSecurity } from '@/hooks/useSecurity';
-import axios from 'axios';
+import { axiosInstance } from '@/services/api';
 import { Activity, Calendar, ShieldAlert, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -23,7 +23,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const response = await axios.get('appointments/list/');
+        const response = await axiosInstance.get('appointments/list/');
         setAppointments(response.data);
       } catch (error) {
         console.error('Error fetching appointments:', error);
@@ -36,7 +36,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await axios.get('patients/');
+        const response = await axiosInstance.get('patients/');
         setPatientsCount(Array.isArray(response.data) ? response.data.length : 0);
       } catch (error) {
         setPatientsCount(0);

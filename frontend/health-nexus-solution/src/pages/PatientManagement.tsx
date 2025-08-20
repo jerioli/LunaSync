@@ -15,16 +15,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
 import { Patient } from '@/lib/mock-data';
+import { axiosInstance } from '@/services/api';
 import { medicalDocumentsAPI, type LabResult as APILabResult } from '@/services/medicalDocumentsAPI';
 import { parseApiError } from '@/utils/errorHandler';
-import axios from 'axios';
 import { format } from 'date-fns';
 import { ArrowLeft, Edit, Eye, File, FileText, Heart, Plus, Printer, Save, Stethoscope, TestTube, Trash2, Upload, User } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
-// Set the base URL for axios
-axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
 
 const PatientManagement = () => {
   const { id } = useParams<{ id: string }>();
@@ -126,7 +123,7 @@ const PatientManagement = () => {
         }
 
         // If still not found, try API directly
-        const response = await axios.get(`patients/${id}/`);
+        const response = await axiosInstance.get(`patients/${id}/`);
         if (response.data) {
 
           setPatientData(response.data);
@@ -176,7 +173,7 @@ const PatientManagement = () => {
   // Fetch clinic settings function
   const fetchClinicSettings = async () => {
     try {
-      const response = await axios.get('/clinic/');
+      const response = await axiosInstance.get('/clinic/');
       setClinicSettings(response.data);
       return response.data;
     } catch (error) {
@@ -1060,7 +1057,7 @@ const PatientManagement = () => {
       
       
       
-      const response = await axios.put(`patients/${patientData.id}/`, dataToSend);
+      const response = await axiosInstance.put(`patients/${patientData.id}/`, dataToSend);
       
       // Update the context state
       updatePatient(patientData.id, response.data);
@@ -1141,7 +1138,7 @@ const PatientManagement = () => {
     setIsDeleting(true);
     
     try {
-      await axios.delete(`patients/${patientData.id}/`);
+      await axiosInstance.delete(`patients/${patientData.id}/`);
       
       // Update the context state
       deletePatient(patientData.id);

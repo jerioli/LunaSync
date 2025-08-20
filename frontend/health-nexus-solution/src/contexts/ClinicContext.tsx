@@ -13,12 +13,13 @@ import {
   User,
   users
 } from '@/lib/mock-data';
+import { axiosInstance } from '@/services/api';
 import { ClinicContextType, ClinicCustomization } from '@/types/clinic';
 import { parseApiError } from '@/utils/errorHandler';
-import axios from 'axios';
 import React, { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 
-axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
+// Remove the base URL setting since we're using proxy
+// axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
 
 export const ClinicContext = createContext<ClinicContextType | undefined>(undefined);
 // Add the useClinic hook
@@ -67,7 +68,7 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         }
       };
 
-      const response = await axios.post('patients/', formattedPatient);
+      const response = await axiosInstance.post('patients/', formattedPatient);
       
       // Ensure the response data has the correct structure
       const newPatient = {
@@ -164,7 +165,7 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   };  // Fetch patients from backend
   const fetchPatients = useCallback(async () => {
     try {
-      const response = await axios.get('patients/');
+      const response = await axiosInstance.get('patients/');
       setPatientsList(response.data);
     } catch (error) {
       console.error('Error fetching patients:', error);
