@@ -6,7 +6,11 @@ class PatientSerializer(serializers.ModelSerializer):
         model = Patient
         fields = [
             'id',
-            'name',
+            'name',  # Keep for backward compatibility
+            'first_name',
+            'last_name', 
+            'middle_initial',
+            'suffix',
             'email',
             'phone',
             'date_of_birth',

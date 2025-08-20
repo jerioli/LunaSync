@@ -114,7 +114,11 @@ export interface StaffMember {
 
 export interface Patient {
   id: number;
-  name: string;
+  name: string; // Keep for backward compatibility
+  first_name?: string;
+  last_name?: string;
+  middle_initial?: string;
+  suffix?: string;
   email: string;
   phone: string;
   date_of_birth: string;

@@ -1,11 +1,11 @@
-import React from 'react';
-import { Patient } from '@/lib/mock-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { Patient } from '@/lib/mock-data';
 import { format } from 'date-fns';
+import React from 'react';
 
 interface PatientPersonalInfoProps {
   patient: Patient;
@@ -27,16 +27,69 @@ const PatientPersonalInfo: React.FC<PatientPersonalInfoProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">          <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Name fields - arranged in a 2x2 grid */}
+          <div className="space-y-2">
+            <Label htmlFor="firstName">First Name</Label>
             {isEditing ? (
               <Input 
-                id="name" 
-                value={patient.name || ''} 
-                onChange={(e) => onUpdate({ name: e.target.value })}
+                id="firstName" 
+                value={patient.first_name || ''} 
+                onChange={(e) => onUpdate({ first_name: e.target.value })}
+                placeholder="Enter first name"
               />
             ) : (
-              <div className="p-2 border rounded-md bg-muted/20">{patient.name}</div>
+              <div className="p-2 border rounded-md bg-muted/20">{patient.first_name || 'N/A'}</div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="lastName">Last Name</Label>
+            {isEditing ? (
+              <Input 
+                id="lastName" 
+                value={patient.last_name || ''} 
+                onChange={(e) => onUpdate({ last_name: e.target.value })}
+                placeholder="Enter last name"
+              />
+            ) : (
+              <div className="p-2 border rounded-md bg-muted/20">{patient.last_name || 'N/A'}</div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="middleInitial">Middle Initial</Label>
+            {isEditing ? (
+              <Input 
+                id="middleInitial" 
+                value={patient.middle_initial || ''} 
+                onChange={(e) => onUpdate({ middle_initial: e.target.value })}
+                placeholder="M."
+                maxLength={5}
+              />
+            ) : (
+              <div className="p-2 border rounded-md bg-muted/20">{patient.middle_initial || 'N/A'}</div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="suffix">Suffix</Label>
+            {isEditing ? (
+              <select 
+                id="suffix" 
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                value={patient.suffix || ''}
+                onChange={(e) => onUpdate({ suffix: e.target.value })}
+              >
+                <option value="">None</option>
+                <option value="Jr.">Jr.</option>
+                <option value="Sr.">Sr.</option>
+                <option value="II">II</option>
+                <option value="III">III</option>
+                <option value="IV">IV</option>
+              </select>
+            ) : (
+              <div className="p-2 border rounded-md bg-muted/20">{patient.suffix || 'N/A'}</div>
             )}
           </div>
           

@@ -28,7 +28,11 @@ export type User = {
 export type Patient = {
   
   id: string;
-  name: string;
+  name: string; // Keep for backward compatibility
+  first_name?: string;
+  last_name?: string;
+  middle_initial?: string;
+  suffix?: string;
   email: string;
   phone: string;
   date_of_birth?: string; // Use camelCase for frontend

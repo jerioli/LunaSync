@@ -34,7 +34,17 @@ const AddPatient = () => {
   }, [currentUser, isDoctor, isReceptionist, isAdmin, navigate, toast]);
   
   const [form, setForm] = useState({
-    name: '', gender: '', age: '', address: '', dateOfBirth: '', email: '', phone: '', religion: '',
+    first_name: '',
+    last_name: '',
+    middle_initial: '',
+    suffix: '',
+    gender: '',
+    age: '',
+    address: '',
+    dateOfBirth: '',
+    email: '',
+    phone: '',
+    religion: '',
   });
   
   const [loading, setLoading] = useState(false);
@@ -97,10 +107,10 @@ const AddPatient = () => {
 
   const handleSaveAll = async () => {
     // Basic validation
-    if (!form.name || !form.email || !form.phone || !form.dateOfBirth || !form.gender) {
+    if (!form.first_name || !form.last_name || !form.email || !form.phone || !form.dateOfBirth || !form.gender) {
       toast({
         title: 'Validation Error',
-        description: 'Please fill in all required fields (Name, Email, Phone, Date of Birth, Gender).',
+        description: 'Please fill in all required fields (First Name, Last Name, Email, Phone, Date of Birth, Gender).',
         variant: 'destructive',
       });
       return;
@@ -130,12 +140,27 @@ const AddPatient = () => {
     setLoading(true);
     
     try {
-      // Send only the fields expected by the backend
+      // Construct full name for backward compatibility
+      const nameParts = [];
+      if (form.first_name) nameParts.push(form.first_name);
+      if (form.middle_initial) {
+        const initial = form.middle_initial.endsWith('.') ? form.middle_initial : form.middle_initial + '.';
+        nameParts.push(initial);
+      }
+      if (form.last_name) nameParts.push(form.last_name);
+      if (form.suffix) nameParts.push(form.suffix);
+      const fullName = nameParts.join(' ');
+
+      // Send both new fields and legacy name field to the backend
       const patientData = {
-        name: form.name,
+        name: fullName, // For backward compatibility
+        first_name: form.first_name,
+        last_name: form.last_name,
+        middle_initial: form.middle_initial || undefined,
+        suffix: form.suffix || undefined,
         email: form.email,
         phone: form.phone,
-        date_of_birth: form.dateOfBirth,
+        date_of_birth: form.dateOfBirth, // Convert from frontend field name
         gender: form.gender.toLowerCase() as 'male' | 'female' | 'other',
         address: form.address,
         marital_status: 'single' as const, // default value
@@ -151,8 +176,8 @@ const AddPatient = () => {
       toast({
         title: 'Success',
         description: (isDoctor || isAdmin)
-          ? `${form.name} has been successfully added as a patient with medical information.`
-          : `${form.name} has been successfully added as a patient. Medical information can be added later by a doctor.`,
+          ? `${fullName} has been successfully added as a patient with medical information.`
+          : `${fullName} has been successfully added as a patient. Medical information can be added later by a doctor.`,
       });
       
       navigate('/patients');
@@ -234,8 +259,47 @@ const AddPatient = () => {
             <h2 className="text-xl font-bold mb-4">Personal Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label>Full Name <span className="text-red-500">*</span></Label>
-                <Input required placeholder="Input your full name" value={form.name} onChange={(e) => handleChange('name', e.target.value)} />
+                <Label>First Name <span className="text-red-500">*</span></Label>
+                <Input 
+                  required 
+                  placeholder="Enter first name" 
+                  value={form.first_name} 
+                  onChange={(e) => handleChange('first_name', e.target.value)} 
+                />
+              </div>
+              <div>
+                <Label>Last Name <span className="text-red-500">*</span></Label>
+                <Input 
+                  required 
+                  placeholder="Enter last name" 
+                  value={form.last_name} 
+                  onChange={(e) => handleChange('last_name', e.target.value)} 
+                />
+              </div>
+              <div>
+                <Label>Middle Initial</Label>
+                <Input 
+                  placeholder="M." 
+                  value={form.middle_initial} 
+                  onChange={(e) => handleChange('middle_initial', e.target.value)}
+                  maxLength={5}
+                />
+              </div>
+              <div>
+                <Label>Suffix</Label>
+                <Select value={form.suffix || 'none'} onValueChange={(value) => handleChange('suffix', value === 'none' ? '' : value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select suffix (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="Jr.">Jr.</SelectItem>
+                    <SelectItem value="Sr.">Sr.</SelectItem>
+                    <SelectItem value="II">II</SelectItem>
+                    <SelectItem value="III">III</SelectItem>
+                    <SelectItem value="IV">IV</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label>Gender <span className="text-red-500">*</span></Label>

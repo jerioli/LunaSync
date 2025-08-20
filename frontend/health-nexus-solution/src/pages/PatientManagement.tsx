@@ -29,6 +29,22 @@ const PatientManagement = () => {
   const { toast } = useToast();
   const { patients, updatePatient, deletePatient, currentUser, fetchPatients, clinicCustomization } = useClinic();
   
+  // Helper function to construct full name from name parts
+  const getFullName = (patient: Patient) => {
+    if (patient.first_name || patient.last_name) {
+      const nameParts = [];
+      if (patient.first_name) nameParts.push(patient.first_name);
+      if (patient.middle_initial) {
+        const initial = patient.middle_initial.endsWith('.') ? patient.middle_initial : patient.middle_initial + '.';
+        nameParts.push(initial);
+      }
+      if (patient.last_name) nameParts.push(patient.last_name);
+      if (patient.suffix) nameParts.push(patient.suffix);
+      return nameParts.join(' ');
+    }
+    return patient.name || 'Unknown Patient';
+  };
+  
   // Helper function to get logo URL
   const getLogoUrl = (logo: string) => {
     if (!logo) return null;
@@ -1130,7 +1146,7 @@ const PatientManagement = () => {
     
     // Add confirmation dialog
     const confirmDelete = window.confirm(
-      `Are you sure you want to delete ${patientData.name}'s record? This action cannot be undone.`
+      `Are you sure you want to delete ${getFullName(patientData)}'s record? This action cannot be undone.`
     );
     
     if (!confirmDelete) return;
@@ -1786,7 +1802,7 @@ const PatientManagement = () => {
               Back
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{patientData.name}</h1>
+              <h1 className="text-3xl font-bold text-gray-900">{getFullName(patientData)}</h1>
               <div className="flex items-center space-x-4 mt-2">
                 <Badge variant="secondary">
                   {patientData.date_of_birth ? 
