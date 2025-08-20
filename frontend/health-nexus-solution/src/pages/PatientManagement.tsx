@@ -141,8 +141,13 @@ const PatientManagement = () => {
         // If still not found, try API directly
         const response = await axiosInstance.get(`patients/${id}/`);
         if (response.data) {
-
-          setPatientData(response.data);
+          // Map backend response fields to frontend camelCase
+          const mappedPatient = {
+            ...response.data,
+            registrationDate: response.data.registration_date
+          };
+          
+          setPatientData(mappedPatient);
           setInitialLoadComplete(true);
 
 
@@ -154,12 +159,12 @@ const PatientManagement = () => {
             updated = JSON.parse(stored);
             const existingIndex = updated.findIndex((p: Patient) => String(p.id) === String(id));
             if (existingIndex >= 0) {
-              updated[existingIndex] = response.data;
+              updated[existingIndex] = mappedPatient;
             } else {
-              updated.push(response.data);
+              updated.push(mappedPatient);
             }
           } else {
-            updated = [response.data];
+            updated = [mappedPatient];
           }
           localStorage.setItem('patientsList', JSON.stringify(updated));
         }
@@ -572,7 +577,7 @@ const PatientManagement = () => {
       <div class="patient-header">
         <div class="patient-name">${patientData.name}</div>
         <div class="patient-details">
-          <span><strong>ID:</strong> ${patientData.id}</span>
+         
           <span><strong>Age:</strong> ${patientData.date_of_birth ? 
             new Date().getFullYear() - new Date(patientData.date_of_birth).getFullYear() : 'N/A'} years</span>
           <span><strong>Gender:</strong> ${patientData.gender}</span>
@@ -1075,18 +1080,24 @@ const PatientManagement = () => {
       
       const response = await axiosInstance.put(`patients/${patientData.id}/`, dataToSend);
       
-      // Update the context state
-      updatePatient(patientData.id, response.data);
+      // Map backend response fields to frontend camelCase
+      const updatedPatient = {
+        ...response.data,
+        registrationDate: response.data.registration_date
+      };
       
-      // Update local state with the response data
-      setPatientData(response.data);
+      // Update the context state
+      updatePatient(patientData.id, updatedPatient);
+      
+      // Update local state with the mapped data
+      setPatientData(updatedPatient);
       
       // Update localStorage
       const stored = localStorage.getItem('patientsList');
       if (stored) {
         const storedPatients = JSON.parse(stored);
         const updatedPatients = storedPatients.map((p: Patient) => 
-          String(p.id) === String(patientData.id) ? response.data : p
+          String(p.id) === String(patientData.id) ? updatedPatient : p
         );
         localStorage.setItem('patientsList', JSON.stringify(updatedPatients));
       }

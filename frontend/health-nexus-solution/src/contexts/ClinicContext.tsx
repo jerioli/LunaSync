@@ -1,17 +1,17 @@
 import { defaultClinicCustomization } from '@/constants/clinicDefaults';
 import {
-  Appointment,
-  appointments,
-  Inventory,
-  LabResult,
-  labResults,
-  NewPatient,
-  Patient,
-  Payment,
-  Prescription,
-  prescriptions,
-  User,
-  users
+    Appointment,
+    appointments,
+    Inventory,
+    LabResult,
+    labResults,
+    NewPatient,
+    Patient,
+    Payment,
+    Prescription,
+    prescriptions,
+    User,
+    users
 } from '@/lib/mock-data';
 import { axiosInstance } from '@/services/api';
 import { ClinicContextType, ClinicCustomization } from '@/types/clinic';
@@ -70,9 +70,11 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
       const response = await axiosInstance.post('patients/', formattedPatient);
       
-      // Ensure the response data has the correct structure
+      // Ensure the response data has the correct structure and map field names
       const newPatient = {
         ...response.data,
+        // Map backend snake_case to frontend camelCase
+        registrationDate: response.data.registration_date,
         medical_info: response.data.medical_info || {
           bloodType: '',
           allergies: [],
@@ -166,7 +168,14 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const fetchPatients = useCallback(async () => {
     try {
       const response = await axiosInstance.get('patients/');
-      setPatientsList(response.data);
+      
+      // Map backend snake_case fields to frontend camelCase
+      const mappedPatients = response.data.map((patient: any) => ({
+        ...patient,
+        registrationDate: patient.registration_date
+      }));
+      
+      setPatientsList(mappedPatients);
     } catch (error) {
       console.error('Error fetching patients:', error);
     }

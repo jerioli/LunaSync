@@ -127,7 +127,7 @@ export interface Patient {
   marital_status?: string;
   medical_info?: any;
   physical_examination?: any;
-  registration_date: string;
+  registrationDate: string; // Frontend uses camelCase
 }
 
 export interface PredefinedTimeSlot {
