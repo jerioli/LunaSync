@@ -1,4 +1,4 @@
-import { User, Patient, NewPatient, Appointment, Prescription, LabResult, Inventory, Payment } from '@/lib/mock-data';
+import { Appointment, Inventory, LabResult, NewPatient, Patient, Payment, Prescription, User } from '@/lib/mock-data';
 
 // Define clinic branding and customization types
 export type ClinicCustomization = {
@@ -17,6 +17,15 @@ export type ClinicCustomization = {
     question: string;
     answer: string;
   }[];
+  operatingHours: {
+    monday: { open: string; close: string; isOpen: boolean };
+    tuesday: { open: string; close: string; isOpen: boolean };
+    wednesday: { open: string; close: string; isOpen: boolean };
+    thursday: { open: string; close: string; isOpen: boolean };
+    friday: { open: string; close: string; isOpen: boolean };
+    saturday: { open: string; close: string; isOpen: boolean };
+    sunday: { open: string; close: string; isOpen: boolean };
+  };
 };
 
 export interface ClinicContextType {

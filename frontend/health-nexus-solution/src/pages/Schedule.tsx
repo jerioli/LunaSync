@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Toggle } from '@/components/ui/toggle';
 import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
+import { convertDisplayTimeTo24Hour, generateTimeSlots } from '@/utils/timeSlots';
 import axios from 'axios';
 import { Clock } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -20,7 +21,7 @@ interface TimeSlot {
 
 const Schedule = () => {
   const { toast } = useToast();
-  const { currentUser } = useClinic();
+  const { currentUser, clinicCustomization } = useClinic();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -86,18 +87,45 @@ const Schedule = () => {
           return;
         }
       } catch (error) {
-        console.log('No existing time slots found, fetching predefined slots');
+        console.log('No existing time slots found, generating dynamic slots from clinic hours');
       }
 
-      // If no existing slots found, get predefined time slots
-      const predefinedSlotsResponse = await axios.get(`${API_BASE_URL}/availability/predefined_slots/active_slots/`);
-      const slots = predefinedSlotsResponse.data.map((slot: any) => ({
-        id: slot.id,
-        start_time: slot.start_time,
-        end_time: slot.end_time,
-        is_booked: false,
-        selected: false
-      }));
+      // Generate time slots dynamically based on clinic operating hours
+      const generatedTimeSlots = generateTimeSlots(selectedDate, clinicCustomization);
+      
+      if (generatedTimeSlots.length === 0) {
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayName = dayNames[selectedDate.getDay()];
+        
+        toast({
+          title: "Clinic Closed",
+          description: `The clinic is closed on ${dayName}s. Please select a different date.`,
+          variant: "destructive"
+        });
+        setTimeSlots([]);
+        return;
+      }
+      
+      // Convert generated time slots to the format expected by the component
+      const slots = generatedTimeSlots.map((timeSlot, index) => {
+        // Convert display time back to 24-hour format for start_time
+        const startTime24 = convertDisplayTimeTo24Hour(timeSlot);
+        
+        // Calculate end time (20 minutes later)
+        const [hours, minutes] = startTime24.split(':').map(Number);
+        const endTimeMinutes = hours * 60 + minutes + 20;
+        const endHours = Math.floor(endTimeMinutes / 60);
+        const endMins = endTimeMinutes % 60;
+        const endTime24 = `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
+        
+        return {
+          id: index + 1000, // Use a high number to avoid conflicts with existing IDs
+          start_time: startTime24,
+          end_time: endTime24,
+          is_booked: false,
+          selected: false
+        };
+      });
       
       setTimeSlots(slots);
     } catch (error: any) {

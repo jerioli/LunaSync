@@ -1,5 +1,5 @@
 
-import { User, Patient, NewPatient, Appointment, Prescription, LabResult, Inventory, Payment } from '@/lib/mock-data';
+import { Appointment, Inventory, LabResult, NewPatient, Patient, Payment, Prescription, User } from '@/lib/mock-data';
 import { ClinicCustomization } from '@/types/clinic';
 
 export const defaultClinicCustomization: ClinicCustomization = {
@@ -12,6 +12,15 @@ export const defaultClinicCustomization: ClinicCustomization = {
   colors: {
     primary: '#0070f3',
     secondary: '#10b981',
+  },
+  operatingHours: {
+    monday: { open: "09:00", close: "17:00", isOpen: true },
+    tuesday: { open: "09:00", close: "17:00", isOpen: true },
+    wednesday: { open: "09:00", close: "17:00", isOpen: true },
+    thursday: { open: "09:00", close: "17:00", isOpen: true },
+    friday: { open: "09:00", close: "17:00", isOpen: true },
+    saturday: { open: "10:00", close: "14:00", isOpen: true },
+    sunday: { open: "10:00", close: "14:00", isOpen: false },
   },
   faqs: [
     {

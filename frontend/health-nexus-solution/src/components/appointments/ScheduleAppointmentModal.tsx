@@ -1,16 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { format } from 'date-fns';
-import { Calendar } from '@/components/ui/calendar';
 import { Textarea } from '@/components/ui/textarea';
+import { useClinic } from '@/contexts/ClinicContext';
+import { convertDisplayTimeTo24Hour, generateTimeSlots } from '@/utils/timeSlots';
+import { zodResolver } from '@hookform/resolvers/zod';
+import axios from 'axios';
+import { format } from 'date-fns';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import * as z from 'zod';
 
 // Configure axios defaults
 axios.defaults.baseURL = 'http://127.0.0.1:8000';
@@ -37,24 +39,6 @@ axios.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-// Define time slots
-const TIME_SLOTS = [
-  { label: '9:00 AM', value: '09:00:00' },
-  { label: '9:30 AM', value: '09:30:00' },
-  { label: '10:00 AM', value: '10:00:00' },
-  { label: '10:30 AM', value: '10:30:00' },
-  { label: '11:00 AM', value: '11:00:00' },
-  { label: '11:30 AM', value: '11:30:00' },
-  { label: '1:00 PM', value: '13:00:00' },
-  { label: '1:30 PM', value: '13:30:00' },
-  { label: '2:00 PM', value: '14:00:00' },
-  { label: '2:30 PM', value: '14:30:00' },
-  { label: '3:00 PM', value: '15:00:00' },
-  { label: '3:30 PM', value: '15:30:00' },
-  { label: '4:00 PM', value: '16:00:00' },
-  { label: '4:30 PM', value: '16:30:00' }
-];
 
 // Appointment types
 const APPOINTMENT_TYPES = [
@@ -107,6 +91,7 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
   const [doctors, setDoctors] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<{ label: string; value: string }[]>([]);
+  const { clinicCustomization } = useClinic();
 
   // Fetch patients and doctors when the modal is opened
   useEffect(() => {
@@ -135,42 +120,31 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
   // Fetch available time slots when date is selected
   const fetchAvailableTimeSlots = async (date: Date, doctorId: string) => {
     try {
-      const formattedDate = format(date, 'yyyy-MM-dd');
-      const response = await axios.get('/availability/', {
-        params: {
-          doctor_id: doctorId,
-          date: formattedDate
-        }
-      });
-
-      console.log('Availability response:', response.data); // Debug log
-
-      if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-        const availability = response.data[0];
-        if (availability && availability.time_slots) {
-          const slots = availability.time_slots
-            .filter(slot => !slot.is_booked)
-            .map(slot => {
-              // Convert 24-hour format to 12-hour format
-              const [hours, minutes] = slot.start_time.split(':');
-              const hour = parseInt(hours);
-              const ampm = hour >= 12 ? 'PM' : 'AM';
-              const displayHour = hour % 12 || 12;
-              return {
-                label: `${displayHour}:${minutes} ${ampm}`,
-                value: slot.start_time
-              };
-            });
-          setAvailableTimeSlots(slots);
-        } else {
-          setAvailableTimeSlots([]);
-        }
-      } else {
+      // Generate time slots dynamically based on clinic operating hours
+      const generatedTimeSlots = generateTimeSlots(date, clinicCustomization);
+      
+      if (generatedTimeSlots.length === 0) {
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayName = dayNames[date.getDay()];
+        
+        toast.error(`The clinic is closed on ${dayName}s. Please select a different date.`);
         setAvailableTimeSlots([]);
+        return;
       }
+      
+      // Convert generated time slots to the format expected by the component
+      const slots = generatedTimeSlots.map(timeSlot => ({
+        label: timeSlot,
+        value: convertDisplayTimeTo24Hour(timeSlot)
+      }));
+      
+      // TODO: In a future update, filter out already booked time slots by checking the database
+      // For now, all generated slots are available
+      setAvailableTimeSlots(slots);
+      
     } catch (error) {
-      console.error('Error fetching time slots:', error);
-      toast.error('Failed to fetch available time slots. Please try again.');
+      console.error('Error generating time slots:', error);
+      toast.error('Failed to generate available time slots. Please try again.');
     }
   };
 
