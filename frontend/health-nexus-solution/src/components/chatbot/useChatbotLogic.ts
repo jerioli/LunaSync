@@ -2,7 +2,7 @@ import { useClinic } from '@/contexts/ClinicContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { Appointment } from '@/lib/mock-data';
-import { api, Doctor } from '@/services/api';
+import { api, Doctor, Patient } from '@/services/api';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
@@ -71,6 +71,9 @@ export const useChatbotLogic = () => {
   
   // Track which messages have been interacted with to disable their options
   const [disabledMessages, setDisabledMessages] = useState<Set<string>>(new Set());
+
+  // Track existing patient data for pre-population
+  const [existingPatient, setExistingPatient] = useState<Patient | null>(null);
 
   const faqs = clinicCustomization.faqs || [];
 
@@ -398,6 +401,88 @@ export const useChatbotLogic = () => {
           }, 500);
         }
         return;
+      } else if (chatStep === 6.1) {
+        // Handle email input for returning patients
+        if (!validateEmail(input)) {
+          addMessage('user', input);
+          setInput('');
+          setTimeout(() => {
+            addMessage('bot', 'Please enter a valid email address:');
+          }, 500);
+          return;
+        }
+        
+        addMessage('user', input);
+        setAppointmentForm(prev => ({ ...prev, email: input }));
+        setInput('');
+        
+        // Check if patient already exists (for returning patients only)
+        setTimeout(async () => {
+          try {
+            addMessage('bot', 'Looking up your information...');
+            
+            const response = await api.patients.checkByEmail(input);
+            
+            if (response.exists && response.patient) {
+              setExistingPatient(response.patient);
+              
+              setTimeout(() => {
+                addMessage('bot', `Welcome back, ${response.patient.name}! I found your information in our system. Would you like me to use your existing details or update them?`, [
+                  { label: 'Use Existing Info', value: 'use-existing-info' },
+                  { label: 'Update My Info', value: 'update-info' }
+                ]);
+                setChatStep(6.2); // Existing patient choice
+                setIsInputDisabled(true);
+              }, 1000);
+            } else {
+              setExistingPatient(null);
+              setTimeout(() => {
+                addMessage('bot', `I couldn't find any records with the email ${input}. It looks like you might be a new patient. Let me guide you through our registration process.`);
+                
+                setTimeout(() => {
+                  addMessage('bot', 'Before we proceed, I need to inform you that we will be collecting some personal information to process your appointment request.');
+                  
+                  setTimeout(() => {
+                    addMessage('bot', 'This includes your full name, phone number, and appointment details. Your information will be kept secure and used only for healthcare purposes.');
+                    
+                    setTimeout(() => {
+                      addMessage('bot', 'Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
+                        { label: '✓ I agree to Terms & Conditions and Privacy Policy', value: 'agree-terms' },
+                        { label: '✗ I do not agree', value: 'decline-terms' }
+                      ]);
+                      setChatStep(6.5);
+                      setIsInputDisabled(true);
+                    }, 1000);
+                  }, 1000);
+                }, 1000);
+              }, 1000);
+            }
+          } catch (error) {
+            console.error('Error checking existing patient:', error);
+            // Treat as new patient if API fails
+            setExistingPatient(null);
+            setTimeout(() => {
+              addMessage('bot', 'I apologize, but I\'m having trouble accessing our records right now. Let me help you as a new patient.');
+              
+              setTimeout(() => {
+                addMessage('bot', 'Before we proceed, I need to inform you that we will be collecting some personal information to process your appointment request.');
+                
+                setTimeout(() => {
+                  addMessage('bot', 'This includes your full name, phone number, and appointment details. Your information will be kept secure and used only for healthcare purposes.');
+                  
+                  setTimeout(() => {
+                    addMessage('bot', 'Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
+                      { label: '✓ I agree to Terms & Conditions and Privacy Policy', value: 'agree-terms' },
+                      { label: '✗ I do not agree', value: 'decline-terms' }
+                    ]);
+                    setChatStep(6.5);
+                    setIsInputDisabled(true);
+                  }, 1000);
+                }, 1000);
+              }, 1000);
+            }, 1000);
+          }
+        }, 500);
       } else if (chatStep === 7) {
         // Check for profanity in name input
         if (handleProfanityDetection(input)) {
@@ -429,9 +514,39 @@ export const useChatbotLogic = () => {
         setAppointmentForm(prev => ({ ...prev, email: input }));
         setInput('');
         
-        setTimeout(() => {
-          addMessage('bot', t('chatbot.enterPhone'));
-          setChatStep(9);
+        // Check if patient already exists
+        setTimeout(async () => {
+          try {
+            addMessage('bot', 'Checking if you are a returning patient...');
+            
+            const response = await api.patients.checkByEmail(input);
+            
+            if (response.exists && response.patient) {
+              setExistingPatient(response.patient);
+              
+              setTimeout(() => {
+                addMessage('bot', `Welcome back, ${response.patient.name}! I found your information in our system. Would you like me to use your existing details or update them?`, [
+                  { label: 'Use Existing Info', value: 'use-existing-info' },
+                  { label: 'Update My Info', value: 'update-info' }
+                ]);
+                setChatStep(8.5); // New intermediate step
+              }, 1000);
+            } else {
+              setExistingPatient(null);
+              setTimeout(() => {
+                addMessage('bot', t('chatbot.enterPhone'));
+                setChatStep(9);
+              }, 1000);
+            }
+          } catch (error) {
+            console.error('Error checking existing patient:', error);
+            // Continue with normal flow if API fails
+            setExistingPatient(null);
+            setTimeout(() => {
+              addMessage('bot', t('chatbot.enterPhone'));
+              setChatStep(9);
+            }, 1000);
+          }
         }, 500);
       } else if (chatStep === 9) {
         // Validate phone
@@ -1020,6 +1135,33 @@ export const useChatbotLogic = () => {
       setTimeout(() => {
         addMessage('bot', 'Please enter the name of the medication you need:');
         setChatStep(2);
+      }, 500);
+    } else if (value === 'returning-patient') {
+      // Handle returning patient selection
+      addMessage('user', 'Returning Patient');
+      setTimeout(() => {
+        addMessage('bot', 'Great! Please provide your email address so I can look up your information:');
+        setChatStep(6.1); // Email input for returning patients
+        setIsInputDisabled(false);
+      }, 500);
+    } else if (value === 'first-visit') {
+      // Handle first visit selection
+      addMessage('user', 'First Visit');
+      setTimeout(() => {
+        addMessage('bot', 'Welcome! Before we proceed, I need to inform you that we will be collecting some personal information to process your appointment request.');
+        
+        setTimeout(() => {
+          addMessage('bot', 'This includes your full name, email, phone number, and appointment details. Your information will be kept secure and used only for healthcare purposes.');
+          
+          setTimeout(() => {
+            addMessage('bot', 'Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
+              { label: '✓ I agree to Terms & Conditions and Privacy Policy', value: 'agree-terms' },
+              { label: '✗ I do not agree', value: 'decline-terms' }
+            ]);
+            setChatStep(6.5); // Direct to terms for new patients
+            setIsInputDisabled(true);
+          }, 1000);
+        }, 1000);
       }, 500);
     } else if (value === 'retry-appointment') {
       // Handle retry appointment after error
@@ -1694,21 +1836,99 @@ export const useChatbotLogic = () => {
       setAppointmentForm(prev => ({ ...prev, type: value }));
       
       setTimeout(() => {
-        addMessage('bot', 'Perfect! Before we proceed, I need to inform you that we will be collecting some personal information to process your appointment request.');
+        addMessage('bot', 'Perfect! Are you a returning patient or is this your first visit with us?', [
+          { label: 'Returning Patient', value: 'returning-patient' },
+          { label: 'First Visit', value: 'first-visit' }
+        ]);
+        setChatStep(6.0); // New step for patient type selection
+        setIsInputDisabled(true);
+      }, 500);
+    } else if (chatStep === 6.2) {
+      // Handle existing patient choice after email check
+      if (value === 'use-existing-info') {
+        addMessage('user', 'Use my existing information');
         
-        setTimeout(() => {
-          addMessage('bot', 'This includes your full name, phone number, and appointment details. Your information will be kept secure and used only for healthcare purposes.');
+        if (existingPatient) {
+          // Pre-populate form with existing patient data
+          setAppointmentForm(prev => ({
+            ...prev,
+            name: existingPatient.name,
+            phone: existingPatient.phone,
+            dateOfBirth: existingPatient.date_of_birth,
+            gender: existingPatient.gender || '',
+            address: existingPatient.address || '',
+            maritalStatus: existingPatient.marital_status || ''
+          }));
           
           setTimeout(() => {
-            addMessage('bot', 'Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
-              { label: '✓ I agree to Terms & Conditions and Privacy Policy', value: 'agree-terms' },
-              { label: '✗ I do not agree', value: 'decline-terms' }
-            ]);
-            setChatStep(6.5);
-            setIsInputDisabled(true); // Disable input when showing terms options
+            addMessage('bot', `Great! I've pre-filled your information. Let me summarize your appointment details:`);
+            
+            setTimeout(() => {
+              const selectedDoctor = doctors.find(d => d.id.toString() === appointmentForm.doctorId);
+              const doctorName = selectedDoctor 
+                ? `Dr. ${selectedDoctor.first_name} ${selectedDoctor.last_name}`
+                : 'Selected Doctor';
+              
+              const appointmentDetails = `
+ Date: ${appointmentForm.date?.toLocaleDateString()}
+ Time: ${appointmentForm.time}
+ Doctor: ${doctorName}
+ Type: ${appointmentForm.type}
+ Patient: ${existingPatient.name}
+ Email: ${existingPatient.email}
+ Phone: ${existingPatient.phone}
+ Date of Birth: ${existingPatient.date_of_birth}
+ Gender: ${existingPatient.gender || 'Not specified'}
+ Address: ${existingPatient.address || 'Not specified'}
+ Marital Status: ${existingPatient.marital_status || 'Not specified'}
+              `.trim();
+
+              addMessage('bot', appointmentDetails);
+
+              setTimeout(() => {
+                addMessage('bot', 'Would you like to confirm this appointment?', [
+                  { label: ' Yes, confirm appointment', value: 'confirm-appointment' },
+                  { label: ' No, make changes', value: 'cancel-appointment' }
+                ]);
+                setChatStep(20); // Go directly to confirmation step
+                setIsInputDisabled(true); // Disable input when showing confirmation options
+              }, 500);
+            }, 500);
+          }, 500);
+        }
+      } else if (value === 'update-info') {
+        addMessage('user', 'I want to update my information');
+        
+        if (existingPatient) {
+          // Pre-populate form but allow updates
+          setAppointmentForm(prev => ({
+            ...prev,
+            name: existingPatient.name,
+            phone: existingPatient.phone,
+            dateOfBirth: existingPatient.date_of_birth,
+            gender: existingPatient.gender || '',
+            address: existingPatient.address || '',
+            maritalStatus: existingPatient.marital_status || ''
+          }));
+        }
+        
+        setTimeout(() => {
+          addMessage('bot', 'Perfect! Before we proceed, I need to inform you that we will be collecting some personal information to process your appointment request.');
+          
+          setTimeout(() => {
+            addMessage('bot', 'This includes your full name, phone number, and appointment details. Your information will be kept secure and used only for healthcare purposes.');
+            
+            setTimeout(() => {
+              addMessage('bot', 'Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
+                { label: '✓ I agree to Terms & Conditions and Privacy Policy', value: 'agree-terms' },
+                { label: '✗ I do not agree', value: 'decline-terms' }
+              ]);
+              setChatStep(6.5);
+              setIsInputDisabled(true); // Disable input when showing terms options
+            }, 1000);
           }, 1000);
-        }, 1000);
-      }, 500);
+        }, 500);
+      }
     } else if (chatStep === 6.5) {
       // Handle terms and conditions response
       if (value === 'agree-terms') {
@@ -2423,6 +2643,7 @@ export const useChatbotLogic = () => {
   const resetForms = () => {
     setChatMode(null);
     setDisabledMessages(new Set()); // Clear disabled messages when resetting
+    setExistingPatient(null); // Clear existing patient data when resetting
     setAppointmentForm({
       date: undefined,
       time: '',

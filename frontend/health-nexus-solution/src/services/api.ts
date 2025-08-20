@@ -112,6 +112,20 @@ export interface StaffMember {
   image?: string;
 }
 
+export interface Patient {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  date_of_birth: string;
+  gender?: string;
+  address?: string;
+  marital_status?: string;
+  medical_info?: any;
+  physical_examination?: any;
+  registration_date: string;
+}
+
 export interface PredefinedTimeSlot {
   id: number;
   start_time: string;
@@ -256,6 +270,10 @@ export const api = {
   patients: {
     getAll: async () => {
       const response = await axiosInstance.get('/patients/patients/');
+      return response.data;
+    },
+    checkByEmail: async (email: string) => {
+      const response = await axiosInstance.get(`/patients/check-email/?email=${encodeURIComponent(email)}`);
       return response.data;
     }
   },

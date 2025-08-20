@@ -203,3 +203,54 @@ class PatientDetailView(APIView):
         
         patient.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CheckPatientByEmailView(APIView):
+    """
+    Check if a patient exists by email address.
+    Used by chatbot to recognize returning patients.
+    """
+    
+    def get(self, request):
+        email = request.query_params.get('email')
+        
+        if not email:
+            return Response({
+                'error': 'Email parameter is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            patient = Patient.objects.get(email=email)
+            serializer = PatientSerializer(patient)
+            
+            # Log the lookup action
+            AuditLogger.log_action(
+                user=request.user if request.user.is_authenticated else None,
+                action='READ',
+                resource_type='PATIENT',
+                description=f'Checked existing patient by email: {email}',
+                details={'patient_id': patient.id, 'patient_name': patient.name},
+                request=request
+            )
+            
+            return Response({
+                'exists': True,
+                'patient': serializer.data
+            }, status=status.HTTP_200_OK)
+            
+        except Patient.DoesNotExist:
+            # Log the lookup attempt
+            AuditLogger.log_action(
+                user=request.user if request.user.is_authenticated else None,
+                action='READ',
+                resource_type='PATIENT',
+                description=f'Checked for non-existing patient by email: {email}',
+                details={'email': email},
+                request=request
+            )
+            
+            return Response({
+                'exists': False,
+                'patient': None
+            }, status=status.HTTP_200_OK)
