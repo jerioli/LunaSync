@@ -6,7 +6,7 @@ import { api, Doctor } from '@/services/api';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { AppointmentForm, MedicalRecordRequestForm, MessageType, PrescriptionRequestForm } from './types';
+import { AppointmentForm, FormField, MedicalRecordRequestForm, MessageType, PrescriptionRequestForm } from './types';
 import { appointmentTypes, generateTimeSlots } from './utils';
 
 export const useChatbotLogic = () => {
@@ -19,6 +19,7 @@ export const useChatbotLogic = () => {
   const [chatStep, setChatStep] = useState(0);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [isLoadingDoctors, setIsLoadingDoctors] = useState(false);
+  const [isInputDisabled, setIsInputDisabled] = useState(false);
   
   const API_BASE_URL = 'http://localhost:8000/api';
 
@@ -35,7 +36,8 @@ export const useChatbotLogic = () => {
     dateOfBirth: '',
     gender: '',
     address: '',
-    maritalStatus: ''
+    maritalStatus: '',
+    termsAgreed: false
   });
 
   // Form state for medical record requests
@@ -66,6 +68,9 @@ export const useChatbotLogic = () => {
 
   // Add FAQ chat mode
   const [chatMode, setChatMode] = useState<'appointment' | 'medicalRecord' | 'prescription' | 'faq' | null>(null);
+  
+  // Track which messages have been interacted with to disable their options
+  const [disabledMessages, setDisabledMessages] = useState<Set<string>>(new Set());
 
   const faqs = clinicCustomization.faqs || [];
 
@@ -86,14 +91,32 @@ export const useChatbotLogic = () => {
   useEffect(() => {
     if (showChat) {
       setTimeout(() => {
-        addMessage('bot', "Hello! I'm Dr.MDSync, your healthcare assistant. Say hi to start conversation?");
+        addMessage('bot', "Hello! I'm Dr.MDSync, your healthcare assistant. Say hi to start conversation?", [
+          { label: "Hi", value: "hi" }
+        ]);
       }, 500);
     }
   }, [showChat, t]);
 
-  const addMessage = (sender: 'user' | 'bot', text: string, options?: { label: string; value: string }[], dateSelector?: boolean, timeSelector?: boolean, times?: string[], fileUpload?: boolean, fileUploadLabel?: string, fileUploadAccept?: string) => {
+  const addMessage = (
+    sender: 'user' | 'bot', 
+    text: string, 
+    options?: { label: string; value: string }[], 
+    dateSelector?: boolean, 
+    timeSelector?: boolean, 
+    times?: string[], 
+    fileUpload?: boolean, 
+    fileUploadLabel?: string, 
+    fileUploadAccept?: string,
+    messageType?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form',
+    formFields?: FormField[]
+  ) => {
+    const messageId = uuidv4();
+    const messageKey = options ? messageId : undefined;
+
     setMessages(prev => [...prev, {
-      id: uuidv4(),
+      id: messageId,
+      messageKey,
       sender,
       text,
       options,
@@ -102,7 +125,9 @@ export const useChatbotLogic = () => {
       times,
       fileUpload,
       fileUploadLabel,
-      fileUploadAccept
+      fileUploadAccept,
+      type: messageType,
+      formFields
     }]);
   };
 
@@ -243,7 +268,7 @@ export const useChatbotLogic = () => {
   };
 
   const handleSendMessage = () => {
-    if (!input.trim() && chatStep === 0) return;
+    if (!input.trim()) return; // Prevent sending empty messages
     
     // Check for profanity before processing the message
     if (handleProfanityDetection(input)) {
@@ -260,9 +285,52 @@ export const useChatbotLogic = () => {
           { label: t('appointment.schedule'), value: 'appointment' },
           { label: t('chatbot.requestMedicalRecord'), value: 'medicalRecord' },
           { label: t('chatbot.requestPrescription'), value: 'prescription' },
+          { label: 'FAQs', value: 'faq' },
         ]);
         setChatStep(1);
       }, 500);
+      return;
+    }
+    
+    // Handle step 1 - main menu selection via typing
+    if (chatStep === 1 && !chatMode) {
+      const inputLower = input.toLowerCase().trim();
+      setInput('');
+      
+      // Check what the user typed and map to appropriate action
+      if (inputLower.includes('appointment') || inputLower.includes('schedule') || inputLower.includes('book') || inputLower === '1') {
+        // Don't add user message, directly proceed to appointment flow
+        setTimeout(() => {
+          handleOptionSelect('appointment');
+        }, 300);
+      } else if (inputLower.includes('medical') || inputLower.includes('record') || inputLower.includes('certificate') || inputLower.includes('document') || inputLower === '2') {
+        // Don't add user message, directly proceed to medical record flow
+        setTimeout(() => {
+          handleOptionSelect('medicalRecord');
+        }, 300);
+      } else if (inputLower.includes('prescription') || inputLower.includes('e-prescription') || inputLower.includes('medicine') || inputLower.includes('medication') || inputLower === '3') {
+        // Don't add user message, directly proceed to prescription flow
+        setTimeout(() => {
+          handleOptionSelect('prescription');
+        }, 300);
+      } else if (inputLower.includes('faq') || inputLower.includes('question') || inputLower.includes('help') || inputLower === '4') {
+        // Don't add user message, directly proceed to FAQ flow
+        setTimeout(() => {
+          handleOptionSelect('faq');
+        }, 300);
+      } else {
+        // Only show user message if input doesn't match any option
+        addMessage('user', input);
+        // If input doesn't match any option, show the menu again with guidance
+        setTimeout(() => {
+          addMessage('bot', 'I didn\'t understand that. Please choose one of the following options by typing the number or service name:', [
+            { label: '1. ' + t('appointment.schedule'), value: 'appointment' },
+            { label: '2. ' + t('chatbot.requestMedicalRecord'), value: 'medicalRecord' },
+            { label: '3. ' + t('chatbot.requestPrescription'), value: 'prescription' },
+            { label: '4. FAQs', value: 'faq' },
+          ]);
+        }, 500);
+      }
       return;
     }
     
@@ -297,7 +365,33 @@ export const useChatbotLogic = () => {
     
     // Handle different chat modes
     if (chatMode === 'appointment') {
-      if (chatStep === 7) {
+      if (chatStep === 2) {
+        // Handle appointment scheduling preference via typing
+        const inputLower = input.toLowerCase().trim();
+        setInput('');
+        
+        if (inputLower.includes('doctor') || inputLower.includes('physician') || inputLower === '1') {
+          // Don't show user message, directly proceed to doctor-first flow
+          setTimeout(() => {
+            handleOptionSelect('doctor-first');
+          }, 300);
+        } else if (inputLower.includes('date') || inputLower.includes('time') || inputLower === '2') {
+          // Don't show user message, directly proceed to date-first flow
+          setTimeout(() => {
+            handleOptionSelect('date-first');
+          }, 300);
+        } else {
+          // Show user message for unrecognized input with helpful guidance
+          addMessage('user', input);
+          setTimeout(() => {
+            addMessage('bot', 'I didn\'t understand that. Please choose how you\'d like to schedule:', [
+              { label: '1. Select Doctor First', value: 'doctor-first' },
+              { label: '2. Select Date First', value: 'date-first' }
+            ]);
+          }, 500);
+        }
+        return;
+      } else if (chatStep === 7) {
         // Check for profanity in name input
         if (handleProfanityDetection(input)) {
           setInput('');
@@ -477,14 +571,40 @@ export const useChatbotLogic = () => {
     }
 
     if (chatStep === 2) {
-      addMessage('user', input);
-      setMedicalRecordForm(prev => ({ ...prev, requestType: input }));
+      const inputLower = input.toLowerCase().trim();
       setInput('');
       
-      setTimeout(() => {
-        addMessage('bot', 'Please enter your full name as it appears on your medical records:');
-        setChatStep(3);
-      }, 500);
+      // Check for common medical record type keywords
+      if (inputLower.includes('lab') || inputLower === '1') {
+        // Don't show user message, directly proceed to lab selection
+        setTimeout(() => {
+          handleOptionSelect('lab');
+        }, 300);
+      } else if (inputLower.includes('imaging') || inputLower.includes('x-ray') || inputLower.includes('scan') || inputLower === '2') {
+        // Don't show user message, directly proceed to imaging selection
+        setTimeout(() => {
+          handleOptionSelect('imaging');
+        }, 300);
+      } else if (inputLower.includes('history') || inputLower.includes('visit') || inputLower === '3') {
+        // Don't show user message, directly proceed to history selection
+        setTimeout(() => {
+          handleOptionSelect('history');
+        }, 300);
+      } else if (inputLower.includes('all') || inputLower.includes('everything') || inputLower === '4') {
+        // Don't show user message, directly proceed to all records selection
+        setTimeout(() => {
+          handleOptionSelect('all');
+        }, 300);
+      } else {
+        // Only show user message if input doesn't match any option
+        addMessage('user', input);
+        setMedicalRecordForm(prev => ({ ...prev, requestType: input }));
+        
+        setTimeout(() => {
+          addMessage('bot', 'Please enter your full name as it appears on your medical records:');
+          setChatStep(3);
+        }, 500);
+      }
     } else if (chatStep === 3) {
       addMessage('user', input);
       setMedicalRecordForm(prev => ({ ...prev, patientName: input }));
@@ -766,7 +886,39 @@ export const useChatbotLogic = () => {
     }
   };
 
-  const handleOptionSelect = async (value: string) => {
+  const handleOptionSelect = async (value: string, messageKey?: string) => {
+    // Disable the message options when an option is selected
+    if (messageKey) {
+      setDisabledMessages(prev => new Set([...prev, messageKey]));
+      
+      // Update the specific message to disable its options
+      setMessages(prevMessages => 
+        prevMessages.map(msg => 
+          msg.messageKey === messageKey 
+            ? {
+                ...msg,
+                options: msg.options?.map(option => ({ ...option, disabled: true }))
+              }
+            : msg
+        )
+      );
+    }
+
+    // Handle initial "Hi" button
+    if (value === 'hi') {
+      addMessage('user', 'Hi');
+      setChatStep(1);
+      setTimeout(() => {
+        addMessage('bot', t('chatbot.howCanIHelp'), [
+          { label: t('appointment.schedule'), value: 'appointment' },
+          { label: t('chatbot.requestMedicalRecord'), value: 'medicalRecord' },
+          { label: t('chatbot.requestPrescription'), value: 'prescription' },
+          { label: 'FAQs', value: 'faq' },
+        ]);
+      }, 500);
+      return;
+    }
+    
     if (value === 'faq') {
       setChatMode('faq');
       addMessage('user', 'FAQs');
@@ -819,8 +971,8 @@ export const useChatbotLogic = () => {
       addMessage('user', 'Schedule Appointment');
       setTimeout(() => {
         addMessage('bot', 'How would you like to schedule your appointment?', [
-          { label: 'Select Doctor First', value: 'doctor-first' },
-          { label: 'Select Date First', value: 'date-first' }
+          { label: '1. Select Doctor First', value: 'doctor-first' },
+          { label: '2. Select Date First', value: 'date-first' }
         ]);
         setChatStep(2);
       }, 500);
@@ -829,10 +981,10 @@ export const useChatbotLogic = () => {
       addMessage('user', 'Request Medical Records');
       setTimeout(() => {
         addMessage('bot', 'What type of medical records do you need?', [
-          { label: 'Lab Results', value: 'lab' },
-          { label: 'Imaging Reports', value: 'imaging' },
-          { label: 'Visit History', value: 'history' },
-          { label: 'All Records', value: 'all' }
+          { label: '1. Lab Results', value: 'lab' },
+          { label: '2. Imaging Reports', value: 'imaging' },
+          { label: '3. Visit History', value: 'history' },
+          { label: '4. All Records', value: 'all' }
         ]);
         setChatStep(2);
       }, 500);
@@ -898,9 +1050,9 @@ export const useChatbotLogic = () => {
             patient_email: appointmentForm.email,
             patient_phone: appointmentForm.phone,
             date_of_birth: appointmentForm.dateOfBirth ? new Date(appointmentForm.dateOfBirth).toISOString().split('T')[0] : null,
-            gender: appointmentForm.gender ? appointmentForm.gender.toLowerCase() : null,
+            gender: appointmentForm.gender === 'Prefer not to say' ? 'prefer_not_to_say' : (appointmentForm.gender ? appointmentForm.gender.toLowerCase() : null),
             address: appointmentForm.address || null,
-            marital_status: appointmentForm.maritalStatus ? appointmentForm.maritalStatus.toLowerCase() : null,
+            marital_status: appointmentForm.maritalStatus === 'Prefer not to say' ? 'prefer_not_to_say' : (appointmentForm.maritalStatus ? appointmentForm.maritalStatus.toLowerCase() : null),
             
             // Appointment details
             appointment_type: appointmentForm.type === 'Regular Checkup' ? 'Routine Check-up' : appointmentForm.type,
@@ -991,9 +1143,11 @@ export const useChatbotLogic = () => {
                         }))
                       );
                       setChatStep(4);
+                      setIsInputDisabled(true); // Disable input when showing dates
                     } else {
                       addMessage('bot', 'Please select an available time slot:', undefined, undefined, true, times);
                       setChatStep(5); // Go back to time selection
+                      setIsInputDisabled(true); // Disable input when showing time slots
                     }
                   }, 500);
                 });
@@ -1012,6 +1166,43 @@ export const useChatbotLogic = () => {
             addMessage('bot', 'Appointment booking cancelled. Is there anything else I can help you with?', [
               { label: 'Schedule Appointment', value: 'appointment' },
               { label: 'Request Medical Records', value: 'medicalRecord' },
+              { label: 'No, Thank You', value: 'end' }
+            ]);
+            setChatStep(1);
+            resetForms();
+          }, 500);
+        }
+      } else if (chatStep === 20) {
+        // Step 20: Appointment confirmation
+        if (value === 'confirm-appointment') {
+          addMessage('user', 'Confirm appointment');
+          addMessage('bot', 'Please wait while we process your appointment...');
+          
+          // Submit appointment request
+          await submitAppointmentRequest();
+          
+          setTimeout(() => {
+            addMessage('bot', 'Your appointment has been successfully scheduled! You will receive a confirmation email shortly.');
+            
+            setTimeout(() => {
+              addMessage('bot', 'Is there anything else I can help you with?', [
+                { label: 'Schedule Another Appointment', value: 'appointment' },
+                { label: 'Request E-Prescription', value: 'prescription' },
+                { label: 'Request Medical Records', value: 'medical-records' },
+                { label: 'No, Thank You', value: 'end' }
+              ]);
+              setChatStep(1);
+              resetForms();
+            }, 1000);
+          }, 2000);
+        } else if (value === 'cancel-appointment') {
+          addMessage('user', 'Cancel appointment');
+          
+          setTimeout(() => {
+            addMessage('bot', 'Appointment cancelled. Is there anything else I can help you with?', [
+              { label: 'Schedule an Appointment', value: 'appointment' },
+              { label: 'Request E-Prescription', value: 'prescription' },
+              { label: 'Request Medical Records', value: 'medical-records' },
               { label: 'No, Thank You', value: 'end' }
             ]);
             setChatStep(1);
@@ -1101,6 +1292,7 @@ export const useChatbotLogic = () => {
           setTimeout(() => {
             addMessage('bot', 'Please select a doctor:', doctorOptions);
             setChatStep(3);
+            setIsInputDisabled(true); // Disable input when showing doctor options
           }, 500);
         });
       } else if (value === 'date-first') {
@@ -1113,12 +1305,14 @@ export const useChatbotLogic = () => {
             value: date.toISOString()
           })));
           setChatStep(4);
+          setIsInputDisabled(true); // Disable input when showing dates
         }, 500);
       }
     } else if (chatStep === 3) {
       // Doctor first flow - doctor selected
       const selectedDoctor = doctors.find(doctor => doctor.id.toString() === value);
       if (selectedDoctor) {
+        setIsInputDisabled(false); // Re-enable input after doctor selection
         addMessage('user', `I want to see Dr. ${selectedDoctor.first_name} ${selectedDoctor.last_name}`);
         setAppointmentForm(prev => ({ ...prev, doctorId: value }));
         
@@ -1131,6 +1325,7 @@ export const useChatbotLogic = () => {
               }))
             );
             setChatStep(4);
+            setIsInputDisabled(true); // Disable input when showing dates
           }, 500);
         });
       }
@@ -1138,6 +1333,7 @@ export const useChatbotLogic = () => {
       // Date selected (both flows)
       const selectedDate = new Date(value);
       console.log('Selected date:', selectedDate);
+      setIsInputDisabled(false); // Re-enable input after date selection
       addMessage('user', `I want an appointment on ${selectedDate.toLocaleDateString()}`);
       setAppointmentForm(prev => ({ ...prev, date: selectedDate }));
       
@@ -1157,11 +1353,13 @@ export const useChatbotLogic = () => {
                     }))
                   );
                   setChatStep(4);
+                  setIsInputDisabled(true); // Disable input when showing dates
                 }, 500);
               });
             } else {
               addMessage('bot', 'Please select a time slot:', undefined, undefined, true, times);
               setChatStep(5);
+              setIsInputDisabled(true); // Disable input when showing time slots
             }
           }, 500);
         });
@@ -1184,6 +1382,7 @@ export const useChatbotLogic = () => {
                 }))
               );
               setChatStep(4);
+              setIsInputDisabled(true); // Disable input when showing dates
             }, 500);
             return;
           }
@@ -1213,6 +1412,7 @@ export const useChatbotLogic = () => {
         // Date first flow - doctor selected
         const selectedDoctor = doctors.find(doctor => doctor.id.toString() === value);
         if (selectedDoctor) {
+          setIsInputDisabled(false); // Re-enable input after doctor selection
           addMessage('user', `I want to see Dr. ${selectedDoctor.first_name} ${selectedDoctor.last_name}`);
           setAppointmentForm(prev => ({ ...prev, doctorId: value }));
           
@@ -1243,12 +1443,14 @@ export const useChatbotLogic = () => {
                         }))
                       );
                       setChatStep(4);
+                      setIsInputDisabled(true); // Disable input when showing dates
                     }
                   }, 500);
                 });
               } else {
                 addMessage('bot', 'Please select a time slot:', undefined, undefined, true, times);
                 setChatStep(6);
+                setIsInputDisabled(true); // Disable input when showing time slots
               }
             }, 500);
           });
@@ -1257,6 +1459,7 @@ export const useChatbotLogic = () => {
         // Time slot selected
         addMessage('user', `I'll take the ${value} time slot`);
         setAppointmentForm(prev => ({ ...prev, time: value }));
+        setIsInputDisabled(false); // Re-enable input after time slot selection
         
         setTimeout(() => {
           addMessage('bot', 'What type of appointment do you need?', appointmentTypes);
@@ -1268,13 +1471,109 @@ export const useChatbotLogic = () => {
       setAppointmentForm(prev => ({ ...prev, type: value }));
       
       setTimeout(() => {
-        addMessage('bot', 'Great! Now I need some information about you.');
+        addMessage('bot', 'Perfect! Before we proceed, I need to inform you that we will be collecting some personal information to process your appointment request.');
         
         setTimeout(() => {
-          addMessage('bot', 'Please enter your full name:');
-          setChatStep(7);
-        }, 500);
+          addMessage('bot', 'This includes your full name, phone number, and appointment details. Your information will be kept secure and used only for healthcare purposes.');
+          
+          setTimeout(() => {
+            addMessage('bot', 'Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
+              { label: '✓ I agree to Terms & Conditions and Privacy Policy', value: 'agree-terms' },
+              { label: '✗ I do not agree', value: 'decline-terms' }
+            ]);
+            setChatStep(6.5);
+            setIsInputDisabled(true); // Disable input when showing terms options
+          }, 1000);
+        }, 1000);
       }, 500);
+    } else if (chatStep === 6.5) {
+      // Handle terms and conditions response
+      if (value === 'agree-terms') {
+        setIsInputDisabled(false); // Re-enable input after terms agreement
+        setAppointmentForm(prev => ({ ...prev, termsAgreed: true }));
+        addMessage('user', 'I agree to the Terms & Conditions and Privacy Policy');
+        
+        setTimeout(() => {
+          addMessage('bot', 'Great! Now I need some information about you.');
+          
+          setTimeout(() => {
+            addMessage('bot', 'Please fill out the form below with your personal information:', undefined, undefined, undefined, undefined, undefined, undefined, undefined, 'form', [
+              {
+                name: 'name',
+                label: 'Full Name',
+                type: 'text',
+                required: true,
+                placeholder: 'Enter your full name'
+              },
+              {
+                name: 'email',
+                label: 'Email Address',
+                type: 'email',
+                required: true,
+                placeholder: 'your.email@example.com'
+              },
+              {
+                name: 'phone',
+                label: 'Phone Number',
+                type: 'tel',
+                required: true,
+                placeholder: '09123456789'
+              },
+              {
+                name: 'dateOfBirth',
+                label: 'Date of Birth',
+                type: 'date',
+                required: true
+              },
+              {
+                name: 'gender',
+                label: 'Gender',
+                type: 'select',
+                required: true,
+                options: [
+                  { value: 'Male', label: 'Male' },
+                  { value: 'Female', label: 'Female' },
+                  { value: 'Other', label: 'Other' },
+                  { value: 'Prefer not to say', label: 'Prefer not to say' }
+                ]
+              },
+              {
+                name: 'address',
+                label: 'Address',
+                type: 'text',
+                required: false,
+                placeholder: 'Your complete address (optional)'
+              },
+              {
+                name: 'maritalStatus',
+                label: 'Marital Status',
+                type: 'select',
+                required: false,
+                options: [
+                  { value: 'Single', label: 'Single' },
+                  { value: 'Married', label: 'Married' },
+                  { value: 'Divorced', label: 'Divorced' },
+                  { value: 'Widowed', label: 'Widowed' },
+                  { value: 'Prefer not to say', label: 'Prefer not to say' }
+                ]
+              }
+            ]);
+            setIsInputDisabled(true); // Disable chat input while form is shown
+          }, 500);
+        }, 500);
+      } else if (value === 'decline-terms') {
+        setIsInputDisabled(false); // Re-enable input after declining terms
+        addMessage('user', 'I do not agree to the terms');
+        
+        setTimeout(() => {
+          addMessage('bot', 'I understand. Unfortunately, I cannot proceed with booking an appointment without your consent to our Terms & Conditions and Privacy Policy.');
+          
+          setTimeout(() => {
+            addMessage('bot', 'If you change your mind, please feel free to start a new conversation. Is there anything else I can help you with today?');
+            setChatStep(1); // Reset to main menu
+          }, 1000);
+        }, 500);
+      }
     } else if (chatStep === 7) {
       // Ask for name
       addMessage('user', input);
@@ -1417,6 +1716,73 @@ export const useChatbotLogic = () => {
     } else if (chatStep === 15) {
       // Confirmation is handled in handleOptionSelect
       return;
+    }
+  };
+
+  const submitAppointmentRequest = async () => {
+    try {
+      console.log('Submitting appointment request with form data:', appointmentForm);
+      
+      // Format the date to YYYY-MM-DD string
+      const formattedDate = appointmentForm.date!.toISOString().split('T')[0];
+
+      // Format time to 24-hour format with seconds
+      const [time, period] = appointmentForm.time.split(' ');
+      const [hours, minutes] = time.split(':');
+      let hour = parseInt(hours);
+      if (period === 'PM' && hour !== 12) hour += 12;
+      if (period === 'AM' && hour === 12) hour = 0;
+      const formattedTime = `${hour.toString().padStart(2, '0')}:${minutes}:00`;
+
+      // Create appointment data
+      const appointmentData = {
+        patient_name: appointmentForm.name,
+        patient_email: appointmentForm.email,
+        patient_phone: appointmentForm.phone,
+        date_of_birth: appointmentForm.dateOfBirth ? new Date(appointmentForm.dateOfBirth).toISOString().split('T')[0] : null,
+        gender: appointmentForm.gender === 'Prefer not to say' ? 'prefer_not_to_say' : (appointmentForm.gender ? appointmentForm.gender.toLowerCase() : null),
+        address: appointmentForm.address || null,
+        marital_status: appointmentForm.maritalStatus === 'Prefer not to say' ? 'prefer_not_to_say' : (appointmentForm.maritalStatus ? appointmentForm.maritalStatus.toLowerCase() : null),
+        appointment_type: appointmentForm.type === 'Regular Checkup' ? 'Routine Check-up' : appointmentForm.type,
+        date: formattedDate,
+        time: formattedTime,
+        notes: appointmentForm.notes || '',
+        doctor_id: parseInt(appointmentForm.doctorId),
+        status: 'pending',
+        is_pending_confirmation: true
+      };
+
+      console.log('Making request to create appointment:', appointmentData);
+      const response = await api.appointments.create(appointmentData);
+      console.log('Appointment created successfully:', response);
+
+      // Create the new appointment object
+      const newAppointment: Appointment = {
+        id: response?.id?.toString() || '',
+        patientId: appointmentForm.name,
+        doctorId: response?.doctor_id?.toString() || '',
+        date: response?.date || '',
+        time: response?.time || '',
+        status: 'pending',
+        type: response?.appointment_type || '',
+        notes: appointmentForm.notes || ''
+      };
+      
+      addAppointment(newAppointment);
+      
+      toast({
+        title: "Appointment Scheduled",
+        description: "Your appointment has been successfully scheduled.",
+      });
+
+    } catch (error) {
+      console.error('Error creating appointment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to schedule appointment. Please try again.",
+        variant: "destructive"
+      });
+      throw error;
     }
   };
 
@@ -1807,6 +2173,7 @@ export const useChatbotLogic = () => {
 
   const resetForms = () => {
     setChatMode(null);
+    setDisabledMessages(new Set()); // Clear disabled messages when resetting
     setAppointmentForm({
       date: undefined,
       time: '',
@@ -1819,7 +2186,8 @@ export const useChatbotLogic = () => {
       dateOfBirth: '',
       gender: '',
       address: '',
-      maritalStatus: ''
+      maritalStatus: '',
+      termsAgreed: false
     });
     setMedicalRecordForm({
       requestType: '',
@@ -2143,6 +2511,55 @@ export const useChatbotLogic = () => {
     }
   };
 
+  const handleFormSubmit = (formData: Record<string, string>) => {
+    setIsInputDisabled(false); // Re-enable input after form submission
+    
+    // Update appointment form with all the form data
+    setAppointmentForm(prev => ({
+      ...prev,
+      name: formData.name || '',
+      email: formData.email || '',
+      phone: formData.phone || '',
+      dateOfBirth: formData.dateOfBirth || '',
+      gender: formData.gender || '',
+      address: formData.address || '',
+      maritalStatus: formData.maritalStatus || ''
+    }));
+
+    // Add user message showing the submitted information
+    addMessage('user', 'I have submitted my personal information');
+
+    // Continue with the next step
+    setTimeout(() => {
+      addMessage('bot', 'Thank you for providing your information! Let me summarize your appointment details:');
+      
+      setTimeout(() => {
+        const appointmentDetails = `
+📅 Date: ${appointmentForm.date?.toLocaleDateString()}
+⏰ Time: ${appointmentForm.time}
+👨‍⚕️ Doctor: ${doctors.find(d => d.id.toString() === appointmentForm.doctorId)?.first_name} ${doctors.find(d => d.id.toString() === appointmentForm.doctorId)?.last_name}
+📋 Type: ${appointmentForm.type}
+👤 Patient: ${formData.name}
+📧 Email: ${formData.email}
+📞 Phone: ${formData.phone}
+🎂 Date of Birth: ${formData.dateOfBirth}
+⚧ Gender: ${formData.gender}
+        `.trim();
+
+        addMessage('bot', appointmentDetails);
+
+        setTimeout(() => {
+          addMessage('bot', 'Would you like to confirm this appointment?', [
+            { label: '✅ Yes, confirm appointment', value: 'confirm-appointment' },
+            { label: '❌ No, make changes', value: 'cancel-appointment' }
+          ]);
+          setChatStep(20); // Move to confirmation step
+          setIsInputDisabled(true); // Disable input when showing confirmation options
+        }, 1000);
+      }, 500);
+    }, 500);
+  };
+
   return {
     messages,
     input,
@@ -2153,9 +2570,11 @@ export const useChatbotLogic = () => {
     handleOptionSelect,
     handleDateSelect,
     handleFileUpload,
+    handleFormSubmit,
     startChat,
     isLoadingDoctors,
     isLoadingProfanityWords,
-    profanityWordsCount: profanityWords.length
+    profanityWordsCount: profanityWords.length,
+    isInputDisabled
   };
 };

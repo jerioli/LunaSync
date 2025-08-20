@@ -1,8 +1,21 @@
+export type FormField = {
+  name: string;
+  label: string;
+  type: 'text' | 'email' | 'tel' | 'date' | 'select';
+  required?: boolean;
+  placeholder?: string;
+  options?: { value: string; label: string }[];
+  validation?: {
+    pattern?: string;
+    message?: string;
+  };
+};
+
 export type MessageType = {
   id: string;
   sender: 'user' | 'bot';
   text: string;
-  type?: 'text' | 'options' | 'date' | 'doctor' | 'slot';
+  type?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form';
   options?: { value: string; label: string; disabled?: boolean }[];
   dateSelector?: boolean;
   timeSelector?: boolean;
@@ -11,6 +24,7 @@ export type MessageType = {
   fileUploadLabel?: string;
   fileUploadAccept?: string;
   messageKey?: string; // To identify which set of options this message contains
+  formFields?: FormField[];
 };
 
 export type Doctor = {
@@ -34,6 +48,7 @@ export interface AppointmentForm {
   gender: string;
   address: string;
   maritalStatus: string;
+  termsAgreed?: boolean;
 }
 
 export type MedicalRecordRequestForm = {

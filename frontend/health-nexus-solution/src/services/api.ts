@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Use relative URL to leverage the Vite proxy configuration
-const API_BASE_URL = '/api';
+// Use direct URL to ensure session cookies are handled properly
+const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
 // Create axios instance with credentials for session authentication
 const axiosInstance = axios.create({
@@ -313,3 +313,4 @@ export const api = {
 
 // Export the configured axios instance for direct use
 export { axiosInstance };
+

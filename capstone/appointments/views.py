@@ -16,9 +16,12 @@ from datetime import datetime
 from django.core.mail import send_mail
 from django.conf import settings
 from .email_utils import send_appointment_confirmation_email
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 logger = logging.getLogger(__name__)
 
+@method_decorator(csrf_exempt, name='dispatch')
 class AppointmentCreateView(APIView):
     permission_classes = [AllowAny]  # Allow unauthenticated access for chatbot
 
@@ -85,6 +88,7 @@ class AppointmentCreateView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+@method_decorator(csrf_exempt, name='dispatch')
 class AppointmentListView(ListAPIView):
     queryset = Appointment.objects.all()
     serializer_class = AppointmentSerializer
@@ -186,6 +190,7 @@ class AppointmentListView(ListAPIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+@method_decorator(csrf_exempt, name='dispatch')
 class AppointmentApproveView(APIView):
     def post(self, request, appointment_id):
         try:
@@ -275,6 +280,7 @@ class AppointmentApproveView(APIView):
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+@method_decorator(csrf_exempt, name='dispatch')
 class AppointmentUpdateStatusView(APIView):
     permission_classes = [AllowAny]  # Allow unauthenticated access for now
 
@@ -389,14 +395,39 @@ class AppointmentUpdateStatusView(APIView):
                             pass
                     
                     # Create new patient record with all required fields
+                    # Convert 'Prefer not to say' to 'prefer_not_to_say' to match database values
+                    gender = patient_details.get('gender')
+                    if gender == 'Prefer not to say':
+                        gender = 'prefer_not_to_say'
+                    
+                    marital_status = patient_details.get('maritalStatus') or patient_details.get('marital_status')
+                    if marital_status == 'Prefer not to say':
+                        marital_status = 'prefer_not_to_say'
+                    
+                    # Ensure phone number doesn't exceed 20 characters
+                    phone = patient_details['phone']
+                    if phone and len(phone) > 20:
+                        phone = phone[:20]
+                        logger.warning(f"Phone number truncated from {len(patient_details['phone'])} to 20 characters")
+                    
+                    # Debug logging to identify the problematic field
+                    logger.info(f"Creating patient with data:")
+                    logger.info(f"  name: '{patient_details['name']}' (length: {len(patient_details['name']) if patient_details['name'] else 0})")
+                    logger.info(f"  email: '{patient_details['email']}' (length: {len(patient_details['email']) if patient_details['email'] else 0})")
+                    logger.info(f"  phone: '{phone}' (length: {len(phone) if phone else 0})")
+                    logger.info(f"  gender: '{gender}' (length: {len(gender) if gender else 0})")
+                    logger.info(f"  address: '{patient_details.get('address')}' (length: {len(patient_details.get('address')) if patient_details.get('address') else 0})")
+                    logger.info(f"  marital_status: '{marital_status}' (length: {len(marital_status) if marital_status else 0})")
+                    logger.info(f"  date_of_birth: '{date_of_birth}'")
+                    
                     patient = Patient.objects.create(
                         name=patient_details['name'],
                         email=patient_details['email'],
-                        phone=patient_details['phone'],
+                        phone=phone,
                         date_of_birth=date_of_birth,
-                        gender=patient_details.get('gender'),
+                        gender=gender,
                         address=patient_details.get('address'),
-                        marital_status=patient_details.get('maritalStatus') or patient_details.get('marital_status')
+                        marital_status=marital_status
                     )
                     
                     # Update appointment with patient reference and clean up notes

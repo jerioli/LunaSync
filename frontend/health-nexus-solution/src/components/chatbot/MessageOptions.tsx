@@ -1,4 +1,3 @@
-import React from 'react';
 import { Button } from '@/components/ui/button';
 
 interface MessageOptionProps {
@@ -16,10 +15,13 @@ export const MessageOptions = ({ options, onOptionSelect, isDarkBackground, mess
           key={option.value} 
           variant="outline" 
           size="sm"
-          className={isDarkBackground 
+          disabled={option.disabled}
+          className={`${isDarkBackground 
             ? 'border-white hover:bg-white/20' 
-            : 'bg-white border-[#79c942] text-[#79c942] hover:bg-[#79c942]/10'}
-          onClick={() => onOptionSelect(option.value)}
+            : 'bg-white border-[#79c942] text-[#79c942] hover:bg-[#79c942]/10'} ${
+            option.disabled ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+          onClick={() => !option.disabled && onOptionSelect(option.value, messageKey)}
         >
           {option.label}
         </Button>

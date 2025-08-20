@@ -1,14 +1,15 @@
-import React, { useRef, useEffect } from 'react';
-import { MessageType, AppointmentForm } from './types';
+import { useEffect, useRef } from 'react';
+import { ChatForm } from './ChatForm';
 import { ChatMessage } from './ChatMessage';
-import { Button } from '@/components/ui/button';
-import DatePicker from 'react-datepicker';
+import { AppointmentForm, MessageType } from './types';
+
 interface ChatMessagesContainerProps {
   messages: MessageType[];
   appointmentForm: AppointmentForm;
   onOptionSelect: (value: string, messageKey?: string) => void;
   onDateSelect: (date: Date | undefined) => void;
   onFileUpload?: (file: File) => void;
+  onFormSubmit?: (formData: Record<string, string>) => void;
 }
 
 export const ChatMessagesContainer = ({
@@ -16,7 +17,8 @@ export const ChatMessagesContainer = ({
   appointmentForm,
   onOptionSelect,
   onDateSelect,
-  onFileUpload
+  onFileUpload,
+  onFormSubmit
 }: ChatMessagesContainerProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -35,6 +37,12 @@ export const ChatMessagesContainer = ({
             onDateSelect={onDateSelect}
             onFileUpload={onFileUpload}
           />
+          {message.type === 'form' && message.formFields && onFormSubmit && (
+            <ChatForm 
+              fields={message.formFields}
+              onSubmit={onFormSubmit}
+            />
+          )}
         </div>
       ))}
       <div ref={messagesEndRef} />

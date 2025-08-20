@@ -1,10 +1,9 @@
-import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { useChatbotLogic } from './useChatbotLogic';
 import { ChatbotHeader } from './ChatbotHeader';
 import { ChatbotWelcome } from './ChatbotWelcome';
 import { ChatInput } from './ChatInput';
 import { ChatMessagesContainer } from './ChatMessagesContainer';
+import { useChatbotLogic } from './useChatbotLogic';
 
 interface AppointmentChatbotProps {
   onClose?: () => void;
@@ -21,7 +20,9 @@ export const AppointmentChatbot = ({ onClose }: AppointmentChatbotProps) => {
     handleOptionSelect,
     handleDateSelect,
     handleFileUpload,
-    startChat
+    handleFormSubmit,
+    startChat,
+    isInputDisabled
   } = useChatbotLogic();
 
   return (
@@ -38,6 +39,7 @@ export const AppointmentChatbot = ({ onClose }: AppointmentChatbotProps) => {
             onOptionSelect={handleOptionSelect}
             onDateSelect={handleDateSelect}
             onFileUpload={handleFileUpload}
+            onFormSubmit={handleFormSubmit}
           />
         )}
       </CardContent>
@@ -49,6 +51,7 @@ export const AppointmentChatbot = ({ onClose }: AppointmentChatbotProps) => {
             setInput={setInput}
             handleSendMessage={handleSendMessage}
             placeholder={input === '' ? "Say hi to start..." : "Type your message..."}
+            isInputDisabled={isInputDisabled}
           />
         </CardFooter>
       )}

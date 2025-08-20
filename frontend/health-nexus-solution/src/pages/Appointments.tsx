@@ -6,14 +6,11 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useClinic } from '@/hooks/useClinicContext';
-import axios from 'axios';
+import { axiosInstance } from '@/services/api';
 import { Calendar, CalendarCheck, Clock, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-
-// Set axios base URL to include the API prefix
-axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
 
 const Appointments = () => {
   const { currentUser, patients, users } = useClinic();
@@ -103,7 +100,7 @@ const Appointments = () => {
   // Fetch appointments from backend
   const fetchAppointments = async () => {
     try {
-      const response = await axios.get('appointments/list/');
+      const response = await axiosInstance.get('appointments/list/');
       console.log('Fetched appointments from API:', response.data);
       setAppointments(mapAppointments(response.data));
     } catch (error) {
@@ -119,7 +116,7 @@ const Appointments = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await axios.get('patients/');
+        const response = await axiosInstance.get('patients/');
         setLocalPatients(response.data);
       } catch (error) {
         console.error('Error fetching patients:', error);
@@ -347,7 +344,7 @@ const Appointments = () => {
         payload: { status: status }
       });
       
-      const response = await axios.post(`appointments/update-status/${appointmentId}/`, {
+      const response = await axiosInstance.post(`appointments/update-status/${appointmentId}/`, {
         status: status
       });
       

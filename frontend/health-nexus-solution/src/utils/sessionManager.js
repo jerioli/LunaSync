@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // Configure axios defaults for session-based authentication
-axios.defaults.baseURL = 'http://localhost:8000/api';
+axios.defaults.baseURL = 'http://127.0.0.1:8000/api';
 axios.defaults.withCredentials = true; // Important: Enable cookie handling
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 
