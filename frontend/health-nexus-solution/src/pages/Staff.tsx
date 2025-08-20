@@ -58,6 +58,9 @@ const StaffPage = () => {
   const [isSelectAll, setIsSelectAll] = useState(false);
   const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  
+  // Email validation state
+  const [emailValidationError, setEmailValidationError] = useState("");
 
   // Fetch staff from backend
   useEffect(() => {
@@ -228,10 +231,40 @@ const StaffPage = () => {
   const admins = filterStaff('admin');
   const filteredAdmins = filterAdmins();
 
+  // Handle dialog open/close state change
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      // Clear form and validation errors when dialog is closed
+      setNewStaff({ name: "", username: "", email: "", phone: "", role: "", password: ""});
+      setEmailValidationError("");
+    }
+  };
+
   // Handle input changes for the form
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { id, value } = e.target;
     setNewStaff(prev => ({ ...prev, [id]: value }));
+    
+    // Clear email validation error when user starts typing in email field
+    if (id === 'email') {
+      setEmailValidationError("");
+    }
+  };
+  
+  // Check if email already exists
+  const checkEmailExists = (email: string): boolean => {
+    if (!email) return false;
+    
+    const emailLower = email.toLowerCase();
+    
+    // Check in all staff lists
+    const existsInDoctors = doctorsList.some(doctor => doctor.email.toLowerCase() === emailLower);
+    const existsInReceptionists = receptionistsList.some(receptionist => receptionist.email.toLowerCase() === emailLower);
+    const existsInAdmins = adminsList.some(admin => admin.email.toLowerCase() === emailLower);
+    const existsInSuperAdmins = superAdminsList.some(admin => admin.email.toLowerCase() === emailLower);
+    
+    return existsInDoctors || existsInReceptionists || existsInAdmins || existsInSuperAdmins;
   };
   
   // Generate a strong password that meets all security requirements
@@ -262,6 +295,22 @@ const StaffPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    
+    // Clear any previous validation errors
+    setEmailValidationError("");
+    
+    // Validate email doesn't already exist
+    if (checkEmailExists(newStaff.email)) {
+      setEmailValidationError("This email is already in use by another staff member");
+      toast({
+        title: "Validation Error",
+        description: "This email is already in use by another staff member",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+    
     try {
       // Generate a strong temporary password
       const tempPassword = generateStrongPassword();
@@ -282,15 +331,22 @@ const StaffPage = () => {
       });
       console.log('Staff added successfully:', response.data);
   
-      alert('Staff member added successfully! Login credentials have been sent to their email.');
-      setNewStaff({ name: "", username: "", email: "", phone: "", role: "", password: ""});
-      setIsDialogOpen(false); // Close the dialog
+      toast({
+        title: "Success",
+        description: "Staff member added successfully! Login credentials have been sent to their email.",
+        variant: "default",
+      });
+      setIsDialogOpen(false); // Close the dialog (this will trigger form reset)
       
       // Refresh the staff lists without reloading the page
       await refreshStaffLists();
     } catch (error) {
       console.error('Error adding staff:', error.response?.data || error.message);
-      alert(`Failed to add staff member: ${error.response?.data?.error || error.message}`);
+      toast({
+        title: "Error",
+        description: `Failed to add staff member: ${error.response?.data?.error || error.message}`,
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -518,7 +574,7 @@ const StaffPage = () => {
             </Button>
           )}
           
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
             <DialogTrigger asChild>
               <Button>
                 <UserPlus className="mr-2 h-4 w-4" />
@@ -569,15 +625,20 @@ const StaffPage = () => {
       <Label htmlFor="email" className="text-right">
         Email
       </Label>
-      <Input
-        id="email"
-        type="email"
-        placeholder="e.g., johndoe@example.com"
-        className="col-span-3"
-        value={newStaff.email}
-        onChange={handleInputChange}
-        required
-      />
+      <div className="col-span-3">
+        <Input
+          id="email"
+          type="email"
+          placeholder="e.g., johndoe@example.com"
+          className={`w-full ${emailValidationError ? 'border-red-500' : ''}`}
+          value={newStaff.email}
+          onChange={handleInputChange}
+          required
+        />
+        {emailValidationError && (
+          <p className="text-red-500 text-sm mt-1">{emailValidationError}</p>
+        )}
+      </div>
     </div>
 
                 {/* Phone */}
