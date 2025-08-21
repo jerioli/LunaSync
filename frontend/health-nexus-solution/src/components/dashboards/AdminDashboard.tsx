@@ -55,8 +55,8 @@ const AdminDashboard = () => {
     total: staffMembers.length
   };
   
-  // Get today's date in YYYY-MM-DD format
-  const today = new Date().toISOString().split('T')[0];
+  // Get today's date in YYYY-MM-DD format using Philippine timezone
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
   
   // Calculate recent appointments (last 30 days)
   const thirtyDaysAgo = new Date();

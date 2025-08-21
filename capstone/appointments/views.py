@@ -34,6 +34,12 @@ class AppointmentCreateView(APIView):
             
             # Transform the incoming data
             data = {
+                # Handle separate name fields from chatbot
+                'firstName': request.data.get('firstName', '').strip(),
+                'middleInitial': request.data.get('middleInitial', '').strip(),
+                'lastName': request.data.get('lastName', '').strip(),
+                'suffix': request.data.get('suffix', '').strip(),
+                # Legacy patient_name field (for backward compatibility)
                 'patient_name': request.data.get('patient_name', '').strip(),
                 'patient_email': request.data.get('patient_email', '').strip(),
                 'patient_phone': request.data.get('patient_phone', '').strip(),
@@ -367,6 +373,7 @@ class AppointmentUpdateStatusView(APIView):
                     existing_patient = Patient.objects.get(email=appointment.patient_email)
                     # Patient exists, use the existing one
                     appointment.patient = existing_patient
+                    patient = existing_patient  # Set the patient variable for email sending
                     logger.info(f"Using existing patient {existing_patient.id} (email: {appointment.patient_email}) for appointment {appointment.id}")
                 except Patient.DoesNotExist:
                     # Create patient from the new appointment fields
@@ -375,10 +382,10 @@ class AppointmentUpdateStatusView(APIView):
                             name=appointment.patient_name,
                             email=appointment.patient_email,
                             phone=appointment.patient_phone,
-                            date_of_birth=appointment.patient_date_of_birth,
-                            gender=appointment.patient_gender,
-                            address=appointment.patient_address,
-                            marital_status=appointment.patient_marital_status
+                            date_of_birth=appointment.date_of_birth,
+                            gender=appointment.gender,
+                            address=appointment.address,
+                            marital_status=appointment.marital_status
                         )
                         
                         # Link the patient to the appointment

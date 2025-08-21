@@ -55,12 +55,19 @@ const ReceptionistDashboard = () => {
     }
   };
 
-  // Get today's date in YYYY-MM-DD format
-  const today = new Date().toISOString().split('T')[0];
+  // Get today's date in YYYY-MM-DD format using Philippine timezone
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
   
-  // Filter today's appointments
+  // Filter today's appointments (exclude completed and cancelled, remove duplicates)
   const todaysAppointments = appointments
-    .filter(appointment => appointment.date === today)
+    .filter(appointment => 
+      appointment.date === today && 
+      appointment.status !== 'completed' && 
+      appointment.status !== 'cancelled'
+    )
+    .filter((appointment, index, self) => 
+      index === self.findIndex((a) => a.id === appointment.id)
+    )
     .sort((a, b) => a.time.localeCompare(b.time));
   
   // Filter upcoming appointments (future dates)

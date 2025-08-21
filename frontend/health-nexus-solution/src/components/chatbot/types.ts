@@ -45,7 +45,10 @@ export interface AppointmentForm {
   time: string;
   type: string;
   doctorId: string;
-  name: string;
+  firstName: string;
+  middleInitial: string;
+  lastName: string;
+  suffix: string;
   email: string;
   phone: string;
   notes: string;
@@ -58,7 +61,10 @@ export interface AppointmentForm {
 
 export type MedicalRecordRequestForm = {
   requestType: string;
-  patientName: string;
+  firstName: string;
+  middleInitial: string;
+  lastName: string;
+  suffix: string;
   dateOfBirth: string;
   email: string;
   phone: string;
@@ -71,7 +77,10 @@ export type PrescriptionRequestForm = {
   dosage: string;
   frequency: string;
   duration: string;
-  patientName: string;
+  firstName: string;
+  middleInitial: string;
+  lastName: string;
+  suffix: string;
   dateOfBirth: string;
   email: string;
   phone: string;

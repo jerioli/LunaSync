@@ -228,35 +228,71 @@ const Appointments = () => {
   useEffect(() => { setCurrentPage(1); }, [activeTab, appointments]);
 
  const getPatientName = (patientId, appointment) => {
-  // First check for patient_name field (new structure for pending appointments)
-  if (appointment?.patient_name) {
+  // Debug logging
+  console.log('getPatientName called with:', {
+    patientId,
+    appointmentId: appointment?.id,
+    patient_name: appointment?.patient_name,
+    display_patient_name: appointment?.display_patient_name,
+    status: appointment?.status,
+    notes: appointment?.notes
+  });
+
+  // First check for patient_name field (from API response)
+  if (appointment?.patient_name && appointment.patient_name !== 'N/A' && appointment.patient_name.trim() !== '') {
+    console.log('Using patient_name:', appointment.patient_name);
     return appointment.patient_name;
   }
 
   // For confirmed appointments, use display_patient_name if available
-  if (appointment?.display_patient_name) {
+  if (appointment?.display_patient_name && appointment.display_patient_name !== 'N/A' && appointment.display_patient_name.trim() !== '') {
+    console.log('Using display_patient_name:', appointment.display_patient_name);
     return appointment.display_patient_name;
   }
 
-  // For pending appointments with old structure, try to get name from notes
+  // For pending appointments, try to get name from notes
   if (appointment?.notes && appointment.status === 'pending') {
     const notes = appointment.notes;
     if (notes.includes('Patient Details (Pending):')) {
       try {
         const patientDetails = JSON.parse(notes.split('Patient Details (Pending):')[1].trim());
-        return patientDetails.name;
+        console.log('Parsed patient details from notes:', patientDetails);
+        
+        // Try to construct name from individual fields in the JSON
+        const nameFromFields = [
+          patientDetails.firstName,
+          patientDetails.middleInitial, 
+          patientDetails.lastName,
+          patientDetails.suffix
+        ].filter(part => part && part.trim()).join(' ');
+        
+        if (nameFromFields.trim()) {
+          console.log('Using name from individual fields:', nameFromFields);
+          return nameFromFields;
+        }
+        
+        // Fallback to the name field
+        if (patientDetails.name && patientDetails.name.trim()) {
+          console.log('Using name from JSON name field:', patientDetails.name);
+          return patientDetails.name;
+        }
       } catch (error) {
         console.error('Error parsing patient details:', error);
       }
     }
   }
 
-  // Fallback to patient lookup
-  const patient = localPatients.find(p => String(p.id) === String(patientId));
-  if (patient && patient.name) return patient.name;
+  // Fallback to patient lookup by ID
+  if (patientId) {
+    const patient = localPatients.find(p => String(p.id) === String(patientId));
+    if (patient && patient.name) return patient.name;
+  }
+  
+  // If patientId is an object with name, use it
   if (typeof patientId === 'object' && patientId !== null && patientId.name) {
     return patientId.name;
   }
+  
   return "Unknown Patient";
 };
 
@@ -350,7 +386,7 @@ const Appointments = () => {
       
       console.log('Status update response:', response.data);
       
-      // Update local state with the response
+      // Update local state with the response data
       setAppointments(prev => prev.map(appt => 
         appt.id === appointmentId ? { ...appt, ...response.data } : appt
       ));
@@ -373,8 +409,10 @@ const Appointments = () => {
         toast.success(statusMessages[status]);
       }
       
-      // Refresh appointments to get updated data
-      await fetchAppointments();
+      // Refresh appointments to get updated data with complete patient information
+      setTimeout(async () => {
+        await fetchAppointments();
+      }, 500); // Small delay to ensure backend has processed the update
       
     } catch (error) {
       console.error('Error updating appointment status:', error);

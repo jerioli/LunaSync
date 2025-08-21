@@ -55,22 +55,38 @@ const DoctorDashboard = () => {
     }
   };
   
-  // Get today's date in YYYY-MM-DD format
-  const today = new Date().toISOString().split('T')[0];
+  // Get today's date in YYYY-MM-DD format using Philippine timezone
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
   
   // Determine current doctor's ID (supports different field names)
   const doctorId = currentUser?.id;
 
-  // Scope appointments to the current doctor if available
+  // Scope appointments based on user role
   const appointmentsForDoctor = appointments.filter(appt => {
     const apptDoctorId = appt.doctorId || appt.doctor;
+    
+    // If user is a receptionist or admin, show all appointments
+    if (currentUser?.role === 'receptionist' || currentUser?.role === 'admin') {
+      return true;
+    }
+    
+    // If no doctor ID available, show all appointments
     if (!doctorId) return true;
+    
+    // For doctors, only show their own appointments
     return String(apptDoctorId) === String(doctorId);
   });
 
-  // Filter today's appointments for the doctor
+  // Filter today's appointments for the doctor (exclude completed and cancelled, remove duplicates)
   const todaysAppointments = appointmentsForDoctor
-    .filter(appointment => appointment.date === today)
+    .filter(appointment => 
+      appointment.date === today && 
+      appointment.status !== 'completed' && 
+      appointment.status !== 'cancelled'
+    )
+    .filter((appointment, index, self) => 
+      index === self.findIndex((a) => a.id === appointment.id)
+    )
     .sort((a, b) => a.time.localeCompare(b.time));
   
   // Filter patients with upcoming follow-up appointments

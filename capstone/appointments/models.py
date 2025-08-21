@@ -39,6 +39,26 @@ class Appointment(models.Model):
     notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    # Patient detail fields for pending appointments
+    patient_name = models.CharField(max_length=255, blank=True, null=True)
+    patient_email = models.EmailField(blank=True, null=True)
+    patient_phone = models.CharField(max_length=20, blank=True, null=True)
+    date_of_birth = models.DateField(blank=True, null=True)
+    gender = models.CharField(max_length=20, choices=[
+        ('male', 'Male'),
+        ('female', 'Female'),
+        ('other', 'Other'),
+        ('prefer_not_to_say', 'Prefer not to say')
+    ], blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    marital_status = models.CharField(max_length=20, choices=[
+        ('single', 'Single'),
+        ('married', 'Married'),
+        ('divorced', 'Divorced'),
+        ('widowed', 'Widowed'),
+        ('prefer_not_to_say', 'Prefer not to say')
+    ], blank=True, null=True)
 
     class Meta:
         db_table = 'appointments'
@@ -147,6 +167,8 @@ class Appointment(models.Model):
     def get_patient_name(self):
         if self.patient:
             return self.patient.name
+        if self.patient_name:
+            return self.patient_name
         if self.notes and 'Patient Details (Pending):' in self.notes:
             try:
                 import json

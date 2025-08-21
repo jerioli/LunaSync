@@ -12,15 +12,30 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 class AppointmentSerializer(serializers.ModelSerializer):
-    patient_name = serializers.CharField(required=True, write_only=True)
-    patient_email = serializers.EmailField(required=True, write_only=True)
-    patient_phone = serializers.CharField(required=True, write_only=True)
-    date_of_birth = serializers.DateField(required=True, write_only=True)
-    gender = serializers.ChoiceField(choices=[('male', 'Male'), ('female', 'Female'), ('other', 'Other'), ('prefer_not_to_say', 'Prefer not to say')], required=False, allow_null=True, write_only=True)
-    address = serializers.CharField(required=False, allow_blank=True, write_only=True)
-    marital_status = serializers.ChoiceField(choices=[('single', 'Single'), ('married', 'Married'), ('divorced', 'Divorced'), ('widowed', 'Widowed'), ('prefer_not_to_say', 'Prefer not to say')], required=False, allow_null=True, write_only=True)
+    # Separate name fields (as sent from frontend)
+    firstName = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    middleInitial = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    lastName = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    suffix = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    
+    # Combined name field (stored in database) - not required since we construct it
+    patient_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    
+    def __init__(self, *args, **kwargs):
+        print(f"=== SERIALIZER INIT ===")
+        print(f"Args: {args}")
+        print(f"Kwargs: {kwargs}")
+        if args and hasattr(args[0], 'data') if len(args) > 0 else False:
+            print(f"Request data: {getattr(args[0], 'data', 'No data attr')}")
+        super().__init__(*args, **kwargs)
+    patient_email = serializers.EmailField(required=True)
+    patient_phone = serializers.CharField(required=True)
+    date_of_birth = serializers.DateField(required=True)
+    gender = serializers.ChoiceField(choices=[('male', 'Male'), ('female', 'Female'), ('other', 'Other'), ('prefer_not_to_say', 'Prefer not to say')], required=False, allow_null=True)
+    address = serializers.CharField(required=False, allow_blank=True)
+    marital_status = serializers.ChoiceField(choices=[('single', 'Single'), ('married', 'Married'), ('divorced', 'Divorced'), ('widowed', 'Widowed'), ('prefer_not_to_say', 'Prefer not to say')], required=False, allow_null=True)
     appointment_type = serializers.ChoiceField(choices=Appointment.TYPE_CHOICES, required=True)
-    doctor_id = serializers.IntegerField(required=True, write_only=True)
+    doctor_id = serializers.IntegerField(required=True)
     date = serializers.DateField(required=True)
     time = serializers.TimeField(required=True)
     notes = serializers.CharField(required=False, allow_blank=True)
@@ -36,7 +51,8 @@ class AppointmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appointment
         fields = [
-            'id', 'patient_name', 'patient_email', 'patient_phone',
+            'id', 'firstName', 'middleInitial', 'lastName', 'suffix',
+            'patient_name', 'patient_email', 'patient_phone',
             'date_of_birth', 'gender', 'address', 'marital_status',
             'appointment_type', 'doctor_id', 'date', 'time',
             'notes', 'status', 'created_at',
@@ -49,6 +65,8 @@ class AppointmentSerializer(serializers.ModelSerializer):
         try:
             if obj.patient:
                 return obj.patient.name
+            if obj.patient_name:
+                return obj.patient_name
             return "N/A"
         except Exception as e:
             logger.error(f"Error getting patient name: {str(e)}")
@@ -100,39 +118,28 @@ class AppointmentSerializer(serializers.ModelSerializer):
                 data['doctor'] = None
                 data['doctor_name'] = "Not Assigned"
             
-            # Add patient details from the related patient object or from notes
+            # Add patient details from the related patient object or from appointment fields
             if instance.patient:
                 # For confirmed appointments with patient records
                 data['patient'] = instance.patient.id
-                data['patient_name'] = instance.patient.name
-                data['patient_email'] = instance.patient.email
-                data['patient_phone'] = instance.patient.phone
-                data['date_of_birth'] = instance.patient.date_of_birth
-                data['gender'] = instance.patient.gender
-                data['address'] = instance.patient.address
-                data['marital_status'] = instance.patient.marital_status
-            elif instance.status == 'pending' and instance.notes and 'Patient Details (Pending):' in instance.notes:
-                # For pending appointments, extract patient details from notes
-                try:
-                    import json
-                    patient_details_str = instance.notes.split('Patient Details (Pending):')[1].strip()
-                    patient_details = json.loads(patient_details_str)
-                    
-                    data['patient'] = None
-                    data['patient_name'] = patient_details.get('name')
-                    data['patient_email'] = patient_details.get('email')
-                    data['patient_phone'] = patient_details.get('phone')
-                    data['date_of_birth'] = patient_details.get('date_of_birth')
-                    data['gender'] = patient_details.get('gender')
-                    data['address'] = patient_details.get('address')
-                    data['marital_status'] = patient_details.get('marital_status')
-                except (json.JSONDecodeError, IndexError) as e:
-                    logger.error(f"Error parsing patient details from notes: {str(e)}")
-                    # Set default values if parsing fails
-                    data['patient'] = None
-                    data['patient_name'] = None
-                    data['patient_email'] = None
-                    data['patient_phone'] = None
+                # Prioritize appointment's patient_name if available, fallback to patient.name
+                data['patient_name'] = instance.patient_name or instance.patient.name
+                data['patient_email'] = instance.patient_email or instance.patient.email
+                data['patient_phone'] = instance.patient_phone or instance.patient.phone
+                data['date_of_birth'] = instance.date_of_birth or instance.patient.date_of_birth
+                data['gender'] = instance.gender or instance.patient.gender
+                data['address'] = instance.address or instance.patient.address
+                data['marital_status'] = instance.marital_status or instance.patient.marital_status
+            else:
+                # For pending appointments, use the direct appointment fields
+                data['patient'] = None
+                data['patient_name'] = instance.patient_name
+                data['patient_email'] = instance.patient_email
+                data['patient_phone'] = instance.patient_phone
+                data['date_of_birth'] = instance.date_of_birth
+                data['gender'] = instance.gender
+                data['address'] = instance.address
+                data['marital_status'] = instance.marital_status
                     
             return data
         except Exception as e:
@@ -142,15 +149,42 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         try:
-            # Check if we have either a patient object or complete patient details
-            if not data.get('patient') and not all([
-                data.get('patient_name'),
-                data.get('patient_email'),
-                data.get('patient_phone')
-            ]):
+            # Debug logging - first thing in validate method
+            print(f"=== VALIDATE METHOD CALLED ===")
+            print(f"Raw data received: {data}")
+            print(f"Data keys: {list(data.keys()) if data else 'None'}")
+            logger.info(f"Validation data received: {data}")
+            
+            # Check if we have either a patient object or the necessary data to create one
+            has_patient = data.get('patient')
+            has_email = data.get('patient_email')
+            has_phone = data.get('patient_phone')
+            
+            # Check if we have name components
+            has_first_name = data.get('firstName') and data.get('firstName').strip()
+            has_last_name = data.get('lastName') and data.get('lastName').strip()
+            has_patient_name = data.get('patient_name') and data.get('patient_name').strip()
+            
+            print(f"Validation checks:")
+            print(f"  has_patient: {has_patient}")
+            print(f"  has_email: {has_email}")
+            print(f"  has_phone: {has_phone}")
+            print(f"  has_first_name: {has_first_name}")
+            print(f"  has_last_name: {has_last_name}")
+            print(f"  has_patient_name: {has_patient_name}")
+            
+            logger.info(f"Validation checks: has_patient={has_patient}, has_email={has_email}, has_phone={has_phone}, has_first_name={has_first_name}, has_last_name={has_last_name}, has_patient_name={has_patient_name}")
+            
+            # We need either a patient object OR (email + phone + some form of name)
+            if not has_patient and not (has_email and has_phone and (has_first_name or has_last_name or has_patient_name)):
+                print(f"Validation FAILED: Missing required fields")
+                logger.error(f"Validation failed: Missing required fields")
                 raise serializers.ValidationError(
-                    "Either provide a patient object or complete patient details"
+                    "Either provide a patient object or complete patient details (email, phone, and name)"
                 )
+            
+            print(f"Validation PASSED - continuing with other validations")
+            logger.info(f"Validation passed basic checks")
 
             # Validate appointment date
             appointment_date = data.get('date')
@@ -237,9 +271,34 @@ class AppointmentSerializer(serializers.ModelSerializer):
         try:
             status = validated_data.get('status', 'pending')
             
-            # Extract patient data first
+            # Construct full name from components if provided
+            first_name = validated_data.pop('firstName', '')
+            middle_initial = validated_data.pop('middleInitial', '')
+            last_name = validated_data.pop('lastName', '')
+            suffix = validated_data.pop('suffix', '')
+            
+            # Build the full name from components
+            name_parts = []
+            if first_name and first_name.strip():
+                name_parts.append(first_name.strip())
+            if middle_initial and middle_initial.strip():
+                name_parts.append(middle_initial.strip())
+            if last_name and last_name.strip():
+                name_parts.append(last_name.strip())
+            if suffix and suffix.strip():
+                name_parts.append(suffix.strip())
+            
+            full_name = ' '.join(name_parts) if name_parts else validated_data.pop('patient_name', '')
+            
+            # Validate that we have at least a name
+            if not full_name or not full_name.strip():
+                raise serializers.ValidationError({
+                    'patient_name': 'Patient name is required. Please provide at least a first name or last name.'
+                })
+            
+            # Extract patient data
             patient_data = {
-                'name': validated_data.pop('patient_name'),
+                'name': full_name,
                 'email': validated_data.pop('patient_email'),
                 'phone': validated_data.pop('patient_phone'),
                 'date_of_birth': validated_data.pop('date_of_birth'),
@@ -247,6 +306,9 @@ class AppointmentSerializer(serializers.ModelSerializer):
                 'address': validated_data.pop('address'),
                 'marital_status': validated_data.pop('marital_status')
             }
+            
+            # Store the full name in the appointment record as well
+            validated_data['patient_name'] = full_name
             
             # For pending appointments from the chatbot, don't create patient record yet
             if status == 'pending':
@@ -287,7 +349,15 @@ class AppointmentSerializer(serializers.ModelSerializer):
                 time=validated_data.get('time'),
                 appointment_type=validated_data.pop('appointment_type'),
                 notes=validated_data.get('notes', ''),
-                status=status
+                status=status,
+                # Store patient details directly in appointment fields
+                patient_name=full_name,
+                patient_email=patient_data['email'],
+                patient_phone=patient_data['phone'],
+                date_of_birth=patient_data['date_of_birth'],
+                gender=patient_data['gender'],
+                address=patient_data['address'],
+                marital_status=patient_data['marital_status']
             )
 
             return appointment

@@ -16,7 +16,7 @@ export const useChatbotLogic = () => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [input, setInput] = useState('');
   const [showChat, setShowChat] = useState(false);
-  const [chatStep, setChatStep] = useState(0);
+  const [chatStep, setChatStep] = useState<number | string>(0);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [isLoadingDoctors, setIsLoadingDoctors] = useState(false);
   const [isInputDisabled, setIsInputDisabled] = useState(false);
@@ -29,7 +29,10 @@ export const useChatbotLogic = () => {
     time: '',
     type: '',
     doctorId: '',
-    name: '',
+    firstName: '',
+    middleInitial: '',
+    lastName: '',
+    suffix: '',
     email: '',
     phone: '',
     notes: '',
@@ -43,7 +46,10 @@ export const useChatbotLogic = () => {
   // Form state for medical record requests
   const [medicalRecordForm, setMedicalRecordForm] = useState<MedicalRecordRequestForm>({
     requestType: '',
-    patientName: '',
+    firstName: '',
+    middleInitial: '',
+    lastName: '',
+    suffix: '',
     dateOfBirth: '',
     email: '',
     phone: '',
@@ -57,7 +63,10 @@ export const useChatbotLogic = () => {
     dosage: '',
     frequency: '',
     duration: '',
-    patientName: '',
+    firstName: '',
+    middleInitial: '',
+    lastName: '',
+    suffix: '',
     dateOfBirth: '',
     email: '',
     phone: '',
@@ -74,11 +83,26 @@ export const useChatbotLogic = () => {
 
   // Track existing patient data for pre-population
   const [existingPatient, setExistingPatient] = useState<Patient | null>(null);
+  
+  // Store temporary form data for appointment confirmation
+  const [tempFormData, setTempFormData] = useState<Record<string, string>>({});
 
   // Track typing animation state
   const [isTyping, setIsTyping] = useState(false);
 
   const faqs = clinicCustomization.faqs || [];
+
+  // Helper function to construct full name from name components
+  const constructFullName = (form: AppointmentForm | MedicalRecordRequestForm | PrescriptionRequestForm) => {
+    const parts = [
+      form.firstName?.trim(),
+      form.middleInitial?.trim(),
+      form.lastName?.trim(),
+      form.suffix?.trim()
+    ].filter(part => part && part.length > 0);
+    
+    return parts.join(' ');
+  };
 
   // Helper: Find best matching FAQ (simple substring match, case-insensitive)
   const findBestFaq = (question: string) => {
@@ -549,15 +573,39 @@ export const useChatbotLogic = () => {
           }
         }, 500);
       } else if (chatStep === 7) {
-        // Check for profanity in name input
-        if (handleProfanityDetection(input)) {
-          setInput('');
-          return;
-        }
-        
-        // Ask for name
+        // Ask for first name
         addMessage('user', input);
-        setAppointmentForm(prev => ({ ...prev, name: input }));
+        setAppointmentForm(prev => ({ ...prev, firstName: input }));
+        setInput('');
+        
+        setTimeout(() => {
+          addBotMessage('Please enter your middle initial (or press Enter to skip):');
+          setChatStep(7.1);
+        }, 500);
+      } else if (chatStep === 7.1) {
+        // Ask for middle initial (optional)
+        addMessage('user', input);
+        setAppointmentForm(prev => ({ ...prev, middleInitial: input.trim() }));
+        setInput('');
+        
+        setTimeout(() => {
+          addBotMessage('Please enter your last name:');
+          setChatStep(7.2);
+        }, 500);
+      } else if (chatStep === 7.2) {
+        // Ask for last name
+        addMessage('user', input);
+        setAppointmentForm(prev => ({ ...prev, lastName: input }));
+        setInput('');
+        
+        setTimeout(() => {
+          addBotMessage('Please enter your suffix (Jr., Sr., III, etc.) or press Enter to skip:');
+          setChatStep(7.3);
+        }, 500);
+      } else if (chatStep === 7.3) {
+        // Ask for suffix (optional)
+        addMessage('user', input);
+        setAppointmentForm(prev => ({ ...prev, suffix: input.trim() }));
         setInput('');
         
         setTimeout(() => {
@@ -714,15 +762,14 @@ export const useChatbotLogic = () => {
           addBotMessage(t('chatbot.appointmentSummary'));
           
           setTimeout(() => {
-            // Split name into first and last name
-            const [firstName, ...lastNameParts] = (appointmentForm.name || '').trim().split(' ');
-            const lastName = lastNameParts.join(' ');
+            // Construct full name from components
+            const fullName = constructFullName(appointmentForm);
 
             const summary = `
               Date: ${appointmentForm.date?.toLocaleDateString() || 'Not selected'}
               Time: ${appointmentForm.time}
               Type: ${appointmentForm.type}
-              Name: ${appointmentForm.name}
+              Name: ${fullName}
               Email: ${appointmentForm.email}
               Phone: ${appointmentForm.phone}
               Date of Birth: ${appointmentForm.dateOfBirth}
@@ -788,13 +835,40 @@ export const useChatbotLogic = () => {
         setMedicalRecordForm(prev => ({ ...prev, requestType: input }));
         
         setTimeout(() => {
-          addBotMessage('Please enter your full name as it appears on your medical records:');
+          addBotMessage('Please enter your first name:');
           setChatStep(3);
         }, 500);
       }
     } else if (chatMode === 'medicalRecord' && chatStep === 3) {
       addMessage('user', input);
-      setMedicalRecordForm(prev => ({ ...prev, patientName: input }));
+      setMedicalRecordForm(prev => ({ ...prev, firstName: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addBotMessage('Please enter your middle initial (optional):');
+        setChatStep('3b');
+      }, 500);
+    } else if (chatMode === 'medicalRecord' && chatStep === '3b') {
+      addMessage('user', input);
+      setMedicalRecordForm(prev => ({ ...prev, middleInitial: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addBotMessage('Please enter your last name:');
+        setChatStep('3c');
+      }, 500);
+    } else if (chatMode === 'medicalRecord' && chatStep === '3c') {
+      addMessage('user', input);
+      setMedicalRecordForm(prev => ({ ...prev, lastName: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addBotMessage('Please enter your suffix (optional, e.g., Jr., Sr., III):');
+        setChatStep('3d');
+      }, 500);
+    } else if (chatMode === 'medicalRecord' && chatStep === '3d') {
+      addMessage('user', input);
+      setMedicalRecordForm(prev => ({ ...prev, suffix: input }));
       setInput('');
       
       setTimeout(() => {
@@ -873,7 +947,7 @@ export const useChatbotLogic = () => {
         setTimeout(() => {
           const summary = `
             Request Type: ${medicalRecordForm.requestType}
-            Patient Name: ${medicalRecordForm.patientName}
+            Patient Name: ${constructFullName(medicalRecordForm)}
             Date of Birth: ${medicalRecordForm.dateOfBirth}
             Email: ${medicalRecordForm.email}
             Phone: ${medicalRecordForm.phone}
@@ -931,12 +1005,39 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-       addBotMessage('Please enter your full name:');
+       addBotMessage('Please enter your first name:');
         setChatStep(6);
       }, 500);
     } else if (chatMode === 'prescription' && chatStep === 6) {
       addMessage('user', input);
-      setPrescriptionForm(prev => ({ ...prev, patientName: input }));
+      setPrescriptionForm(prev => ({ ...prev, firstName: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addBotMessage('Please enter your middle initial (optional):');
+        setChatStep('6b');
+      }, 500);
+    } else if (chatMode === 'prescription' && chatStep === '6b') {
+      addMessage('user', input);
+      setPrescriptionForm(prev => ({ ...prev, middleInitial: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addBotMessage('Please enter your last name:');
+        setChatStep('6c');
+      }, 500);
+    } else if (chatMode === 'prescription' && chatStep === '6c') {
+      addMessage('user', input);
+      setPrescriptionForm(prev => ({ ...prev, lastName: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addBotMessage('Please enter your suffix (optional, e.g., Jr., Sr., III):');
+        setChatStep('6d');
+      }, 500);
+    } else if (chatMode === 'prescription' && chatStep === '6d') {
+      addMessage('user', input);
+      setPrescriptionForm(prev => ({ ...prev, suffix: input }));
       setInput('');
       
       setTimeout(() => {
@@ -1004,7 +1105,7 @@ export const useChatbotLogic = () => {
             Dosage: ${prescriptionForm.dosage}
             Frequency: ${prescriptionForm.frequency}
             Duration: ${prescriptionForm.duration}
-            Patient Name: ${prescriptionForm.patientName}
+            Patient Name: ${constructFullName(prescriptionForm)}
             Date of Birth: ${prescriptionForm.dateOfBirth}
             Email: ${prescriptionForm.email}
             Phone: ${prescriptionForm.phone}
@@ -1289,14 +1390,16 @@ export const useChatbotLogic = () => {
           if (period === 'AM' && hour === 12) hour = 0;
           const formattedTime = `${hour.toString().padStart(2, '0')}:${minutes}:00`;
 
-          // Split name into first and last name
-          const [firstName, ...lastNameParts] = (appointmentForm.name || '').trim().split(' ');
-          const lastName = lastNameParts.join(' ');
+          // Construct full name from components
+          const fullName = constructFullName(appointmentForm);
 
           // Create appointment data with proper structure for pending appointments
           const appointmentData = {
             // Patient details in separate fields (new structure)
-            patient_name: appointmentForm.name,
+            firstName: appointmentForm.firstName,
+            middleInitial: appointmentForm.middleInitial,
+            lastName: appointmentForm.lastName,
+            suffix: appointmentForm.suffix,
             patient_email: appointmentForm.email,
             patient_phone: appointmentForm.phone,
             date_of_birth: appointmentForm.dateOfBirth ? new Date(appointmentForm.dateOfBirth).toISOString().split('T')[0] : null,
@@ -1327,7 +1430,7 @@ export const useChatbotLogic = () => {
               // Create the new appointment object using the response data directly
               const newAppointment: Appointment = {
                 id: response?.id?.toString() || '',
-                patientId: appointmentForm.name, // Use patient name as temporary identifier until receptionist confirms
+                patientId: fullName, // Use patient full name as temporary identifier until receptionist confirms
                 doctorId: response?.doctor_id?.toString() || '',
                 date: response?.date || '',
                 time: response?.time || '',
@@ -1999,11 +2102,32 @@ export const useChatbotLogic = () => {
           setTimeout(() => {
             addBotMessage('Please fill out the form below with your personal information:', undefined, undefined, undefined, undefined, undefined, undefined, undefined, 'form', [
               {
-                name: 'name',
-                label: 'Full Name',
+                name: 'firstName',
+                label: 'First Name',
                 type: 'text',
                 required: true,
-                placeholder: 'Enter your full name'
+                placeholder: 'Enter your first name'
+              },
+              {
+                name: 'middleInitial',
+                label: 'Middle Initial',
+                type: 'text',
+                required: false,
+                placeholder: 'M (optional)'
+              },
+              {
+                name: 'lastName',
+                label: 'Last Name',
+                type: 'text',
+                required: true,
+                placeholder: 'Enter your last name'
+              },
+              {
+                name: 'suffix',
+                label: 'Suffix',
+                type: 'text',
+                required: false,
+                placeholder: 'Jr., Sr., III, etc. (optional)'
               },
               {
                 name: 'email',
@@ -2195,7 +2319,7 @@ export const useChatbotLogic = () => {
             Date: ${appointmentForm.date?.toLocaleDateString() || 'Not selected'}
             Time: ${appointmentForm.time}
             Type: ${appointmentForm.type}
-            Name: ${appointmentForm.name}
+            Name: ${constructFullName(appointmentForm)}
             Email: ${appointmentForm.email}
             Phone: ${appointmentForm.phone}
             Date of Birth: ${appointmentForm.dateOfBirth}
@@ -2233,15 +2357,27 @@ export const useChatbotLogic = () => {
       if (period === 'AM' && hour === 12) hour = 0;
       const formattedTime = `${hour.toString().padStart(2, '0')}:${minutes}:00`;
 
+      // Construct full name from components - use tempFormData if available, otherwise appointmentForm
+      const formDataToUse = Object.keys(tempFormData).length > 0 ? tempFormData : appointmentForm;
+      const fullName = constructFullName({
+        firstName: formDataToUse.firstName || appointmentForm.firstName,
+        middleInitial: formDataToUse.middleInitial || appointmentForm.middleInitial,
+        lastName: formDataToUse.lastName || appointmentForm.lastName,
+        suffix: formDataToUse.suffix || appointmentForm.suffix
+      } as AppointmentForm);
+
       // Create appointment data
       const appointmentData = {
-        patient_name: appointmentForm.name,
-        patient_email: appointmentForm.email,
-        patient_phone: appointmentForm.phone,
-        date_of_birth: appointmentForm.dateOfBirth ? new Date(appointmentForm.dateOfBirth).toISOString().split('T')[0] : null,
-        gender: appointmentForm.gender === 'Prefer not to say' ? 'prefer_not_to_say' : (appointmentForm.gender ? appointmentForm.gender.toLowerCase() : null),
-        address: appointmentForm.address || null,
-        marital_status: appointmentForm.maritalStatus === 'Prefer not to say' ? 'prefer_not_to_say' : (appointmentForm.maritalStatus ? appointmentForm.maritalStatus.toLowerCase() : null),
+        firstName: formDataToUse.firstName || appointmentForm.firstName,
+        middleInitial: formDataToUse.middleInitial || appointmentForm.middleInitial,
+        lastName: formDataToUse.lastName || appointmentForm.lastName,
+        suffix: formDataToUse.suffix || appointmentForm.suffix,
+        patient_email: formDataToUse.email || appointmentForm.email,
+        patient_phone: formDataToUse.phone || appointmentForm.phone,
+        date_of_birth: (formDataToUse.dateOfBirth || appointmentForm.dateOfBirth) ? new Date(formDataToUse.dateOfBirth || appointmentForm.dateOfBirth).toISOString().split('T')[0] : null,
+        gender: (formDataToUse.gender || appointmentForm.gender) === 'Prefer not to say' ? 'prefer_not_to_say' : ((formDataToUse.gender || appointmentForm.gender) ? (formDataToUse.gender || appointmentForm.gender).toLowerCase() : null),
+        address: formDataToUse.address || appointmentForm.address || null,
+        marital_status: (formDataToUse.maritalStatus || appointmentForm.maritalStatus) === 'Prefer not to say' ? 'prefer_not_to_say' : ((formDataToUse.maritalStatus || appointmentForm.maritalStatus) ? (formDataToUse.maritalStatus || appointmentForm.maritalStatus).toLowerCase() : null),
         appointment_type: appointmentForm.type === 'Regular Checkup' ? 'Routine Check-up' : appointmentForm.type,
         date: formattedDate,
         time: formattedTime,
@@ -2252,13 +2388,26 @@ export const useChatbotLogic = () => {
       };
 
       console.log('Making request to create appointment:', appointmentData);
+      console.log('tempFormData:', tempFormData);
+      console.log('appointmentForm name fields:', {
+        firstName: appointmentForm.firstName,
+        middleInitial: appointmentForm.middleInitial,
+        lastName: appointmentForm.lastName,
+        suffix: appointmentForm.suffix
+      });
+      console.log('Final appointmentData name fields:', {
+        firstName: appointmentData.firstName,
+        middleInitial: appointmentData.middleInitial,
+        lastName: appointmentData.lastName,
+        suffix: appointmentData.suffix
+      });
       const response = await api.appointments.create(appointmentData);
       console.log('Appointment created successfully:', response);
 
       // Create the new appointment object
       const newAppointment: Appointment = {
         id: response?.id?.toString() || '',
-        patientId: appointmentForm.name,
+        patientId: fullName,
         doctorId: response?.doctor_id?.toString() || '',
         date: response?.date || '',
         time: response?.time || '',
@@ -2268,6 +2417,9 @@ export const useChatbotLogic = () => {
       };
       
       addAppointment(newAppointment);
+      
+      // Clear temporary form data after successful submission
+      setTempFormData({});
       
       toast({
         title: "Appointment Scheduled",
@@ -2318,7 +2470,7 @@ export const useChatbotLogic = () => {
       
       const formData = new FormData();
       formData.append('request_type', medicalRecordForm.requestType);
-      formData.append('patient_name', medicalRecordForm.patientName);
+      formData.append('patient_name', constructFullName(medicalRecordForm));
       formData.append('date_of_birth', medicalRecordForm.dateOfBirth);
       formData.append('email', medicalRecordForm.email);
       formData.append('phone', medicalRecordForm.phone);
@@ -2367,7 +2519,7 @@ export const useChatbotLogic = () => {
       formData.append('dosage', prescriptionForm.dosage);
       formData.append('frequency', prescriptionForm.frequency);
       formData.append('duration', prescriptionForm.duration);
-      formData.append('patient_name', prescriptionForm.patientName);
+      formData.append('patient_name', constructFullName(prescriptionForm));
       formData.append('date_of_birth', prescriptionForm.dateOfBirth);
       formData.append('email', prescriptionForm.email);
       formData.append('phone', prescriptionForm.phone);
@@ -2418,13 +2570,43 @@ export const useChatbotLogic = () => {
       setMedicalRecordForm(prev => ({ ...prev, requestType: value }));
       
       setTimeout(() => {
-        addBotMessage( 'Please enter your full name:');
+        addBotMessage( 'Please enter your first name:');
         setChatStep(3);
       }, 500);
     } else if (chatStep === 3) {
-      // Patient name entered
+      // First name entered
       addMessage('user', input);
-      setMedicalRecordForm(prev => ({ ...prev, patientName: input }));
+      setMedicalRecordForm(prev => ({ ...prev, firstName: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addBotMessage('Please enter your middle initial (optional):');
+        setChatStep('3b');
+      }, 500);
+    } else if (chatStep === '3b') {
+      // Middle initial entered
+      addMessage('user', input);
+      setMedicalRecordForm(prev => ({ ...prev, middleInitial: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addBotMessage('Please enter your last name:');
+        setChatStep('3c');
+      }, 500);
+    } else if (chatStep === '3c') {
+      // Last name entered
+      addMessage('user', input);
+      setMedicalRecordForm(prev => ({ ...prev, lastName: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addBotMessage('Please enter your suffix (optional, e.g., Jr., Sr., III):');
+        setChatStep('3d');
+      }, 500);
+    } else if (chatStep === '3d') {
+      // Suffix entered
+      addMessage('user', input);
+      setMedicalRecordForm(prev => ({ ...prev, suffix: input }));
       setInput('');
       
       setTimeout(() => {
@@ -2507,7 +2689,7 @@ export const useChatbotLogic = () => {
         setTimeout(() => {
           const summary = `
             Record Type: ${medicalRecordForm.requestType}
-            Patient Name: ${medicalRecordForm.patientName}
+            Patient Name: ${constructFullName(medicalRecordForm)}
             Date of Birth: ${medicalRecordForm.dateOfBirth}
             Email: ${medicalRecordForm.email}
             Phone: ${medicalRecordForm.phone}
@@ -2569,13 +2751,43 @@ export const useChatbotLogic = () => {
       setInput('');
       
       setTimeout(() => {
-        addBotMessage( 'Please enter your full name:');
+        addBotMessage( 'Please enter your first name:');
         setChatStep(6);
       }, 500);
     } else if (chatStep === 6) {
-      // Patient name entered
+      // First name entered
       addMessage('user', input);
-      setPrescriptionForm(prev => ({ ...prev, patientName: input }));
+      setPrescriptionForm(prev => ({ ...prev, firstName: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addBotMessage('Please enter your middle initial (optional):');
+        setChatStep('6b');
+      }, 500);
+    } else if (chatStep === '6b') {
+      // Middle initial entered
+      addMessage('user', input);
+      setPrescriptionForm(prev => ({ ...prev, middleInitial: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addBotMessage('Please enter your last name:');
+        setChatStep('6c');
+      }, 500);
+    } else if (chatStep === '6c') {
+      // Last name entered
+      addMessage('user', input);
+      setPrescriptionForm(prev => ({ ...prev, lastName: input }));
+      setInput('');
+      
+      setTimeout(() => {
+        addBotMessage('Please enter your suffix (optional, e.g., Jr., Sr., III):');
+        setChatStep('6d');
+      }, 500);
+    } else if (chatStep === '6d') {
+      // Suffix entered
+      addMessage('user', input);
+      setPrescriptionForm(prev => ({ ...prev, suffix: input }));
       setInput('');
       
       setTimeout(() => {
@@ -2678,7 +2890,7 @@ export const useChatbotLogic = () => {
             Dosage: ${prescriptionForm.dosage}
             Frequency: ${prescriptionForm.frequency}
             Duration: ${prescriptionForm.duration}
-            Patient Name: ${prescriptionForm.patientName}
+            Patient Name: ${constructFullName(prescriptionForm)}
             Date of Birth: ${prescriptionForm.dateOfBirth}
             Email: ${prescriptionForm.email}
             Phone: ${prescriptionForm.phone}
@@ -2701,12 +2913,16 @@ export const useChatbotLogic = () => {
     setChatMode(null);
     setDisabledMessages(new Set()); // Clear disabled messages when resetting
     setExistingPatient(null); // Clear existing patient data when resetting
+    setTempFormData({}); // Clear temporary form data when resetting
     setAppointmentForm({
       date: undefined,
       time: '',
       type: '',
       doctorId: '',
-      name: '',
+      firstName: '',
+      middleInitial: '',
+      lastName: '',
+      suffix: '',
       email: '',
       phone: '',
       notes: '',
@@ -2718,7 +2934,10 @@ export const useChatbotLogic = () => {
     });
     setMedicalRecordForm({
       requestType: '',
-      patientName: '',
+      firstName: '',
+      middleInitial: '',
+      lastName: '',
+      suffix: '',
       dateOfBirth: '',
       email: '',
       phone: '',
@@ -2730,7 +2949,10 @@ export const useChatbotLogic = () => {
       dosage: '',
       frequency: '',
       duration: '',
-      patientName: '',
+      firstName: '',
+      middleInitial: '',
+      lastName: '',
+      suffix: '',
       dateOfBirth: '',
       email: '',
       phone: '',
@@ -3233,10 +3455,16 @@ export const useChatbotLogic = () => {
   const handleFormSubmit = (formData: Record<string, string>) => {
     setIsInputDisabled(false); // Re-enable input after form submission
     
+    // Store form data temporarily for appointment confirmation
+    setTempFormData(formData);
+    
     // Update appointment form with all the form data
     setAppointmentForm(prev => ({
       ...prev,
-      name: formData.name || '',
+      firstName: formData.firstName || '',
+      middleInitial: formData.middleInitial || '',
+      lastName: formData.lastName || '',
+      suffix: formData.suffix || '',
       email: formData.email || '',
       phone: formData.phone || '',
       dateOfBirth: formData.dateOfBirth || '',
@@ -3258,11 +3486,11 @@ export const useChatbotLogic = () => {
 ⏰ Time: ${appointmentForm.time}
 👨‍⚕️ Doctor: ${doctors.find(d => d.id.toString() === appointmentForm.doctorId)?.first_name} ${doctors.find(d => d.id.toString() === appointmentForm.doctorId)?.last_name}
 📋 Type: ${appointmentForm.type}
-👤 Patient: ${formData.name}
-📧 Email: ${formData.email}
-📞 Phone: ${formData.phone}
-🎂 Date of Birth: ${formData.dateOfBirth}
-⚧ Gender: ${formData.gender}
+👤 Patient: ${constructFullName({ firstName: tempFormData.firstName, middleInitial: tempFormData.middleInitial, lastName: tempFormData.lastName, suffix: tempFormData.suffix } as AppointmentForm)}
+📧 Email: ${tempFormData.email}
+📞 Phone: ${tempFormData.phone}
+🎂 Date of Birth: ${tempFormData.dateOfBirth}
+⚧ Gender: ${tempFormData.gender}
         `.trim();
 
        addBotMessage( appointmentDetails);
