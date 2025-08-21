@@ -1,6 +1,8 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight, Clock, User } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 
 interface Appointment {
@@ -32,6 +34,9 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
   patients = []
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [showMoreModal, setShowMoreModal] = useState(false);
+  const [selectedDayAppointments, setSelectedDayAppointments] = useState<Appointment[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   // Get the first day of the current month
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -121,24 +126,32 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
     }
   };
 
+  // Handle showing more appointments for a specific day
+  const handleShowMoreAppointments = (day: Date, dayAppointments: Appointment[]) => {
+    setSelectedDate(day);
+    setSelectedDayAppointments(dayAppointments);
+    setShowMoreModal(true);
+  };
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-2xl font-bold">
-          {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-        </CardTitle>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm" onClick={goToPreviousMonth}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="sm" onClick={goToNextMonth}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardHeader>
+    <>
+      <Card className="w-full">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="text-2xl font-bold">
+            {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+          </CardTitle>
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm" onClick={goToPreviousMonth}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={goToNextMonth}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardHeader>
       <CardContent>
         {/* Day headers */}
         <div className="grid grid-cols-7 gap-1 mb-2">
@@ -159,46 +172,42 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
             return (
               <div
                 key={index}
-                className={`min-h-[140px] p-2 border rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md ${
+                className={`min-h-[80px] p-2 border rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md ${
                   isCurrentMonth ? 'bg-white border-gray-200' : 'bg-gray-50 border-gray-100'
                 } ${isToday ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}
                 onClick={() => onDateClick?.(day)}
               >
-                <div className={`text-sm font-semibold mb-2 ${
+                <div className={`text-sm font-semibold mb-1 ${
                   isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
-                } ${isToday ? 'text-blue-600 text-base' : ''}`}>
+                } ${isToday ? 'text-blue-600' : ''}`}>
                   {day.getDate()}
                 </div>
                 
-                {/* Appointments for this day */}
+                {/* Appointments for this day - only show time */}
                 <div className="space-y-1">
-                  {dayAppointments.slice(0, 3).map((appointment) => (
+                  {dayAppointments.slice(0, 4).map((appointment) => (
                     <div
                       key={appointment.id}
-                      className={`text-xs p-2 rounded-md text-white cursor-pointer transition-all duration-200 transform hover:scale-105 ${getStatusColor(appointment.status)}`}
+                      className={`text-xs px-1 py-1 rounded text-white cursor-pointer transition-all duration-200 hover:opacity-80 ${getStatusColor(appointment.status)}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         onAppointmentClick?.(appointment);
                       }}
                     >
-                      <div className="flex items-center gap-1 mb-1">
-                        <Clock className="h-3 w-3" />
-                        <span className="font-medium">{formatTime(appointment.time)}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        <span className="truncate">{getPatientName(appointment)}</span>
-                      </div>
-                      <div className="text-[10px] opacity-90 mt-1">
-                        {appointment.appointment_type || 'Consultation'}
-                      </div>
+                      <span className="font-medium text-center block">{formatTime(appointment.time)}</span>
                     </div>
                   ))}
                   
                   {/* Show "more" indicator if there are additional appointments */}
-                  {dayAppointments.length > 3 && (
-                    <div className="text-xs text-gray-500 text-center py-1 bg-gray-100 rounded-md">
-                      +{dayAppointments.length - 3} more
+                  {dayAppointments.length > 4 && (
+                    <div 
+                      className="text-[10px] text-gray-600 text-center py-1 bg-gray-100 rounded cursor-pointer hover:bg-gray-200 transition-colors duration-200 font-medium"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleShowMoreAppointments(day, dayAppointments);
+                      }}
+                    >
+                      +{dayAppointments.length - 4} more
                     </div>
                   )}
                 </div>
@@ -222,16 +231,59 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
             <span className="text-xs text-gray-600">Ongoing</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-500 rounded"></div>
-            <span className="text-xs text-gray-600">Completed</span>
-          </div>
-          <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-purple-500 rounded"></div>
             <span className="text-xs text-gray-600">Follow-up</span>
           </div>
         </div>
       </CardContent>
     </Card>
+
+    {/* More Appointments Modal */}
+    <Dialog open={showMoreModal} onOpenChange={setShowMoreModal}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            All Appointments - {selectedDate?.toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 max-h-96 overflow-y-auto">
+          {selectedDayAppointments.map((appointment) => (
+            <div
+              key={appointment.id}
+              className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors duration-200"
+              onClick={() => {
+                setShowMoreModal(false);
+                onAppointmentClick?.(appointment);
+              }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium text-sm">
+                  {formatTime(appointment.time)}
+                </span>
+                <Badge 
+                  variant={appointment.status === 'scheduled' ? 'outline' : 'secondary'}
+                  className={`text-xs ${getStatusColor(appointment.status)} text-white border-none`}
+                >
+                  {appointment.status}
+                </Badge>
+              </div>
+              <div className="text-sm text-gray-600">
+                <p className="font-medium">{getPatientName(appointment)}</p>
+                {appointment.appointment_type && (
+                  <p className="text-xs text-gray-500">{appointment.appointment_type}</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 

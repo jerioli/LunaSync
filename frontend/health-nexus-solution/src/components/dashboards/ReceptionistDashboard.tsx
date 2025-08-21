@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useClinic } from '@/contexts/ClinicContext';
 import { axiosInstance } from '@/services/api';
@@ -17,6 +18,7 @@ const ReceptionistDashboard = () => {
   const [patientDetails, setPatientDetails] = useState({});
   const [localPatients, setLocalPatients] = useState([]);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
   const navigate = useNavigate();
 
   // Helper function to format time
@@ -186,8 +188,7 @@ const ReceptionistDashboard = () => {
   // Handler for when an appointment is clicked in the calendar
   const handleAppointmentClick = (appointment) => {
     setSelectedAppointment(appointment);
-    console.log('Appointment clicked:', appointment);
-    // You can add more functionality here, like opening a modal or navigating to appointment details
+    setIsAppointmentModalOpen(true);
   };
 
   // Handler for when a date is clicked in the calendar
@@ -368,29 +369,114 @@ const ReceptionistDashboard = () => {
         
         <TabsContent value="calendar" className="space-y-6">
           <AppointmentCalendar
-            appointments={appointments}
+            appointments={appointments.filter(appointment => 
+              appointment.status !== 'completed' && 
+              appointment.status !== 'cancelled'
+            )}
             onAppointmentClick={handleAppointmentClick}
             onDateClick={handleDateClick}
             patientDetails={patientDetails}
             patients={patients}
           />
-          {selectedAppointment && (
-            <Card className="mt-4">
-              <CardHeader>
-                <CardTitle>Selected Appointment Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <p><strong>Date:</strong> {new Date(selectedAppointment.date).toLocaleDateString()}</p>
-                  <p><strong>Time:</strong> {formatTime(selectedAppointment.time)}</p>
-                  <p><strong>Status:</strong> {selectedAppointment.status}</p>
-                  <p><strong>Type:</strong> {selectedAppointment.appointment_type || 'Consultation'}</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </TabsContent>
       </Tabs>
+
+      {/* Appointment Details Modal */}
+      <Dialog open={isAppointmentModalOpen} onOpenChange={setIsAppointmentModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Appointment Details</DialogTitle>
+          </DialogHeader>
+          {selectedAppointment && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-semibold text-gray-600">Patient Name</label>
+                  <p className="text-sm">{getPatientName(selectedAppointment.patientId || selectedAppointment.patient, selectedAppointment)}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600">Appointment Type</label>
+                  <p className="text-sm">{selectedAppointment.appointment_type || selectedAppointment.type || 'Consultation'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600">Date</label>
+                  <p className="text-sm">{new Date(selectedAppointment.date).toLocaleDateString('en-US', { 
+                    weekday: 'long',
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600">Time</label>
+                  <p className="text-sm">{formatTime(selectedAppointment.time)}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600">Status</label>
+                  <div className="mt-1">
+                    <Badge 
+                      variant={selectedAppointment.status === 'scheduled' ? 'outline' : 
+                               selectedAppointment.status === 'pending' ? 'secondary' :
+                               selectedAppointment.status === 'completed' ? 'default' : 'destructive'}
+                      className={
+                        selectedAppointment.status === 'scheduled' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                        selectedAppointment.status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                        
+                        selectedAppointment.status === 'cancelled' ? 'bg-red-50 text-red-700 border-red-200' : ''
+                      }
+                    >
+                      {selectedAppointment.status.charAt(0).toUpperCase() + selectedAppointment.status.slice(1)}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600">Doctor</label>
+                  <p className="text-sm">{selectedAppointment.display_doctor_name || selectedAppointment.doctorName || 'Not assigned'}</p>
+                </div>
+              </div>
+              
+              {selectedAppointment.reason && (
+                <div>
+                  <label className="text-sm font-semibold text-gray-600">Reason for Visit</label>
+                  <p className="text-sm">{selectedAppointment.reason}</p>
+                </div>
+              )}
+              
+              <div className="flex justify-end space-x-2 pt-4 border-t">
+                {selectedAppointment.status === 'scheduled' && (
+                  <Button size="sm">Check In Patient</Button>
+                )}
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    const patientId = selectedAppointment.patientId || selectedAppointment.patient;
+                    const patient = localPatients.find(p => String(p.id) === String(patientId)) || 
+                                   patients.find(p => String(p.id) === String(patientId)) ||
+                                   patientDetails[patientId];
+                    if (patient?.id) {
+                      navigate(`/patients/${patient.id}`);
+                      setIsAppointmentModalOpen(false);
+                    }
+                  }}
+                >
+                  View Patient Record
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    navigate('/appointments');
+                    setIsAppointmentModalOpen(false);
+                  }}
+                >
+                  Manage Appointment
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
