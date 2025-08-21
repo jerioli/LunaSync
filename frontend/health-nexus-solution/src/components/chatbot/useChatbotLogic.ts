@@ -2381,7 +2381,6 @@ export const useChatbotLogic = () => {
         appointment_type: appointmentForm.type === 'Regular Checkup' ? 'Routine Check-up' : appointmentForm.type,
         date: formattedDate,
         time: formattedTime,
-        notes: appointmentForm.notes || '',
         doctor_id: parseInt(appointmentForm.doctorId),
         status: 'pending',
         is_pending_confirmation: true

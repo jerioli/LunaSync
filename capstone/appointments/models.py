@@ -36,7 +36,6 @@ class Appointment(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
     appointment_type = models.CharField(max_length=50, choices=TYPE_CHOICES, default='Consultation')
-    notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

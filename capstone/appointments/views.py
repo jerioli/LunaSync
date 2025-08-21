@@ -46,7 +46,6 @@ class AppointmentCreateView(APIView):
                 'appointment_type': request.data.get('appointment_type', '').strip(),
                 'date': request.data.get('date', ''),
                 'time': request.data.get('time', ''),
-                'notes': request.data.get('notes', '').strip(),
                 'doctor_id': request.data.get('doctor_id'),
                 'status': request.data.get('status', 'scheduled'),
                 # Add required patient fields
@@ -146,7 +145,6 @@ class AppointmentListView(ListAPIView):
                     logger.info(f"Time: {appt.time}")
                     logger.info(f"Appointment Type: {appt.appointment_type}")
                     logger.info(f"Status: {appt.status}")
-                    logger.info(f"Notes: {appt.notes}")
                 
                 # Now try with select_related
                 queryset = Appointment.objects.all().select_related('patient', 'doctor')
@@ -220,56 +218,34 @@ class AppointmentApproveView(APIView):
         try:
             appointment = Appointment.objects.get(id=appointment_id)
             
-            # Extract patient details from notes
-            notes = appointment.notes or ''
-            if 'Patient Details (Pending):' in notes:
+            # Get patient details directly from appointment fields
+            if appointment.patient_name and appointment.patient_email and appointment.patient_phone:
                 try:
-                    # Extract the patient details JSON string
-                    patient_details_str = notes.split('Patient Details (Pending):')[1].strip()
-                    patient_details = json.loads(patient_details_str)
+                    # Use the appointment fields directly
+                    patient_details = {
+                        'name': appointment.patient_name,
+                        'email': appointment.patient_email,
+                        'phone': appointment.patient_phone,
+                        'date_of_birth': appointment.date_of_birth.strftime('%Y-%m-%d') if appointment.date_of_birth else None,
+                        'gender': appointment.gender,
+                        'address': appointment.address,
+                        'marital_status': appointment.marital_status
+                    }
                     
-                    # Convert date format from DD/MM/YYYY or MM/DD/YYYY to YYYY-MM-DD
-                    date_of_birth = patient_details.get('dateOfBirth') or patient_details.get('date_of_birth')
-                    if date_of_birth:
-                        try:
-                            # Try to parse different date formats
-                            if '/' in str(date_of_birth):
-                                date_str = str(date_of_birth)
-                                # Try MM/DD/YYYY format first (American format)
-                                try:
-                                    date_obj = datetime.strptime(date_str, '%m/%d/%Y')
-                                    date_of_birth = date_obj.strftime('%Y-%m-%d')
-                                except ValueError:
-                                    # If that fails, try DD/MM/YYYY format (European format)
-                                    try:
-                                        date_obj = datetime.strptime(date_str, '%d/%m/%Y')
-                                        date_of_birth = date_obj.strftime('%Y-%m-%d')
-                                    except ValueError:
-                                        # If both fail, try to use as is (might already be in YYYY-MM-DD)
-                                        pass
-                        except Exception:
-                            # If any conversion fails, try to use as is
-                            pass
-                    
-                    # Create new patient record with all required fields
+                    # Create new patient record with the appointment fields
                     patient = Patient.objects.create(
                         name=patient_details['name'],
                         email=patient_details['email'],
                         phone=patient_details['phone'],
-                        date_of_birth=date_of_birth,
+                        date_of_birth=appointment.date_of_birth,
                         gender=patient_details.get('gender'),
                         address=patient_details.get('address'),
-                        marital_status=patient_details.get('maritalStatus') or patient_details.get('marital_status')
+                        marital_status=patient_details.get('marital_status')
                     )
                     
-                    # Update appointment with patient reference and clean up notes
+                    # Update appointment with patient reference
                     appointment.patient = patient
                     appointment.status = 'scheduled'
-                    
-                    # Remove patient details from notes, keep only user notes
-                    if 'Patient Details (Pending):' in appointment.notes:
-                        appointment.notes = appointment.notes.split('Patient Details (Pending):')[0].strip()
-                    
                     appointment.save()
                     
                     # Send confirmation email to patient
@@ -283,13 +259,14 @@ class AppointmentApproveView(APIView):
                         'patient_id': patient.id
                     }, status=status.HTTP_200_OK)
                     
-                except json.JSONDecodeError:
+                except Exception as e:
+                    logger.error(f"Error creating patient from appointment data: {str(e)}")
                     return Response({
-                        'message': 'Invalid patient details format in notes',
+                        'message': 'Invalid patient details in appointment',
                     }, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({
-                    'message': 'No pending patient details found in appointment notes',
+                    'message': 'No patient details found in appointment',
                 }, status=status.HTTP_400_BAD_REQUEST)
                 
         except Appointment.DoesNotExist:

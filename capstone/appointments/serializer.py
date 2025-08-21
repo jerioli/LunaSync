@@ -38,7 +38,6 @@ class AppointmentSerializer(serializers.ModelSerializer):
     doctor_id = serializers.IntegerField(required=True)
     date = serializers.DateField(required=True)
     time = serializers.TimeField(required=True)
-    notes = serializers.CharField(required=False, allow_blank=True)
     status = serializers.ChoiceField(choices=Appointment.STATUS_CHOICES, required=False, default='pending')
     
     # Display fields for better data representation
@@ -46,7 +45,6 @@ class AppointmentSerializer(serializers.ModelSerializer):
     display_doctor_name = serializers.SerializerMethodField(read_only=True)
     display_time = serializers.SerializerMethodField(read_only=True)
     display_date = serializers.SerializerMethodField(read_only=True)
-    display_notes = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Appointment
@@ -55,9 +53,9 @@ class AppointmentSerializer(serializers.ModelSerializer):
             'patient_name', 'patient_email', 'patient_phone',
             'date_of_birth', 'gender', 'address', 'marital_status',
             'appointment_type', 'doctor_id', 'date', 'time',
-            'notes', 'status', 'created_at',
+            'status', 'created_at',
             'display_patient_name', 'display_doctor_name',
-            'display_time', 'display_date', 'display_notes'
+            'display_time', 'display_date'
         ]
         read_only_fields = ['id', 'created_at']
 
@@ -98,13 +96,6 @@ class AppointmentSerializer(serializers.ModelSerializer):
         except Exception as e:
             logger.error(f"Error formatting date: {str(e)}")
             return "N/A"
-
-    def get_display_notes(self, obj):
-        try:
-            return obj.notes or "No notes"
-        except Exception as e:
-            logger.error(f"Error getting notes: {str(e)}")
-            return "No notes"
 
     def to_representation(self, instance):
         try:
@@ -288,7 +279,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
             if suffix and suffix.strip():
                 name_parts.append(suffix.strip())
             
-            full_name = ' '.join(name_parts) if name_parts else validated_data.pop('patient_name', '')
+            full_name = ' '.join(name_parts) if name_parts else validated_data.get('patient_name', '')
             
             # Validate that we have at least a name
             if not full_name or not full_name.strip():
@@ -296,15 +287,23 @@ class AppointmentSerializer(serializers.ModelSerializer):
                     'patient_name': 'Patient name is required. Please provide at least a first name or last name.'
                 })
             
-            # Extract patient data
+            # Extract patient data WITHOUT removing from validated_data
+            patient_email = validated_data.get('patient_email')
+            patient_phone = validated_data.get('patient_phone')
+            date_of_birth = validated_data.get('date_of_birth')
+            gender = validated_data.get('gender')
+            address = validated_data.get('address')
+            marital_status = validated_data.get('marital_status')
+            
+            # Extract patient data for patient record creation
             patient_data = {
                 'name': full_name,
-                'email': validated_data.pop('patient_email'),
-                'phone': validated_data.pop('patient_phone'),
-                'date_of_birth': validated_data.pop('date_of_birth'),
-                'gender': validated_data.pop('gender'),
-                'address': validated_data.pop('address'),
-                'marital_status': validated_data.pop('marital_status')
+                'email': patient_email,
+                'phone': patient_phone,
+                'date_of_birth': date_of_birth,
+                'gender': gender,
+                'address': address,
+                'marital_status': marital_status
             }
             
             # Store the full name in the appointment record as well
@@ -312,19 +311,6 @@ class AppointmentSerializer(serializers.ModelSerializer):
             
             # For pending appointments from the chatbot, don't create patient record yet
             if status == 'pending':
-                # Store patient details in notes for pending appointments
-                user_notes = validated_data.get('notes', '')
-                import json
-                
-                # Convert date objects to strings for JSON serialization
-                serializable_patient_data = patient_data.copy()
-                if 'date_of_birth' in serializable_patient_data and serializable_patient_data['date_of_birth']:
-                    serializable_patient_data['date_of_birth'] = serializable_patient_data['date_of_birth'].strftime('%Y-%m-%d')
-                
-                patient_details_json = json.dumps(serializable_patient_data)
-                combined_notes = f"{user_notes}\n\nPatient Details (Pending): {patient_details_json}".strip()
-                validated_data['notes'] = combined_notes
-                
                 # Set patient to null for pending appointments
                 patient = None
             else:
@@ -347,17 +333,16 @@ class AppointmentSerializer(serializers.ModelSerializer):
                 doctor=doctor,
                 date=validated_data.get('date'),
                 time=validated_data.get('time'),
-                appointment_type=validated_data.pop('appointment_type'),
-                notes=validated_data.get('notes', ''),
+                appointment_type=validated_data.get('appointment_type'),
                 status=status,
                 # Store patient details directly in appointment fields
                 patient_name=full_name,
-                patient_email=patient_data['email'],
-                patient_phone=patient_data['phone'],
-                date_of_birth=patient_data['date_of_birth'],
-                gender=patient_data['gender'],
-                address=patient_data['address'],
-                marital_status=patient_data['marital_status']
+                patient_email=patient_email,
+                patient_phone=patient_phone,
+                date_of_birth=date_of_birth,
+                gender=gender,
+                address=address,
+                marital_status=marital_status
             )
 
             return appointment
