@@ -211,6 +211,19 @@ const Appointments = () => {
       const result = appointment.status === "completed";
       console.log('Completed filter result:', result, 'for appointment:', appointment.id);
       return result;
+    } else if (activeTab === "followup") {
+      // Only receptionists can see follow-up appointments
+      if (!isReceptionist) {
+        console.log('Filtering out followup: Not receptionist');
+        return false;
+      }
+      // Show appointments that are completed and have follow-up type or need follow-up
+      const result = appointment.status === "completed" && 
+                    (appointment.appointment_type?.toLowerCase().includes('follow') || 
+                     appointment.type?.toLowerCase().includes('follow') ||
+                     appointment.notes?.toLowerCase().includes('follow'));
+      console.log('Follow-up filter result:', result, 'for appointment:', appointment.id);
+      return result;
     } else if (activeTab === "cancelled") {
       const result = appointment.status === "cancelled" || appointment.status === "no-show";
       console.log('Cancelled filter result:', result, 'for appointment:', appointment.id);
@@ -432,6 +445,31 @@ const Appointments = () => {
     }
   };
 
+  // Handler for scheduling follow-up appointments
+  const handleScheduleFollowUp = async (appointment) => {
+    try {
+      // Create a follow-up appointment
+      const followUpData = {
+        patient: appointment.patientId || appointment.patient,
+        doctor: appointment.doctorId || appointment.doctor,
+        date: '', // Will be set by the scheduling modal
+        time: '', // Will be set by the scheduling modal
+        appointment_type: 'Follow-up',
+        notes: `Follow-up for appointment on ${appointment.date}`,
+        status: 'pending'
+      };
+
+      // For now, we'll show a toast and open the new appointment modal
+      // In a full implementation, you might want to create a dedicated follow-up scheduling modal
+      toast.success("Opening appointment scheduler for follow-up");
+      setShowNewAppointmentModal(true);
+      
+    } catch (error) {
+      console.error('Error scheduling follow-up:', error);
+      toast.error("Failed to schedule follow-up appointment");
+    }
+  };
+
   // Render action buttons for each appointment
   const renderActionButtons = (appointment) => {
     if (activeTab === "upcoming" && isReceptionist) {
@@ -526,6 +564,29 @@ const Appointments = () => {
       }
     }
 
+    if (activeTab === "completed" && isDoctor) {
+      return (
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className={buttonClass}
+            onClick={() => navigate(`/patients/${appointment.patientId}`)}
+          >
+            View Record
+          </Button>
+          <Button 
+            variant="default" 
+            size="sm" 
+            className={`${buttonClass} bg-blue-600 hover:bg-blue-700`}
+            onClick={() => handleScheduleFollowUp(appointment)}
+          >
+            Schedule Follow-up
+          </Button>
+        </div>
+      );
+    }
+
     return null;
   };
 
@@ -552,11 +613,12 @@ const Appointments = () => {
       <div className="grid grid-cols-1 md:grid-cols-1 gap-6 md:max-w-7xl mx-auto">
         <div>
           <Tabs defaultValue="upcoming" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className={`grid mb-4 ${isReceptionist ? 'grid-cols-5' : 'grid-cols-4'}`}>
+            <TabsList className={`grid mb-4 ${isReceptionist ? 'grid-cols-6' : 'grid-cols-4'}`}>
               <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
               {isReceptionist && <TabsTrigger value="pending">Pending</TabsTrigger>}
               <TabsTrigger value="ongoing">Ongoing</TabsTrigger>
               <TabsTrigger value="completed">Completed</TabsTrigger>
+              {isReceptionist && <TabsTrigger value="followup">Follow-up</TabsTrigger>}
               <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
             </TabsList>
             
@@ -887,6 +949,75 @@ const Appointments = () => {
                 </Card>
               )}
             </TabsContent>
+            
+            {isReceptionist && (
+              <TabsContent value="followup" className="space-y-4">
+                {filteredAppointments.length === 0 ? (
+                  <Card>
+                    <CardContent className="pt-6 text-center">
+                      <p>No follow-up appointments found.</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <CardContent className="p-0">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[200px]">
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4" />
+                                Patient
+                              </div>
+                            </TableHead>
+                            <TableHead>
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                Date
+                              </div>
+                            </TableHead>
+                            <TableHead>
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4" />
+                                Time
+                              </div>
+                            </TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Doctor</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredAppointments.map((appointment) => (
+                            <TableRow key={appointment.id}>
+                              <TableCell className="font-medium">
+                                {getPatientName(appointment.patientId, appointment)}
+                              </TableCell>
+                              <TableCell>{formatDate(appointment.date)}</TableCell>
+                              <TableCell>{formatTime(appointment.time)}</TableCell>
+                              <TableCell>{appointment.type}</TableCell>
+                              <TableCell>{getDoctorName(appointment.doctorId, appointment)}</TableCell>
+                              <TableCell>{getStatusBadge(appointment.status)}</TableCell>
+                              <TableCell className="text-right">
+                                <Button 
+                                  variant="default" 
+                                  size="sm" 
+                                  className={buttonClass}
+                                  onClick={() => handleScheduleFollowUp(appointment)}
+                                >
+                                  Schedule New Follow-up
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+            )}
             
             <TabsContent value="cancelled" className="space-y-4">
               {filteredAppointments.length === 0 ? (

@@ -8,11 +8,14 @@ import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
 import { format } from 'date-fns';
-import { FileText, Search, UserPlus } from 'lucide-react';
+import { ArrowUpDown, ChevronDown, ChevronUp, FileText, Search, UserPlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
+
+type SortField = 'name' | 'gender' | 'date_of_birth' | 'email' | 'phone' | 'marital_status';
+type SortDirection = 'asc' | 'desc';
 
 const PatientsList = () => {
   const navigate = useNavigate();
@@ -20,6 +23,8 @@ const PatientsList = () => {
 
   const { patients, fetchPatients, currentUser } = useClinic();
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   // Role-based access control - admin, receptionist, and doctor can use bulk import
   const canUseBulkImport = currentUser?.role === 'admin' || 
@@ -31,14 +36,54 @@ const PatientsList = () => {
     fetchPatients();
   }, [fetchPatients]);
 
+  // Handle sorting
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Sort patients
+  const sortedPatients = [...patients].sort((a, b) => {
+    let aValue: any = a[sortField];
+    let bValue: any = b[sortField];
+
+    // Handle different data types
+    if (sortField === 'date_of_birth') {
+      aValue = aValue ? new Date(aValue).getTime() : 0;
+      bValue = bValue ? new Date(bValue).getTime() : 0;
+    } else if (typeof aValue === 'string') {
+      aValue = aValue.toLowerCase();
+      bValue = bValue ? bValue.toLowerCase() : '';
+    }
+
+    if (sortDirection === 'asc') {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
 
   // Filter patients based on search query
-  const filteredPatients = patients.filter(patient => 
+  const filteredPatients = sortedPatients.filter(patient => 
     patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     patient.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     patient.phone.includes(searchQuery) ||
     (patient.marital_status || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Render sort icon
+  const renderSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="ml-2 h-4 w-4" />;
+    }
+    return sortDirection === 'asc' ? 
+      <ChevronUp className="ml-2 h-4 w-4" /> : 
+      <ChevronDown className="ml-2 h-4 w-4" />;
+  };
 
 
 
@@ -65,15 +110,40 @@ const PatientsList = () => {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Patient Records</CardTitle>
-            <div className="relative w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search patients..."
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+            <div>
+              <CardTitle>Patient Records</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Showing {filteredPatients.length} of {patients.length} patients
+                {sortField && (
+                  <span className="ml-2">
+                    • Sorted by {sortField.replace('_', ' ')} ({sortDirection === 'asc' ? 'A-Z' : 'Z-A'})
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="relative w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search patients..."
+                  className="pl-8"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              {(searchQuery || sortField !== 'name' || sortDirection !== 'asc') && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSortField('name');
+                    setSortDirection('asc');
+                  }}
+                >
+                  Reset
+                </Button>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -81,11 +151,56 @@ const PatientsList = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Patient</TableHead>
-                <TableHead>Gender</TableHead>
-                <TableHead>Date of Birth</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Civil Status</TableHead>
+                <TableHead>
+                  <Button 
+                    variant="ghost" 
+                    className="h-auto p-0 font-semibold hover:bg-transparent"
+                    onClick={() => handleSort('name')}
+                  >
+                    Patient
+                    {renderSortIcon('name')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button 
+                    variant="ghost" 
+                    className="h-auto p-0 font-semibold hover:bg-transparent"
+                    onClick={() => handleSort('gender')}
+                  >
+                    Gender
+                    {renderSortIcon('gender')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button 
+                    variant="ghost" 
+                    className="h-auto p-0 font-semibold hover:bg-transparent"
+                    onClick={() => handleSort('date_of_birth')}
+                  >
+                    Date of Birth
+                    {renderSortIcon('date_of_birth')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button 
+                    variant="ghost" 
+                    className="h-auto p-0 font-semibold hover:bg-transparent"
+                    onClick={() => handleSort('email')}
+                  >
+                    Contact
+                    {renderSortIcon('email')}
+                  </Button>
+                </TableHead>
+                <TableHead>
+                  <Button 
+                    variant="ghost" 
+                    className="h-auto p-0 font-semibold hover:bg-transparent"
+                    onClick={() => handleSort('marital_status')}
+                  >
+                    Civil Status
+                    {renderSortIcon('marital_status')}
+                  </Button>
+                </TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -128,8 +243,20 @@ const PatientsList = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    No patients found. Try a different search term.
+                  <TableCell colSpan={6} className="text-center py-8">
+                    <div className="text-muted-foreground">
+                      {searchQuery ? (
+                        <>
+                          <p className="text-lg font-medium">No patients found</p>
+                          <p className="text-sm">Try adjusting your search term "{searchQuery}"</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-lg font-medium">No patients registered yet</p>
+                          <p className="text-sm">Click "Add New Patient" to get started</p>
+                        </>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               )}
