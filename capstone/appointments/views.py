@@ -378,8 +378,33 @@ class AppointmentUpdateStatusView(APIView):
                 except Patient.DoesNotExist:
                     # Create patient from the new appointment fields
                     try:
+                        # Parse the combined patient name into separate fields
+                        name_parts = appointment.patient_name.strip().split() if appointment.patient_name else []
+                        first_name = name_parts[0] if len(name_parts) > 0 else ""
+                        last_name = name_parts[-1] if len(name_parts) > 1 else ""
+                        middle_initial = ""
+                        suffix = ""
+                        
+                        # If there are more than 2 parts, treat middle parts as middle initial
+                        if len(name_parts) > 2:
+                            middle_parts = name_parts[1:-1]
+                            # Check if last part might be a suffix (Jr, Sr, III, etc.)
+                            potential_suffix = name_parts[-1]
+                            if potential_suffix.lower() in ['jr', 'jr.', 'sr', 'sr.', 'ii', 'iii', 'iv', 'v']:
+                                suffix = potential_suffix
+                                last_name = name_parts[-2] if len(name_parts) > 2 else ""
+                                if len(name_parts) > 3:
+                                    middle_parts = name_parts[1:-2]
+                            
+                            # Join middle parts as middle initial
+                            if middle_parts:
+                                middle_initial = ' '.join(middle_parts)
+                        
                         patient = Patient.objects.create(
-                            name=appointment.patient_name,
+                            first_name=first_name,
+                            last_name=last_name,
+                            middle_initial=middle_initial,
+                            suffix=suffix,
                             email=appointment.patient_email,
                             phone=appointment.patient_phone,
                             date_of_birth=appointment.date_of_birth,
@@ -391,7 +416,7 @@ class AppointmentUpdateStatusView(APIView):
                         # Link the patient to the appointment
                         appointment.patient = patient
                         appointment._patient_created = True
-                        logger.info(f"Created new patient {patient.id} for appointment {appointment.id}")
+                        logger.info(f"Created new patient {patient.id} ({patient.get_full_name()}) for appointment {appointment.id}")
                         
                     except Exception as patient_error:
                         logger.error(f"Error creating patient from appointment fields: {str(patient_error)}")
