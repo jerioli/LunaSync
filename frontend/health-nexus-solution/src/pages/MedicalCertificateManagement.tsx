@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +11,7 @@ import { useClinic } from '@/contexts/ClinicContext';
 import { generateMedicalCertificateHTML, MedicalCertificateTemplateData } from '@/utils/medicalCertificateTemplate';
 import axios from 'axios';
 import { format } from 'date-fns';
-import { CheckCircle, Download, Eye, FileText, Mail, Printer, XCircle } from 'lucide-react';
+import { ArrowUpDown, CheckCircle, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Download, Eye, FileText, Mail, Printer, Search, XCircle } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -79,6 +79,9 @@ interface CertificateFormData {
   certificateType: string;
 }
 
+type SortField = 'patient_name' | 'request_type' | 'status' | 'requested_at' | 'email';
+type SortDirection = 'asc' | 'desc';
+
 const MedicalCertificateManagement: React.FC = () => {
   const { currentUser } = useClinic();
   const navigate = useNavigate();
@@ -93,6 +96,16 @@ const MedicalCertificateManagement: React.FC = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [clinicInfo, setClinicInfo] = useState<ClinicInfo | null>(null);
   const [doctorInfo, setDoctorInfo] = useState<DoctorInfo | null>(null);
+  
+  // Search and sort states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortField, setSortField] = useState<SortField>('requested_at');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  
   const [certificateFormData, setCertificateFormData] = useState<CertificateFormData>({
     hospitalName: 'HealthNexus Medical Center',
     hospitalAddress: '123 Medical Plaza, City, State 12345',
@@ -166,6 +179,81 @@ const MedicalCertificateManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Sorting helper functions
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortData = (data: MedicalCertificateRequest[]): MedicalCertificateRequest[] => {
+    return [...data].sort((a, b) => {
+      let aValue: any = a[sortField];
+      let bValue: any = b[sortField];
+
+      if (sortField === 'requested_at') {
+        aValue = new Date(aValue).getTime();
+        bValue = new Date(bValue).getTime();
+      } else if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue ? bValue.toLowerCase() : '';
+      }
+
+      if (sortDirection === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+  };
+
+  const renderSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="ml-2 h-4 w-4" />;
+    }
+    return sortDirection === 'asc' ? 
+      <ChevronUp className="ml-2 h-4 w-4" /> : 
+      <ChevronDown className="ml-2 h-4 w-4" />;
+  };
+
+  // Filter and sort requests
+  const filteredAndSortedRequests = sortData(
+    requests.filter(request => {
+      const matchesSearch = 
+        request.patient_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        request.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        request.request_type.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesStatus = filterStatus === 'all' || request.status === filterStatus;
+      
+      return matchesSearch && matchesStatus;
+    })
+  );
+
+  // Pagination logic
+  const totalItems = filteredAndSortedRequests.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedRequests = filteredAndSortedRequests.slice(startIndex, endIndex);
+
+  // Reset current page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterStatus, sortField, sortDirection]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(parseInt(value));
+    setCurrentPage(1);
   };
 
   const handleCreateCertificate = (request: MedicalCertificateRequest) => {
@@ -333,56 +421,153 @@ const MedicalCertificateManagement: React.FC = () => {
     return types[type] || type;
   };
 
-  const filteredRequests = requests.filter(request => 
-    filterStatus === 'all' || request.status === filterStatus
-  );
+  // Use the paginated requests for display
+  const filteredRequests = paginatedRequests;
 
   const currentUserRole = currentUser?.role;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Medical Certificate Management</h1>
-          <p className="text-gray-600">Manage medical certificate requests from patients</p>
-        </div>
-        
-        <div className="flex items-center space-x-4">
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Requests</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="receptionist_approved">Receptionist Approved</SelectItem>
-              <SelectItem value="doctor_approved">Doctor Approved</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
+          <h1 className="text-2xl font-bold tracking-tight">Medical Certificate Management</h1>
+          <p className="text-muted-foreground">
+            Manage medical certificate requests from patients
+          </p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Medical Certificate Requests</CardTitle>
-          <CardDescription>
-            {filteredRequests.length} request{filteredRequests.length !== 1 ? 's' : ''}
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Medical Certificate Requests</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} medical certificate requests
+                {sortField && (
+                  <span className="ml-2">
+                    • Sorted by {sortField.replace('_', ' ')} ({sortDirection === 'asc' ? 'A-Z' : 'Z-A'})
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="relative w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search patients, emails, or types..."
+                  className="pl-8"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Requests</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="receptionist_approved">Receptionist Approved</SelectItem>
+                  <SelectItem value="doctor_approved">Doctor Approved</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {(searchQuery || filterStatus !== 'all' || sortField !== 'requested_at' || sortDirection !== 'desc') && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setFilterStatus('all');
+                    setSortField('requested_at');
+                    setSortDirection('desc');
+                  }}
+                >
+                  Reset
+                </Button>
+              )}
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          {loading ? (
+            <div className="text-center py-6 text-muted-foreground">
+              Loading medical certificate requests...
+            </div>
+          ) : totalItems === 0 ? (
+            <div className="text-center py-8">
+              <div className="text-muted-foreground">
+                {searchQuery || filterStatus !== 'all' ? (
+                  <>
+                    <p className="text-lg font-medium">No medical certificate requests found</p>
+                    <p className="text-sm">Try adjusting your search term or filters</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-lg font-medium">No medical certificate requests yet</p>
+                    <p className="text-sm">Certificate requests from patients will appear here</p>
+                  </>
+                )}
+              </div>
+            </div>
+          ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Patient Name</TableHead>
-                  <TableHead>Request Type</TableHead>
-                  <TableHead>Date of Birth</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Requested At</TableHead>
+                  <TableHead>
+                    <Button 
+                      variant="ghost" 
+                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                      onClick={() => handleSort('patient_name')}
+                    >
+                      Patient Name
+                      {renderSortIcon('patient_name')}
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button 
+                      variant="ghost" 
+                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                      onClick={() => handleSort('request_type')}
+                    >
+                      Request Type
+                      {renderSortIcon('request_type')}
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button 
+                      variant="ghost" 
+                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                      onClick={() => handleSort('email')}
+                    >
+                      Email
+                      {renderSortIcon('email')}
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button 
+                      variant="ghost" 
+                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                      onClick={() => handleSort('status')}
+                    >
+                      Status
+                      {renderSortIcon('status')}
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button 
+                      variant="ghost" 
+                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                      onClick={() => handleSort('requested_at')}
+                    >
+                      Requested At
+                      {renderSortIcon('requested_at')}
+                    </Button>
+                  </TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -391,9 +576,7 @@ const MedicalCertificateManagement: React.FC = () => {
                   <TableRow key={request.id}>
                     <TableCell className="font-medium">{request.patient_name}</TableCell>
                     <TableCell>{getRequestTypeLabel(request.request_type)}</TableCell>
-                    <TableCell>{request.date_of_birth}</TableCell>
                     <TableCell>{request.email}</TableCell>
-                    <TableCell>{request.phone}</TableCell>
                     <TableCell>{getStatusBadge(request.status)}</TableCell>
                     <TableCell>{new Date(request.requested_at).toLocaleDateString()}</TableCell>
                     <TableCell>
@@ -440,6 +623,10 @@ const MedicalCertificateManagement: React.FC = () => {
                                     <Label className="font-semibold">Status</Label>
                                     <p>{getStatusBadge(selectedRequest.status)}</p>
                                   </div>
+                                  <div>
+                                    <Label className="font-semibold">Requested At</Label>
+                                    <p>{new Date(selectedRequest.requested_at).toLocaleDateString()}</p>
+                                  </div>
                                 </div>
                                 
                                 {selectedRequest.additional_info && (
@@ -449,89 +636,95 @@ const MedicalCertificateManagement: React.FC = () => {
                                   </div>
                                 )}
 
-                                {/* Action buttons based on role and status */}
-                                <div className="flex justify-end space-x-2 pt-4 border-t">
-                                  {currentUserRole === 'receptionist' && selectedRequest.status === 'pending' && (
-                                    <>
-                                      <Button
-                                        onClick={() => handleApprove(selectedRequest.id, 'receptionist_approve')}
-                                        className="bg-blue-600 hover:bg-blue-700"
-                                      >
-                                        <CheckCircle className="h-4 w-4 mr-2" />
-                                        Approve (Receptionist)
-                                      </Button>
-                                      <Button
-                                        variant="destructive"
-                                        onClick={() => {
-                                          if (rejectionReason.trim()) {
-                                            handleApprove(selectedRequest.id, 'reject');
-                                          } else {
-                                            toast.error('Please provide a rejection reason');
-                                          }
-                                        }}
-                                      >
-                                        <XCircle className="h-4 w-4 mr-2" />
-                                        Reject
-                                      </Button>
-                                    </>
-                                  )}
-
-                                  {currentUserRole === 'doctor' && selectedRequest.status === 'receptionist_approved' && (
-                                    <div className="space-y-4 w-full">
-                                      <div className="flex space-x-2">
-                                        <Button
-                                          onClick={() => handleCreateCertificate(selectedRequest)}
-                                          className="bg-blue-600 hover:bg-blue-700"
-                                        >
-                                          <FileText className="h-4 w-4 mr-2" />
-                                          Generate Medical Certificate
-                                        </Button>
-                                        <Button
-                                          variant="destructive"
-                                          onClick={() => {
-                                            if (rejectionReason.trim()) {
-                                              handleApprove(selectedRequest.id, 'reject');
-                                            } else {
-                                              toast.error('Please provide a rejection reason');
-                                            }
-                                          }}
-                                        >
-                                          <XCircle className="h-4 w-4 mr-2" />
-                                          Reject
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {selectedRequest.status === 'rejected' && (
-                                    <div className="w-full">
-                                      <Label className="font-semibold text-red-600">Rejection Reason</Label>
-                                      <p className="mt-1 p-2 bg-red-50 rounded text-red-800">
-                                        {selectedRequest.rejection_reason}
-                                      </p>
-                                    </div>
-                                  )}
-
-                                  {selectedRequest.status === 'completed' && selectedRequest.certificate_content && (
-                                    <div className="w-full">
-                                      <Label className="font-semibold text-green-600">Certificate Content</Label>
-                                      <div className="mt-1 p-2 bg-green-50 rounded text-green-800" dangerouslySetInnerHTML={{ __html: selectedRequest.certificate_content }} />
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* Rejection reason input */}
-                                {(selectedRequest.status === 'pending' || selectedRequest.status === 'receptionist_approved') && (
-                                  <div className="pt-4 border-t">
-                                    <Label htmlFor="rejection-reason">Rejection Reason (if rejecting)</Label>
-                                    <Textarea
-                                      id="rejection-reason"
-                                      value={rejectionReason}
-                                      onChange={(e) => setRejectionReason(e.target.value)}
-                                      placeholder="Enter reason for rejection..."
-                                      rows={3}
-                                    />
+                                {/* Show rejection reason if rejected */}
+                                {selectedRequest.status === 'rejected' && selectedRequest.rejection_reason && (
+                                  <div>
+                                    <Label className="font-semibold text-red-600">Rejection Reason</Label>
+                                    <p className="mt-1 p-2 bg-red-50 rounded text-red-800">
+                                      {selectedRequest.rejection_reason}
+                                    </p>
                                   </div>
+                                )}
+
+                                {/* Show doctor notes if available */}
+                                {selectedRequest.doctor_notes && (
+                                  <div>
+                                    <Label className="font-semibold text-blue-600">Doctor Notes</Label>
+                                    <p className="mt-1 p-2 bg-blue-50 rounded text-blue-800">
+                                      {selectedRequest.doctor_notes}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {/* Action buttons - only show for pending and receptionist_approved statuses */}
+                                {(selectedRequest.status === 'pending' || selectedRequest.status === 'receptionist_approved') && (
+                                  <>
+                                    <div className="flex justify-end space-x-2 pt-4 border-t">
+                                      {currentUserRole === 'receptionist' && selectedRequest.status === 'pending' && (
+                                        <>
+                                          <Button
+                                            onClick={() => handleApprove(selectedRequest.id, 'receptionist_approve')}
+                                            className="bg-blue-600 hover:bg-blue-700"
+                                          >
+                                            <CheckCircle className="h-4 w-4 mr-2" />
+                                            Approve (Receptionist)
+                                          </Button>
+                                          <Button
+                                            variant="destructive"
+                                            onClick={() => {
+                                              if (rejectionReason.trim()) {
+                                                handleApprove(selectedRequest.id, 'reject');
+                                              } else {
+                                                toast.error('Please provide a rejection reason');
+                                              }
+                                            }}
+                                          >
+                                            <XCircle className="h-4 w-4 mr-2" />
+                                            Reject
+                                          </Button>
+                                        </>
+                                      )}
+
+                                      {currentUserRole === 'doctor' && selectedRequest.status === 'receptionist_approved' && (
+                                        <div className="space-y-4 w-full">
+                                          <div className="flex space-x-2">
+                                            <Button
+                                              onClick={() => handleCreateCertificate(selectedRequest)}
+                                              className="bg-blue-600 hover:bg-blue-700"
+                                            >
+                                              <FileText className="h-4 w-4 mr-2" />
+                                              Generate Medical Certificate
+                                            </Button>
+                                            <Button
+                                              variant="destructive"
+                                              onClick={() => {
+                                                if (rejectionReason.trim()) {
+                                                  handleApprove(selectedRequest.id, 'reject');
+                                                } else {
+                                                  toast.error('Please provide a rejection reason');
+                                                }
+                                              }}
+                                            >
+                                              <XCircle className="h-4 w-4 mr-2" />
+                                              Reject
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* Rejection reason input */}
+                                    <div className="pt-4 border-t">
+                                      <Label htmlFor="rejection-reason">Rejection Reason (if rejecting)</Label>
+                                      <Textarea
+                                        id="rejection-reason"
+                                        value={rejectionReason}
+                                        onChange={(e) => setRejectionReason(e.target.value)}
+                                        placeholder="Enter reason for rejection..."
+                                        rows={3}
+                                      />
+                                    </div>
+                                  </>
                                 )}
                               </div>
                             )}
@@ -543,7 +736,58 @@ const MedicalCertificateManagement: React.FC = () => {
                 ))}
               </TableBody>
             </Table>
-          </div>
+            )}
+            
+            {/* Pagination Controls */}
+            {totalItems > 0 && (
+              <div className="flex items-center justify-between px-2 py-4">
+                <div className="flex items-center space-x-2">
+                  <p className="text-sm text-muted-foreground">
+                    Show
+                  </p>
+                  <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+                    <SelectTrigger className="h-8 w-16">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-muted-foreground">
+                    entries
+                  </p>
+                </div>
+                
+                <div className="flex items-center space-x-6 lg:space-x-8">
+                  <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                    Page {currentPage} of {totalPages}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage <= 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage >= totalPages}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
         </CardContent>
       </Card>
 

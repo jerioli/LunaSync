@@ -3,12 +3,13 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
 import { format } from 'date-fns';
-import { ArrowUpDown, ChevronDown, ChevronUp, FileText, Search, UserPlus } from 'lucide-react';
+import { ArrowUpDown, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, FileText, Search, UserPlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -25,6 +26,10 @@ const PatientsList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Role-based access control - admin, receptionist, and doctor can use bulk import
   const canUseBulkImport = currentUser?.role === 'admin' || 
@@ -75,6 +80,27 @@ const PatientsList = () => {
     (patient.marital_status || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Pagination logic
+  const totalItems = filteredPatients.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedPatients = filteredPatients.slice(startIndex, endIndex);
+
+  // Reset current page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortField, sortDirection]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(parseInt(value));
+    setCurrentPage(1);
+  };
+
   // Render sort icon
   const renderSortIcon = (field: SortField) => {
     if (sortField !== field) {
@@ -113,7 +139,7 @@ const PatientsList = () => {
             <div>
               <CardTitle>Patient Records</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Showing {filteredPatients.length} of {patients.length} patients
+                Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} patients
                 {sortField && (
                   <span className="ml-2">
                     • Sorted by {sortField.replace('_', ' ')} ({sortDirection === 'asc' ? 'A-Z' : 'Z-A'})
@@ -205,8 +231,8 @@ const PatientsList = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPatients.length > 0 ? (
-                filteredPatients.map((patient) => (
+              {totalItems > 0 ? (
+                paginatedPatients.map((patient) => (
                   <TableRow key={patient.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -262,6 +288,57 @@ const PatientsList = () => {
               )}
             </TableBody>
           </Table>
+          
+          {/* Pagination Controls */}
+          {totalItems > 0 && (
+            <div className="flex items-center justify-between px-2 py-4">
+              <div className="flex items-center space-x-2">
+                <p className="text-sm text-muted-foreground">
+                  Show
+                </p>
+                <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+                  <SelectTrigger className="h-8 w-16">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  entries
+                </p>
+              </div>
+              
+              <div className="flex items-center space-x-6 lg:space-x-8">
+                <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage <= 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage >= totalPages}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

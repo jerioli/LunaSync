@@ -15,15 +15,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
 import { Admin, api, axiosInstance, Doctor, Receptionist, StaffMember } from '@/services/api';
-import { CheckSquare, Edit, Eye, Mail, Phone, Search, Trash, Trash2, UserPlus } from 'lucide-react';
+import { ArrowUpDown, CheckSquare, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Edit, Eye, Mail, Phone, Search, Trash, Trash2, UserPlus } from 'lucide-react';
 
 export type Role = "doctor" | "receptionist" | "admin" | "patient" | "superadmin";
+
+type SortField = 'name' | 'email' | 'phone' | 'username' | 'is_active';
+type SortDirection = 'asc' | 'desc';
 
 const StaffPage = () => {
   const { currentUser } = useClinic();
   const { toast } = useToast();
   const [staff, setStaff] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Sorting states for each tab
+  const [doctorSort, setDoctorSort] = useState<{field: SortField, direction: SortDirection}>({field: 'name', direction: 'asc'});
+  const [receptionistSort, setReceptionistSort] = useState<{field: SortField, direction: SortDirection}>({field: 'name', direction: 'asc'});
+  const [adminSort, setAdminSort] = useState<{field: SortField, direction: SortDirection}>({field: 'name', direction: 'asc'});
+  const [superAdminSort, setSuperAdminSort] = useState<{field: SortField, direction: SortDirection}>({field: 'name', direction: 'asc'});
   const [newStaff, setNewStaff] = useState({
     name: "",
     username: "",
@@ -61,6 +70,53 @@ const StaffPage = () => {
   
   // Email validation state
   const [emailValidationError, setEmailValidationError] = useState("");
+  
+  // Pagination states
+  const [doctorPage, setDoctorPage] = useState(1);
+  const [receptionistPage, setReceptionistPage] = useState(1);
+  const [adminPage, setAdminPage] = useState(1);
+  const [superAdminPage, setSuperAdminPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Sorting helper functions
+  const handleSort = (field: SortField, currentSort: {field: SortField, direction: SortDirection}, 
+                      setSortState: React.Dispatch<React.SetStateAction<{field: SortField, direction: SortDirection}>>) => {
+    if (currentSort.field === field) {
+      setSortState({field, direction: currentSort.direction === 'asc' ? 'desc' : 'asc'});
+    } else {
+      setSortState({field, direction: 'asc'});
+    }
+  };
+
+  const sortData = <T extends {name?: string, email?: string, phone?: string, username?: string, is_active?: boolean}>(
+    data: T[], 
+    sortConfig: {field: SortField, direction: SortDirection}
+  ): T[] => {
+    return [...data].sort((a, b) => {
+      let aValue: any = a[sortConfig.field];
+      let bValue: any = b[sortConfig.field];
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+
+      if (sortConfig.direction === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+  };
+
+  const renderSortIcon = (field: SortField, currentSort: {field: SortField, direction: SortDirection}) => {
+    if (currentSort.field !== field) {
+      return <ArrowUpDown className="ml-2 h-4 w-4" />;
+    }
+    return currentSort.direction === 'asc' ? 
+      <ChevronUp className="ml-2 h-4 w-4" /> : 
+      <ChevronDown className="ml-2 h-4 w-4" />;
+  };
 
   // Fetch staff from backend
   useEffect(() => {
@@ -225,11 +281,80 @@ const StaffPage = () => {
   };
 
   const doctors = filterStaff('doctor');
-  const filteredDoctors = filterDoctors();
+  const filteredDoctors = sortData(filterDoctors().map(doctor => ({
+    ...doctor,
+    name: `${doctor.first_name} ${doctor.last_name}`
+  })), doctorSort);
   const receptionists = filterStaff('receptionist');
-  const filteredReceptionists = filterReceptionists();
+  const filteredReceptionists = sortData(filterReceptionists().map(receptionist => ({
+    ...receptionist,
+    name: `${receptionist.first_name} ${receptionist.last_name}`
+  })), receptionistSort);
   const admins = filterStaff('admin');
-  const filteredAdmins = filterAdmins();
+  const filteredAdmins = sortData(filterAdmins().map(admin => ({
+    ...admin,
+    name: `${admin.first_name} ${admin.last_name}`
+  })), adminSort);
+  
+  // Filter and sort super admins
+  const filteredSuperAdmins = sortData(superAdminsList.filter(admin => 
+    ((admin.first_name + ' ' + admin.last_name).toLowerCase().includes(searchTerm.toLowerCase()) ||
+     admin.email?.toLowerCase().includes(searchTerm.toLowerCase()))
+  ).map(admin => ({
+    ...admin,
+    name: `${admin.first_name} ${admin.last_name}`
+  })), superAdminSort);
+
+  // Pagination logic for each tab
+  const paginateData = (data: any[], currentPage: number) => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return {
+      data: data.slice(startIndex, endIndex),
+      totalItems: data.length,
+      totalPages: Math.ceil(data.length / itemsPerPage),
+      startIndex: startIndex + 1,
+      endIndex: Math.min(endIndex, data.length)
+    };
+  };
+
+  const doctorPagination = paginateData(filteredDoctors, doctorPage);
+  const receptionistPagination = paginateData(filteredReceptionists, receptionistPage);
+  const adminPagination = paginateData(filteredAdmins, adminPage);
+  const superAdminPagination = paginateData(filteredSuperAdmins, superAdminPage);
+
+  // Reset pages when search or sort changes
+  useEffect(() => {
+    setDoctorPage(1);
+    setReceptionistPage(1);
+    setAdminPage(1);
+    setSuperAdminPage(1);
+  }, [searchTerm, doctorSort, receptionistSort, adminSort, superAdminSort]);
+
+  const handlePageChange = (tab: string, page: number) => {
+    switch (tab) {
+      case 'doctors':
+        setDoctorPage(page);
+        break;
+      case 'receptionists':
+        setReceptionistPage(page);
+        break;
+      case 'admins':
+        setAdminPage(page);
+        break;
+      case 'superadmins':
+        setSuperAdminPage(page);
+        break;
+    }
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(parseInt(value));
+    setDoctorPage(1);
+    setReceptionistPage(1);
+    setAdminPage(1);
+    setSuperAdminPage(1);
+  };
 
   // Handle dialog open/close state change
   const handleDialogOpenChange = (open: boolean) => {
@@ -692,16 +817,6 @@ const StaffPage = () => {
         </div>
       </div>
       
-      <div className="flex items-center px-4 border rounded-md">
-        <Search className="w-4 h-4 mr-2 text-muted-foreground" />
-        <Input 
-          placeholder="Search staff by name or email..." 
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="border-0 focus-visible:ring-0"
-        />
-      </div>
-      
       <Tabs value={currentTab} onValueChange={setCurrentTab}>
         <TabsList className={`grid w-full ${currentUser?.role === 'superadmin' ? 'grid-cols-4' : 'grid-cols-3'}`}>
           <TabsTrigger value="doctors">Doctors</TabsTrigger>
@@ -713,21 +828,68 @@ const StaffPage = () => {
         </TabsList>
         
         <TabsContent value="doctors" className="space-y-4 mt-6">
-          {isLoadingDoctors ? (
-            <Card>
-              <CardContent className="text-center py-6 text-muted-foreground">
-                Loading doctors...
-              </CardContent>
-            </Card>
-          ) : filteredDoctors.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-6 text-muted-foreground">
-                No doctors match your search criteria.
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Doctors</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Showing {doctorPagination.startIndex}-{doctorPagination.endIndex} of {doctorPagination.totalItems} doctors
+                    {doctorSort.field && (
+                      <span className="ml-2">
+                        • Sorted by {doctorSort.field.replace('_', ' ')} ({doctorSort.direction === 'asc' ? 'A-Z' : 'Z-A'})
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="relative w-64">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search doctors..."
+                      className="pl-8"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  {(searchTerm || doctorSort.field !== 'name' || doctorSort.direction !== 'asc') && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSearchTerm('');
+                        setDoctorSort({field: 'name', direction: 'asc'});
+                      }}
+                    >
+                      Reset
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoadingDoctors ? (
+                <div className="text-center py-6 text-muted-foreground">
+                  Loading doctors...
+                </div>
+              ) : doctorPagination.totalItems === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-muted-foreground">
+                    {searchTerm ? (
+                      <>
+                        <p className="text-lg font-medium">No doctors found</p>
+                        <p className="text-sm">Try adjusting your search term "{searchTerm}"</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-lg font-medium">No doctors registered yet</p>
+                        <p className="text-sm">Click "Add New Staff" to get started</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">
@@ -746,15 +908,51 @@ const StaffPage = () => {
                         }}
                       />
                     </TableHead>
-                    <TableHead>Doctor</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>
+                      <Button 
+                        variant="ghost" 
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                        onClick={() => handleSort('name', doctorSort, setDoctorSort)}
+                      >
+                        Doctor
+                        {renderSortIcon('name', doctorSort)}
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button 
+                        variant="ghost" 
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                        onClick={() => handleSort('email', doctorSort, setDoctorSort)}
+                      >
+                        Email
+                        {renderSortIcon('email', doctorSort)}
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button 
+                        variant="ghost" 
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                        onClick={() => handleSort('phone', doctorSort, setDoctorSort)}
+                      >
+                        Phone
+                        {renderSortIcon('phone', doctorSort)}
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button 
+                        variant="ghost" 
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                        onClick={() => handleSort('is_active', doctorSort, setDoctorSort)}
+                      >
+                        Status
+                        {renderSortIcon('is_active', doctorSort)}
+                      </Button>
+                    </TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredDoctors.map(doctor => (
+                  {doctorPagination.data.map(doctor => (
                     <TableRow key={doctor.id}>
                       <TableCell>
                         <Checkbox
@@ -810,26 +1008,124 @@ const StaffPage = () => {
                   ))}
                 </TableBody>
               </Table>
-            </div>
-          )}
+              )}
+              
+              {/* Pagination Controls for Doctors */}
+              {doctorPagination.totalItems > 0 && (
+                <div className="flex items-center justify-between px-2 py-4">
+                  <div className="flex items-center space-x-2">
+                    <p className="text-sm text-muted-foreground">
+                      Show
+                    </p>
+                    <select
+                      value={itemsPerPage.toString()}
+                      onChange={(e) => handleItemsPerPageChange(e.target.value)}
+                      className="border rounded px-2 py-1 text-sm"
+                    >
+                      <option value="5">5</option>
+                      <option value="10">10</option>
+                      <option value="20">20</option>
+                      <option value="50">50</option>
+                    </select>
+                    <p className="text-sm text-muted-foreground">
+                      entries
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-center space-x-6 lg:space-x-8">
+                    <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                      Page {doctorPage} of {doctorPagination.totalPages}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange('doctors', doctorPage - 1)}
+                        disabled={doctorPage <= 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Previous
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange('doctors', doctorPage + 1)}
+                        disabled={doctorPage >= doctorPagination.totalPages}
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
         
         <TabsContent value="receptionists" className="space-y-4 mt-6">
-          {isLoadingReceptionists ? (
-            <Card>
-              <CardContent className="text-center py-6 text-muted-foreground">
-                Loading receptionists...
-              </CardContent>
-            </Card>
-          ) : filteredReceptionists.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-6 text-muted-foreground">
-                No receptionists match your search criteria.
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Receptionists</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Showing {receptionistPagination.startIndex}-{receptionistPagination.endIndex} of {receptionistPagination.totalItems} receptionists
+                    {receptionistSort.field && (
+                      <span className="ml-2">
+                        • Sorted by {receptionistSort.field.replace('_', ' ')} ({receptionistSort.direction === 'asc' ? 'A-Z' : 'Z-A'})
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="relative w-64">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search receptionists..."
+                      className="pl-8"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  {(searchTerm || receptionistSort.field !== 'name' || receptionistSort.direction !== 'asc') && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSearchTerm('');
+                        setReceptionistSort({field: 'name', direction: 'asc'});
+                      }}
+                    >
+                      Reset
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoadingReceptionists ? (
+                <div className="text-center py-6 text-muted-foreground">
+                  Loading receptionists...
+                </div>
+              ) : receptionistPagination.totalItems === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-muted-foreground">
+                    {searchTerm ? (
+                      <>
+                        <p className="text-lg font-medium">No receptionists found</p>
+                        <p className="text-sm">Try adjusting your search term "{searchTerm}"</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-lg font-medium">No receptionists registered yet</p>
+                        <p className="text-sm">Click "Add New Staff" to get started</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">
@@ -848,15 +1144,51 @@ const StaffPage = () => {
                         }}
                       />
                     </TableHead>
-                    <TableHead>Receptionist</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>
+                      <Button 
+                        variant="ghost" 
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                        onClick={() => handleSort('name', receptionistSort, setReceptionistSort)}
+                      >
+                        Receptionist
+                        {renderSortIcon('name', receptionistSort)}
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button 
+                        variant="ghost" 
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                        onClick={() => handleSort('email', receptionistSort, setReceptionistSort)}
+                      >
+                        Email
+                        {renderSortIcon('email', receptionistSort)}
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button 
+                        variant="ghost" 
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                        onClick={() => handleSort('phone', receptionistSort, setReceptionistSort)}
+                      >
+                        Phone
+                        {renderSortIcon('phone', receptionistSort)}
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button 
+                        variant="ghost" 
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                        onClick={() => handleSort('is_active', receptionistSort, setReceptionistSort)}
+                      >
+                        Status
+                        {renderSortIcon('is_active', receptionistSort)}
+                      </Button>
+                    </TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredReceptionists.map(receptionist => (
+                  {receptionistPagination.data.map(receptionist => (
                     <TableRow key={receptionist.id}>
                       <TableCell>
                         <Checkbox
@@ -912,39 +1244,167 @@ const StaffPage = () => {
                   ))}
                 </TableBody>
               </Table>
-            </div>
-          )}
+              )}
+              
+              {/* Pagination Controls for Receptionists */}
+              {receptionistPagination.totalItems > 0 && (
+                <div className="flex items-center justify-between px-2 py-4">
+                  <div className="flex items-center space-x-2">
+                    <p className="text-sm text-muted-foreground">
+                      Show
+                    </p>
+                    <select
+                      value={itemsPerPage.toString()}
+                      onChange={(e) => handleItemsPerPageChange(e.target.value)}
+                      className="border rounded px-2 py-1 text-sm"
+                    >
+                      <option value="5">5</option>
+                      <option value="10">10</option>
+                      <option value="20">20</option>
+                      <option value="50">50</option>
+                    </select>
+                    <p className="text-sm text-muted-foreground">
+                      entries
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-center space-x-6 lg:space-x-8">
+                    <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                      Page {receptionistPage} of {receptionistPagination.totalPages}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange('receptionists', receptionistPage - 1)}
+                        disabled={receptionistPage <= 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Previous
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange('receptionists', receptionistPage + 1)}
+                        disabled={receptionistPage >= receptionistPagination.totalPages}
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
         
         <TabsContent value="admins" className="space-y-4 mt-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold">Administrators</h3>
-              <p className="text-sm text-muted-foreground">View-only access. Contact superadmin for administrative changes.</p>
-            </div>
-          </div>
-          
-          {isLoadingAdmins ? (
-            <Card>
-              <CardContent className="text-center py-6 text-muted-foreground">
-                Loading administrators...
-              </CardContent>
-            </Card>
-          ) : filteredAdmins.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-6 text-muted-foreground">
-                No administrators match your search criteria.
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Administrators</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Showing {filteredAdmins.length} of {adminsList.length} administrators
+                    {adminSort.field && (
+                      <span className="ml-2">
+                        • Sorted by {adminSort.field.replace('_', ' ')} ({adminSort.direction === 'asc' ? 'A-Z' : 'Z-A'})
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-sm text-muted-foreground">View-only access. Contact superadmin for administrative changes.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="relative w-64">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search administrators..."
+                      className="pl-8"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  {(searchTerm || adminSort.field !== 'name' || adminSort.direction !== 'asc') && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSearchTerm('');
+                        setAdminSort({field: 'name', direction: 'asc'});
+                      }}
+                    >
+                      Reset
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoadingAdmins ? (
+                <div className="text-center py-6 text-muted-foreground">
+                  Loading administrators...
+                </div>
+              ) : filteredAdmins.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-muted-foreground">
+                    {searchTerm ? (
+                      <>
+                        <p className="text-lg font-medium">No administrators found</p>
+                        <p className="text-sm">Try adjusting your search term "{searchTerm}"</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-lg font-medium">No administrators registered yet</p>
+                        <p className="text-sm">Contact superadmin to add administrators</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Administrator</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>
+                      <Button 
+                        variant="ghost" 
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                        onClick={() => handleSort('name', adminSort, setAdminSort)}
+                      >
+                        Administrator
+                        {renderSortIcon('name', adminSort)}
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button 
+                        variant="ghost" 
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                        onClick={() => handleSort('email', adminSort, setAdminSort)}
+                      >
+                        Email
+                        {renderSortIcon('email', adminSort)}
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button 
+                        variant="ghost" 
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                        onClick={() => handleSort('phone', adminSort, setAdminSort)}
+                      >
+                        Phone
+                        {renderSortIcon('phone', adminSort)}
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button 
+                        variant="ghost" 
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                        onClick={() => handleSort('is_active', adminSort, setAdminSort)}
+                      >
+                        Status
+                        {renderSortIcon('is_active', adminSort)}
+                      </Button>
+                    </TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -993,38 +1453,122 @@ const StaffPage = () => {
                   ))}
                 </TableBody>
               </Table>
-            </div>
-          )}
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Superadmins Tab Content */}
         <TabsContent value="superadmins" className="space-y-4 mt-6">
-          {isLoadingSuperAdmins ? (
-            <Card>
-              <CardContent className="text-center py-6 text-muted-foreground">
-                Loading super administrators...
-              </CardContent>
-            </Card>
-          ) : superAdminsList.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-6 text-muted-foreground">
-                No super administrators found.
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Super Administrators</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Showing {filteredSuperAdmins.length} of {superAdminsList.length} super administrators
+                    {superAdminSort.field && (
+                      <span className="ml-2">
+                        • Sorted by {superAdminSort.field.replace('_', ' ')} ({superAdminSort.direction === 'asc' ? 'A-Z' : 'Z-A'})
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="relative w-64">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search super administrators..."
+                      className="pl-8"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  {(searchTerm || superAdminSort.field !== 'name' || superAdminSort.direction !== 'asc') && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSearchTerm('');
+                        setSuperAdminSort({field: 'name', direction: 'asc'});
+                      }}
+                    >
+                      Reset
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoadingSuperAdmins ? (
+                <div className="text-center py-6 text-muted-foreground">
+                  Loading super administrators...
+                </div>
+              ) : filteredSuperAdmins.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-muted-foreground">
+                    {searchTerm ? (
+                      <>
+                        <p className="text-lg font-medium">No super administrators found</p>
+                        <p className="text-sm">Try adjusting your search term "{searchTerm}"</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-lg font-medium">No super administrators registered yet</p>
+                        <p className="text-sm">Contact system administrator</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Super Administrator</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>
+                      <Button 
+                        variant="ghost" 
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                        onClick={() => handleSort('name', superAdminSort, setSuperAdminSort)}
+                      >
+                        Super Administrator
+                        {renderSortIcon('name', superAdminSort)}
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button 
+                        variant="ghost" 
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                        onClick={() => handleSort('email', superAdminSort, setSuperAdminSort)}
+                      >
+                        Email
+                        {renderSortIcon('email', superAdminSort)}
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button 
+                        variant="ghost" 
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                        onClick={() => handleSort('phone', superAdminSort, setSuperAdminSort)}
+                      >
+                        Phone
+                        {renderSortIcon('phone', superAdminSort)}
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button 
+                        variant="ghost" 
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                        onClick={() => handleSort('is_active', superAdminSort, setSuperAdminSort)}
+                      >
+                        Status
+                        {renderSortIcon('is_active', superAdminSort)}
+                      </Button>
+                    </TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {superAdminsList.map(superAdmin => (
+                  {filteredSuperAdmins.map(superAdmin => (
                     <TableRow key={superAdmin.id}>
                       <TableCell>
                         <div className="flex items-center space-x-3">
@@ -1068,8 +1612,9 @@ const StaffPage = () => {
                   ))}
                 </TableBody>
               </Table>
-            </div>
-          )}
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
