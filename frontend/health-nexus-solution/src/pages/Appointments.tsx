@@ -32,7 +32,7 @@ const Appointments = () => {
   const formatTime = (timeString: string) => {
     try {
       const [hours, minutes] = timeString.split(':');
-      const hour = parseInt(hours);
+      const hour = parseInt(hours, 10);
       const ampm = hour >= 12 ? 'PM' : 'AM';
       const formattedHour = hour % 12 || 12;
       return `${formattedHour}:${minutes} ${ampm}`;
@@ -440,7 +440,7 @@ const Appointments = () => {
           <Button 
             variant="default" 
             size="sm" 
-            className={`${buttonClass} bg-orange-600 hover:bg-orange-700`}
+            className={buttonClass}
             onClick={() => handleStatusUpdate(appointment.id, 'ongoing')}
           >
             Check In

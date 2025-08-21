@@ -15,8 +15,80 @@ const DoctorDashboard = () => {
   const [appointments, setAppointments] = useState([]);
   const [patientsCount, setPatientsCount] = useState(0);
   const [patientDetails, setPatientDetails] = useState({});
+  const [localPatients, setLocalPatients] = useState([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const navigate = useNavigate();
+
+  // Helper function to format time
+  const formatTime = (timeString: string) => {
+    try {
+      const [hours, minutes] = timeString.split(':');
+      const hour = parseInt(hours, 10);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const formattedHour = hour % 12 || 12;
+      return `${formattedHour}:${minutes} ${ampm}`;
+    } catch (error) {
+      console.error('Error formatting time:', timeString, error);
+      return timeString;
+    }
+  };
+
+  // Helper function to get patient name from appointment data
+  const getPatientName = (patientId, appointment) => {
+    // First check for patient_name field (from API response)
+    if (appointment?.patient_name && appointment.patient_name !== 'N/A' && appointment.patient_name.trim() !== '') {
+      return appointment.patient_name;
+    }
+
+    // For confirmed appointments, use display_patient_name if available
+    if (appointment?.display_patient_name && appointment.display_patient_name !== 'N/A' && appointment.display_patient_name.trim() !== '') {
+      return appointment.display_patient_name;
+    }
+
+    // For pending appointments, try to get name from notes
+    if (appointment?.notes && appointment.status === 'pending') {
+      const notes = appointment.notes;
+      if (notes.includes('Patient Details (Pending):')) {
+        try {
+          const patientDetails = JSON.parse(notes.split('Patient Details (Pending):')[1].trim());
+          
+          // Try to construct name from individual fields in the JSON
+          const nameFromFields = [
+            patientDetails.firstName,
+            patientDetails.middleInitial, 
+            patientDetails.lastName,
+            patientDetails.suffix
+          ].filter(part => part && part.trim()).join(' ');
+          
+          if (nameFromFields.trim()) {
+            return nameFromFields;
+          }
+          
+          // Fallback to the name field
+          if (patientDetails.name && patientDetails.name.trim()) {
+            return patientDetails.name;
+          }
+        } catch (error) {
+          console.error('Error parsing patient details:', error);
+        }
+      }
+    }
+
+    // Fallback to patient lookup by ID
+    if (patientId) {
+      const patient = localPatients.find(p => String(p.id) === String(patientId)) || 
+                     patients.find(p => String(p.id) === String(patientId)) ||
+                     patientDetails[patientId];
+      if (patient && patient.name) return patient.name;
+    }
+    
+    // If patientId is an object with name, use it
+    if (typeof patientId === 'object' && patientId !== null && patientId.name) {
+      return patientId.name;
+    }
+    
+    return "Unknown Patient";
+  };
 
   // Fetch appointments from backend
   useEffect(() => {
@@ -36,8 +108,10 @@ const DoctorDashboard = () => {
       try {
         const response = await axiosInstance.get('patients/');
         setPatientsCount(Array.isArray(response.data) ? response.data.length : 0);
+        setLocalPatients(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
         setPatientsCount(0);
+        setLocalPatients([]);
         console.error('Error fetching patients:', error);
       }
     };
@@ -280,14 +354,15 @@ const DoctorDashboard = () => {
                     patient = patientDetails[patientId];
                   }
                   const consultationType = appointment.appointment_type || appointment.type || 'Consultation';
+                  const patientName = getPatientName(patientId, appointment);
                   return (
                     <div key={appointment.id} className="flex items-center justify-between p-4">
                       <div className="flex items-center gap-3">
                         <Avatar>
-                          <AvatarFallback>{patient?.name ? patient.name.charAt(0) : '?'}</AvatarFallback>
+                          <AvatarFallback>{patientName.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{patient?.name || 'Unknown Patient'}</div>
+                          <div className="font-medium">{patientName}</div>
                           <div className="text-sm text-muted-foreground">{consultationType}</div>
                         </div>
                       </div>
@@ -295,7 +370,7 @@ const DoctorDashboard = () => {
                         <div className="text-right">
                           <div className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
-                            <span className="text-sm">{appointment.time}</span>
+                            <span className="text-sm">{formatTime(appointment.time)}</span>
                           </div>
                           <Badge 
                             variant={appointment.status === 'scheduled' ? 'outline' : 'secondary'}
@@ -340,20 +415,21 @@ const DoctorDashboard = () => {
                     patient = patientDetails[patientId];
                   }
                   const consultationType = appointment.type || appointment.appointment_type || 'Consultation';
+                  const patientName = getPatientName(patientId, appointment);
                   return (
                     <div key={appointment.id} className="flex items-center justify-between p-4">
                       <div className="flex items-center gap-3">
                         <Avatar>
-                          <AvatarFallback>{patient?.name ? patient.name.charAt(0) : '?'}</AvatarFallback>
+                          <AvatarFallback>{patientName.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{patient?.name || 'Unknown Patient'}</div>
+                          <div className="font-medium">{patientName}</div>
                           <div className="text-sm text-muted-foreground">{consultationType}</div>
                         </div>
                       </div>                      <div className="flex items-center gap-4">
                         <div className="text-right">
                           <div className="font-medium">{new Date(appointment.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                          <div className="text-sm text-muted-foreground">{appointment.time}</div>
+                          <div className="text-sm text-muted-foreground">{formatTime(appointment.time)}</div>
                         </div>
                         <Button size="sm" variant="outline" onClick={() => navigate(`/patients/${patient?.id}`)}>
                           View Patient
