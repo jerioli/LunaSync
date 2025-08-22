@@ -62,6 +62,7 @@ export interface AppointmentForm {
 
 export type MedicalRecordRequestForm = {
   requestType: string;
+  patientId: string;
   firstName: string;
   middleInitial: string;
   lastName: string;
@@ -69,11 +70,15 @@ export type MedicalRecordRequestForm = {
   dateOfBirth: string;
   email: string;
   phone: string;
-  idVerification: File | null;
+  idVerificationFront: File | null;
+  idVerificationBack: File | null;
+  idVerificationFrontPreview: string | null;
+  idVerificationBackPreview: string | null;
   additionalInfo: string;
 };
 
 export type PrescriptionRequestForm = {
+  patientId: string;
   medicationName: string;
   dosage: string;
   frequency: string;
@@ -85,8 +90,12 @@ export type PrescriptionRequestForm = {
   dateOfBirth: string;
   email: string;
   phone: string;
-  idVerification: File | null;
+  idVerificationFront: File | null;
+  idVerificationBack: File | null;
+  idVerificationFrontPreview: string | null;
+  idVerificationBackPreview: string | null;
   prescriptionImage: File | null;
+  prescriptionImagePreview: string | null;
   additionalNotes: string;
 };
 

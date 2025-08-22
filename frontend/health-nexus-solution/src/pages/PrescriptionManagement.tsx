@@ -34,6 +34,9 @@ interface PrescriptionRequest {
   prescription_content?: string;
   doctor_notes?: string;
   rejection_reason?: string;
+  id_verification_front?: string;
+  id_verification_back?: string;
+  prescription_image?: string;
 }
 
 type SortField = 'patient_name' | 'medication_name' | 'status' | 'requested_at' | 'email';
@@ -410,6 +413,64 @@ const PrescriptionManagement: React.FC = () => {
                                   <div>
                                     <Label className="font-semibold">Additional Notes</Label>
                                     <p className="mt-1 p-2 bg-gray-50 rounded">{selectedRequest.additional_notes}</p>
+                                  </div>
+                                )}
+
+                                {/* ID Verification Images */}
+                                {(selectedRequest.id_verification_front || selectedRequest.id_verification_back) && (
+                                  <div>
+                                    <Label className="font-semibold">ID Verification</Label>
+                                    <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                      {selectedRequest.id_verification_front && (
+                                        <div>
+                                          <Label className="text-sm text-gray-600">Front Side</Label>
+                                          <div className="mt-1 border rounded-lg overflow-hidden">
+                                            <img
+                                              src={selectedRequest.id_verification_front}
+                                              alt="ID Front"
+                                              className="w-full h-48 object-contain bg-gray-50"
+                                              onClick={() => window.open(selectedRequest.id_verification_front, '_blank')}
+                                              style={{ cursor: 'pointer' }}
+                                            />
+                                          </div>
+                                          <p className="text-xs text-gray-500 mt-1">Click to view full size</p>
+                                        </div>
+                                      )}
+                                      {selectedRequest.id_verification_back && (
+                                        <div>
+                                          <Label className="text-sm text-gray-600">Back Side</Label>
+                                          <div className="mt-1 border rounded-lg overflow-hidden">
+                                            <img
+                                              src={selectedRequest.id_verification_back}
+                                              alt="ID Back"
+                                              className="w-full h-48 object-contain bg-gray-50"
+                                              onClick={() => window.open(selectedRequest.id_verification_back, '_blank')}
+                                              style={{ cursor: 'pointer' }}
+                                            />
+                                          </div>
+                                          <p className="text-xs text-gray-500 mt-1">Click to view full size</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Prescription Image */}
+                                {selectedRequest.prescription_image && (
+                                  <div>
+                                    <Label className="font-semibold">Prescription Image</Label>
+                                    <div className="mt-2">
+                                      <div className="border rounded-lg overflow-hidden w-fit">
+                                        <img
+                                          src={selectedRequest.prescription_image}
+                                          alt="Prescription"
+                                          className="max-w-md h-48 object-contain bg-gray-50"
+                                          onClick={() => window.open(selectedRequest.prescription_image, '_blank')}
+                                          style={{ cursor: 'pointer' }}
+                                        />
+                                      </div>
+                                      <p className="text-xs text-gray-500 mt-1">Click to view full size</p>
+                                    </div>
                                   </div>
                                 )}
 
