@@ -28,6 +28,8 @@ def medical_certificates(request):
                 'email': req.email,
                 'phone': req.phone,
                 'additional_info': req.additional_info,
+                'id_verification_front': req.id_verification_front.url if req.id_verification_front else None,
+                'id_verification_back': req.id_verification_back.url if req.id_verification_back else None,
                 'status': req.status,
                 'requested_at': req.requested_at.isoformat(),
                 'receptionist_approved_at': req.receptionist_approved_at.isoformat() if req.receptionist_approved_at else None,
@@ -45,10 +47,14 @@ def medical_certificates(request):
             if request.content_type and 'application/json' in request.content_type:
                 data = json.loads(request.body)
                 id_verification_file = None
+                id_verification_front_file = None
+                id_verification_back_file = None
             else:
                 # Multipart form data with file upload
                 data = request.POST.dict()
                 id_verification_file = request.FILES.get('id_verification')
+                id_verification_front_file = request.FILES.get('id_verification_front')
+                id_verification_back_file = request.FILES.get('id_verification_back')
             
             # Create new medical certificate request
             certificate_request = MedicalCertificateRequest.objects.create(
@@ -59,6 +65,8 @@ def medical_certificates(request):
                 phone=data.get('phone'),
                 additional_info=data.get('additional_info', ''),
                 id_verification=id_verification_file,
+                id_verification_front=id_verification_front_file,
+                id_verification_back=id_verification_back_file,
                 status='pending'
             )
             
@@ -161,6 +169,9 @@ def prescription_requests(request):
                 'email': req.email,
                 'phone': req.phone,
                 'additional_notes': req.additional_notes,
+                'id_verification_front': req.id_verification_front.url if req.id_verification_front else None,
+                'id_verification_back': req.id_verification_back.url if req.id_verification_back else None,
+                'prescription_image': req.prescription_image.url if req.prescription_image else None,
                 'status': req.status,
                 'requested_at': req.requested_at.isoformat(),
                 'receptionist_approved_at': req.receptionist_approved_at.isoformat() if req.receptionist_approved_at else None,
@@ -178,11 +189,15 @@ def prescription_requests(request):
             if request.content_type and 'application/json' in request.content_type:
                 data = json.loads(request.body)
                 id_verification_file = None
+                id_verification_front_file = None
+                id_verification_back_file = None
                 prescription_image_file = None
             else:
                 # Multipart form data with file upload
                 data = request.POST.dict()
                 id_verification_file = request.FILES.get('id_verification')
+                id_verification_front_file = request.FILES.get('id_verification_front')
+                id_verification_back_file = request.FILES.get('id_verification_back')
                 prescription_image_file = request.FILES.get('prescription_image')
             
             # Create new prescription request
@@ -197,6 +212,8 @@ def prescription_requests(request):
                 phone=data.get('phone'),
                 additional_notes=data.get('additional_notes', ''),
                 id_verification=id_verification_file,
+                id_verification_front=id_verification_front_file,
+                id_verification_back=id_verification_back_file,
                 prescription_image=prescription_image_file,
                 status='pending'
             )

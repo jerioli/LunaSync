@@ -25,6 +25,8 @@ class MedicalCertificateRequest(models.Model):
     phone = models.CharField(max_length=20)
     additional_info = models.TextField(blank=True, null=True)
     id_verification = models.FileField(upload_to='medical_requests/id_verification/', null=True, blank=True)
+    id_verification_front = models.FileField(upload_to='medical_requests/id_verification/', null=True, blank=True)
+    id_verification_back = models.FileField(upload_to='medical_requests/id_verification/', null=True, blank=True)
     status = models.CharField(max_length=25, choices=STATUS_CHOICES, default='pending')
     
     # Processing fields
@@ -65,6 +67,8 @@ class PrescriptionRequest(models.Model):
     phone = models.CharField(max_length=20)
     additional_notes = models.TextField(blank=True, null=True)
     id_verification = models.FileField(upload_to='medical_requests/id_verification/', null=True, blank=True)
+    id_verification_front = models.FileField(upload_to='medical_requests/id_verification/', null=True, blank=True)
+    id_verification_back = models.FileField(upload_to='medical_requests/id_verification/', null=True, blank=True)
     prescription_image = models.FileField(upload_to='medical_requests/prescriptions/', null=True, blank=True)
     status = models.CharField(max_length=25, choices=STATUS_CHOICES, default='pending')
     

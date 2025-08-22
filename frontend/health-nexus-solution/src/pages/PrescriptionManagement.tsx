@@ -360,152 +360,117 @@ const PrescriptionManagement: React.FC = () => {
                               View
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="max-w-4xl">
+                          <DialogContent className="max-w-2xl max-h-[70vh] overflow-y-auto">
                             <DialogHeader>
-                              <DialogTitle>Prescription Request Details</DialogTitle>
+                              <DialogTitle>Prescription Details</DialogTitle>
                             </DialogHeader>
                             {selectedRequest && (
-                              <div className="space-y-6">
-                                <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-3 text-sm">
                                   <div>
-                                    <Label className="font-semibold">Patient Name</Label>
-                                    <p>{selectedRequest.patient_name}</p>
+                                    <Label className="font-medium text-xs text-muted-foreground">Patient</Label>
+                                    <p className="font-medium">{selectedRequest.patient_name}</p>
                                   </div>
                                   <div>
-                                    <Label className="font-semibold">Medication</Label>
-                                    <p>{selectedRequest.medication_name}</p>
+                                    <Label className="font-medium text-xs text-muted-foreground">Medication</Label>
+                                    <p className="font-medium">{selectedRequest.medication_name}</p>
                                   </div>
                                   <div>
-                                    <Label className="font-semibold">Date of Birth</Label>
-                                    <p>{selectedRequest.date_of_birth}</p>
+                                    <Label className="font-medium text-xs text-muted-foreground">DOB</Label>
+                                    <p className="text-sm">{selectedRequest.date_of_birth}</p>
                                   </div>
                                   <div>
-                                    <Label className="font-semibold">Email</Label>
-                                    <p>{selectedRequest.email}</p>
+                                    <Label className="font-medium text-xs text-muted-foreground">Email</Label>
+                                    <p className="text-sm">{selectedRequest.email}</p>
                                   </div>
                                   <div>
-                                    <Label className="font-semibold">Phone</Label>
-                                    <p>{selectedRequest.phone}</p>
+                                    <Label className="font-medium text-xs text-muted-foreground">Phone</Label>
+                                    <p className="text-sm">{selectedRequest.phone}</p>
                                   </div>
                                   <div>
-                                    <Label className="font-semibold">Dosage</Label>
-                                    <p>{selectedRequest.dosage}</p>
+                                    <Label className="font-medium text-xs text-muted-foreground">Dosage</Label>
+                                    <p className="text-sm">{selectedRequest.dosage}</p>
                                   </div>
                                   <div>
-                                    <Label className="font-semibold">Frequency</Label>
-                                    <p>{selectedRequest.frequency}</p>
+                                    <Label className="font-medium text-xs text-muted-foreground">Frequency</Label>
+                                    <p className="text-sm">{selectedRequest.frequency}</p>
                                   </div>
                                   <div>
-                                    <Label className="font-semibold">Duration</Label>
-                                    <p>{selectedRequest.duration}</p>
+                                    <Label className="font-medium text-xs text-muted-foreground">Duration</Label>
+                                    <p className="text-sm">{selectedRequest.duration}</p>
                                   </div>
                                   <div>
-                                    <Label className="font-semibold">Status</Label>
-                                    <p>{getStatusBadge(selectedRequest.status)}</p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-semibold">Requested At</Label>
-                                    <p>{new Date(selectedRequest.requested_at).toLocaleDateString()}</p>
+                                    <Label className="font-medium text-xs text-muted-foreground">Status</Label>
+                                    <div className="mt-1">{getStatusBadge(selectedRequest.status)}</div>
                                   </div>
                                 </div>
                                 
                                 {selectedRequest.additional_notes && (
                                   <div>
-                                    <Label className="font-semibold">Additional Notes</Label>
-                                    <p className="mt-1 p-2 bg-gray-50 rounded">{selectedRequest.additional_notes}</p>
+                                    <Label className="font-medium text-xs text-muted-foreground">Additional Notes</Label>
+                                    <p className="text-sm mt-1 p-2 bg-gray-50 rounded text-muted-foreground">{selectedRequest.additional_notes}</p>
                                   </div>
                                 )}
 
-                                {/* ID Verification Images */}
+                                {/* ID Verification Images - Compact */}
                                 {(selectedRequest.id_verification_front || selectedRequest.id_verification_back) && (
                                   <div>
-                                    <Label className="font-semibold">ID Verification</Label>
-                                    <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <Label className="font-medium text-xs text-muted-foreground">ID Verification</Label>
+                                    <div className="mt-2 flex gap-2">
                                       {selectedRequest.id_verification_front && (
-                                        <div>
-                                          <Label className="text-sm text-gray-600">Front Side</Label>
-                                          <div className="mt-1 border rounded-lg overflow-hidden">
-                                            <img
-                                              src={selectedRequest.id_verification_front}
-                                              alt="ID Front"
-                                              className="w-full h-48 object-contain bg-gray-50"
-                                              onClick={() => window.open(selectedRequest.id_verification_front, '_blank')}
-                                              style={{ cursor: 'pointer' }}
-                                            />
-                                          </div>
-                                          <p className="text-xs text-gray-500 mt-1">Click to view full size</p>
+                                        <div className="flex-1">
+                                          <p className="text-xs text-gray-500 mb-1">Front</p>
+                                          <img
+                                            src={selectedRequest.id_verification_front}
+                                            alt="ID Front"
+                                            className="w-full h-20 object-contain rounded border cursor-pointer hover:opacity-80"
+                                            onClick={() => window.open(selectedRequest.id_verification_front, '_blank')}
+                                          />
                                         </div>
                                       )}
                                       {selectedRequest.id_verification_back && (
-                                        <div>
-                                          <Label className="text-sm text-gray-600">Back Side</Label>
-                                          <div className="mt-1 border rounded-lg overflow-hidden">
-                                            <img
-                                              src={selectedRequest.id_verification_back}
-                                              alt="ID Back"
-                                              className="w-full h-48 object-contain bg-gray-50"
-                                              onClick={() => window.open(selectedRequest.id_verification_back, '_blank')}
-                                              style={{ cursor: 'pointer' }}
-                                            />
-                                          </div>
-                                          <p className="text-xs text-gray-500 mt-1">Click to view full size</p>
+                                        <div className="flex-1">
+                                          <p className="text-xs text-gray-500 mb-1">Back</p>
+                                          <img
+                                            src={selectedRequest.id_verification_back}
+                                            alt="ID Back"
+                                            className="w-full h-20 object-contain rounded border cursor-pointer hover:opacity-80"
+                                            onClick={() => window.open(selectedRequest.id_verification_back, '_blank')}
+                                          />
                                         </div>
                                       )}
                                     </div>
                                   </div>
                                 )}
 
-                                {/* Prescription Image */}
+                                {/* Prescription Image - Compact */}
                                 {selectedRequest.prescription_image && (
                                   <div>
-                                    <Label className="font-semibold">Prescription Image</Label>
+                                    <Label className="font-medium text-xs text-muted-foreground">Prescription Image</Label>
                                     <div className="mt-2">
-                                      <div className="border rounded-lg overflow-hidden w-fit">
-                                        <img
-                                          src={selectedRequest.prescription_image}
-                                          alt="Prescription"
-                                          className="max-w-md h-48 object-contain bg-gray-50"
-                                          onClick={() => window.open(selectedRequest.prescription_image, '_blank')}
-                                          style={{ cursor: 'pointer' }}
-                                        />
-                                      </div>
-                                      <p className="text-xs text-gray-500 mt-1">Click to view full size</p>
+                                      <img
+                                        src={selectedRequest.prescription_image}
+                                        alt="Prescription"
+                                        className="w-full h-24 object-contain rounded border cursor-pointer hover:opacity-80"
+                                        onClick={() => window.open(selectedRequest.prescription_image, '_blank')}
+                                      />
                                     </div>
                                   </div>
                                 )}
 
-                                {/* Show rejection reason if rejected */}
-                                {selectedRequest.status === 'rejected' && selectedRequest.rejection_reason && (
-                                  <div>
-                                    <Label className="font-semibold text-red-600">Rejection Reason</Label>
-                                    <p className="mt-1 p-2 bg-red-50 rounded text-red-800">
-                                      {selectedRequest.rejection_reason}
-                                    </p>
-                                  </div>
-                                )}
-
-                                {/* Show doctor notes if available */}
-                                {selectedRequest.doctor_notes && (
-                                  <div>
-                                    <Label className="font-semibold text-blue-600">Doctor Notes</Label>
-                                    <p className="mt-1 p-2 bg-blue-50 rounded text-blue-800">
-                                      {selectedRequest.doctor_notes}
-                                    </p>
-                                  </div>
-                                )}
-
-                                {/* Action buttons - only show for pending and receptionist_approved statuses */}
+                                {/* Action buttons - simplified */}
                                 {(selectedRequest.status === 'pending' || selectedRequest.status === 'receptionist_approved') && (
-                                  <>
-                                    <div className="flex justify-end space-x-2 pt-4 border-t">
+                                  <div className="flex flex-col gap-2 pt-3 border-t">
+                                    <div className="flex gap-2">
                                       {currentUserRole === 'receptionist' && selectedRequest.status === 'pending' && (
                                         <>
                                           <Button
                                             onClick={() => handleApprove(selectedRequest.id, 'receptionist_approve')}
-                                            className="bg-blue-600 hover:bg-blue-700"
+                                            className="bg-blue-600 hover:bg-blue-700 flex-1"
+                                            size="sm"
                                           >
-                                            <CheckCircle className="h-4 w-4 mr-2" />
-                                            Approve (Receptionist)
+                                            <CheckCircle className="h-4 w-4 mr-1" />
+                                            Approve
                                           </Button>
                                           <Button
                                             variant="destructive"
@@ -516,74 +481,74 @@ const PrescriptionManagement: React.FC = () => {
                                                 toast.error('Please provide a rejection reason');
                                               }
                                             }}
+                                            size="sm"
+                                            className="flex-1"
                                           >
-                                            <XCircle className="h-4 w-4 mr-2" />
+                                            <XCircle className="h-4 w-4 mr-1" />
                                             Reject
                                           </Button>
                                         </>
                                       )}
 
                                       {currentUserRole === 'doctor' && selectedRequest.status === 'receptionist_approved' && (
-                                        <div className="space-y-4 w-full">
-                                          <div>
-                                            <Label htmlFor="prescription-content">Prescription Content</Label>
-                                            <Textarea
-                                              id="prescription-content"
-                                              value={prescriptionContent}
-                                              onChange={(e) => setPrescriptionContent(e.target.value)}
-                                              placeholder="Enter the prescription details..."
-                                              rows={6}
-                                            />
-                                          </div>
-                                          <div>
-                                            <Label htmlFor="doctor-notes">Doctor Notes (Optional)</Label>
-                                            <Textarea
-                                              id="doctor-notes"
-                                              value={doctorNotes}
-                                              onChange={(e) => setDoctorNotes(e.target.value)}
-                                              placeholder="Enter any additional notes..."
-                                              rows={3}
-                                            />
-                                          </div>
-                                          <div className="flex space-x-2">
-                                            <Button
-                                              onClick={() => handleApprove(selectedRequest.id, 'doctor_approve')}
-                                              className="bg-green-600 hover:bg-green-700"
-                                              disabled={!prescriptionContent.trim()}
-                                            >
-                                              <Mail className="h-4 w-4 mr-2" />
-                                              Approve & Send Prescription
-                                            </Button>
-                                            <Button
-                                              variant="destructive"
-                                              onClick={() => {
-                                                if (rejectionReason.trim()) {
-                                                  handleApprove(selectedRequest.id, 'reject');
-                                                } else {
-                                                  toast.error('Please provide a rejection reason');
-                                                }
-                                              }}
-                                            >
-                                              <XCircle className="h-4 w-4 mr-2" />
-                                              Reject
-                                            </Button>
-                                          </div>
-                                        </div>
+                                        <>
+                                          <Button
+                                            onClick={() => handleApprove(selectedRequest.id, 'doctor_approve')}
+                                            className="bg-green-600 hover:bg-green-700 flex-1"
+                                            disabled={!prescriptionContent.trim()}
+                                            size="sm"
+                                          >
+                                            <Mail className="h-4 w-4 mr-1" />
+                                            Approve & Send
+                                          </Button>
+                                          <Button
+                                            variant="destructive"
+                                            onClick={() => {
+                                              if (rejectionReason.trim()) {
+                                                handleApprove(selectedRequest.id, 'reject');
+                                              } else {
+                                                toast.error('Please provide a rejection reason');
+                                              }
+                                            }}
+                                            size="sm"
+                                            className="flex-1"
+                                          >
+                                            <XCircle className="h-4 w-4 mr-1" />
+                                            Reject
+                                          </Button>
+                                        </>
                                       )}
                                     </div>
 
-                                    {/* Rejection reason input */}
-                                    <div className="pt-4 border-t">
-                                      <Label htmlFor="rejection-reason">Rejection Reason (if rejecting)</Label>
-                                      <Textarea
-                                        id="rejection-reason"
-                                        value={rejectionReason}
-                                        onChange={(e) => setRejectionReason(e.target.value)}
-                                        placeholder="Enter reason for rejection..."
-                                        rows={3}
-                                      />
-                                    </div>
-                                  </>
+                                    {/* Compact form inputs for doctor */}
+                                    {currentUserRole === 'doctor' && selectedRequest.status === 'receptionist_approved' && (
+                                      <div className="space-y-2">
+                                        <Textarea
+                                          value={prescriptionContent}
+                                          onChange={(e) => setPrescriptionContent(e.target.value)}
+                                          placeholder="Prescription details..."
+                                          rows={3}
+                                          className="text-sm"
+                                        />
+                                        <Textarea
+                                          value={doctorNotes}
+                                          onChange={(e) => setDoctorNotes(e.target.value)}
+                                          placeholder="Doctor notes (optional)..."
+                                          rows={2}
+                                          className="text-sm"
+                                        />
+                                      </div>
+                                    )}
+
+                                    {/* Compact rejection reason input */}
+                                    <Textarea
+                                      value={rejectionReason}
+                                      onChange={(e) => setRejectionReason(e.target.value)}
+                                      placeholder="Rejection reason (if rejecting)..."
+                                      rows={2}
+                                      className="text-sm"
+                                    />
+                                  </div>
                                 )}
                               </div>
                             )}

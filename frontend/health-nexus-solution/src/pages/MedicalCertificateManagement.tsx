@@ -90,6 +90,48 @@ const MedicalCertificateManagement: React.FC = () => {
   const [requests, setRequests] = useState<MedicalCertificateRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<MedicalCertificateRequest | null>(null);
+
+  // Helper function to get image URL - similar to how clinic logo is handled
+  const getImageUrl = (imagePath: string) => {
+    console.log('=== GET IMAGE URL DEBUG ===');
+    console.log('Input imagePath:', imagePath);
+    
+    if (!imagePath) {
+      console.log('No imagePath provided, returning null');
+      return null;
+    }
+    
+    let finalUrl;
+    // If it's already a full URL, return as-is
+    if (imagePath.startsWith('http')) {
+      finalUrl = imagePath;
+      console.log('Already full URL:', finalUrl);
+      return finalUrl;
+    }
+    // If it starts with /media/, add the base URL
+    if (imagePath.startsWith('/media/')) {
+      finalUrl = `http://127.0.0.1:8000${imagePath}`;
+      console.log('Starts with /media/, constructed URL:', finalUrl);
+      return finalUrl;
+    }
+    // If it starts with medical_requests/, add the full path
+    if (imagePath.startsWith('medical_requests/')) {
+      finalUrl = `http://127.0.0.1:8000/media/${imagePath}`;
+      console.log('Starts with medical_requests/, constructed URL:', finalUrl);
+      return finalUrl;
+    }
+    // If it's just a filename, assume it's in medical_requests folder
+    if (!imagePath.includes('/')) {
+      finalUrl = `http://127.0.0.1:8000/media/medical_requests/${imagePath}`;
+      console.log('Just filename, constructed URL:', finalUrl);
+      return finalUrl;
+    }
+    // Otherwise, add base URL
+    finalUrl = `http://127.0.0.1:8000${imagePath.startsWith('/') ? imagePath : '/' + imagePath}`;
+    console.log('Default case, constructed URL:', finalUrl);
+    console.log('=== END GET IMAGE URL DEBUG ===');
+    return finalUrl;
+  };
   const [certificateContent, setCertificateContent] = useState('');
   const [doctorNotes, setDoctorNotes] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
@@ -174,6 +216,15 @@ const MedicalCertificateManagement: React.FC = () => {
   const fetchRequests = async () => {
     try {
       const response = await axios.get('/medical-certificates/');
+      console.log('=== MEDICAL CERTIFICATES API RESPONSE ===');
+      console.log('Full response:', response.data);
+      if (response.data.length > 0) {
+        console.log('First request sample:', response.data[0]);
+        console.log('ID verification fields in first request:');
+        console.log('- id_verification_front:', response.data[0].id_verification_front);
+        console.log('- id_verification_back:', response.data[0].id_verification_back);
+      }
+      console.log('=== END API RESPONSE DEBUG ===');
       setRequests(response.data);
     } catch (error) {
       console.error('Error fetching medical certificate requests:', error);
@@ -594,121 +645,92 @@ const MedicalCertificateManagement: React.FC = () => {
                               View
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="max-w-4xl">
+                          <DialogContent className="max-w-2xl max-h-[70vh] overflow-y-auto">
                             <DialogHeader>
-                              <DialogTitle>Medical Certificate Request Details</DialogTitle>
+                              <DialogTitle>Request Details</DialogTitle>
                             </DialogHeader>
                             {selectedRequest && (
-                              <div className="space-y-6">
-                                <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-3 text-sm">
                                   <div>
-                                    <Label className="font-semibold">Patient Name</Label>
-                                    <p>{selectedRequest.patient_name}</p>
+                                    <Label className="font-medium text-xs text-muted-foreground">Patient</Label>
+                                    <p className="font-medium">{selectedRequest.patient_name}</p>
                                   </div>
                                   <div>
-                                    <Label className="font-semibold">Request Type</Label>
-                                    <p>{getRequestTypeLabel(selectedRequest.request_type)}</p>
+                                    <Label className="font-medium text-xs text-muted-foreground">Type</Label>
+                                    <p className="font-medium">{getRequestTypeLabel(selectedRequest.request_type)}</p>
                                   </div>
                                   <div>
-                                    <Label className="font-semibold">Date of Birth</Label>
-                                    <p>{selectedRequest.date_of_birth}</p>
+                                    <Label className="font-medium text-xs text-muted-foreground">DOB</Label>
+                                    <p className="text-sm">{selectedRequest.date_of_birth}</p>
                                   </div>
                                   <div>
-                                    <Label className="font-semibold">Email</Label>
-                                    <p>{selectedRequest.email}</p>
+                                    <Label className="font-medium text-xs text-muted-foreground">Email</Label>
+                                    <p className="text-sm">{selectedRequest.email}</p>
                                   </div>
                                   <div>
-                                    <Label className="font-semibold">Phone</Label>
-                                    <p>{selectedRequest.phone}</p>
+                                    <Label className="font-medium text-xs text-muted-foreground">Phone</Label>
+                                    <p className="text-sm">{selectedRequest.phone}</p>
                                   </div>
                                   <div>
-                                    <Label className="font-semibold">Status</Label>
-                                    <p>{getStatusBadge(selectedRequest.status)}</p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-semibold">Requested At</Label>
-                                    <p>{new Date(selectedRequest.requested_at).toLocaleDateString()}</p>
+                                    <Label className="font-medium text-xs text-muted-foreground">Status</Label>
+                                    <div className="mt-1">{getStatusBadge(selectedRequest.status)}</div>
                                   </div>
                                 </div>
                                 
                                 {selectedRequest.additional_info && (
                                   <div>
-                                    <Label className="font-semibold">Additional Information</Label>
-                                    <p className="mt-1 p-2 bg-gray-50 rounded">{selectedRequest.additional_info}</p>
+                                    <Label className="font-medium text-xs text-muted-foreground">Additional Info</Label>
+                                    <p className="text-sm mt-1 p-2 bg-gray-50 rounded text-muted-foreground">{selectedRequest.additional_info}</p>
                                   </div>
                                 )}
 
-                                {/* ID Verification Images */}
+                                {/* ID Verification Images - Compact version */}
                                 {(selectedRequest.id_verification_front || selectedRequest.id_verification_back) && (
                                   <div>
-                                    <Label className="font-semibold">ID Verification</Label>
-                                    <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <Label className="font-medium text-xs text-muted-foreground">ID Verification</Label>
+                                    <div className="mt-2 flex gap-2">
                                       {selectedRequest.id_verification_front && (
-                                        <div>
-                                          <Label className="text-sm text-gray-600">Front Side</Label>
-                                          <div className="mt-1 border rounded-lg overflow-hidden">
-                                            <img
-                                              src={selectedRequest.id_verification_front}
-                                              alt="ID Front"
-                                              className="w-full h-48 object-contain bg-gray-50"
-                                              onClick={() => window.open(selectedRequest.id_verification_front, '_blank')}
-                                              style={{ cursor: 'pointer' }}
-                                            />
-                                          </div>
-                                          <p className="text-xs text-gray-500 mt-1">Click to view full size</p>
+                                        <div className="flex-1">
+                                          <p className="text-xs text-gray-500 mb-1">Front</p>
+                                          <img
+                                            src={getImageUrl(selectedRequest.id_verification_front)}
+                                            alt="ID Front"
+                                            className="w-full h-20 object-contain rounded border cursor-pointer hover:opacity-80"
+                                            onClick={() => window.open(getImageUrl(selectedRequest.id_verification_front), '_blank')}
+                                            onError={(e) => (e.target as HTMLImageElement).style.display = 'none'}
+                                          />
                                         </div>
                                       )}
                                       {selectedRequest.id_verification_back && (
-                                        <div>
-                                          <Label className="text-sm text-gray-600">Back Side</Label>
-                                          <div className="mt-1 border rounded-lg overflow-hidden">
-                                            <img
-                                              src={selectedRequest.id_verification_back}
-                                              alt="ID Back"
-                                              className="w-full h-48 object-contain bg-gray-50"
-                                              onClick={() => window.open(selectedRequest.id_verification_back, '_blank')}
-                                              style={{ cursor: 'pointer' }}
-                                            />
-                                          </div>
-                                          <p className="text-xs text-gray-500 mt-1">Click to view full size</p>
+                                        <div className="flex-1">
+                                          <p className="text-xs text-gray-500 mb-1">Back</p>
+                                          <img
+                                            src={getImageUrl(selectedRequest.id_verification_back)}
+                                            alt="ID Back"
+                                            className="w-full h-20 object-contain rounded border cursor-pointer hover:opacity-80"
+                                            onClick={() => window.open(getImageUrl(selectedRequest.id_verification_back), '_blank')}
+                                            onError={(e) => (e.target as HTMLImageElement).style.display = 'none'}
+                                          />
                                         </div>
                                       )}
                                     </div>
                                   </div>
                                 )}
 
-                                {/* Show rejection reason if rejected */}
-                                {selectedRequest.status === 'rejected' && selectedRequest.rejection_reason && (
-                                  <div>
-                                    <Label className="font-semibold text-red-600">Rejection Reason</Label>
-                                    <p className="mt-1 p-2 bg-red-50 rounded text-red-800">
-                                      {selectedRequest.rejection_reason}
-                                    </p>
-                                  </div>
-                                )}
-
-                                {/* Show doctor notes if available */}
-                                {selectedRequest.doctor_notes && (
-                                  <div>
-                                    <Label className="font-semibold text-blue-600">Doctor Notes</Label>
-                                    <p className="mt-1 p-2 bg-blue-50 rounded text-blue-800">
-                                      {selectedRequest.doctor_notes}
-                                    </p>
-                                  </div>
-                                )}
-
-                                {/* Action buttons - only show for pending and receptionist_approved statuses */}
+                                {/* Action buttons - simplified */}
                                 {(selectedRequest.status === 'pending' || selectedRequest.status === 'receptionist_approved') && (
-                                  <>
-                                    <div className="flex justify-end space-x-2 pt-4 border-t">
+                                  <div className="flex flex-col gap-2 pt-3 border-t">
+                                    <div className="flex gap-2">
                                       {currentUserRole === 'receptionist' && selectedRequest.status === 'pending' && (
                                         <>
                                           <Button
                                             onClick={() => handleApprove(selectedRequest.id, 'receptionist_approve')}
-                                            className="bg-blue-600 hover:bg-blue-700"
+                                            className="bg-blue-600 hover:bg-blue-700 flex-1"
+                                            size="sm"
                                           >
-                                            <CheckCircle className="h-4 w-4 mr-2" />
-                                            Approve (Receptionist)
+                                            <CheckCircle className="h-4 w-4 mr-1" />
+                                            Approve
                                           </Button>
                                           <Button
                                             variant="destructive"
@@ -719,53 +741,53 @@ const MedicalCertificateManagement: React.FC = () => {
                                                 toast.error('Please provide a rejection reason');
                                               }
                                             }}
+                                            size="sm"
+                                            className="flex-1"
                                           >
-                                            <XCircle className="h-4 w-4 mr-2" />
+                                            <XCircle className="h-4 w-4 mr-1" />
                                             Reject
                                           </Button>
                                         </>
                                       )}
 
                                       {currentUserRole === 'doctor' && selectedRequest.status === 'receptionist_approved' && (
-                                        <div className="space-y-4 w-full">
-                                          <div className="flex space-x-2">
-                                            <Button
-                                              onClick={() => handleCreateCertificate(selectedRequest)}
-                                              className="bg-blue-600 hover:bg-blue-700"
-                                            >
-                                              <FileText className="h-4 w-4 mr-2" />
-                                              Generate Medical Certificate
-                                            </Button>
-                                            <Button
-                                              variant="destructive"
-                                              onClick={() => {
-                                                if (rejectionReason.trim()) {
-                                                  handleApprove(selectedRequest.id, 'reject');
-                                                } else {
-                                                  toast.error('Please provide a rejection reason');
-                                                }
-                                              }}
-                                            >
-                                              <XCircle className="h-4 w-4 mr-2" />
-                                              Reject
-                                            </Button>
-                                          </div>
-                                        </div>
+                                        <>
+                                          <Button
+                                            onClick={() => handleCreateCertificate(selectedRequest)}
+                                            className="bg-blue-600 hover:bg-blue-700 flex-1"
+                                            size="sm"
+                                          >
+                                            <FileText className="h-4 w-4 mr-1" />
+                                            Generate Certificate
+                                          </Button>
+                                          <Button
+                                            variant="destructive"
+                                            onClick={() => {
+                                              if (rejectionReason.trim()) {
+                                                handleApprove(selectedRequest.id, 'reject');
+                                              } else {
+                                                toast.error('Please provide a rejection reason');
+                                              }
+                                            }}
+                                            size="sm"
+                                            className="flex-1"
+                                          >
+                                            <XCircle className="h-4 w-4 mr-1" />
+                                            Reject
+                                          </Button>
+                                        </>
                                       )}
                                     </div>
 
-                                    {/* Rejection reason input */}
-                                    <div className="pt-4 border-t">
-                                      <Label htmlFor="rejection-reason">Rejection Reason (if rejecting)</Label>
-                                      <Textarea
-                                        id="rejection-reason"
-                                        value={rejectionReason}
-                                        onChange={(e) => setRejectionReason(e.target.value)}
-                                        placeholder="Enter reason for rejection..."
-                                        rows={3}
-                                      />
-                                    </div>
-                                  </>
+                                    {/* Compact rejection reason input */}
+                                    <Textarea
+                                      value={rejectionReason}
+                                      onChange={(e) => setRejectionReason(e.target.value)}
+                                      placeholder="Rejection reason (if rejecting)..."
+                                      rows={2}
+                                      className="text-sm"
+                                    />
+                                  </div>
                                 )}
                               </div>
                             )}
