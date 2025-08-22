@@ -204,7 +204,7 @@ export const DynamicTranslationManager: React.FC = () => {
           </div>
 
           {/* Usage Tips */}
-          <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
+          <div className="bg-blue-50 p-4 rounded-lg">
             <h4 className="font-medium mb-2">How it works:</h4>
             <ul className="text-sm space-y-1 text-muted-foreground">
               <li>1. Static translations are loaded first from JSON files</li>
@@ -216,7 +216,7 @@ export const DynamicTranslationManager: React.FC = () => {
           </div>
 
           {language === 'en' && (
-            <div className="bg-yellow-50 dark:bg-yellow-950 p-4 rounded-lg">
+            <div className="bg-yellow-50 p-4 rounded-lg">
               <p className="text-sm text-muted-foreground">
                 Switch to Tagalog to test the translation features.
               </p>

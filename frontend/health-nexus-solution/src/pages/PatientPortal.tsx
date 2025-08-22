@@ -6,21 +6,15 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from '@/components/ui/navigation-menu';
 import axios from 'axios';
-import { ArrowUp, BotMessageSquare, Calendar, FileText, Monitor, Moon, Pill, Sun } from 'lucide-react';
+import { ArrowUp, BotMessageSquare, Calendar, FileText, Pill } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// Note: These hooks need to be implemented or imported from your theme/language context
-// For now, providing mock implementations to prevent errors
-const useTheme = () => ({ 
-  theme: 'light' as 'light' | 'dark' | 'system', 
-  setTheme: (theme: 'light' | 'dark' | 'system') => {} 
-});
+// Note: This hook needs to be implemented or imported from your language context
 const useLanguage = () => ({ t: (key: string) => key });
 
 const PatientPortal = () => {
   const navigate = useNavigate();
-  const { theme, setTheme } = useTheme();
   const { t } = useLanguage();
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
@@ -86,29 +80,6 @@ const PatientPortal = () => {
       clearTimeout(repeatTimeout);
     };
   }, []);
-
-  // Theme toggle function
-  const toggleTheme = () => {
-    if (theme === 'light') {
-      setTheme('dark');
-    } else if (theme === 'dark') {
-      setTheme('system');
-    } else {
-      setTheme('light');
-    }
-  };
-
-  // Get theme icon
-  const getThemeIcon = () => {
-    switch (theme) {
-      case 'light':
-        return <Sun className="h-4 w-4" />;
-      case 'dark':
-        return <Moon className="h-4 w-4" />;
-      default:
-        return <Monitor className="h-4 w-4" />;
-    }
-  };
 
   // Move fetchClinic outside useEffect
   const fetchClinic = async () => {

@@ -72,13 +72,15 @@ export default function BulkImportModal({ type, onUploadComplete }: BulkImportMo
   };
 
   const downloadTemplate = () => {
+    const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+    
     const headers = type === 'patients' 
-      ? ['name', 'email', 'phone', 'date_of_birth', 'gender', 'address', 'marital_status']
+      ? ['first_name', 'last_name', 'middle_initial', 'suffix', 'email', 'phone', 'date_of_birth', 'gender', 'address', 'marital_status']
       : ['first_name', 'last_name', 'email', 'phone', 'role', 'department', 'license_number'];
     
     const csvContent = headers.join(',') + '\n' + 
       (type === 'patients' 
-        ? 'John Doe,john.doe@email.com,+1234567890,1990-01-01,male,"123 Main St",single\nJane Smith,jane.smith@email.com,+0987654321,1985-05-15,female,"456 Oak Ave",married'
+        ? `John,Doe,M,Jr,john.doe@email.com,+1234567890,${currentDate},male,"123 Main St",single\nJane,Smith,L,,jane.smith@email.com,+0987654321,${currentDate},female,"456 Oak Ave",married`
         : 'Jane,Smith,jane.smith@hospital.com,+1234567890,doctor,cardiology,MD12345\nJohn,Doe,john.doe@hospital.com,+0987654321,nurse,emergency,RN67890');
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -200,7 +202,10 @@ export default function BulkImportModal({ type, onUploadComplete }: BulkImportMo
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       {type === 'patients' ? (
                         <>
-                          <div>• name (required)</div>
+                          <div>• first_name (required)</div>
+                          <div>• last_name (required)</div>
+                          <div>• middle_initial (optional)</div>
+                          <div>• suffix (optional)</div>
                           <div>• email (required, unique)</div>
                           <div>• phone (required)</div>
                           <div>• date_of_birth (YYYY-MM-DD)</div>
@@ -241,8 +246,10 @@ function ManualBulkEntry({ type, onComplete }: { type: 'patients' | 'staff'; onC
   const { toast } = useToast();
 
   function getEmptyEntry(type: 'patients' | 'staff') {
+    const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+    
     return type === 'patients' 
-      ? { name: '', email: '', phone: '', date_of_birth: '', gender: 'other', address: '', marital_status: 'single' }
+      ? { first_name: '', last_name: '', middle_initial: '', suffix: '', email: '', phone: '', date_of_birth: currentDate, gender: 'other', address: '', marital_status: 'single' }
       : { first_name: '', last_name: '', email: '', phone: '', role: '', department: '', license_number: '' };
   }
 
@@ -309,11 +316,36 @@ function ManualBulkEntry({ type, onComplete }: { type: 'patients' | 'staff'; onC
             {type === 'patients' ? (
               <>
                 <div>
-                  <Label>Name</Label>
+                  <Label>First Name</Label>
                   <Input
-                    value={entry.name}
-                    onChange={(e) => updateEntry(index, 'name', e.target.value)}
-                    placeholder="Full name"
+                    value={entry.first_name}
+                    onChange={(e) => updateEntry(index, 'first_name', e.target.value)}
+                    placeholder="First name"
+                  />
+                </div>
+                <div>
+                  <Label>Last Name</Label>
+                  <Input
+                    value={entry.last_name}
+                    onChange={(e) => updateEntry(index, 'last_name', e.target.value)}
+                    placeholder="Last name"
+                  />
+                </div>
+                <div>
+                  <Label>Middle Initial</Label>
+                  <Input
+                    value={entry.middle_initial}
+                    onChange={(e) => updateEntry(index, 'middle_initial', e.target.value)}
+                    placeholder="M"
+                    maxLength={1}
+                  />
+                </div>
+                <div>
+                  <Label>Suffix</Label>
+                  <Input
+                    value={entry.suffix}
+                    onChange={(e) => updateEntry(index, 'suffix', e.target.value)}
+                    placeholder="Jr, Sr, III"
                   />
                 </div>
                 <div>

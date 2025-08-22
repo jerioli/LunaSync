@@ -102,8 +102,8 @@ class BulkPatientUploadView(APIView):
         created_patients = []
         errors = []
         
-        # Required fields for Patient model
-        required_fields = ['name', 'email', 'phone', 'date_of_birth']
+        # Required fields for Patient model (updated to support new structure)
+        required_fields = ['email', 'phone', 'date_of_birth']
         
         try:
             with transaction.atomic():
@@ -111,7 +111,37 @@ class BulkPatientUploadView(APIView):
                     try:
                         print(f"DEBUG: Processing patient {i+1}: {patient_data}")
                         
-                        # Validate required fields
+                        # Handle name construction - support both old and new formats
+                        name = ""
+                        if 'name' in patient_data and patient_data['name']:
+                            # Old format - use existing name
+                            name = str(patient_data['name']).strip()
+                        else:
+                            # New format - construct name from components
+                            name_parts = []
+                            if patient_data.get('first_name'):
+                                name_parts.append(str(patient_data['first_name']).strip())
+                            if patient_data.get('middle_initial'):
+                                middle = str(patient_data['middle_initial']).strip()
+                                if middle and not middle.endswith('.'):
+                                    middle += '.'
+                                name_parts.append(middle)
+                            if patient_data.get('last_name'):
+                                name_parts.append(str(patient_data['last_name']).strip())
+                            if patient_data.get('suffix'):
+                                name_parts.append(str(patient_data['suffix']).strip())
+                            
+                            name = ' '.join(filter(None, name_parts))
+                        
+                        # Validate that we have a name (either from old format or constructed)
+                        if not name:
+                            if not patient_data.get('first_name') or not patient_data.get('last_name'):
+                                error_msg = f"Row {i+1}: Missing required fields: first_name and last_name (or name)"
+                                print(f"DEBUG: {error_msg}")
+                                errors.append(error_msg)
+                                continue
+                        
+                        # Validate other required fields
                         missing_fields = [field for field in required_fields if not patient_data.get(field)]
                         if missing_fields:
                             error_msg = f"Row {i+1}: Missing required fields: {', '.join(missing_fields)}"
@@ -121,7 +151,11 @@ class BulkPatientUploadView(APIView):
                         
                         # Clean and prepare data
                         clean_data = {
-                            'name': str(patient_data.get('name', '')).strip(),
+                            'name': name,
+                            'first_name': str(patient_data.get('first_name', '')).strip() if patient_data.get('first_name') else None,
+                            'last_name': str(patient_data.get('last_name', '')).strip() if patient_data.get('last_name') else None,
+                            'middle_initial': str(patient_data.get('middle_initial', '')).strip() if patient_data.get('middle_initial') else None,
+                            'suffix': str(patient_data.get('suffix', '')).strip() if patient_data.get('suffix') else None,
                             'email': str(patient_data.get('email', '')).strip().lower(),
                             'phone': str(patient_data.get('phone', '')).strip(),
                             'date_of_birth': patient_data.get('date_of_birth'),
@@ -129,6 +163,9 @@ class BulkPatientUploadView(APIView):
                             'address': str(patient_data.get('address', '')).strip(),
                             'marital_status': patient_data.get('marital_status', 'single'),
                         }
+                        
+                        # Remove None values to avoid issues
+                        clean_data = {k: v for k, v in clean_data.items() if v is not None}
                         
                         print(f"DEBUG: Clean data prepared: {clean_data}")
                         
