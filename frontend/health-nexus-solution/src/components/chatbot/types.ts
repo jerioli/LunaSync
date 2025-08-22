@@ -57,6 +57,7 @@ export interface AppointmentForm {
   address: string;
   maritalStatus: string;
   termsAgreed?: boolean;
+  patient_id?: string; // For returning patients
 }
 
 export type MedicalRecordRequestForm = {

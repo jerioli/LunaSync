@@ -114,6 +114,7 @@ export interface StaffMember {
 
 export interface Patient {
   id: number;
+  patient_id?: string; // Unique Patient ID for returning patients
   name: string; // Keep for backward compatibility
   first_name?: string;
   last_name?: string;
@@ -278,6 +279,10 @@ export const api = {
     },
     checkByEmail: async (email: string) => {
       const response = await axiosInstance.get(`/patients/check-email/?email=${encodeURIComponent(email)}`);
+      return response.data;
+    },
+    checkByPatientId: async (patientId: string) => {
+      const response = await axiosInstance.get(`/patients/check-patient-id/?patient_id=${encodeURIComponent(patientId)}`);
       return response.data;
     }
   },

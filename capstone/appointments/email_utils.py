@@ -193,6 +193,10 @@ def send_appointment_confirmation_email(appointment, patient):
                     </h3>
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr>
+                            <td style="padding: 8px 0; font-weight: bold; color: #4b5563; width: 100px;">Patient ID:</td>
+                            <td style="padding: 8px 0; color: #1f2937; font-weight: bold;">{patient.patient_id}</td>
+                        </tr>
+                        <tr>
                             <td style="padding: 8px 0; font-weight: bold; color: #4b5563; width: 100px;">Date:</td>
                             <td style="padding: 8px 0; color: #1f2937;">{appointment_date}</td>
                         </tr>
@@ -267,6 +271,7 @@ Dear {patient.name},
 Your appointment request has been approved and confirmed!
 
 Appointment Details:
+- Patient ID: {patient.patient_id}
 - Date: {appointment_date}
 - Time: {appointment_time}
 - Type: {appointment.appointment_type}
@@ -385,6 +390,10 @@ def send_appointment_reminder_email(appointment, patient):
                     </h3>
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr>
+                            <td style="padding: 8px 0; font-weight: bold; color: #4b5563; width: 100px;">Patient ID:</td>
+                            <td style="padding: 8px 0; color: #1f2937; font-weight: bold;">{patient.patient_id}</td>
+                        </tr>
+                        <tr>
                             <td style="padding: 8px 0; font-weight: bold; color: #4b5563; width: 100px;">Date:</td>
                             <td style="padding: 8px 0; color: #1f2937;">{appointment_date}</td>
                         </tr>
@@ -452,6 +461,7 @@ Dear {patient.name},
 This is a friendly reminder about your upcoming appointment.
 
 Appointment Details:
+- Patient ID: {patient.patient_id}
 - Date: {appointment_date}
 - Time: {appointment_time}
 - Type: {appointment.appointment_type}

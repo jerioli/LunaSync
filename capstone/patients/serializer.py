@@ -6,6 +6,7 @@ class PatientSerializer(serializers.ModelSerializer):
         model = Patient
         fields = [
             'id',
+            'patient_id',  # Include unique Patient ID
             'name',  # Keep for backward compatibility
             'first_name',
             'last_name', 

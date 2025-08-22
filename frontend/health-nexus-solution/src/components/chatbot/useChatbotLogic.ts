@@ -40,7 +40,8 @@ export const useChatbotLogic = () => {
     gender: '',
     address: '',
     maritalStatus: '',
-    termsAgreed: false
+    termsAgreed: false,
+    patient_id: ''
   });
 
   // Form state for medical record requests
@@ -240,6 +241,12 @@ export const useChatbotLogic = () => {
     const digitsOnly = phone.replace(/\D/g, '');
     // Check if the result is exactly 11 digits
     return digitsOnly.length === 11;
+  };
+
+  const validatePatientId = (patientId: string): boolean => {
+    // Patient ID format: P-YYYYMMDD-XXXX
+    const patientIdRegex = /^P-\d{8}-\d{4}$/;
+    return patientIdRegex.test(patientId.trim());
   };
 
   const validateDateOfBirth = (dob: string) => {
@@ -491,18 +498,18 @@ export const useChatbotLogic = () => {
         }
         return;
       } else if (chatStep === 6.1) {
-        // Handle email input for returning patients
-        if (!validateEmail(input)) {
+        // Handle Patient ID input for returning patients
+        if (!validatePatientId(input)) {
           addMessage('user', input);
           setInput('');
           setTimeout(() => {
-            addBotMessage('Please enter a valid email address:');
+            addBotMessage('Please enter a valid Patient ID in the format P-YYYYMMDD-XXXX (e.g., P-20250822-1234):');
           }, 500);
           return;
         }
         
         addMessage('user', input);
-        setAppointmentForm(prev => ({ ...prev, email: input }));
+        setAppointmentForm(prev => ({ ...prev, patient_id: input }));
         setInput('');
         
         // Check if patient already exists (for returning patients only)
@@ -510,7 +517,7 @@ export const useChatbotLogic = () => {
           try {
             addBotMessage('Looking up your information...');
             
-            const response = await api.patients.checkByEmail(input);
+            const response = await api.patients.checkByPatientId(input);
             
             if (response.exists && response.patient) {
               setExistingPatient(response.patient);
@@ -526,7 +533,7 @@ export const useChatbotLogic = () => {
             } else {
               setExistingPatient(null);
               setTimeout(() => {
-                addBotMessage(`I couldn't find any records with the email ${input}. It looks like you might be a new patient. Let me guide you through our registration process.`);
+                addBotMessage(`I couldn't find any records with the Patient ID ${input}. Please double-check your Patient ID or you might be a new patient. Let me guide you through our registration process.`);
                 
                 setTimeout(() => {
                   addBotMessage('Before we proceed, I need to inform you that we will be collecting some personal information to process your appointment request.');
@@ -1305,8 +1312,9 @@ export const useChatbotLogic = () => {
       // Handle returning patient selection
       addMessage('user', 'Returning Patient');
       setTimeout(() => {
-        addBotMessage('Great! Please provide your email address so I can look up your information:');
-        setChatStep(6.1); // Email input for returning patients
+        addBotMessage('Great! Please provide your unique Patient ID so I can look up your information:');
+        addBotMessage('Your Patient ID is in the format: P-YYYYMMDD-XXXX (e.g., P-20250822-1234). You can find it in your previous appointment emails or medical records.');
+        setChatStep(6.1); // Patient ID input for returning patients
         setIsInputDisabled(false);
       }, 500);
     } else if (value === 'first-visit') {
@@ -2012,13 +2020,33 @@ export const useChatbotLogic = () => {
           // Pre-populate form with existing patient data
           setAppointmentForm(prev => ({
             ...prev,
-            name: existingPatient.name,
+            firstName: existingPatient.first_name || '',
+            lastName: existingPatient.last_name || '',
+            middleInitial: existingPatient.middle_initial || '',
+            suffix: existingPatient.suffix || '',
+            email: existingPatient.email || '',
             phone: existingPatient.phone,
             dateOfBirth: existingPatient.date_of_birth,
             gender: existingPatient.gender || '',
             address: existingPatient.address || '',
-            maritalStatus: existingPatient.marital_status || ''
+            maritalStatus: existingPatient.marital_status || '',
+            patient_id: existingPatient.patient_id || ''
           }));
+          
+          // Also populate tempFormData for consistency
+          setTempFormData({
+            firstName: existingPatient.first_name || '',
+            lastName: existingPatient.last_name || '',
+            middleInitial: existingPatient.middle_initial || '',
+            suffix: existingPatient.suffix || '',
+            email: existingPatient.email || '',
+            phone: existingPatient.phone || '',
+            dateOfBirth: existingPatient.date_of_birth || '',
+            gender: existingPatient.gender || '',
+            address: existingPatient.address || '',
+            maritalStatus: existingPatient.marital_status || '',
+            patient_id: existingPatient.patient_id || ''
+          });
           
           setTimeout(() => {
             addBotMessage( `Great! I've pre-filled your information. Let me summarize your appointment details:`);
@@ -2063,13 +2091,33 @@ export const useChatbotLogic = () => {
           // Pre-populate form but allow updates
           setAppointmentForm(prev => ({
             ...prev,
-            name: existingPatient.name,
+            firstName: existingPatient.first_name || '',
+            lastName: existingPatient.last_name || '',
+            middleInitial: existingPatient.middle_initial || '',
+            suffix: existingPatient.suffix || '',
+            email: existingPatient.email || '',
             phone: existingPatient.phone,
             dateOfBirth: existingPatient.date_of_birth,
             gender: existingPatient.gender || '',
             address: existingPatient.address || '',
-            maritalStatus: existingPatient.marital_status || ''
+            maritalStatus: existingPatient.marital_status || '',
+            patient_id: existingPatient.patient_id || ''
           }));
+          
+          // Also populate tempFormData for consistency
+          setTempFormData({
+            firstName: existingPatient.first_name || '',
+            lastName: existingPatient.last_name || '',
+            middleInitial: existingPatient.middle_initial || '',
+            suffix: existingPatient.suffix || '',
+            email: existingPatient.email || '',
+            phone: existingPatient.phone || '',
+            dateOfBirth: existingPatient.date_of_birth || '',
+            gender: existingPatient.gender || '',
+            address: existingPatient.address || '',
+            maritalStatus: existingPatient.marital_status || '',
+            patient_id: existingPatient.patient_id || ''
+          });
         }
         
         setTimeout(() => {
@@ -2372,6 +2420,7 @@ export const useChatbotLogic = () => {
         middleInitial: formDataToUse.middleInitial || appointmentForm.middleInitial,
         lastName: formDataToUse.lastName || appointmentForm.lastName,
         suffix: formDataToUse.suffix || appointmentForm.suffix,
+        patient_id: appointmentForm.patient_id || null, // Include Patient ID for returning patients
         patient_email: formDataToUse.email || appointmentForm.email,
         patient_phone: formDataToUse.phone || appointmentForm.phone,
         date_of_birth: (formDataToUse.dateOfBirth || appointmentForm.dateOfBirth) ? new Date(formDataToUse.dateOfBirth || appointmentForm.dateOfBirth).toISOString().split('T')[0] : null,
@@ -2929,7 +2978,8 @@ export const useChatbotLogic = () => {
       gender: '',
       address: '',
       maritalStatus: '',
-      termsAgreed: false
+      termsAgreed: false,
+      patient_id: ''
     });
     setMedicalRecordForm({
       requestType: '',

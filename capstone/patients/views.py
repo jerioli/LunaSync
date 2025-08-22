@@ -254,3 +254,54 @@ class CheckPatientByEmailView(APIView):
                 'exists': False,
                 'patient': None
             }, status=status.HTTP_200_OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CheckPatientByPatientIdView(APIView):
+    """
+    Check if a patient exists by Patient ID.
+    Used by chatbot to recognize returning patients.
+    """
+    
+    def get(self, request):
+        patient_id = request.query_params.get('patient_id')
+        
+        if not patient_id:
+            return Response({
+                'error': 'Patient ID parameter is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            patient = Patient.objects.get(patient_id=patient_id)
+            serializer = PatientSerializer(patient)
+            
+            # Log the lookup action
+            AuditLogger.log_action(
+                user=request.user if request.user.is_authenticated else None,
+                action='READ',
+                resource_type='PATIENT',
+                description=f'Checked existing patient by Patient ID: {patient_id}',
+                details={'patient_id': patient.id, 'patient_name': patient.name, 'patient_unique_id': patient_id},
+                request=request
+            )
+            
+            return Response({
+                'exists': True,
+                'patient': serializer.data
+            }, status=status.HTTP_200_OK)
+            
+        except Patient.DoesNotExist:
+            # Log the lookup attempt
+            AuditLogger.log_action(
+                user=request.user if request.user.is_authenticated else None,
+                action='READ',
+                resource_type='PATIENT',
+                description=f'Checked for non-existing patient by Patient ID: {patient_id}',
+                details={'patient_id': patient_id},
+                request=request
+            )
+            
+            return Response({
+                'exists': False,
+                'patient': None
+            }, status=status.HTTP_200_OK)
