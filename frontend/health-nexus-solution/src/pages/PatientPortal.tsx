@@ -325,7 +325,7 @@ const PatientPortal = () => {
           <div className="flex-1 flex justify-end items-center gap-2">
             {/* Schedule Appointment button (moved from hero section) */}
             <Button 
-              onClick={() => setIsChatbotOpen(!isChatbotOpen)}
+              onClick={() => navigate('/patient-requests')}
               size="lg"
               className="rounded-full font-bold bg-[#79c942] hover:bg-[#6bb33a] text-white transition-colors
               h-9 w-[180px] min-w-[180px] max-w-[180px]
@@ -411,9 +411,9 @@ const PatientPortal = () => {
       )}
       
       {/* Hero Section */}
-      <section id="home" className="py-20">
-        <div className="container mx-auto flex flex-col md:flex-row items-center gap-12">
-          <div className="flex-1 space-y-6">
+      <section id="home" className="py-10 md:py-20">
+        <div className="container mx-auto flex flex-col md:flex-row items-center gap-8 md:gap-12 px-4">
+          <div className="flex-1 space-y-6 w-full">
             {clinic.logo && (
               <img src={getLogoUrl(clinic.logo)} alt="Clinic Logo" className="h-16 mb-4" />
             )}
@@ -428,21 +428,21 @@ const PatientPortal = () => {
             </p>
             {/* Remove the flex container with two buttons and only leave the content div empty */}
           </div>
-          <div className="flex-1">
+          <div className="flex-1 w-full">
             <img 
               src="https://images.unsplash.com/photo-1631815588090-602d3d4d020c?q=80&w=1887&auto=format&fit=crop" 
               alt="Healthcare professionals" 
-              className="w-full h-auto rounded-lg shadow-lg"
+              className="w-full h-auto rounded-lg shadow-lg object-cover max-h-[320px] md:max-h-[400px]"
             />
           </div>
         </div>
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-20">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-[#79c942]">{clinic.about_title || `About ${clinic.clinic_name || 'Our Clinic'}`}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+      <section id="about" className="py-10 md:py-20">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-8 md:mb-12 text-[#79c942]">{clinic.about_title || `About ${clinic.clinic_name || 'Our Clinic'}`}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
             <div>
               {clinic.clinic_building_image ? (
                 <img 
@@ -488,23 +488,10 @@ const PatientPortal = () => {
       </section>
       
       {/* Services Section */}
-      <section id="services" className="py-20 relative">
-        <style>
-          {`
-            .service-card {
-              transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
-            }
-            .service-card:hover {
-              transform: scale(1.05);
-              box-shadow: 0 8px 32px 0 #79c94255;
-              background: #79c94222;
-              z-index: 2;
-            }
-          `}
-        </style>
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-[#79c942]">Our Services</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+      <section id="services" className="py-10 md:py-20 relative">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-8 md:mb-12 text-[#79c942]">Our Services</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
             {clinic.services && clinic.services.length > 0 ? (
               clinic.services.map((service, index) => (
                 <Card key={index} className="service-card">
@@ -567,11 +554,11 @@ const PatientPortal = () => {
       </section>
 
       {/* Reviews Section */}
-      <section id="reviews" className="py-20 relative">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-[#79c942]">Patient Reviews</h2>
+      <section id="reviews" className="py-10 md:py-20 relative">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-8 md:mb-12 text-[#79c942]">Patient Reviews</h2>
           
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
             {/* Patient Reviews - Left Side (3 columns) */}
             <div className="lg:col-span-3">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
@@ -703,10 +690,10 @@ const PatientPortal = () => {
       </section>
 
       {/* FAQs Section */}
-      <section id="faqs" className="py-20 relative">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-[#79c942]">Frequently Asked Questions</h2>
-          <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+      <section id="faqs" className="py-10 md:py-20 relative">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-8 md:mb-12 text-[#79c942]">Frequently Asked Questions</h2>
+          <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             {/* First Accordion Card (first 5 FAQs) */}
             <Card>
               <CardHeader>
@@ -818,10 +805,10 @@ const PatientPortal = () => {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-20 relative bg-white/70">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-[#79c942]">Contact Us</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
+      <section id="contact" className="py-10 md:py-20 relative bg-white/70">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-8 md:mb-12 text-[#79c942]">Contact Us</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-start">
             {/* Our Location */}
             <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center">
               <h3 className="text-xl font-semibold mb-4 text-[#79c942] flex items-center gap-2">
