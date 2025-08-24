@@ -1,33 +1,32 @@
-import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
-    Sidebar,
-    SidebarContent,
-    SidebarGroup,
-    SidebarGroupContent,
-    SidebarGroupLabel,
-    SidebarHeader,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    useSidebar
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar
 } from '@/components/ui/sidebar';
 import { useClinic } from '@/contexts/ClinicContext';
 import { cn } from '@/lib/utils';
 import {
-    BarChart3,
-    Calendar,
-    ClipboardList,
-    FileCheck,
-    FileText,
-    Home,
-    Image,
-    Pill,
-    Plug,
-    Settings,
-    Shield,
-    Users
+  BarChart3,
+  Calendar,
+  ClipboardList,
+  FileCheck,
+  FileText,
+  Home,
+  Image,
+  Plug,
+  Settings,
+  Shield,
+  Users
 } from 'lucide-react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 export const AppSidebar = () => {
