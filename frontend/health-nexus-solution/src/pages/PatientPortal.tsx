@@ -47,7 +47,7 @@ const PatientPortal = () => {
   const [showArrow, setShowArrow] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const GREETING_TEXT = "Hi! I'm Dr. MDSync, virtual assistant. What can I help you with?";
+  const GREETING_TEXT = "Hi! I'm Luna, virtual assistant. What can I help you with?";
 
   const [greetingDisplay, setGreetingDisplay] = useState('');
   const [typing, setTyping] = useState(true);

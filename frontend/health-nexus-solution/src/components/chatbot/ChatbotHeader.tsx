@@ -11,7 +11,7 @@ export const ChatbotHeader = ({ onClose }: ChatbotHeaderProps) => {
     <CardHeader className="bg-[#79c942] text-white flex flex-row items-center justify-between px-4 py-3 rounded-t-lg w-full m-0">
       <div className="flex items-center gap-2">
         <Stethoscope className="h-6 w-6 text-white" />
-        <CardTitle className="text-base font-bold">Dr. MDSync</CardTitle>
+        <CardTitle className="text-base font-bold">Luna</CardTitle>
       </div>
       
       {onClose && (

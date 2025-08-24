@@ -14,7 +14,7 @@ export const ChatbotWelcome = ({ onStartChat }: ChatbotWelcomeProps) => {
       <div className="flex justify-center mb-4">
         <Stethoscope className="h-12 w-12 text-[#79c942]" />
       </div>
-      <h2 className="text-xl font-semibold mb-2">Welcome to Dr. MDSync</h2>
+      <h2 className="text-xl font-semibold mb-2">Hi! I'm Luna.</h2>
       <p className="mb-4 text-gray-600">
         {t('chatbot.greeting')}
       </p>

@@ -30,7 +30,7 @@ export const ChatMessage = ({
     return (
       <div className="mb-4 flex justify-start">
         <div className="max-w-[80%] bg-gray-100 rounded-lg p-3">
-          <MessageSender name="Dr. MDSync" />
+          <MessageSender name="Luna" />
           <TypingIndicator />
         </div>
       </div>

@@ -14,7 +14,7 @@ export const MessageSender = ({ name }: MessageSenderProps) => {
           <Stethoscope className="h-4 w-4" />
         </AvatarFallback>
       </Avatar>
-      <span className="font-semibold">Dr. MDSync</span>
+      <span className="font-semibold">Luna</span>
     </div>
   );
 };
