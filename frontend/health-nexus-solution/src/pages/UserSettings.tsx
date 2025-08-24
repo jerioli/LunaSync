@@ -1,4 +1,3 @@
-import { DynamicTranslationManager } from '@/components/DynamicTranslationManager';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -215,13 +214,7 @@ const UserSettings = () => {
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="translations">Translations</TabsTrigger>
-          {currentUser.role === 'doctor' && (
-            <TabsTrigger value="doctor">Doctor Settings</TabsTrigger>
-          )}
-          {currentUser.role === 'receptionist' && (
-            <TabsTrigger value="receptionist">Receptionist Settings</TabsTrigger>
-          )}
+          
         </TabsList>
 
         <TabsContent value="profile" className="space-y-4">
@@ -524,10 +517,7 @@ const UserSettings = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="translations" className="space-y-4">
-          <DynamicTranslationManager />
-        </TabsContent>
-
+      
         {currentUser.role === 'doctor' && (
           <TabsContent value="doctor" className="space-y-4">
             <Card>

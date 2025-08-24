@@ -24,6 +24,8 @@ const Appointments = () => {
   
   const isReceptionist = currentUser?.role === 'receptionist';
   const isDoctor = currentUser?.role === 'doctor';
+  const isAdmin = currentUser?.role === 'admin';
+  const canManageAppointments = isReceptionist || isAdmin; // Both receptionists and admins can manage appointments
 
   // Consistent button class for all action buttons
   const buttonClass = "h-8 px-3 text-xs";
@@ -195,9 +197,9 @@ const Appointments = () => {
       console.log('Upcoming filter result:', result, 'for appointment:', appointment.id);
       return result;
     } else if (activeTab === "pending") {
-      // Only receptionists can see pending appointments
-      if (!isReceptionist) {
-        console.log('Filtering out pending: Not receptionist');
+      // Only receptionists and admins can see pending appointments
+      if (!canManageAppointments) {
+        console.log('Filtering out pending: Cannot manage appointments');
         return false;
       }
       const result = appointment.status === "pending";
@@ -212,9 +214,9 @@ const Appointments = () => {
       console.log('Completed filter result:', result, 'for appointment:', appointment.id);
       return result;
     } else if (activeTab === "followup") {
-      // Only receptionists can see follow-up appointments
-      if (!isReceptionist) {
-        console.log('Filtering out followup: Not receptionist');
+      // Only receptionists and admins can see follow-up appointments
+      if (!canManageAppointments) {
+        console.log('Filtering out followup: Cannot manage appointments');
         return false;
       }
       // Show appointments that are completed and have follow-up type or need follow-up
@@ -472,7 +474,7 @@ const Appointments = () => {
 
   // Render action buttons for each appointment
   const renderActionButtons = (appointment) => {
-    if (activeTab === "upcoming" && isReceptionist) {
+    if (activeTab === "upcoming" && canManageAppointments) {
       return (
         <div className="flex gap-2">
           <Button 
@@ -503,7 +505,7 @@ const Appointments = () => {
       );
     }
 
-    if (activeTab === "pending" && isReceptionist) {
+    if (activeTab === "pending" && canManageAppointments) {
       return (
         <div className="flex gap-2">
           <Button 
@@ -548,43 +550,90 @@ const Appointments = () => {
             </Button>
           </div>
         );
-      }
-      
-      if (isReceptionist) {
+      } else if (canManageAppointments) {
         return (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className={buttonClass}
-            onClick={() => handleStatusUpdate(appointment.id, 'scheduled')}
-          >
-            Return to Scheduled
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className={buttonClass}
+              onClick={() => navigate(`/patients/${appointment.patientId}`)}
+            >
+              View Record
+            </Button>
+            <Button 
+              variant="default" 
+              size="sm" 
+              className={`${buttonClass} bg-green-600 hover:bg-green-700`}
+              onClick={() => handleStatusUpdate(appointment.id, 'completed')}
+            >
+              Complete
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className={buttonClass}
+              onClick={() => handleStatusUpdate(appointment.id, 'scheduled')}
+            >
+              Back to Scheduled
+            </Button>
+          </div>
         );
       }
     }
 
-    if (activeTab === "completed" && isDoctor) {
-      return (
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className={buttonClass}
-            onClick={() => navigate(`/patients/${appointment.patientId}`)}
-          >
-            View Record
-          </Button>
-          <Button 
-            variant="default" 
-            size="sm" 
-            className={`${buttonClass} bg-blue-600 hover:bg-blue-700`}
-            onClick={() => handleScheduleFollowUp(appointment)}
-          >
-            Schedule Follow-up
-          </Button>
-        </div>
-      );
+    if (activeTab === "completed") {
+      if (isDoctor) {
+        return (
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className={buttonClass}
+              onClick={() => navigate(`/patients/${appointment.patientId}`)}
+            >
+              View Record
+            </Button>
+            <Button 
+              variant="default" 
+              size="sm" 
+              className={`${buttonClass} bg-blue-600 hover:bg-blue-700`}
+              onClick={() => handleScheduleFollowUp(appointment)}
+            >
+              Schedule Follow-up
+            </Button>
+          </div>
+        );
+      } else if (canManageAppointments) {
+        return (
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className={buttonClass}
+              onClick={() => navigate(`/patients/${appointment.patientId}`)}
+            >
+              View Record
+            </Button>
+            <Button 
+              variant="default" 
+              size="sm" 
+              className={`${buttonClass} bg-blue-600 hover:bg-blue-700`}
+              onClick={() => handleScheduleFollowUp(appointment)}
+            >
+              Schedule Follow-up
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className={buttonClass}
+              onClick={() => handleStatusUpdate(appointment.id, 'scheduled')}
+            >
+              Reschedule
+            </Button>
+          </div>
+        );
+      }
     }
 
     return null;
@@ -600,7 +649,7 @@ const Appointments = () => {
           </p>
         </div>
         
-        {isReceptionist && (
+        {canManageAppointments && (
           <div className="flex space-x-2">
             <Button onClick={() => setShowNewAppointmentModal(true)}>
               <CalendarCheck className="mr-2 h-4 w-4" />
@@ -613,12 +662,12 @@ const Appointments = () => {
       <div className="grid grid-cols-1 md:grid-cols-1 gap-6 md:max-w-7xl mx-auto">
         <div>
           <Tabs defaultValue="upcoming" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className={`grid mb-4 ${isReceptionist ? 'grid-cols-6' : 'grid-cols-4'}`}>
+            <TabsList className={`grid mb-4 ${canManageAppointments ? 'grid-cols-6' : 'grid-cols-4'}`}>
               <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-              {isReceptionist && <TabsTrigger value="pending">Pending</TabsTrigger>}
+              {canManageAppointments && <TabsTrigger value="pending">Pending</TabsTrigger>}
               <TabsTrigger value="ongoing">Ongoing</TabsTrigger>
               <TabsTrigger value="completed">Completed</TabsTrigger>
-              {isReceptionist && <TabsTrigger value="followup">Follow-up</TabsTrigger>}
+              {canManageAppointments && <TabsTrigger value="followup">Follow-up</TabsTrigger>}
               <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
             </TabsList>
             

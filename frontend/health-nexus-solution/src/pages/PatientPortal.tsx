@@ -388,9 +388,6 @@ const PatientPortal = () => {
             {clinic.logo && (
               <img src={getLogoUrl(clinic.logo)} alt="Clinic Logo" className="h-16 mb-4" />
             )}
-            {clinic.healthcare_professionals_image && (
-              <img src={getLogoUrl(clinic.healthcare_professionals_image)} alt="Healthcare Professionals" className="w-full h-auto rounded-lg shadow-lg mb-4" />
-            )}
             <h1 className="text-4xl md:text-5xl font-bold text-[#79c942]">
               {clinic.hero_title || 'Your Health Is Our Priority'}
             </h1>
@@ -400,11 +397,19 @@ const PatientPortal = () => {
             {/* Remove the flex container with two buttons and only leave the content div empty */}
           </div>
           <div className="flex-1">
-            <img 
-              src="https://images.unsplash.com/photo-1631815588090-602d3d4d020c?q=80&w=1887&auto=format&fit=crop" 
-              alt="Healthcare professionals" 
-              className="w-full h-auto rounded-lg shadow-lg"
-            />
+            {clinic.healthcare_professionals_image ? (
+              <img 
+                src={getLogoUrl(clinic.healthcare_professionals_image)} 
+                alt="Healthcare Professionals" 
+                className="w-full h-auto rounded-lg shadow-lg"
+              />
+            ) : (
+              <img 
+                src="https://images.unsplash.com/photo-1631815588090-602d3d4d020c?q=80&w=1887&auto=format&fit=crop" 
+                alt="Healthcare professionals" 
+                className="w-full h-auto rounded-lg shadow-lg"
+              />
+            )}
           </div>
         </div>
       </section>

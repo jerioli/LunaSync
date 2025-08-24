@@ -6,13 +6,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useClinic } from '@/contexts/ClinicContext';
 import { useSecurity } from '@/hooks/useSecurity';
 import { axiosInstance } from '@/services/api';
-import { Activity, Calendar, ShieldAlert, Users } from 'lucide-react';
+import { Activity, Calendar, FileText, ShieldAlert, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bar, BarChart as ReBarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 const AdminDashboard = () => {
-  const { users } = useClinic();
+  const { users, labResults } = useClinic();
   const { securityData, loading: securityLoading } = useSecurity();
   const navigate = useNavigate();
   
@@ -129,6 +129,13 @@ const AdminDashboard = () => {
   const todayAppointments = appointments.filter(appointment => 
     appointment.date === today
   ).length;
+
+  // Calculate lab results metrics
+  const totalLabResults = labResults.length;
+  const recentLabResults = labResults.filter(result => {
+    const resultDate = new Date(result.date);
+    return resultDate >= thirtyDaysAgo;
+  }).length;
   
   // Mock data for patient registrations chart
   const patientRegistrationsData = [
@@ -147,7 +154,7 @@ const AdminDashboard = () => {
         <p className="text-muted-foreground">Monitor clinic operations, staff, and finances.</p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Staff</CardTitle>
@@ -191,6 +198,17 @@ const AdminDashboard = () => {
           <CardContent>
             <div className="text-2xl font-bold">{recentAppointments}</div>
             <p className="text-xs text-muted-foreground">Appointments last 30 days</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Lab Results</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalLabResults}</div>
+            <p className="text-xs text-muted-foreground">{recentLabResults} added last 30 days</p>
           </CardContent>
         </Card>
       </div>

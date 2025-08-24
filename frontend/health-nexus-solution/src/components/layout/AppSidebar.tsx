@@ -54,7 +54,7 @@ export const AppSidebar = () => {
               { title: 'Prescription Requests', icon: ClipboardList, path: '/prescription-management' },
             ],
           },
-          { title: 'Settings', icon: Settings, path: '/user-settings' },
+          { title: 'User Settings', icon: Settings, path: '/user-settings' },
         ];
       case 'receptionist':
         return [
@@ -69,26 +69,39 @@ export const AppSidebar = () => {
               { title: 'Prescription Requests', icon: ClipboardList, path: '/prescription-management' },
             ],
           },
-          { title: 'Settings', icon: Settings, path: '/user-settings' },
+          { title: 'User Settings', icon: Settings, path: '/user-settings' },
+          
         ];
       case 'admin':
         return [
           { title: 'Dashboard', icon: Home, path: '/' },
           { title: 'Staff', icon: Users, path: '/staff' },
+           { title: 'Appointments', icon: Calendar, path: '/appointments' },
           { title: 'Patients', icon: Users, path: '/patients' },
-          { title: 'Settings', icon: Settings, path: '/settings' },
+          { title: 'Lab Results', icon: Image, path: '/lab-results' },
+          {
+            title: 'Document Management',
+            icon: FileText,
+            subItems: [
+              { title: 'Medical Certificates', icon: FileCheck, path: '/medical-certificates' },
+              { title: 'Prescription Requests', icon: ClipboardList, path: '/prescription-management' },
+            ],
+          },
+          { title: 'ClinicSettings', icon: Settings, path: '/settings' },
+          { title: 'User Settings', icon: Settings, path: '/user-settings' },
         ];
       case 'superadmin':
         return [
           { title: 'Dashboard', icon: Home, path: '/' },
           { title: 'Staff', icon: Users, path: '/staff' },
           { title: 'Patients', icon: Users, path: '/patients' },
+          { title: 'Lab Results', icon: Image, path: '/lab-results' },
           { title: 'Permission Management', icon: Shield, path: '/permissions' },
           { title: 'Audit Logs', icon: FileText, path: '/audit-logs' },
           { title: 'Usage Reports', icon: BarChart3, path: '/usage-reports' },
           { title: 'Integrations', icon: Plug, path: '/integrations' },
           { title: 'Security Testing', icon: Shield, path: '/security-testing' },
-          { title: 'Settings', icon: Settings, path: '/settings' },
+          { title: 'User Settings', icon: Settings, path: '/user-settings' }
         ];
       default:
         return [];

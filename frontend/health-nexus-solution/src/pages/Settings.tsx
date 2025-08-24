@@ -12,6 +12,7 @@ import { useClinic } from '@/contexts/ClinicContext';
 import { toast } from '@/hooks/use-toast';
 import { useSecurity } from '@/hooks/useSecurity';
 import { axiosInstance } from '@/services/api';
+import { Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 const Settings = () => {
@@ -54,14 +55,15 @@ const Settings = () => {
   const [isEditingHero, setIsEditingHero] = useState(false);
   const [isEditingAbout, setIsEditingAbout] = useState(false);
   const [isEditingServices, setIsEditingServices] = useState(false);
-  const [awsCredentials, setAwsCredentials] = useState({
-    name: 'AWS Textract Config',
-    aws_access_key_id: '',
-    aws_secret_access_key: '',
-    aws_region: 'us-east-1',
-    is_active: true
-  });
-  const [isEditingAws, setIsEditingAws] = useState(false);
+  
+  // Temporary color state for preview before applying
+  const [tempColors, setTempColors] = useState(colors);
+
+  // Sync temp colors with actual colors when they change
+  useEffect(() => {
+    setTempColors(colors);
+  }, [colors]);
+  
 
   // Define a type for the clinic data
   type ClinicData = {
@@ -120,23 +122,8 @@ const Settings = () => {
             setHealthcareProfessionalsPreview(res.data.healthcare_professionals_image || null);
             setClinicBuildingPreview(res.data.clinic_building_image || null);
         }
-        
-        // Fetch AWS credentials only if user is authenticated admin
-        try {
-          const awsRes = await axiosInstance.get('/aws-credentials/');
-          if (awsRes.data && awsRes.data.length > 0) {
-            const activeCredentials = awsRes.data.find((cred: any) => cred.is_active) || awsRes.data[0];
-            setAwsCredentials({
-              name: activeCredentials.name || 'AWS Textract Config',
-              aws_access_key_id: activeCredentials.aws_access_key_id || '',
-              aws_secret_access_key: '', // Don't populate for security
-              aws_region: activeCredentials.aws_region || 'us-east-1',
-              is_active: activeCredentials.is_active || true
-            });
-          }
-        } catch (awsErr) {
-          console.warn('No AWS credentials found or insufficient permissions, using defaults');
-        }
+      
+       
       } catch (err) {
         console.error('Error fetching clinic settings:', err);
         toast({ title: 'Error', description: 'Failed to fetch clinic settings', variant: 'destructive' });
@@ -194,33 +181,7 @@ const Settings = () => {
     }
   };
 
-  const handleAwsSave = async () => {
-    if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
-      toast({ title: 'Error', description: 'Unauthorized access', variant: 'destructive' });
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      await axiosInstance.put('/clinic/', {
-        aws_credentials: {
-          name: awsCredentials.name,
-          aws_access_key_id: awsCredentials.aws_access_key_id,
-          aws_secret_access_key: awsCredentials.aws_secret_access_key,
-          aws_region: awsCredentials.aws_region,
-          is_active: awsCredentials.is_active
-        }
-      });
-      toast({ title: 'AWS Credentials Saved', description: 'AWS credentials updated successfully.' });
-      setIsEditingAws(false);
-    } catch (err: any) {
-      console.error('Error saving AWS credentials:', err);
-      const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Failed to save AWS credentials';
-      toast({ title: 'Error', description: errorMessage, variant: 'destructive' });
-    } finally {
-      setLoading(false);
-    }
-  };
+  
   
   const handleAppointmentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -320,12 +281,36 @@ const Settings = () => {
     }
   };
 
+  const handleImageDelete = async (field: string, setPreview: (url: string | null) => void) => {
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append(field, ''); // Send empty value to delete
+      await axiosInstance.put('/clinic/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setPreview(null);
+      toast({ 
+        title: 'Image Deleted', 
+        description: `${field.replace(/_/g, ' ')} has been removed successfully.` 
+      });
+    } catch (err) {
+      toast({ 
+        title: 'Error', 
+        description: `Failed to delete ${field.replace(/_/g, ' ')}`, 
+        variant: 'destructive' 
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Branding functions
   const handleBrandingUpdate = async () => {
     setBrandingLoading(true);
     try {
-      // Update colors through context
-      updateColors(colors);
+      // Update colors through context using temp colors
+      updateColors(tempColors);
       
       toast({
         title: "Branding Updated",
@@ -344,14 +329,17 @@ const Settings = () => {
   };
 
   const handleColorChange = (colorType: 'primaryColor' | 'secondaryColor' | 'tertiaryColor', value: string) => {
-    const newColors = { ...colors, [colorType]: value };
-    updateColors(newColors);
+    // Only update temporary colors, not the actual applied colors
+    const newTempColors = { ...tempColors, [colorType]: value };
+    setTempColors(newTempColors);
   };
 
   const handleResetBranding = () => {
     setBrandingLoading(true);
     try {
       resetColors();
+      // Also reset temp colors to default
+      setTempColors({ primaryColor: '#79c942', secondaryColor: '#f0f0f0', tertiaryColor: '#666666' });
       toast({
         title: "Colors Reset",
         description: "Branding colors have been reset to default values.",
@@ -366,6 +354,15 @@ const Settings = () => {
     } finally {
       setBrandingLoading(false);
     }
+  };
+
+  // Reset temporary colors to current applied colors
+  const handleCancelColorChanges = () => {
+    setTempColors(colors);
+    toast({
+      title: "Changes Cancelled",
+      description: "Color changes have been reverted.",
+    });
   };
 
   const handleSecurityTestRun = async () => {
@@ -414,10 +411,10 @@ const Settings = () => {
           <TabsTrigger value="appointments">Appointments</TabsTrigger>
           <TabsTrigger value="faqs">FAQs</TabsTrigger>
           <TabsTrigger value="homepage">Homepage</TabsTrigger>
-          <TabsTrigger value="aws">AWS OCR</TabsTrigger>
+         
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="integrations">Integrations</TabsTrigger>
-          <TabsTrigger value="security">Security Testing</TabsTrigger>
+         
+          
         </TabsList>
         
         <TabsContent value="general">
@@ -549,13 +546,13 @@ const Settings = () => {
                     <input
                       id="primaryColor"
                       type="color"
-                      value={colors.primaryColor}
+                      value={tempColors.primaryColor}
                       onChange={(e) => handleColorChange('primaryColor', e.target.value)}
                       className="w-16 h-16 rounded-lg border-2 border-border cursor-pointer"
                     />
                     <div>
                       <div className="font-medium">Primary</div>
-                      <div className="text-sm text-muted-foreground">{colors.primaryColor}</div>
+                      <div className="text-sm text-muted-foreground">{tempColors.primaryColor}</div>
                       <div className="text-xs text-muted-foreground">Buttons, links, highlights</div>
                     </div>
                   </div>
@@ -568,13 +565,13 @@ const Settings = () => {
                     <input
                       id="secondaryColor"
                       type="color"
-                      value={colors.secondaryColor}
+                      value={tempColors.secondaryColor}
                       onChange={(e) => handleColorChange('secondaryColor', e.target.value)}
                       className="w-16 h-16 rounded-lg border-2 border-border cursor-pointer"
                     />
                     <div>
                       <div className="font-medium">Secondary</div>
-                      <div className="text-sm text-muted-foreground">{colors.secondaryColor}</div>
+                      <div className="text-sm text-muted-foreground">{tempColors.secondaryColor}</div>
                       <div className="text-xs text-muted-foreground">Cards, backgrounds</div>
                     </div>
                   </div>
@@ -587,13 +584,13 @@ const Settings = () => {
                     <input
                       id="tertiaryColor"
                       type="color"
-                      value={colors.tertiaryColor}
+                      value={tempColors.tertiaryColor}
                       onChange={(e) => handleColorChange('tertiaryColor', e.target.value)}
                       className="w-16 h-16 rounded-lg border-2 border-border cursor-pointer"
                     />
                     <div>
                       <div className="font-medium">Tertiary</div>
-                      <div className="text-sm text-muted-foreground">{colors.tertiaryColor}</div>
+                      <div className="text-sm text-muted-foreground">{tempColors.tertiaryColor}</div>
                       <div className="text-xs text-muted-foreground">Accents, icons</div>
                     </div>
                   </div>
@@ -606,21 +603,21 @@ const Settings = () => {
               <div className="space-y-3">
                 <Label>Color Preview</Label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-4 rounded-lg border" style={{ backgroundColor: colors.primaryColor + '20', borderColor: colors.primaryColor }}>
+                  <div className="p-4 rounded-lg border" style={{ backgroundColor: tempColors.primaryColor + '20', borderColor: tempColors.primaryColor }}>
                     <div className="text-sm font-medium">Primary Color Usage</div>
-                    <Button size="sm" className="mt-2" style={{ backgroundColor: colors.primaryColor }}>
+                    <Button size="sm" className="mt-2" style={{ backgroundColor: tempColors.primaryColor }}>
                       Primary Button
                     </Button>
                   </div>
-                  <div className="p-4 rounded-lg border" style={{ backgroundColor: colors.secondaryColor + '20', borderColor: colors.secondaryColor }}>
+                  <div className="p-4 rounded-lg border" style={{ backgroundColor: tempColors.secondaryColor + '20', borderColor: tempColors.secondaryColor }}>
                     <div className="text-sm font-medium">Secondary Color Usage</div>
-                    <Button size="sm" variant="secondary" className="mt-2" style={{ backgroundColor: colors.secondaryColor }}>
+                    <Button size="sm" variant="secondary" className="mt-2" style={{ backgroundColor: tempColors.secondaryColor }}>
                       Secondary Button
                     </Button>
                   </div>
-                  <div className="p-4 rounded-lg border" style={{ backgroundColor: colors.tertiaryColor + '20', borderColor: colors.tertiaryColor }}>
+                  <div className="p-4 rounded-lg border" style={{ backgroundColor: tempColors.tertiaryColor + '20', borderColor: tempColors.tertiaryColor }}>
                     <div className="text-sm font-medium">Tertiary Color Usage</div>
-                    <Button size="sm" variant="outline" className="mt-2" style={{ borderColor: colors.tertiaryColor, color: colors.tertiaryColor }}>
+                    <Button size="sm" variant="outline" className="mt-2" style={{ borderColor: tempColors.tertiaryColor, color: tempColors.tertiaryColor }}>
                       Tertiary Button
                     </Button>
                   </div>
@@ -631,10 +628,20 @@ const Settings = () => {
 
               {/* Action Buttons */}
               <div className="flex gap-3">
-                <Button onClick={handleBrandingUpdate} disabled={brandingLoading}>
+                <Button 
+                  onClick={handleBrandingUpdate} 
+                  disabled={brandingLoading || JSON.stringify(tempColors) === JSON.stringify(colors)}
+                >
                   {brandingLoading ? 'Applying...' : 'Apply Colors'}
                 </Button>
-                <Button variant="outline" onClick={handleResetBranding} disabled={brandingLoading}>
+                <Button 
+                  variant="outline" 
+                  onClick={handleCancelColorChanges} 
+                  disabled={brandingLoading || JSON.stringify(tempColors) === JSON.stringify(colors)}
+                >
+                  Cancel Changes
+                </Button>
+                <Button variant="destructive" onClick={handleResetBranding} disabled={brandingLoading}>
                   Reset to Default
                 </Button>
               </div>
@@ -655,7 +662,19 @@ const Settings = () => {
                       className="mt-2"
                     />
                     {logoPreview && (
-                      <img src={logoPreview} alt="Logo Preview" className="mt-2 h-16 object-contain" />
+                      <div className="mt-2">
+                        <img src={logoPreview} alt="Logo Preview" className="h-16 object-contain mb-2" />
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          onClick={() => handleImageDelete('logo', setLogoPreview)}
+                          disabled={loading}
+                          className="flex items-center gap-2"
+                        >
+                          <Trash2 size={16} />
+                          Delete Logo
+                        </Button>
+                      </div>
                     )}
                   </div>
                   <div>
@@ -668,7 +687,19 @@ const Settings = () => {
                       className="mt-2"
                     />
                     {healthcareProfessionalsPreview && (
-                      <img src={healthcareProfessionalsPreview} alt="Healthcare Professionals Preview" className="mt-2 h-16 object-contain" />
+                      <div className="mt-2">
+                        <img src={healthcareProfessionalsPreview} alt="Healthcare Professionals Preview" className="h-16 object-contain mb-2" />
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          onClick={() => handleImageDelete('healthcare_professionals_image', setHealthcareProfessionalsPreview)}
+                          disabled={loading}
+                          className="flex items-center gap-2"
+                        >
+                          <Trash2 size={16} />
+                          Delete Image
+                        </Button>
+                      </div>
                     )}
                   </div>
                   <div>
@@ -681,7 +712,19 @@ const Settings = () => {
                       className="mt-2"
                     />
                     {clinicBuildingPreview && (
-                      <img src={clinicBuildingPreview} alt="Clinic Building Preview" className="mt-2 h-16 object-contain" />
+                      <div className="mt-2">
+                        <img src={clinicBuildingPreview} alt="Clinic Building Preview" className="h-16 object-contain mb-2" />
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          onClick={() => handleImageDelete('clinic_building_image', setClinicBuildingPreview)}
+                          disabled={loading}
+                          className="flex items-center gap-2"
+                        >
+                          <Trash2 size={16} />
+                          Delete Image
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -692,9 +735,9 @@ const Settings = () => {
                 <h4 className="font-medium mb-2">Admin Branding Control:</h4>
                 <ul className="text-sm space-y-1 text-muted-foreground">
                   <li>• Only administrators can modify application colors and branding</li>
-                  <li>• Colors are applied instantly across the entire application for all users</li>
-                  <li>• Changes are saved and persist across browser sessions</li>
-                  <li>• Images are uploaded and stored on the server</li>
+                  <li>• Color changes are previewed in real-time but must be applied to take effect</li>
+                  <li>• Use "Apply Colors" to save changes, or "Cancel Changes" to revert</li>
+                  <li>• Images are uploaded instantly and can be deleted with the trash button</li>
                   <li>• Use the reset button to return to default color scheme</li>
                 </ul>
               </div>
@@ -903,132 +946,7 @@ const Settings = () => {
           </Card>
         </TabsContent>
         
-        <TabsContent value="aws">
-          <Card>
-            <CardHeader>
-              <CardTitle>AWS OCR Credentials</CardTitle>
-              <CardDescription>
-                Configure AWS Textract credentials for lab result processing
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="bg-yellow-50 dark:bg-yellow-950 p-4 rounded-lg mb-6">
-                <h4 className="font-medium mb-2">🔐 Security Notice:</h4>
-                <ul className="text-sm space-y-1 text-muted-foreground">
-                  <li>• AWS credentials are stored securely in the database</li>
-                  <li>• Only administrators can view and modify these settings</li>
-                  <li>• Secret keys are encrypted and never displayed in full</li>
-                  <li>• These credentials enable OCR processing of lab results</li>
-                </ul>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label htmlFor="awsAccessKey">AWS Access Key ID</Label>
-                  <Input
-                    id="awsAccessKey"
-                    type="text"
-                    value={awsCredentials.aws_access_key_id}
-                    onChange={(e) => setAwsCredentials({...awsCredentials, aws_access_key_id: e.target.value})}
-                    disabled={!isEditingAws}
-                    placeholder="AKIA..."
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Your AWS Access Key ID for Textract service
-                  </p>
-                </div>
-
-                <div>
-                  <Label htmlFor="awsSecretKey">AWS Secret Access Key</Label>
-                  <Input
-                    id="awsSecretKey"
-                    type="password"
-                    value={awsCredentials.aws_secret_access_key}
-                    onChange={(e) => setAwsCredentials({...awsCredentials, aws_secret_access_key: e.target.value})}
-                    disabled={!isEditingAws}
-                    placeholder="Enter new secret key..."
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Leave blank to keep existing secret key
-                  </p>
-                </div>
-
-                <div>
-                  <Label htmlFor="awsRegion">AWS Region</Label>
-                  <select
-                    id="awsRegion"
-                    value={awsCredentials.aws_region}
-                    onChange={(e) => setAwsCredentials({...awsCredentials, aws_region: e.target.value})}
-                    disabled={!isEditingAws}
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                  >
-                    <option value="us-east-1">US East (N. Virginia)</option>
-                    <option value="us-east-2">US East (Ohio)</option>
-                    <option value="us-west-1">US West (N. California)</option>
-                    <option value="us-west-2">US West (Oregon)</option>
-                    <option value="eu-west-1">Europe (Ireland)</option>
-                    <option value="eu-central-1">Europe (Frankfurt)</option>
-                    <option value="ap-southeast-1">Asia Pacific (Singapore)</option>
-                    <option value="ap-southeast-2">Asia Pacific (Sydney)</option>
-                  </select>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Choose the AWS region closest to your location
-                  </p>
-                </div>
-
-                <div>
-                  <Label htmlFor="awsName">Configuration Name</Label>
-                  <Input
-                    id="awsName"
-                    type="text"
-                    value={awsCredentials.name}
-                    onChange={(e) => setAwsCredentials({...awsCredentials, name: e.target.value})}
-                    disabled={!isEditingAws}
-                    placeholder="AWS Textract Config"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Friendly name for this AWS configuration
-                  </p>
-                </div>
-              </div>
-
-              <div className="border-t pt-6">
-                <h4 className="font-medium mb-4">AWS Service Status</h4>
-                <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <span className="text-sm">AWS Textract OCR Service</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Used for processing lab result documents and extracting structured data
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
-                <h4 className="font-medium mb-2">How to get AWS Credentials:</h4>
-                <ol className="text-sm space-y-1 text-muted-foreground list-decimal list-inside">
-                  <li>Sign in to AWS Console</li>
-                  <li>Go to IAM (Identity and Access Management)</li>
-                  <li>Create a new user with Textract permissions</li>
-                  <li>Generate access keys for programmatic access</li>
-                  <li>Copy the Access Key ID and Secret Access Key here</li>
-                </ol>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-end">
-              {!isEditingAws && (
-                <Button type="button" onClick={() => setIsEditingAws(true)}>Edit AWS Settings</Button>
-              )}
-              {isEditingAws && (
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setIsEditingAws(false)}>Cancel</Button>
-                  <Button onClick={handleAwsSave}>Save AWS Credentials</Button>
-                </div>
-              )}
-            </CardFooter>
-          </Card>
-        </TabsContent>
+        
           
           <TabsContent value="notifications">
           <Card>
@@ -1095,382 +1013,8 @@ const Settings = () => {
           </Card>
         </TabsContent>
         
-        <TabsContent value="integrations">
-          <Card>
-            <CardHeader>
-              <CardTitle>Integrations</CardTitle>
-              <CardDescription>
-                Connect with third-party services and applications
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-center py-10 text-muted-foreground">
-                Integration settings will be implemented in the future.
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
         
-        <TabsContent value="security">
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  🔐 Security Testing & Monitoring
-                </CardTitle>
-                <CardDescription>
-                  Test and monitor your system's security status, encryption, and compliance
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {/* Security Overview */}
-                  {securityLoading ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                      <span className="ml-2">Loading security status...</span>
-                    </div>
-                  ) : securityError ? (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                      <p className="text-red-700">⚠️ Security service unavailable: {securityError}</p>
-                      <Button 
-                        variant="outline" 
-                        className="mt-2" 
-                        onClick={refreshSecurityData}
-                      >
-                        Retry Connection
-                      </Button>
-                    </div>
-                  ) : securityData ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {/* Overall Security Score */}
-                      <Card className={`border-2 ${
-                        securityData.overall_status.color === 'green' ? 'border-green-500 bg-green-50' :
-                        securityData.overall_status.color === 'yellow' ? 'border-yellow-500 bg-yellow-50' :
-                        'border-red-500 bg-red-50'
-                      }`}>
-                        <CardContent className="p-4">
-                          <div className="text-center">
-                            <div className={`text-2xl font-bold ${
-                              securityData.overall_status.color === 'green' ? 'text-green-700' :
-                              securityData.overall_status.color === 'yellow' ? 'text-yellow-700' :
-                              'text-red-700'
-                            }`}>
-                              {securityData.overall_status.score}/100
-                            </div>
-                            <div className="text-sm text-gray-600">Overall Security</div>
-                            <div className={`text-xs font-medium ${
-                              securityData.overall_status.color === 'green' ? 'text-green-600' :
-                              securityData.overall_status.color === 'yellow' ? 'text-yellow-600' :
-                              'text-red-600'
-                            }`}>
-                              {securityData.overall_status.level}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* Encryption Status */}
-                      <Card className={`border ${
-                        securityData.encryption.status === 'active' ? 'border-green-300' : 'border-red-300'
-                      }`}>
-                        <CardContent className="p-4">
-                          <div className="text-center">
-                            <div className={`text-xl font-semibold ${
-                              securityData.encryption.status === 'active' ? 'text-green-700' : 'text-red-700'
-                            }`}>
-                              {securityData.encryption.enabled_count}/{securityData.encryption.total_count}
-                            </div>
-                            <div className="text-sm text-gray-600">Encryption Active</div>
-                            <div className={`text-xs ${
-                              securityData.encryption.status === 'active' ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                              {securityData.encryption.status.toUpperCase()}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* Backup Status */}
-                      <Card className={`border ${
-                        securityData.backup.status === 'completed' ? 'border-green-300' : 'border-yellow-300'
-                      }`}>
-                        <CardContent className="p-4">
-                          <div className="text-center">
-                            <div className={`text-lg font-semibold ${
-                              securityData.backup.status === 'completed' ? 'text-green-700' : 'text-yellow-700'
-                            }`}>
-                              {securityData.backup.last_backup ? 
-                                new Date(securityData.backup.last_backup).toLocaleDateString() : 
-                                'Never'
-                              }
-                            </div>
-                            <div className="text-sm text-gray-600">Last Backup</div>
-                            <div className={`text-xs ${
-                              securityData.backup.status === 'completed' ? 'text-green-600' : 'text-yellow-600'
-                            }`}>
-                              {securityData.backup.status.toUpperCase()}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* Security Incidents */}
-                      <Card className={`border ${
-                        securityData.incidents.critical > 0 ? 'border-red-300' : 
-                        securityData.incidents.open > 0 ? 'border-yellow-300' : 'border-green-300'
-                      }`}>
-                        <CardContent className="p-4">
-                          <div className="text-center">
-                            <div className={`text-xl font-semibold ${
-                              securityData.incidents.critical > 0 ? 'text-red-700' :
-                              securityData.incidents.open > 0 ? 'text-yellow-700' : 'text-green-700'
-                            }`}>
-                              {securityData.incidents.open}
-                            </div>
-                            <div className="text-sm text-gray-600">Open Incidents</div>
-                            <div className={`text-xs ${
-                              securityData.incidents.critical > 0 ? 'text-red-600' :
-                              securityData.incidents.open > 0 ? 'text-yellow-600' : 'text-green-600'
-                            }`}>
-                              {securityData.incidents.critical} CRITICAL
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  ) : null}
-
-                  <Separator />
-
-                  {/* Security Testing Tools */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Security Testing Tools</h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Quick Security Check */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">⚡ Quick Security Check</CardTitle>
-                          <CardDescription>
-                            Run basic security validation tests
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <Button 
-                            className="w-full" 
-                            onClick={handleSecurityTestRun}
-                            disabled={securityLoading}
-                          >
-                            {securityLoading ? 'Running...' : 'Run Security Check'}
-                          </Button>
-                        </CardContent>
-                      </Card>
-
-                      {/* Visual Security Dashboard */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">📊 Visual Testing Dashboard</CardTitle>
-                          <CardDescription>
-                            Open comprehensive security testing interface
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <Button 
-                            className="w-full" 
-                            variant="outline"
-                            onClick={handleOpenSecurityDashboard}
-                          >
-                            Open Test Dashboard
-                          </Button>
-                        </CardContent>
-                      </Card>
-
-                      {/* Batch Testing */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">🚀 Automated Testing</CardTitle>
-                          <CardDescription>
-                            Run comprehensive automated security tests
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <Button 
-                            className="w-full" 
-                            variant="secondary"
-                            onClick={handleRunBatchTests}
-                          >
-                            View Batch Testing
-                          </Button>
-                        </CardContent>
-                      </Card>
-
-                      {/* Real-time Monitoring */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">🔍 Real-time Monitor</CardTitle>
-                          <CardDescription>
-                            Monitor security status in real-time
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between text-sm">
-                              <span>Auto-refresh:</span>
-                              <Switch 
-                                checked={false}
-                                onCheckedChange={() => {
-                                  toast({
-                                    title: 'Real-time Monitoring',
-                                    description: 'Feature will be implemented soon.',
-                                  });
-                                }}
-                              />
-                            </div>
-                            <Button 
-                              className="w-full" 
-                              variant="outline" 
-                              size="sm"
-                              onClick={refreshSecurityData}
-                            >
-                              Refresh Now
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Security Details */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Security Details</h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Encryption Details */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">🔐 Encryption Details</CardTitle>
-                          <CardDescription>
-                            View detailed encryption status
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          {securityData?.encryption.details.length ? (
-                            <div className="space-y-2">
-                              {securityData.encryption.details.map((detail, index) => (
-                                <div key={index} className="flex justify-between items-center text-sm">
-                                  <span>{detail.type}</span>
-                                  <span className={`px-2 py-1 rounded text-xs ${
-                                    detail.enabled ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                                  }`}>
-                                    {detail.enabled ? 'ENABLED' : 'DISABLED'}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-sm text-gray-500">No encryption details available</p>
-                          )}
-                        </CardContent>
-                      </Card>
-
-                      {/* Security Settings */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">⚙️ Security Configuration</CardTitle>
-                          <CardDescription>
-                            Current security settings overview
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          {securityData?.settings ? (
-                            <div className="space-y-2 text-sm">
-                              <div className="flex justify-between">
-                                <span>Auto Backup:</span>
-                                <span className={securityData.settings.auto_backup_enabled ? 'text-green-600' : 'text-red-600'}>
-                                  {securityData.settings.auto_backup_enabled ? 'ON' : 'OFF'}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Audit Logging:</span>
-                                <span className={securityData.settings.audit_logging_enabled ? 'text-green-600' : 'text-red-600'}>
-                                  {securityData.settings.audit_logging_enabled ? 'ON' : 'OFF'}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Session Timeout:</span>
-                                <span>{securityData.settings.session_timeout}min</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Max Login Attempts:</span>
-                                <span>{securityData.settings.max_login_attempts}</span>
-                              </div>
-                            </div>
-                          ) : (
-                            <p className="text-sm text-gray-500">No settings data available</p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Security Documentation */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Security Documentation</h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">📋 Testing Guide</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-gray-600 mb-3">
-                            Step-by-step security testing instructions
-                          </p>
-                          <Button variant="outline" size="sm" className="w-full">
-                            View Guide
-                          </Button>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">🛡️ Security Policies</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-gray-600 mb-3">
-                            Review security policies and compliance
-                          </p>
-                          <Button variant="outline" size="sm" className="w-full">
-                            View Policies
-                          </Button>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">📊 Security Reports</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-gray-600 mb-3">
-                            Generate and download security reports
-                          </p>
-                          <Button variant="outline" size="sm" className="w-full">
-                            Generate Report
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
+       
         
         <TabsContent value="homepage">
           <Card>
