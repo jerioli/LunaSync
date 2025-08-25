@@ -19,7 +19,7 @@ import { axiosInstance } from '@/services/api';
 import { medicalDocumentsAPI, type LabResult as APILabResult } from '@/services/medicalDocumentsAPI';
 import { parseApiError } from '@/utils/errorHandler';
 import { format } from 'date-fns';
-import { ArrowLeft, Edit, Eye, File, FileText, Heart, Plus, Printer, Save, Stethoscope, TestTube, Trash2, Upload, User } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Edit, Eye, File, FileText, Heart, Plus, Printer, Save, Stethoscope, TestTube, Trash2, Upload, User } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -113,6 +113,11 @@ const PatientManagement = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  
+  // Pagination states
+  const [soapNotesPage, setSoapNotesPage] = useState(1);
+  const [clinicalNotesPage, setClinicalNotesPage] = useState(1);
+  const notesPerPage = 5;
 
   // Initial load effect - only runs once per patient ID
   useEffect(() => {
@@ -1217,66 +1222,95 @@ const PatientManagement = () => {
   };
 
   const renderPatientOverview = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <User className="h-5 w-5" />
-          Patient Overview
-        </CardTitle>
-        <CardDescription>
-          Complete patient information summary
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Patient Basic Info */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="space-y-2">
-            <h3 className="font-semibold text-lg">Basic Information</h3>
-            <div className="space-y-1">
-              <div><span className="font-medium">Name:</span> {patientData.name}</div>
-              <div><span className="font-medium">Age:</span> {patientData.date_of_birth ? 
-                new Date().getFullYear() - new Date(patientData.date_of_birth).getFullYear() : 'N/A'} years</div>
-              <div><span className="font-medium">Gender:</span> <span className="capitalize">{patientData.gender}</span></div>
-              <div><span className="font-medium">Phone:</span> {patientData.phone}</div>
-              <div><span className="font-medium">Email:</span> {patientData.email}</div>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Health Record
+          </CardTitle>
+          <CardDescription>
+            Complete health record summary
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Patient Basic Info */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <h3 className="font-semibold text-lg">Basic Information</h3>
+              <div className="space-y-1">
+                <div><span className="font-medium">Name:</span> {patientData.name}</div>
+                <div><span className="font-medium">Age:</span> {patientData.date_of_birth ? new Date().getFullYear() - new Date(patientData.date_of_birth).getFullYear() : 'Not Specified'} years</div>
+                <div><span className="font-medium">Gender:</span> <span className="capitalize">{patientData.gender}</span></div>
+                <div><span className="font-medium">Phone:</span> {patientData.phone}</div>
+                <div><span className="font-medium">Email:</span> {patientData.email}</div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-semibold text-lg">Medical Summary</h3>
+              <div className="space-y-1">
+                <div><span className="font-medium">Blood Type:</span> {patientData.medical_info?.bloodType || 'Not Specified'}</div>
+                <div><span className="font-medium">Known Allergies:</span> {patientData.medical_info?.allergies?.length ? patientData.medical_info.allergies.length : 'None'}</div>
+                <div><span className="font-medium">Registration:</span> {patientData.registrationDate ? format(new Date(patientData.registrationDate), 'MMM dd, yyyy') : 'Not Specified'}</div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-semibold text-lg">Physical Examination</h3>
+              <div className="space-y-1">
+                <div><span className="font-medium">Height:</span> {patientData.physical_examination?.height || 'Not Specified'}</div>
+                <div><span className="font-medium">Weight:</span> {patientData.physical_examination?.weight || 'Not Specified'}</div>
+                <div><span className="font-medium">Blood Pressure:</span> {patientData.physical_examination?.bloodPressure || 'Not Specified'}</div>
+                <div><span className="font-medium">Temperature:</span> {patientData.physical_examination?.temperature || 'Not Specified'}</div>
+                <div><span className="font-medium">Pulse Rate:</span> {patientData.physical_examination?.pulseRate || 'Not Specified'}</div>
+                <div><span className="font-medium">Respiratory Rate:</span> {patientData.physical_examination?.respiratoryRate || 'Not Specified'}</div>
+              </div>
             </div>
           </div>
-          
-          <div className="space-y-2">
-            <h3 className="font-semibold text-lg">Medical Summary</h3>
-            <div className="space-y-1">
-              <div><span className="font-medium">Blood Type:</span> {patientData.medical_info?.bloodType || 'N/A'}</div>
-              <div><span className="font-medium">Known Allergies:</span> {patientData.medical_info?.allergies?.length ? patientData.medical_info.allergies.length : 'None'}</div>
-              <div><span className="font-medium">Registration:</span> {patientData.registrationDate ? 
-                format(new Date(patientData.registrationDate), 'MMM dd, yyyy') : 'N/A'}</div>
-            </div>
+        </CardContent>
+      </Card>
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Patient Visit History
+          </CardTitle>
+          <CardDescription>
+            List of previous visits and appointment dates
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2 px-4 font-semibold">Date Visited</th>
+                  <th className="text-left py-2 px-4 font-semibold">Doctor</th>
+                  <th className="text-left py-2 px-4 font-semibold">Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {/* Mock data for demonstration */}
+                <tr>
+                  <td className="py-2 px-4">2025-08-01</td>
+                  <td className="py-2 px-4">Dr. John Smith</td>
+                  <td className="py-2 px-4">Routine Checkup</td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-4">2025-07-15</td>
+                  <td className="py-2 px-4">Dr. Jane Doe</td>
+                  <td className="py-2 px-4">Follow-up</td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-4">2025-06-10</td>
+                  <td className="py-2 px-4">Dr. John Smith</td>
+                  <td className="py-2 px-4">Lab Results Review</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          
-          <div className="space-y-2">
-            <h3 className="font-semibold text-lg">Physical Examination</h3>
-            <div className="space-y-1">
-              <div><span className="font-medium">Height:</span> {patientData.physical_examination?.height || 'Not recorded'}</div>
-              <div><span className="font-medium">Weight:</span> {patientData.physical_examination?.weight || 'Not recorded'}</div>
-              <div><span className="font-medium">Blood Pressure:</span> {patientData.physical_examination?.bloodPressure || 'Not recorded'}</div>
-              <div><span className="font-medium">Temperature:</span> {patientData.physical_examination?.temperature || 'Not recorded'}</div>
-              <div><span className="font-medium">Pulse Rate:</span> {patientData.physical_examination?.pulseRate || 'Not recorded'}</div>
-              <div><span className="font-medium">Respiratory Rate:</span> {patientData.physical_examination?.respiratoryRate || 'Not recorded'}</div>
-            </div>
-          </div>
-        </div>
-        
-        <Separator />
-        
-        {/* Recent Activity */}
-        <div className="space-y-2">
-          <h3 className="font-semibold text-lg">Recent Activity</h3>
-          <div className="text-sm text-muted-foreground">
-            Last updated: {patientData.registrationDate ? 
-              format(new Date(patientData.registrationDate), 'PPP') : 'N/A'}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </>
   );
 
 
@@ -1509,40 +1543,130 @@ const PatientManagement = () => {
             <div className="space-y-2">
               {soapNotes.length > 0 ? (
                 soapNotes.map((note, index) => (
-                  <div key={note.id || index} className="p-3 border rounded-lg">
+                  <div key={note.id || index} className="p-3 border rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
                     <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="text-sm font-medium">SOAP Note</div>
-                        <div className="text-xs text-muted-foreground">
-                          {note.data.assessment.substring(0, 50)}
-                          {note.data.assessment.length > 50 ? '...' : ''}
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                          S
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          Created: {new Date(note.dateCreated).toLocaleDateString()}
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-gray-900">SOAP Note</div>
+                          <div className="text-xs text-green-600">
+                            {note.data?.assessment?.substring(0, 50) || 'Assessment pending'}
+                            {(note.data?.assessment?.length || 0) > 50 ? '...' : ''}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Created: {new Date(note.dateCreated).toLocaleDateString()}
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => {
+                          onClick={async () => {
+                            // Fetch current clinic settings
+                            let currentClinicSettings = clinicSettings;
+                            if (!currentClinicSettings) {
+                              try {
+                                currentClinicSettings = await fetchClinicSettings();
+                              } catch (error) {
+                                console.error('Failed to fetch clinic settings:', error);
+                                currentClinicSettings = {};
+                              }
+                            }
+                            
+                            const noteId = `${Date.now().toString().slice(-8).toUpperCase()}`;
+                            const clinicData = currentClinicSettings || {};
+                            
                             const content = `
-                              <div style="font-family: Arial, sans-serif; padding: 20px;">
-                                <h2>SOAP Note</h2>
-                                <p><strong>Patient:</strong> ${note.patientName}</p>
-                                <p><strong>Date:</strong> ${new Date(note.dateCreated).toLocaleDateString()}</p>
-                                <h3>Subjective:</h3>
-                                <p>${note.data.subjective}</p>
-                                <h3>Objective:</h3>
-                                <p>${note.data.objective}</p>
-                                <h3>Assessment:</h3>
-                                <p>${note.data.assessment}</p>
-                                <h3>Plan:</h3>
-                                <p>${note.data.plan}</p>
-                                <p><strong>Created by:</strong> ${note.createdBy}</p>
-                              </div>
+                              <!DOCTYPE html>
+                              <html>
+                              <head>
+                                <title>SOAP Note - ${patientData?.name}</title>
+                                <meta charset="utf-8">
+                                <style>
+                                  body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+                                  @media print { body { margin: 0; } }
+                                </style>
+                              </head>
+                              <body>
+                                <div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; font-family: Arial, sans-serif;">
+                                  <!-- Header with Logo and QR -->
+                                  <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+                                    <div>
+                                      ${clinicData.logo ? 
+                                        `<img src="${getLogoUrl(clinicData.logo)}" alt="Clinic Logo" style="height: 50px; width: auto; margin-bottom: 10px;">` : 
+                                        `<div style="width: 50px; height: 50px; background: #f0f0f0; margin-bottom: 10px;"></div>`
+                                      }
+                                      <div style="font-size: 14px; color: #333;">${clinicData.clinic_name || 'Medical Center'}</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                      <div style="width: 80px; height: 80px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666;">
+                                        QR CODE
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <!-- Note ID -->
+                                  <div style="text-align: center; margin-bottom: 20px;">
+                                    <div style="font-weight: bold; font-size: 14px;">SOAP NOTE ID: ${noteId}</div>
+                                  </div>
+
+                                  <!-- Location and Date -->
+                                  <div style="text-align: center; margin-bottom: 30px; font-size: 12px; color: #666;">
+                                    <div>${clinicData.address || 'Clinic Address'}</div>
+                                    <div style="margin-top: 10px;">
+                                      Created on: ${format(new Date(note.dateCreated), 'MMMM dd, yyyy')}
+                                    </div>
+                                    <div>${format(new Date(note.dateCreated), 'hh:mm a')} PHT</div>
+                                  </div>
+
+                                  <!-- Patient Info -->
+                                  <div style="margin-bottom: 20px; font-size: 12px;">
+                                    <div><strong>Patient:</strong> ${patientData?.name}</div>
+                                    <div><strong>Age:</strong> ${patientData?.date_of_birth ? Math.floor((new Date().getTime() - new Date(patientData.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 'N/A'} years old</div>
+                                    <div><strong>Gender:</strong> ${patientData?.gender || 'Not specified'}</div>
+                                  </div>
+
+                                  <!-- SOAP Symbol -->
+                                  <div style="font-size: 24px; font-weight: bold; margin-bottom: 15px; color: #059669;">SOAP</div>
+
+                                  <!-- SOAP Details -->
+                                  <div style="margin-bottom: 40px; font-size: 14px; line-height: 1.6;">
+                                    <div style="margin-bottom: 15px;">
+                                      <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">Subjective:</div>
+                                      <div style="margin-left: 20px; color: #333;">${note.data?.subjective || 'Not recorded'}</div>
+                                    </div>
+                                    <div style="margin-bottom: 15px;">
+                                      <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">Objective:</div>
+                                      <div style="margin-left: 20px; color: #333;">${note.data?.objective || 'Not recorded'}</div>
+                                    </div>
+                                    <div style="margin-bottom: 15px;">
+                                      <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">Assessment:</div>
+                                      <div style="margin-left: 20px; color: #333;">${note.data?.assessment || 'Not recorded'}</div>
+                                    </div>
+                                    <div style="margin-bottom: 15px;">
+                                      <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">Plan:</div>
+                                      <div style="margin-left: 20px; color: #333;">${note.data?.plan || 'Not recorded'}</div>
+                                    </div>
+                                  </div>
+
+                                  <!-- Doctor Signature Area -->
+                                  <div style="text-align: right; margin-top: 60px;">
+                                    <div style="border-bottom: 1px solid #000; width: 200px; margin-left: auto; margin-bottom: 5px;"></div>
+                                    <div style="font-size: 12px;">Dr. ${currentUser?.first_name || currentUser?.name} ${currentUser?.last_name || ''}</div>
+                                  </div>
+
+                                  <!-- Footer -->
+                                  <div style="text-align: center; margin-top: 40px; font-size: 10px; color: #999;">
+                                    <div style="width: 30px; height: 30px; border-radius: 50%; background: #f0f0f0; margin: 0 auto;"></div>
+                                  </div>
+                                </div>
+                              </body>
+                              </html>
                             `;
-                            const newWindow = window.open();
+                            const newWindow = window.open('', '_blank');
                             if (newWindow) {
                               newWindow.document.write(content);
                               newWindow.document.close();
@@ -1552,7 +1676,7 @@ const PatientManagement = () => {
                         >
                           <Eye className="h-3 w-3" />
                         </Button>
-                        {isDoctor && (
+                        {canDelete && (
                           <Button 
                             variant="outline" 
                             size="sm"
@@ -1568,10 +1692,17 @@ const PatientManagement = () => {
                   </div>
                 ))
               ) : (
-                <div className="p-3 border rounded-lg">
-                  <div className="text-sm font-medium">No SOAP notes available</div>
-                  <div className="text-xs text-muted-foreground">
-                    {isDoctor ? 'Click "Add" to create SOAP notes' : 'SOAP notes will appear here when created by doctors'}
+                <div className="p-3 border rounded-lg bg-gray-50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                      S
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium">No SOAP notes available</div>
+                      <div className="text-xs text-muted-foreground">
+                        {isDoctor ? 'Click "Add" to create SOAP notes' : 'SOAP notes will appear here when created by doctors'}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1599,33 +1730,116 @@ const PatientManagement = () => {
             <div className="space-y-2">
               {blankNotes.length > 0 ? (
                 blankNotes.map((note, index) => (
-                  <div key={note.id || index} className="p-3 border rounded-lg">
+                  <div key={note.id || index} className="p-3 border rounded-lg bg-gradient-to-r from-blue-50 to-sky-50 border-blue-200">
                     <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="text-sm font-medium">{note.data.title || 'Clinical Note'}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {note.data.content.substring(0, 50)}
-                          {note.data.content.length > 50 ? '...' : ''}
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                          N
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          Created: {new Date(note.dateCreated).toLocaleDateString()}
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-gray-900">{note.data?.title || 'Clinical Note'}</div>
+                          <div className="text-xs text-blue-600">
+                            {note.data?.content?.substring(0, 50) || 'Content pending'}
+                            {(note.data?.content?.length || 0) > 50 ? '...' : ''}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Created: {new Date(note.dateCreated).toLocaleDateString()}
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => {
+                          onClick={async () => {
+                            // Fetch current clinic settings
+                            let currentClinicSettings = clinicSettings;
+                            if (!currentClinicSettings) {
+                              try {
+                                currentClinicSettings = await fetchClinicSettings();
+                              } catch (error) {
+                                console.error('Failed to fetch clinic settings:', error);
+                                currentClinicSettings = {};
+                              }
+                            }
+                            
+                            const noteId = `${Date.now().toString().slice(-8).toUpperCase()}`;
+                            const clinicData = currentClinicSettings || {};
+                            
                             const content = `
-                              <div style="font-family: Arial, sans-serif; padding: 20px;">
-                                <h2>${note.data.title || 'Clinical Note'}</h2>
-                                <p><strong>Patient:</strong> ${note.patientName}</p>
-                                <p><strong>Date:</strong> ${new Date(note.dateCreated).toLocaleDateString()}</p>
-                                <div style="margin-top: 20px; white-space: pre-wrap;">${note.data.content}</div>
-                                <p><strong>Created by:</strong> ${note.createdBy}</p>
-                              </div>
+                              <!DOCTYPE html>
+                              <html>
+                              <head>
+                                <title>Clinical Note - ${patientData?.name}</title>
+                                <meta charset="utf-8">
+                                <style>
+                                  body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+                                  @media print { body { margin: 0; } }
+                                </style>
+                              </head>
+                              <body>
+                                <div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; font-family: Arial, sans-serif;">
+                                  <!-- Header with Logo and QR -->
+                                  <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+                                    <div>
+                                      ${clinicData.logo ? 
+                                        `<img src="${getLogoUrl(clinicData.logo)}" alt="Clinic Logo" style="height: 50px; width: auto; margin-bottom: 10px;">` : 
+                                        `<div style="width: 50px; height: 50px; background: #f0f0f0; margin-bottom: 10px;"></div>`
+                                      }
+                                      <div style="font-size: 14px; color: #333;">${clinicData.clinic_name || 'Medical Center'}</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                      <div style="width: 80px; height: 80px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666;">
+                                        QR CODE
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <!-- Note ID -->
+                                  <div style="text-align: center; margin-bottom: 20px;">
+                                    <div style="font-weight: bold; font-size: 14px;">CLINICAL NOTE ID: ${noteId}</div>
+                                  </div>
+
+                                  <!-- Location and Date -->
+                                  <div style="text-align: center; margin-bottom: 30px; font-size: 12px; color: #666;">
+                                    <div>${clinicData.address || 'Clinic Address'}</div>
+                                    <div style="margin-top: 10px;">
+                                      Created on: ${format(new Date(note.dateCreated), 'MMMM dd, yyyy')}
+                                    </div>
+                                    <div>${format(new Date(note.dateCreated), 'hh:mm a')} PHT</div>
+                                  </div>
+
+                                  <!-- Patient Info -->
+                                  <div style="margin-bottom: 20px; font-size: 12px;">
+                                    <div><strong>Patient:</strong> ${patientData?.name}</div>
+                                    <div><strong>Age:</strong> ${patientData?.date_of_birth ? Math.floor((new Date().getTime() - new Date(patientData.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 'N/A'} years old</div>
+                                    <div><strong>Gender:</strong> ${patientData?.gender || 'Not specified'}</div>
+                                  </div>
+
+                                  <!-- Note Symbol -->
+                                  <div style="font-size: 24px; font-weight: bold; margin-bottom: 15px; color: #2563eb;">Clinical Note</div>
+
+                                  <!-- Note Details -->
+                                  <div style="margin-bottom: 40px; font-size: 14px; line-height: 1.6;">
+                                    <div style="font-weight: bold; margin-bottom: 10px; color: #2563eb;">${note.data?.title || 'Clinical Note'}</div>
+                                    <div style="margin-left: 20px; color: #333; white-space: pre-wrap;">${note.data?.content || 'No content recorded'}</div>
+                                  </div>
+
+                                  <!-- Doctor Signature Area -->
+                                  <div style="text-align: right; margin-top: 60px;">
+                                    <div style="border-bottom: 1px solid #000; width: 200px; margin-left: auto; margin-bottom: 5px;"></div>
+                                    <div style="font-size: 12px;">Dr. ${currentUser?.first_name || currentUser?.name} ${currentUser?.last_name || ''}</div>
+                                  </div>
+
+                                  <!-- Footer -->
+                                  <div style="text-align: center; margin-top: 40px; font-size: 10px; color: #999;">
+                                    <div style="width: 30px; height: 30px; border-radius: 50%; background: #f0f0f0; margin: 0 auto;"></div>
+                                  </div>
+                                </div>
+                              </body>
+                              </html>
                             `;
-                            const newWindow = window.open();
+                            const newWindow = window.open('', '_blank');
                             if (newWindow) {
                               newWindow.document.write(content);
                               newWindow.document.close();
@@ -1635,7 +1849,7 @@ const PatientManagement = () => {
                         >
                           <Eye className="h-3 w-3" />
                         </Button>
-                        {isDoctor && (
+                        {canDelete && (
                           <Button 
                             variant="outline" 
                             size="sm"
@@ -1651,10 +1865,17 @@ const PatientManagement = () => {
                   </div>
                 ))
               ) : (
-                <div className="p-3 border rounded-lg">
-                  <div className="text-sm font-medium">No clinical notes available</div>
-                  <div className="text-xs text-muted-foreground">
-                    {isDoctor ? 'Click "Add" to create clinical notes' : 'Clinical notes will appear here when created by doctors'}
+                <div className="p-3 border rounded-lg bg-gray-50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                      N
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium">No clinical notes available</div>
+                      <div className="text-xs text-muted-foreground">
+                        {isDoctor ? 'Click "Add" to create clinical notes' : 'Clinical notes will appear here when created by doctors'}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1908,9 +2129,13 @@ const PatientManagement = () => {
           />
           {isEditing && (
             <div className="mt-4 flex justify-end">
-              <Button onClick={handleNext}>
-                Next: Physical Examination
-              </Button>
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                >
+                  <Save className="mr-2 h-4 w-4" />
+                  {isSaving ? 'Saving...' : 'Save Changes'}
+                </Button>
             </div>
           )}
         </TabsContent>
@@ -1921,6 +2146,406 @@ const PatientManagement = () => {
             isEditing={isEditing && (isDoctor || isAdmin)} // Doctors and admins can edit physical exam data
             onUpdate={(updatedData) => setPatientData(prev => ({ ...prev, ...updatedData }))}
           />
+          {/* Calculate paginated notes */}
+          {(() => {
+            const soapStartIndex = (soapNotesPage - 1) * notesPerPage;
+            const soapEndIndex = soapStartIndex + notesPerPage;
+            const paginatedSoapNotes = soapNotes.slice(soapStartIndex, soapEndIndex);
+            const soapTotalPages = Math.ceil(soapNotes.length / notesPerPage);
+            
+            const clinicalStartIndex = (clinicalNotesPage - 1) * notesPerPage;
+            const clinicalEndIndex = clinicalStartIndex + notesPerPage;
+            const paginatedClinicalNotes = blankNotes.slice(clinicalStartIndex, clinicalEndIndex);
+            const clinicalTotalPages = Math.ceil(blankNotes.length / notesPerPage);
+            
+            return (
+          <div className="mt-8 flex flex-col md:flex-row gap-8">
+            <div className="w-full md:w-1/2 flex flex-col border rounded-lg bg-white p-4 shadow-sm order-1">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-semibold text-md">SOAP Notes ({soapNotes.length})</h4>
+                {(isDoctor || isAdmin) && (
+                  <Button size="sm" variant="outline" onClick={() => handleCreateDocument('soap')} className="flex items-center gap-1">
+                    <Plus className="h-3 w-3" />
+                    Add
+                  </Button>
+                )}
+              </div>
+              <div className="flex-1">
+                {paginatedSoapNotes.length > 0 ? (
+                  <>
+                    <ul className="space-y-2 mb-4">
+                      {paginatedSoapNotes.map((note, idx) => (
+                        <li key={note.id || idx} className="p-3 border rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3 flex-1">
+                              <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                S
+                              </div>
+                              <div className="flex-1">
+                                <div className="text-sm font-medium text-gray-900">SOAP Note #{soapStartIndex + idx + 1}</div>
+                                <div className="text-xs text-green-600">
+                                  {note.data?.assessment ? note.data.assessment.substring(0, 60) + (note.data.assessment.length > 60 ? '...' : '') : 'Assessment: Not provided'}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  Created: {new Date(note.dateCreated).toLocaleDateString()} | By: {note.createdBy || currentUser?.name || 'Medical Staff'}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                onClick={async () => {
+                                  // Fetch current clinic settings
+                                  let currentClinicSettings = clinicSettings;
+                                  if (!currentClinicSettings) {
+                                    try {
+                                      currentClinicSettings = await fetchClinicSettings();
+                                    } catch (error) {
+                                      console.error('Failed to fetch clinic settings:', error);
+                                      currentClinicSettings = {};
+                                    }
+                                  }
+                                  
+                                  const noteId = `${Date.now().toString().slice(-8).toUpperCase()}`;
+                                  const clinicData = currentClinicSettings || {};
+                                  
+                                  const content = `
+                                    <!DOCTYPE html>
+                                    <html>
+                                    <head>
+                                      <title>SOAP Note - ${patientData?.name}</title>
+                                      <meta charset="utf-8">
+                                      <style>
+                                        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+                                        @media print { body { margin: 0; } }
+                                      </style>
+                                    </head>
+                                    <body>
+                                      <div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; font-family: Arial, sans-serif;">
+                                        <!-- Header with Logo and QR -->
+                                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+                                          <div>
+                                            ${clinicData.logo ? 
+                                              `<img src="${getLogoUrl(clinicData.logo)}" alt="Clinic Logo" style="height: 50px; width: auto; margin-bottom: 10px;">` : 
+                                              `<div style="width: 50px; height: 50px; background: #f0f0f0; margin-bottom: 10px;"></div>`
+                                            }
+                                            <div style="font-size: 14px; color: #333;">${clinicData.clinic_name || 'Medical Center'}</div>
+                                          </div>
+                                          <div style="text-align: center;">
+                                            <div style="width: 80px; height: 80px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666;">
+                                              QR CODE
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        <!-- Note ID -->
+                                        <div style="text-align: center; margin-bottom: 20px;">
+                                          <div style="font-weight: bold; font-size: 14px;">SOAP NOTE ID: ${noteId}</div>
+                                        </div>
+
+                                        <!-- Location and Date -->
+                                        <div style="text-align: center; margin-bottom: 30px; font-size: 12px; color: #666;">
+                                          <div>${clinicData.address || 'Clinic Address'}</div>
+                                          <div style="margin-top: 10px;">
+                                            Created on: ${format(new Date(note.dateCreated), 'MMMM dd, yyyy')}
+                                          </div>
+                                          <div>${format(new Date(note.dateCreated), 'hh:mm a')} PHT</div>
+                                        </div>
+
+                                        <!-- Patient Info -->
+                                        <div style="margin-bottom: 20px; font-size: 12px;">
+                                          <div><strong>Patient:</strong> ${patientData?.name}</div>
+                                          <div><strong>Age:</strong> ${patientData?.date_of_birth ? Math.floor((new Date().getTime() - new Date(patientData.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 'N/A'} years old</div>
+                                          <div><strong>Gender:</strong> ${patientData?.gender || 'Not specified'}</div>
+                                        </div>
+
+                                        <!-- SOAP Symbol -->
+                                        <div style="font-size: 24px; font-weight: bold; margin-bottom: 15px; color: #059669;">SOAP</div>
+
+                                        <!-- SOAP Details -->
+                                        <div style="margin-bottom: 40px; font-size: 14px; line-height: 1.6;">
+                                          <div style="margin-bottom: 15px;">
+                                            <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">Subjective:</div>
+                                            <div style="margin-left: 20px; color: #333;">${note.data?.subjective || 'Not recorded'}</div>
+                                          </div>
+                                          <div style="margin-bottom: 15px;">
+                                            <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">Objective:</div>
+                                            <div style="margin-left: 20px; color: #333;">${note.data?.objective || 'Not recorded'}</div>
+                                          </div>
+                                          <div style="margin-bottom: 15px;">
+                                            <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">Assessment:</div>
+                                            <div style="margin-left: 20px; color: #333;">${note.data?.assessment || 'Not recorded'}</div>
+                                          </div>
+                                          <div style="margin-bottom: 15px;">
+                                            <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">Plan:</div>
+                                            <div style="margin-left: 20px; color: #333;">${note.data?.plan || 'Not recorded'}</div>
+                                          </div>
+                                        </div>
+
+                                        <!-- Doctor Signature Area -->
+                                        <div style="text-align: right; margin-top: 60px;">
+                                          <div style="border-bottom: 1px solid #000; width: 200px; margin-left: auto; margin-bottom: 5px;"></div>
+                                          <div style="font-size: 12px;">Dr. ${currentUser?.first_name || currentUser?.name} ${currentUser?.last_name || ''}</div>
+                                        </div>
+
+                                        <!-- Footer -->
+                                        <div style="text-align: center; margin-top: 40px; font-size: 10px; color: #999;">
+                                          <div style="width: 30px; height: 30px; border-radius: 50%; background: #f0f0f0; margin: 0 auto;"></div>
+                                        </div>
+                                      </div>
+                                    </body>
+                                    </html>
+                                  `;
+                                  const newWindow = window.open('', '_blank');
+                                  if (newWindow) {
+                                    newWindow.document.write(content);
+                                    newWindow.document.close();
+                                  }
+                                }}
+                                title="View SOAP Note"
+                              >
+                                <Eye className="h-3 w-3" />
+                              </Button>
+                              {(isDoctor || isAdmin) && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleDeleteDocument(note.id, 'soap')}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  title="Delete SOAP Note"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                    {soapTotalPages > 1 && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          Page {soapNotesPage} of {soapTotalPages}
+                        </span>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => setSoapNotesPage(p => Math.max(1, p - 1))}
+                            disabled={soapNotesPage === 1}
+                            className="flex items-center gap-1"
+                          >
+                            <ChevronLeft className="h-3 w-3" />
+                            Previous
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => setSoapNotesPage(p => Math.min(soapTotalPages, p + 1))}
+                            disabled={soapNotesPage === soapTotalPages}
+                            className="flex items-center gap-1"
+                          >
+                            Next
+                            <ChevronRight className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-sm text-muted-foreground">No SOAP notes available.</div>
+                )}
+              </div>
+            </div>
+            <div className="w-full md:w-1/2 flex flex-col border rounded-lg bg-white p-4 shadow-sm order-2 md:ml-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-semibold text-md">Clinical Notes ({blankNotes.length})</h4>
+                {(isDoctor || isAdmin) && (
+                  <Button size="sm" variant="outline" onClick={() => handleCreateDocument('blank')} className="flex items-center gap-1">
+                    <Plus className="h-3 w-3" />
+                    Add
+                  </Button>
+                )}
+              </div>
+              <div className="flex-1">
+                {paginatedClinicalNotes.length > 0 ? (
+                  <>
+                    <ul className="space-y-2 mb-4">
+                      {paginatedClinicalNotes.map((note, idx) => (
+                        <li key={note.id || idx} className="p-3 border rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3 flex-1">
+                              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                N
+                              </div>
+                              <div className="flex-1">
+                                <div className="text-sm font-medium text-gray-900">{note.data?.title || `Clinical Note #${clinicalStartIndex + idx + 1}`}</div>
+                                <div className="text-xs text-blue-600">
+                                  {note.data?.content ? note.data.content.substring(0, 60) + (note.data.content.length > 60 ? '...' : '') : 'No content preview available'}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  Created: {new Date(note.dateCreated).toLocaleDateString()} | By: {note.createdBy || currentUser?.name || 'Medical Staff'}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                onClick={async () => {
+                                  // Fetch current clinic settings
+                                  let currentClinicSettings = clinicSettings;
+                                  if (!currentClinicSettings) {
+                                    try {
+                                      currentClinicSettings = await fetchClinicSettings();
+                                    } catch (error) {
+                                      console.error('Failed to fetch clinic settings:', error);
+                                      currentClinicSettings = {};
+                                    }
+                                  }
+                                  
+                                  const noteId = `${Date.now().toString().slice(-8).toUpperCase()}`;
+                                  const clinicData = currentClinicSettings || {};
+                                  
+                                  const content = `
+                                    <!DOCTYPE html>
+                                    <html>
+                                    <head>
+                                      <title>Clinical Note - ${patientData?.name}</title>
+                                      <meta charset="utf-8">
+                                      <style>
+                                        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+                                        @media print { body { margin: 0; } }
+                                      </style>
+                                    </head>
+                                    <body>
+                                      <div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; font-family: Arial, sans-serif;">
+                                        <!-- Header with Logo and QR -->
+                                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+                                          <div>
+                                            ${clinicData.logo ? 
+                                              `<img src="${getLogoUrl(clinicData.logo)}" alt="Clinic Logo" style="height: 50px; width: auto; margin-bottom: 10px;">` : 
+                                              `<div style="width: 50px; height: 50px; background: #f0f0f0; margin-bottom: 10px;"></div>`
+                                            }
+                                            <div style="font-size: 14px; color: #333;">${clinicData.clinic_name || 'Medical Center'}</div>
+                                          </div>
+                                          <div style="text-align: center;">
+                                            <div style="width: 80px; height: 80px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666;">
+                                              QR CODE
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        <!-- Note ID -->
+                                        <div style="text-align: center; margin-bottom: 20px;">
+                                          <div style="font-weight: bold; font-size: 14px;">CLINICAL NOTE ID: ${noteId}</div>
+                                        </div>
+
+                                        <!-- Location and Date -->
+                                        <div style="text-align: center; margin-bottom: 30px; font-size: 12px; color: #666;">
+                                          <div>${clinicData.address || 'Clinic Address'}</div>
+                                          <div style="margin-top: 10px;">
+                                            Created on: ${format(new Date(note.dateCreated), 'MMMM dd, yyyy')}
+                                          </div>
+                                          <div>${format(new Date(note.dateCreated), 'hh:mm a')} PHT</div>
+                                        </div>
+
+                                        <!-- Patient Info -->
+                                        <div style="margin-bottom: 20px; font-size: 12px;">
+                                          <div><strong>Patient:</strong> ${patientData?.name}</div>
+                                          <div><strong>Age:</strong> ${patientData?.date_of_birth ? Math.floor((new Date().getTime() - new Date(patientData.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 'N/A'} years old</div>
+                                          <div><strong>Gender:</strong> ${patientData?.gender || 'Not specified'}</div>
+                                        </div>
+
+                                        <!-- Note Symbol -->
+                                        <div style="font-size: 24px; font-weight: bold; margin-bottom: 15px; color: #2563eb;">Clinical Note</div>
+
+                                        <!-- Note Details -->
+                                        <div style="margin-bottom: 40px; font-size: 14px; line-height: 1.6;">
+                                          <div style="font-weight: bold; margin-bottom: 10px; color: #2563eb;">${note.data?.title || 'Clinical Note'}</div>
+                                          <div style="margin-left: 20px; color: #333; white-space: pre-wrap;">${note.data?.content || 'No content recorded'}</div>
+                                        </div>
+
+                                        <!-- Doctor Signature Area -->
+                                        <div style="text-align: right; margin-top: 60px;">
+                                          <div style="border-bottom: 1px solid #000; width: 200px; margin-left: auto; margin-bottom: 5px;"></div>
+                                          <div style="font-size: 12px;">Dr. ${currentUser?.first_name || currentUser?.name} ${currentUser?.last_name || ''}</div>
+                                        </div>
+
+                                        <!-- Footer -->
+                                        <div style="text-align: center; margin-top: 40px; font-size: 10px; color: #999;">
+                                          <div style="width: 30px; height: 30px; border-radius: 50%; background: #f0f0f0; margin: 0 auto;"></div>
+                                        </div>
+                                      </div>
+                                    </body>
+                                    </html>
+                                  `;
+                                  const newWindow = window.open('', '_blank');
+                                  if (newWindow) {
+                                    newWindow.document.write(content);
+                                    newWindow.document.close();
+                                  }
+                                }}
+                                title="View Clinical Note"
+                              >
+                                <Eye className="h-3 w-3" />
+                              </Button>
+                              {(isDoctor || isAdmin) && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleDeleteDocument(note.id, 'blank')}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  title="Delete Clinical Note"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                    {clinicalTotalPages > 1 && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          Page {clinicalNotesPage} of {clinicalTotalPages}
+                        </span>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => setClinicalNotesPage(p => Math.max(1, p - 1))}
+                            disabled={clinicalNotesPage === 1}
+                            className="flex items-center gap-1"
+                          >
+                            <ChevronLeft className="h-3 w-3" />
+                            Previous
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => setClinicalNotesPage(p => Math.min(clinicalTotalPages, p + 1))}
+                            disabled={clinicalNotesPage === clinicalTotalPages}
+                            className="flex items-center gap-1"
+                          >
+                            Next
+                            <ChevronRight className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-sm text-muted-foreground">No clinical notes available.</div>
+                )}
+              </div>
+            </div>
+          </div>
+          ); // Close the return statement
+          })() // Close the IIFE
+          }
           {isEditing && (isDoctor || isAdmin) && (
             <div className="mt-4 flex justify-end">
               <Button onClick={handleNext}>
@@ -2172,7 +2797,6 @@ const PatientManagement = () => {
       </Dialog>
     </div>
   );
-  
 };
 
 export default PatientManagement;
