@@ -6,10 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
 import { useClinic } from '@/contexts/ClinicContext';
 import { toast } from '@/hooks/use-toast';
-import { AlertCircle, ArrowLeft, CheckCircle, Download, Eye, FileText, RefreshCw, RotateCcw, Save, Stethoscope, User } from 'lucide-react';
+import { AlertCircle, ArrowLeft, CheckCircle, Eye, FileText, Home, Minus, Plus, RotateCcw, Save, Stethoscope, User } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -64,6 +63,23 @@ const detectDoctorName = (text: string): string | null => {
   return null;
 };
 
+// OCR text cleaning function to prevent excessive blank lines and preserve formatting
+function cleanOcrText(text: string): string {
+  // Heuristic: preserve line breaks, keep extra spaces for lines that look like headers/tables
+  return text
+    .split('\n')
+    .map(line => {
+      // If line contains multiple columns (e.g., separated by 2+ spaces or tabs), preserve spacing
+      if (/\s{2,}|\t/.test(line)) return line;
+      // If line is all caps or looks like a section header, preserve spacing
+      if (/^[A-Z0-9 .:-]+$/.test(line.trim()) && line.trim().length > 8) return line;
+      // Otherwise, collapse multiple spaces to one
+      return line.replace(/ {2,}/g, ' ');
+    })
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n'); // Prevent excessive blank lines
+}
+
 const DocumentComparison: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -92,6 +108,18 @@ const DocumentComparison: React.FC = () => {
     patient: boolean;
     doctor: boolean;
   }>({ patient: false, doctor: false });
+
+  // Floating window position state
+  const [floatingWindowPos, setFloatingWindowPos] = useState({ x: 16, y: 16 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [windowSize, setWindowSize] = useState({ width: 384, height: 500 });
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeDirection, setResizeDirection] = useState('');
+  const [textareaHeight, setTextareaHeight] = useState(400);
+  const [isDocumentVisible, setIsDocumentVisible] = useState(true);
+  const [velocity, setVelocity] = useState({ x: 0, y: 0 });
 
   // Enhanced patient matching function from LabResults.tsx (moved inside component)
   const findPatientFromText = (text: string, detectedName?: string): any | undefined => {
@@ -200,6 +228,208 @@ const DocumentComparison: React.FC = () => {
     return undefined;
   };
 
+  // Floating window drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).classList.contains('resize-handle')) return;
+    setIsDragging(true);
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+    e.preventDefault();
+  };
+
+  // Resize handlers
+  const handleResizeStart = (e: React.MouseEvent, direction: string) => {
+    e.stopPropagation();
+    setIsResizing(true);
+    setResizeDirection(direction);
+    setDragOffset({
+      x: e.clientX,
+      y: e.clientY
+    });
+  };
+
+  const handleResize = (e: MouseEvent) => {
+    if (!isResizing) return;
+
+    const deltaX = e.clientX - dragOffset.x;
+    const deltaY = e.clientY - dragOffset.y;
+
+    setWindowSize(prev => {
+      let newWidth = prev.width;
+      let newHeight = prev.height;
+      let newPosX = floatingWindowPos.x;
+      let newPosY = floatingWindowPos.y;
+
+      if (resizeDirection.includes('right')) {
+        newWidth = Math.max(200, prev.width + deltaX);
+      }
+      if (resizeDirection.includes('left')) {
+        newWidth = Math.max(200, prev.width - deltaX);
+        newPosX = floatingWindowPos.x + deltaX;
+      }
+      if (resizeDirection.includes('bottom')) {
+        newHeight = Math.max(150, prev.height + deltaY);
+      }
+      if (resizeDirection.includes('top')) {
+        newHeight = Math.max(150, prev.height - deltaY);
+        newPosY = floatingWindowPos.y + deltaY;
+      }
+
+      setFloatingWindowPos({ x: newPosX, y: newPosY });
+      return { width: newWidth, height: newHeight };
+    });
+
+    setDragOffset({ x: e.clientX, y: e.clientY });
+  };
+
+  // Zoom handlers
+  const handleZoomIn = () => {
+    const newZoom = Math.min(3, zoomLevel + 0.25);
+    setZoomLevel(newZoom);
+    // Auto-hide document when zoomed for better visibility
+    if (newZoom > 1.5) {
+      setIsDocumentVisible(false);
+    }
+  };
+  
+  const handleZoomOut = () => {
+    const newZoom = Math.max(0.25, zoomLevel - 0.25);
+    setZoomLevel(newZoom);
+    // Auto-show document when zoom is reasonable
+    if (newZoom <= 1.5) {
+      setIsDocumentVisible(true);
+    }
+  };
+  
+  const handleZoomReset = () => {
+    setZoomLevel(1);
+    setIsDocumentVisible(true);
+  };
+
+  const toggleDocumentVisibility = () => {
+    setIsDocumentVisible(!isDocumentVisible);
+  };
+
+  // Add event listeners for mouse events with velocity tracking
+  React.useEffect(() => {
+    let lastMousePos = { x: 0, y: 0 };
+    let lastTime = Date.now();
+
+    const handleMove = (e: MouseEvent) => {
+      const currentTime = Date.now();
+      const deltaTime = currentTime - lastTime;
+      
+      if (isDragging) {
+        const newPos = {
+          x: e.clientX - dragOffset.x,
+          y: e.clientY - dragOffset.y
+        };
+        
+        // Calculate velocity for bounce effect
+        if (deltaTime > 0) {
+          const velX = (e.clientX - lastMousePos.x) / deltaTime * 16; // Convert to pixels per frame
+          const velY = (e.clientY - lastMousePos.y) / deltaTime * 16;
+          setVelocity({ x: velX, y: velY });
+        }
+        
+        setFloatingWindowPos(newPos);
+      }
+      if (isResizing) {
+        handleResize(e);
+      }
+      
+      lastMousePos = { x: e.clientX, y: e.clientY };
+      lastTime = currentTime;
+    };
+
+    const handleUp = () => {
+      setIsDragging(false);
+      setIsResizing(false);
+      setResizeDirection('');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    if (isDragging || isResizing) {
+      document.addEventListener('mousemove', handleMove, { passive: false });
+      document.addEventListener('mouseup', handleUp);
+      if (isDragging) {
+        document.body.style.cursor = 'grabbing';
+        document.body.style.userSelect = 'none';
+      }
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMove);
+      document.removeEventListener('mouseup', handleUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isDragging, isResizing, dragOffset.x, dragOffset.y]);
+
+  // Handle window resize for textarea height adjustment
+  React.useEffect(() => {
+    const handleWindowResize = () => {
+      const lineCount = editableText.split('\n').length;
+      const calculatedHeight = Math.max(400, (lineCount * 22) + 40);
+      setTextareaHeight(calculatedHeight); // Precise fit to content
+    };
+
+    window.addEventListener('resize', handleWindowResize);
+    return () => window.removeEventListener('resize', handleWindowResize);
+  }, [editableText]);
+
+  // Bounce effect for floating window
+  React.useEffect(() => {
+    const checkBounds = () => {
+      if (!isDocumentVisible) return;
+
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+      let newX = floatingWindowPos.x;
+      let newY = floatingWindowPos.y;
+      let newVelX = velocity.x;
+      let newVelY = velocity.y;
+      let bounced = false;
+
+      // Check right boundary
+      if (newX + windowSize.width > screenWidth) {
+        newX = screenWidth - windowSize.width;
+        newVelX = -Math.abs(newVelX) * 0.8; // Bounce with damping
+        bounced = true;
+      }
+      // Check left boundary
+      if (newX < 0) {
+        newX = 0;
+        newVelX = Math.abs(newVelX) * 0.8;
+        bounced = true;
+      }
+      // Check bottom boundary
+      if (newY + windowSize.height > screenHeight) {
+        newY = screenHeight - windowSize.height;
+        newVelY = -Math.abs(newVelY) * 0.8;
+        bounced = true;
+      }
+      // Check top boundary
+      if (newY < 0) {
+        newY = 0;
+        newVelY = Math.abs(newVelY) * 0.8;
+        bounced = true;
+      }
+
+      if (bounced) {
+        setFloatingWindowPos({ x: newX, y: newY });
+        setVelocity({ x: newVelX, y: newVelY });
+      }
+    };
+
+    const interval = setInterval(checkBounds, 16); // 60fps check
+    return () => clearInterval(interval);
+  }, [floatingWindowPos, windowSize, velocity, isDocumentVisible]);
+
   useEffect(() => {
     // Check if we have the required data
     if (!state?.originalFile || !state?.extractedText) {
@@ -212,8 +442,14 @@ const DocumentComparison: React.FC = () => {
       return;
     }
 
-    // Set the editable text
-    setEditableText(state.extractedText);
+    // Set the editable text with OCR cleaning
+    const cleanedText = cleanOcrText(state.extractedText);
+    setEditableText(cleanedText);
+
+    // Initialize textarea height to fit content precisely
+    const initialLineCount = cleanedText.split('\n').length;
+    const initialHeight = Math.max(400, (initialLineCount * 22) + 40); // Precise fit
+    setTextareaHeight(initialHeight); // No excessive space
 
     // Auto-detect patient and doctor from extracted text with enhanced matching
     const detectedPatient = detectPatientName(state.extractedText);
@@ -286,6 +522,11 @@ const DocumentComparison: React.FC = () => {
     setEditableText(newText);
     setHasChanges(newText !== state.extractedText);
 
+    // Calculate precise height to fit content exactly
+    const lineCount = newText.split('\n').length;
+    const calculatedHeight = Math.max(400, (lineCount * 22) + 40); // 22px per line + small padding
+    setTextareaHeight(calculatedHeight); // Precise fit without excess space
+
     // Re-run auto-detection on text changes with enhanced matching
     const detectedPatient = detectPatientName(newText);
     const detectedDoctor = detectDoctorName(newText);
@@ -309,6 +550,22 @@ const DocumentComparison: React.FC = () => {
     }
   };
 
+  const handleCleanText = () => {
+    const cleanedText = cleanOcrText(editableText);
+    setEditableText(cleanedText);
+    setHasChanges(cleanedText !== state.extractedText);
+    
+    // Adjust container to fit cleaned content precisely
+    const lineCount = cleanedText.split('\n').length;
+    const calculatedHeight = Math.max(400, (lineCount * 22) + 40);
+    setTextareaHeight(calculatedHeight); // Precise fit without excess space
+    
+    toast({
+      title: "Text Cleaned",
+      description: "OCR text has been cleaned - excessive blank lines removed and formatting preserved.",
+    });
+  };
+
   const handlePatientSelect = (patientId: string) => {
     setSelectedPatientId(patientId);
     const patient = patients.find(p => p.id === patientId);
@@ -316,11 +573,18 @@ const DocumentComparison: React.FC = () => {
   };
 
   const handleResetText = () => {
-    setEditableText(state.extractedText);
+    const cleanedText = cleanOcrText(state.extractedText);
+    setEditableText(cleanedText);
     setHasChanges(false);
+    
+    // Adjust container to fit reset content precisely
+    const lineCount = cleanedText.split('\n').length;
+    const calculatedHeight = Math.max(400, (lineCount * 22) + 40);
+    setTextareaHeight(calculatedHeight); // Precise fit without excess space
+    
     toast({
       title: "Text Reset",
-      description: "Extracted text has been reset to original.",
+      description: "Extracted text has been reset to original with OCR cleaning applied.",
     });
   };
 
@@ -1070,7 +1334,7 @@ ${editableText}`;
   }
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="w-full px-2 py-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
@@ -1099,78 +1363,248 @@ ${editableText}`;
         </div>
       </div>
 
-      {/* Enhanced Original Document and Extracted Text Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Original Document - Enlarged */}
-        <Card className="h-fit">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2">
-              <Eye className="h-4 w-4" />
-              <span className="text-sm font-medium">Original Document</span>
-            </CardTitle>
-            <p className="text-xs text-muted-foreground">
-              File: {state.originalFile.name} ({(state.originalFile.size / 1024).toFixed(1)} KB)
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="relative">
-              <img
-                src={originalImageUrl}
-                alt="Original Document"
-                className="w-full h-auto border rounded-lg shadow-sm max-h-[700px] object-contain"
-                style={{ backgroundColor: '#f8f9fa' }}
-              />
-              <div className="absolute top-2 right-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => window.open(originalImageUrl, '_blank')}
+      {/* Enhanced Layout - Floating Document, Fullscreen Text */}
+      <div className="relative">
+        {/* Dynamically Sized Text Editor - Fits Content Precisely */}
+        <Card className="border-gray-300 flex flex-col" style={{ height: `${textareaHeight + 120}px` }}>
+          <CardHeader className="pb-2 bg-gray-50 border-b border-gray-200 flex-shrink-0">
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-gray-600" />
+                <span className="text-base font-medium text-gray-800">Extracted Text Editor - Full View</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  className="px-2 py-1 text-xs border border-gray-300 hover:bg-gray-100 rounded"
+                  onClick={handleResetText}
+                  disabled={!hasChanges}
+                  title="Reset to original"
                 >
-                  <Eye className="h-4 w-4" />
-                </Button>
+                  Reset
+                </button>
+                <button
+                  className="px-2 py-1 text-xs border border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded"
+                  onClick={handleCleanText}
+                  title="Clean OCR text - remove excessive blank lines"
+                >
+                  Clean Text
+                </button>
+                <button
+                  className="px-2 py-1 text-xs border border-gray-300 hover:bg-gray-100 rounded"
+                  onClick={handlePreview}
+                  title="Preview document"
+                >
+                  Preview
+                </button>
+                <button
+                  className="px-2 py-1 text-xs border border-gray-300 hover:bg-gray-100 rounded"
+                  onClick={downloadCorrectedText}
+                  title="Download document"
+                >
+                  Download
+                </button>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0 flex-1 flex flex-col">
+            <div className="flex-1 p-2" style={{ height: `${textareaHeight}px` }}>
+              <textarea
+                value={editableText}
+                onChange={(e) => handleTextChange(e.target.value)}
+                placeholder="Extracted text will appear here for editing..."
+                className="w-full h-full font-mono text-sm border border-gray-300 p-3 focus:border-gray-500 focus:outline-none resize-none bg-white leading-normal"
+                style={{ 
+                  height: `${textareaHeight}px`,
+                  overflow: 'hidden', // Remove scrolling completely
+                  minHeight: `${textareaHeight}px`,
+                  maxHeight: `${textareaHeight}px`,
+                  wordWrap: 'break-word', // Wrap long words
+                  whiteSpace: 'pre-wrap', // Preserve line breaks and wrap text
+                  overflowWrap: 'break-word' // Break long words that exceed container width
+                }}
+              />
+            </div>
+            <div className="flex-shrink-0 bg-gray-50 p-3 border-t border-gray-200">
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <div className="flex items-center gap-3">
+                  <span>{editableText.length} characters</span>
+                  <span>{editableText.split('\n').length} lines</span>
+                  <span className={hasChanges ? "text-orange-600 font-medium" : "text-green-600"}>
+                    {hasChanges ? 'Modified' : 'Original'}
+                  </span>
+                  <span className="text-blue-600">OCR Cleaned - No excessive blank lines</span>
+                </div>
+                <span className="text-gray-400">
+                  {state.originalFile.name} ({(state.originalFile.size / 1024).toFixed(1)} KB)
+                </span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Extracted Text - Enlarged */}
-        <Card className="h-fit">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <RefreshCw className="h-4 w-4" />
-                <span className="text-sm font-medium">Extracted Text</span>
+        {/* Floating Original Document Window - Toggleable */}
+        {isDocumentVisible && (
+          <div 
+            className="fixed z-50 bg-white border border-gray-300 shadow-lg"
+            style={{
+              left: `${floatingWindowPos.x}px`,
+              top: `${floatingWindowPos.y}px`,
+              width: `${windowSize.width}px`,
+              height: `${windowSize.height}px`,
+              cursor: isDragging ? 'grabbing' : 'default'
+            }}
+          >
+            {/* Header - Minimal with Toggle */}
+            <div 
+              className="bg-gray-100 border-b border-gray-300 p-2 cursor-move select-none"
+              onMouseDown={handleMouseDown}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Original Document</span>
+                <div className="flex items-center gap-1">
+                  {/* Zoom Controls */}
+                  <button
+                    className="text-xs px-1 py-0.5 hover:bg-gray-200 rounded flex items-center"
+                    onClick={handleZoomOut}
+                    title="Zoom Out"
+                  >
+                    <Minus className="h-3 w-3" />
+                  </button>
+                  <span className="text-xs text-gray-600 px-1 min-w-[40px] text-center">
+                    {Math.round(zoomLevel * 100)}%
+                  </span>
+                  <button
+                    className="text-xs px-1 py-0.5 hover:bg-gray-200 rounded flex items-center"
+                    onClick={handleZoomIn}
+                    title="Zoom In"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </button>
+                  <button
+                    className="text-xs px-1 py-0.5 hover:bg-gray-200 rounded ml-1 flex items-center"
+                    onClick={handleZoomReset}
+                    title="Reset Zoom"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                  </button>
+                  <button
+                    className="text-xs px-1 py-0.5 hover:bg-gray-200 rounded ml-1 flex items-center"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(originalImageUrl, '_blank');
+                    }}
+                    title="Open in new tab"
+                  >
+                    <Eye className="h-3 w-3" />
+                  </button>
+                  <button
+                    className="text-xs px-1 py-0.5 hover:bg-gray-200 rounded flex items-center"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setFloatingWindowPos({ x: 16, y: 16 });
+                      setWindowSize({ width: 384, height: 500 });
+                      setZoomLevel(1);
+                    }}
+                    title="Reset position & size"
+                  >
+                    <Home className="h-3 w-3" />
+                  </button>
+                  <button
+                    className="text-xs px-1 py-0.5 hover:bg-red-100 text-red-600 rounded ml-1 flex items-center"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleDocumentVisibility();
+                    }}
+                    title="Hide document"
+                  >
+                    ×
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={handleResetText} disabled={!hasChanges}>
-                  <RotateCcw className="h-3 w-3 mr-1" />
-                  Reset
-                </Button>
-                <Button variant="outline" size="sm" onClick={handlePreview}>
-                  <Eye className="h-3 w-3 mr-1" />
-                  Preview
-                </Button>
-                <Button variant="outline" size="sm" onClick={downloadCorrectedText}>
-                  <Download className="h-3 w-3 mr-1" />
-                  View & Download
-                </Button>
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              value={editableText}
-              onChange={(e) => handleTextChange(e.target.value)}
-              placeholder="Extracted text will appear here..."
-              className="min-h-[600px] font-mono text-sm leading-relaxed overflow-x-auto whitespace-nowrap"
-              style={{ resize: 'vertical', overflowX: 'auto', whiteSpace: 'pre' }}
-            />
-            <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-              <span>Characters: {editableText.length}</span>
-              <span>Lines: {editableText.split('\n').length}</span>
             </div>
-          </CardContent>
-        </Card>
+
+            {/* Document Content */}
+            <div 
+              className="overflow-auto bg-white"
+              style={{ height: `${windowSize.height - 40}px` }}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <div style={{ 
+                transform: `scale(${zoomLevel})`,
+                transformOrigin: 'top left',
+                width: `${100 / zoomLevel}%`,
+                height: `${100 / zoomLevel}%`
+              }}>
+                <img
+                  src={originalImageUrl}
+                  alt="Original Document"
+                  className="w-full h-auto object-contain"
+                  style={{ 
+                    backgroundColor: '#ffffff',
+                    userSelect: 'none',
+                    pointerEvents: 'none'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Resize Handles */}
+            <div 
+              className="resize-handle absolute top-0 right-0 w-3 h-3 cursor-nw-resize"
+              onMouseDown={(e) => handleResizeStart(e, 'top-right')}
+              style={{ background: 'transparent' }}
+            />
+            <div 
+              className="resize-handle absolute bottom-0 right-0 w-3 h-3 cursor-se-resize"
+              onMouseDown={(e) => handleResizeStart(e, 'bottom-right')}
+              style={{ background: 'transparent' }}
+            />
+            <div 
+              className="resize-handle absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize"
+              onMouseDown={(e) => handleResizeStart(e, 'bottom-left')}
+              style={{ background: 'transparent' }}
+            />
+            <div 
+              className="resize-handle absolute top-0 left-0 w-3 h-3 cursor-ne-resize"
+              onMouseDown={(e) => handleResizeStart(e, 'top-left')}
+              style={{ background: 'transparent' }}
+            />
+            
+            {/* Edge resize handles */}
+            <div 
+              className="resize-handle absolute top-0 left-3 right-3 h-1 cursor-n-resize"
+              onMouseDown={(e) => handleResizeStart(e, 'top')}
+              style={{ background: 'transparent' }}
+            />
+            <div 
+              className="resize-handle absolute bottom-0 left-3 right-3 h-1 cursor-s-resize"
+              onMouseDown={(e) => handleResizeStart(e, 'bottom')}
+              style={{ background: 'transparent' }}
+            />
+            <div 
+              className="resize-handle absolute left-0 top-3 bottom-3 w-1 cursor-w-resize"
+              onMouseDown={(e) => handleResizeStart(e, 'left')}
+              style={{ background: 'transparent' }}
+            />
+            <div 
+              className="resize-handle absolute right-0 top-3 bottom-3 w-1 cursor-e-resize"
+              onMouseDown={(e) => handleResizeStart(e, 'right')}
+              style={{ background: 'transparent' }}
+            />
+          </div>
+        )}
+
+        {/* Show Document Button when hidden */}
+        {!isDocumentVisible && (
+          <button
+            className="fixed top-4 right-4 z-50 px-3 py-2 bg-gray-600 text-white text-sm rounded-lg shadow-lg hover:bg-gray-700 flex items-center gap-2"
+            onClick={toggleDocumentVisibility}
+            title="Show original document"
+          >
+            <Eye className="h-4 w-4" />
+            Show Document
+          </button>
+        )}
       </div>
 
       {/* Lab Result Information Form - Moved to Bottom */}

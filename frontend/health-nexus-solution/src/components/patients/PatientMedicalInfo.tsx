@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import { Patient } from '@/lib/mock-data';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Plus, ChevronDown, X } from 'lucide-react';
+import { Patient } from '@/lib/mock-data';
+import { ChevronDown, Plus, X } from 'lucide-react';
+import React, { useState } from 'react';
 
 interface PatientMedicalInfoProps {
   patient: Patient;
@@ -152,7 +152,8 @@ const PatientMedicalInfo: React.FC<PatientMedicalInfoProps> = ({
                     </Button>
                   </CollapsibleTrigger>
                 </div>
-                <CollapsibleContent className="space-y-4">                  <div className="flex gap-2">
+                <CollapsibleContent className="space-y-4">
+                  <div className="flex gap-2">
                     <Input
                       placeholder="Enter custom allergy"
                       value={newAllergy}
@@ -219,6 +220,122 @@ const PatientMedicalInfo: React.FC<PatientMedicalInfoProps> = ({
             </div>
           )}
         </div>
+        
+        {isEditing && (
+          <div className="space-y-4">
+            <Separator />
+            <div className="space-y-4">
+              <Label className="text-base font-semibold">Detailed Medical History</Label>
+              
+              {/* Chief Complaint */}
+              <div className="space-y-2">
+                <Label htmlFor="chiefComplaint">Chief Complaint</Label>
+                <Textarea
+                  id="chiefComplaint"
+                  rows={3}
+                  value={(patient.medical_info as any)?.chiefComplaint || ""}
+                  onChange={(e) => onUpdate({ 
+                    medical_info: { 
+                      ...patient.medical_info, 
+                      chiefComplaint: e.target.value 
+                    } 
+                  })}
+                  placeholder="Enter the main reason for this medical consultation..."
+                />
+              </div>
+              
+              {/* Medical History Categories with Checkboxes */}
+              <div className="space-y-4">
+                <Label className="text-sm font-medium">Select applicable categories:</Label>
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                  {['illnesses', 'surgeries', 'medications', 'familyHistory', 'socialHistory'].map((field) => (
+                    <div key={field} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`history-${field}`}
+                        checked={(patient.medical_info as any)?.[field] !== undefined}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            onUpdate({ 
+                              medical_info: { 
+                                ...patient.medical_info, 
+                                [field]: '' 
+                              } 
+                            });
+                          } else {
+                            const updatedMedicalInfo = { ...patient.medical_info };
+                            delete (updatedMedicalInfo as any)[field];
+                            onUpdate({ medical_info: updatedMedicalInfo });
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor={`history-${field}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 capitalize"
+                      >
+                        {field.replace(/([A-Z])/g, ' $1').trim()}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Text areas for selected categories */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {['illnesses', 'surgeries', 'medications', 'familyHistory', 'socialHistory'].map((field) => 
+                    (patient.medical_info as any)?.[field] !== undefined && (
+                      <div key={field} className="space-y-2">
+                        <Label htmlFor={`${field}Text`}>
+                          {field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}
+                        </Label>
+                        <Textarea
+                          id={`${field}Text`}
+                          rows={3}
+                          value={(patient.medical_info as any)?.[field] || ""}
+                          onChange={(e) => onUpdate({ 
+                            medical_info: { 
+                              ...patient.medical_info, 
+                              [field]: e.target.value 
+                            } 
+                          })}
+                          placeholder={`Enter ${field.replace(/([A-Z])/g, ' $1').toLowerCase()} details...`}
+                        />
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Display detailed medical history in view mode */}
+        {!isEditing && (
+          <div className="space-y-4">
+            {(patient.medical_info as any)?.chiefComplaint && (
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Chief Complaint</Label>
+                <div className="p-2 border rounded-md bg-muted/20 text-sm">
+                  {(patient.medical_info as any).chiefComplaint}
+                </div>
+              </div>
+            )}
+            
+            {/* Display other medical history categories */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {['illnesses', 'surgeries', 'medications', 'familyHistory', 'socialHistory'].map((field) => 
+                (patient.medical_info as any)?.[field] && (
+                  <div key={field} className="space-y-2">
+                    <Label className="text-sm font-semibold capitalize">
+                      {field.replace(/([A-Z])/g, ' $1').trim()}
+                    </Label>
+                    <div className="p-2 border rounded-md bg-muted/20 text-sm whitespace-pre-wrap">
+                      {(patient.medical_info as any)[field]}
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

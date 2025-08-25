@@ -421,6 +421,523 @@ const PatientManagement = () => {
   const generatePrintContent = () => {
     if (!patientData) return '';
 
+    // Check if all document types are selected for merged format
+    const allDocumentsSelected = 
+      printSettings.includePrescriptions && 
+      printSettings.includeSoapNotes && 
+      printSettings.includeClinicalNotes && 
+      printSettings.includeLabResults && 
+      printSettings.includeMedicalCertificates;
+
+    // If all documents are selected and we have multiple types, use the merged professional format
+    const hasMultipleDocumentTypes = [
+      prescriptions.length > 0,
+      soapNotes.length > 0,
+      blankNotes.length > 0,
+      labResults.length > 0,
+      certificates.length > 0
+    ].filter(Boolean).length > 1;
+
+    if (allDocumentsSelected && hasMultipleDocumentTypes) {
+      return generateMergedProfessionalDocument();
+    }
+
+    // Otherwise, use the existing format
+    return generateStandardPrintContent();
+  };
+
+  const generateMergedProfessionalDocument = () => {
+    if (!patientData) return '';
+
+    const clinicInfo = clinicSettings || {};
+    const logoUrl = getLogoUrl(clinicInfo?.logo || '');
+    
+    let content = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Complete Medical Record - ${patientData.name}</title>
+        <meta charset="utf-8">
+        <style>
+          @page {
+            margin: 0.5in;
+            size: A4;
+          }
+          
+          @media print {
+            .page-break {
+              page-break-before: always;
+            }
+            .no-print {
+              display: none;
+            }
+            body {
+              margin: 0;
+              padding: 0;
+            }
+          }
+          
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.4;
+            color: #000;
+            margin: 0;
+            padding: 15px;
+            background: white;
+          }
+
+          .document-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #000;
+          }
+
+          .logo {
+            height: 50px;
+            width: auto;
+            margin-bottom: 8px;
+          }
+
+          .clinic-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 3px;
+          }
+
+          .clinic-info {
+            font-size: 12px;
+            margin-bottom: 10px;
+          }
+
+          .document-title {
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+          }
+
+          .patient-info {
+            margin-bottom: 20px;
+            padding: 10px 0;
+          }
+
+          .patient-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 14px;
+          }
+
+          .section {
+            margin-bottom: 20px;
+          }
+
+          .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            padding-bottom: 3px;
+            border-bottom: 1px solid #000;
+          }
+
+          .document-item {
+            margin-bottom: 15px;
+            padding: 8px 0;
+            border-bottom: 1px solid #ddd;
+          }
+
+          .document-type {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 3px;
+          }
+
+          .document-meta {
+            font-size: 11px;
+            margin-bottom: 6px;
+          }
+
+          .content {
+            font-size: 12px;
+            line-height: 1.4;
+          }
+
+          .soap-section {
+            margin-bottom: 8px;
+          }
+
+          .soap-label {
+            font-weight: bold;
+            margin-bottom: 2px;
+            font-size: 12px;
+          }
+
+          .content-text {
+            font-size: 12px;
+            line-height: 1.4;
+            margin-left: 8px;
+          }
+
+          .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 10px;
+            border-top: 1px solid #000;
+            padding-top: 10px;
+          }
+
+          .signature-area {
+            text-align: right;
+            margin-top: 25px;
+          }
+
+          .signature-line {
+            border-bottom: 1px solid #000;
+            width: 180px;
+            margin-left: auto;
+            margin-bottom: 3px;
+          }
+
+          .doctor-name {
+            font-size: 11px;
+          }
+
+          .rx-symbol {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 3px;
+          }
+        </style>
+      </head>
+      <body>
+    `;
+
+    // Professional Document Header
+    const documentId = `MR-${Date.now().toString().slice(-8).toUpperCase()}`;
+    content += `
+      <div class="document-header">
+        ${logoUrl ? 
+          `<img src="${logoUrl}" alt="Clinic Logo" class="logo">` : 
+          `<div style="width: 50px; height: 50px; background: #f3f4f6; margin: 0 auto 8px; border-radius: 4px;"></div>`
+        }
+        <div class="clinic-name">${clinicInfo?.clinic_name || 'Medical Center'}</div>
+        <div class="clinic-info">
+          ${clinicInfo?.address || 'Clinic Address'}<br>
+          ${clinicInfo?.phone ? `Tel: ${clinicInfo.phone}` : ''} ${clinicInfo?.email ? `| Email: ${clinicInfo.email}` : ''}
+        </div>
+        <div class="document-title">Complete Medical Record</div>
+        <div style="font-size: 11px;">DOC ID: ${documentId}</div>
+      </div>
+    `;
+
+    // Patient Information Header
+    content += `
+      <div class="patient-info">
+        <div class="patient-row">
+          <span><strong>Patient:</strong> ${patientData.name}</span>
+          <span><strong>Date:</strong> ${format(new Date(), 'MMM dd, yyyy')}</span>
+        </div>
+        <div class="patient-row">
+          <span><strong>Age:</strong> ${patientData.date_of_birth ? 
+            Math.floor((new Date().getTime() - new Date(patientData.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 'N/A'} years</span>
+          <span><strong>Gender:</strong> ${patientData.gender || 'Not specified'}</span>
+        </div>
+        <div class="patient-row">
+          <span><strong>Phone:</strong> ${patientData.phone}</span>
+          <span><strong>Generated by:</strong> ${currentUser?.name || 'Medical Staff'}</span>
+        </div>
+      </div>
+    `;
+
+    // Personal Information Section
+    content += `
+      <div class="section">
+        <div class="section-title">Personal Information</div>
+        <div class="document-item">
+          <div class="content">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 8px;">
+              <div><strong>Full Name:</strong> ${patientData.name}</div>
+              <div><strong>Date of Birth:</strong> ${patientData.date_of_birth ? format(new Date(patientData.date_of_birth), 'MMM dd, yyyy') : 'N/A'}</div>
+              <div><strong>Phone:</strong> ${patientData.phone}</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 8px;">
+              <div><strong>Email:</strong> ${patientData.email}</div>
+              <div><strong>Address:</strong> ${patientData.address || 'N/A'}</div>
+              <div><strong>Emergency Contact:</strong> ${(patientData as any)?.emergency_contact || 'N/A'}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Physical Examination Section
+    content += `
+      <div class="section">
+        <div class="section-title">Physical Examination</div>
+        <div class="document-item">
+          <div class="content">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 8px;">
+              <div><strong>Height:</strong> ${patientData.physical_examination?.height || 'Not recorded'}</div>
+              <div><strong>Weight:</strong> ${patientData.physical_examination?.weight || 'Not recorded'}</div>
+              <div><strong>Blood Pressure:</strong> ${patientData.physical_examination?.bloodPressure || 'Not recorded'}</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+              <div><strong>Temperature:</strong> ${patientData.physical_examination?.temperature || 'Not recorded'}</div>
+              <div><strong>Pulse Rate:</strong> ${patientData.physical_examination?.pulseRate || 'Not recorded'}</div>
+              <div><strong>Respiratory Rate:</strong> ${patientData.physical_examination?.respiratoryRate || 'Not recorded'}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Medical Information Section
+    content += `
+      <div class="section">
+        <div class="section-title">Medical Information</div>
+        <div class="document-item">
+          <div class="content">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px;">
+              <div><strong>Blood Type:</strong> ${patientData.medical_info?.bloodType || 'N/A'}</div>
+              <div><strong>Known Allergies:</strong> ${patientData.medical_info?.allergies?.join(', ') || 'None recorded'}</div>
+            </div>
+            ${patientData.medical_info?.medicalHistory ? `
+              <div style="margin-top: 8px;">
+                <div><strong>Medical History:</strong></div>
+                <div style="margin-top: 4px; padding-left: 8px; font-size: 11px;">${patientData.medical_info.medicalHistory}</div>
+              </div>
+            ` : ''}
+            
+            ${(patientData.medical_info as any)?.chiefComplaint ? `
+              <div style="margin-top: 8px;">
+                <div><strong>Chief Complaint:</strong></div>
+                <div style="margin-top: 4px; padding-left: 8px; font-size: 11px;">${(patientData.medical_info as any).chiefComplaint}</div>
+              </div>
+            ` : ''}
+            
+            <div style="margin-top: 12px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                ${(patientData.medical_info as any)?.illnesses ? `
+                  <div>
+                    <div><strong>Illnesses:</strong></div>
+                    <div style="margin-top: 2px; padding-left: 8px; font-size: 11px;">${(patientData.medical_info as any).illnesses}</div>
+                  </div>
+                ` : ''}
+                
+                ${(patientData.medical_info as any)?.surgeries ? `
+                  <div>
+                    <div><strong>Surgeries:</strong></div>
+                    <div style="margin-top: 2px; padding-left: 8px; font-size: 11px;">${(patientData.medical_info as any).surgeries}</div>
+                  </div>
+                ` : ''}
+                
+                ${(patientData.medical_info as any)?.medications ? `
+                  <div>
+                    <div><strong>Current Medications:</strong></div>
+                    <div style="margin-top: 2px; padding-left: 8px; font-size: 11px;">${(patientData.medical_info as any).medications}</div>
+                  </div>
+                ` : ''}
+                
+                ${(patientData.medical_info as any)?.familyHistory ? `
+                  <div>
+                    <div><strong>Family History:</strong></div>
+                    <div style="margin-top: 2px; padding-left: 8px; font-size: 11px;">${(patientData.medical_info as any).familyHistory}</div>
+                  </div>
+                ` : ''}
+                
+                ${(patientData.medical_info as any)?.socialHistory ? `
+                  <div>
+                    <div><strong>Social History:</strong></div>
+                    <div style="margin-top: 2px; padding-left: 8px; font-size: 11px;">${(patientData.medical_info as any).socialHistory}</div>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // E-Prescriptions Section
+    if (prescriptions.length > 0) {
+      content += `
+        <div class="section">
+          <div class="section-title">E-Prescriptions (${prescriptions.length})</div>
+      `;
+      
+      prescriptions.forEach((prescription, index) => {
+        content += `
+          <div class="document-item">
+            <div class="document-type">
+              <div class="rx-symbol">Rx</div>
+              Prescription #${index + 1}
+            </div>
+            <div class="document-meta">
+              Prescribed on: ${format(new Date(prescription.dateCreated), 'MMM dd, yyyy')}
+            </div>
+            <div class="content">
+              <div style="font-weight: bold; margin-bottom: 5px;">${prescription.data.name}</div>
+              <div style="margin-bottom: 5px;">${prescription.data.dosage} - Quantity: ${prescription.data.quantity}</div>
+              ${prescription.data.description ? `<div style="margin-left: 10px; font-style: italic;">${prescription.data.description}</div>` : ''}
+            </div>
+          </div>
+        `;
+      });
+      
+      content += `</div>`;
+    }
+
+    // SOAP Notes Section
+    if (soapNotes.length > 0) {
+      content += `
+        <div class="section">
+          <div class="section-title">SOAP Notes (${soapNotes.length})</div>
+      `;
+      
+      soapNotes.forEach((note, index) => {
+        content += `
+          <div class="document-item">
+            <div class="document-type">SOAP Note #${index + 1}</div>
+            <div class="document-meta">
+              Created on: ${format(new Date(note.dateCreated), 'MMM dd, yyyy')}
+            </div>
+            <div class="content">
+              <div class="soap-section">
+                <div class="soap-label">Subjective:</div>
+                <div class="content-text">${note.data?.subjective || 'Not recorded'}</div>
+              </div>
+              <div class="soap-section">
+                <div class="soap-label">Objective:</div>
+                <div class="content-text">${note.data?.objective || 'Not recorded'}</div>
+              </div>
+              <div class="soap-section">
+                <div class="soap-label">Assessment:</div>
+                <div class="content-text">${note.data?.assessment || 'Not recorded'}</div>
+              </div>
+              <div class="soap-section">
+                <div class="soap-label">Plan:</div>
+                <div class="content-text">${note.data?.plan || 'Not recorded'}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      
+      content += `</div>`;
+    }
+
+    // Clinical Notes Section
+    if (blankNotes.length > 0) {
+      content += `
+        <div class="section">
+          <div class="section-title">Clinical Notes (${blankNotes.length})</div>
+      `;
+      
+      blankNotes.forEach((note, index) => {
+        content += `
+          <div class="document-item">
+            <div class="document-type">${note.data?.title || `Clinical Note #${index + 1}`}</div>
+            <div class="document-meta">
+              Created on: ${format(new Date(note.dateCreated), 'MMM dd, yyyy')}
+            </div>
+            <div class="content">
+              <div style="white-space: pre-wrap;">${note.data?.content || 'No content recorded'}</div>
+            </div>
+          </div>
+        `;
+      });
+      
+      content += `</div>`;
+    }
+
+    // Lab Results Section
+    if (labResults.length > 0) {
+      content += `
+        <div class="section">
+          <div class="section-title">Laboratory Results (${labResults.length})</div>
+      `;
+      
+      labResults.forEach((result, index) => {
+        content += `
+          <div class="document-item">
+            <div class="document-type">Lab Result #${index + 1}</div>
+            <div class="document-meta">
+              Test Date: ${format(new Date((result as any)?.test_date || (result as any)?.date || new Date()), 'MMM dd, yyyy')}
+            </div>
+            <div class="content">
+              <div><strong>Test Type:</strong> ${(result as any)?.test_type || (result as any)?.type || 'N/A'}</div>
+              ${(result as any)?.laboratory_name ? `<div><strong>Laboratory:</strong> ${(result as any).laboratory_name}</div>` : ''}
+              ${(result as any)?.doctor_notes ? `<div><strong>Doctor's Notes:</strong> ${(result as any).doctor_notes}</div>` : ''}
+              ${(result as any)?.critical_values && (result as any).critical_values.length > 0 ? 
+                `<div style="font-weight: bold;">Critical: ${(result as any).critical_values.length} value(s)</div>` : ''}
+              ${(result as any)?.abnormal_values && (result as any).abnormal_values.length > 0 ? 
+                `<div style="font-weight: bold;">Abnormal: ${(result as any).abnormal_values.length} value(s)</div>` : ''}
+            </div>
+          </div>
+        `;
+      });
+      
+      content += `</div>`;
+    }
+
+    // Medical Certificates Section
+    if (certificates.length > 0) {
+      content += `
+        <div class="section">
+          <div class="section-title">Medical Certificates (${certificates.length})</div>
+      `;
+      
+      certificates.forEach((cert, index) => {
+        // Clean certificate content
+        let certificateContent = cert.content;
+        certificateContent = certificateContent.replace(/<html[^>]*>/gi, '');
+        certificateContent = certificateContent.replace(/<\/html>/gi, '');
+        certificateContent = certificateContent.replace(/<head[^>]*>[\s\S]*?<\/head>/gi, '');
+        certificateContent = certificateContent.replace(/<body[^>]*>/gi, '');
+        certificateContent = certificateContent.replace(/<\/body>/gi, '');
+        
+        content += `
+          <div class="document-item">
+            <div class="document-type">Medical Certificate #${index + 1}</div>
+            <div class="document-meta">
+              Issued on: ${format(new Date(cert.dateCreated), 'MMM dd, yyyy')}
+            </div>
+            <div class="content">
+              ${certificateContent}
+            </div>
+          </div>
+        `;
+      });
+      
+      content += `</div>`;
+    }
+
+    // Professional Signature Area
+    content += `
+      <div class="signature-area">
+        <div class="signature-line"></div>
+        <div class="doctor-name">Dr. ${currentUser?.first_name || currentUser?.name} ${currentUser?.last_name || ''}</div>
+      </div>
+    `;
+
+    // Footer
+    content += `
+      <div class="footer">
+        <div>Generated on ${format(new Date(), 'MMM dd, yyyy')} | Document ID: ${documentId}</div>
+        <div>Generated by: ${currentUser?.name || 'Medical Staff'}</div>
+      </div>
+      </body>
+      </html>
+    `;
+
+    return content;
+  };
+
+  const generateStandardPrintContent = () => {
+    if (!patientData) return '';
+
     const clinicInfo = clinicSettings || {};
     const logoUrl = getLogoUrl(clinicInfo?.logo || '');
     
@@ -688,10 +1205,54 @@ const PatientManagement = () => {
             <div style="margin-top: 5px;">${patientData.medical_info.medicalHistory}</div>
           </div>
         ` : ''}
+        
+        ${(patientData.medical_info as any)?.chiefComplaint ? `
+          <div class="info-item">
+            <span class="info-label">Chief Complaint:</span>
+            <div style="margin-top: 5px;">${(patientData.medical_info as any).chiefComplaint}</div>
+          </div>
+        ` : ''}
+        
+        <div class="info-grid" style="margin-top: 15px;">
+          ${(patientData.medical_info as any)?.illnesses ? `
+            <div class="info-item">
+              <span class="info-label">Illnesses:</span>
+              <div style="margin-top: 3px;">${(patientData.medical_info as any).illnesses}</div>
+            </div>
+          ` : ''}
+          
+          ${(patientData.medical_info as any)?.surgeries ? `
+            <div class="info-item">
+              <span class="info-label">Surgeries:</span>
+              <div style="margin-top: 3px;">${(patientData.medical_info as any).surgeries}</div>
+            </div>
+          ` : ''}
+          
+          ${(patientData.medical_info as any)?.medications ? `
+            <div class="info-item">
+              <span class="info-label">Current Medications:</span>
+              <div style="margin-top: 3px;">${(patientData.medical_info as any).medications}</div>
+            </div>
+          ` : ''}
+          
+          ${(patientData.medical_info as any)?.familyHistory ? `
+            <div class="info-item">
+              <span class="info-label">Family History:</span>
+              <div style="margin-top: 3px;">${(patientData.medical_info as any).familyHistory}</div>
+            </div>
+          ` : ''}
+          
+          ${(patientData.medical_info as any)?.socialHistory ? `
+            <div class="info-item">
+              <span class="info-label">Social History:</span>
+              <div style="margin-top: 3px;">${(patientData.medical_info as any).socialHistory}</div>
+            </div>
+          ` : ''}
+        </div>
       </div>
     `;
 
-    // Documents sections
+    // Documents sections (existing format)
     if (printSettings.includePrescriptions && prescriptions.length > 0) {
       content += `<div class="page-break"></div>`;
       prescriptions.forEach((prescription, index) => {
