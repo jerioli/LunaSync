@@ -13,6 +13,13 @@ import { AlertCircle, ArrowLeft, CheckCircle, Download, Eye, FileText, RefreshCw
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+// Type declaration for jsPDF
+declare global {
+  interface Window {
+    jspdf?: any;
+  }
+}
+
 interface DocumentComparisonState {
   originalFile: File;
   extractedText: string;
@@ -74,6 +81,9 @@ const DocumentComparison: React.FC = () => {
   const [resultType, setResultType] = useState('');
   const [authorizedBy, setAuthorizedBy] = useState('');
   const [isSaving, setSaving] = useState(false);
+
+  // Viewing modal state - REMOVED (no longer needed)
+  // const [showViewModal, setShowViewModal] = useState(false);
 
   // Auto-detection states
   const [detectedPatientName, setDetectedPatientName] = useState<string | null>(null);
@@ -314,8 +324,142 @@ const DocumentComparison: React.FC = () => {
     });
   };
 
+  // Generate HTML-based professional PDF using the same format as downloadCorrectedText
+  const generateProfessionalHTMLPDF = (): string => {
+    return `<!DOCTYPE html>
+    <html>
+    <head>
+      <title>Lab Result Report - ${selectedPatient?.name || 'Patient'}</title>
+      <meta charset="UTF-8">
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        body { 
+          font-family: 'Times New Roman', serif; 
+          font-size: 11pt;
+          line-height: 1.3;
+          background-color: #ffffff;
+          color: #000000;
+          width: 11.5in;
+          min-height: 11in;
+          margin: 0 auto;
+          padding: 0.3in;
+        }
+        
+        .page {
+          width: 100%;
+          min-height: 12.2in;
+          background: white;
+          padding: 0.3in;
+          display: flex;
+          flex-direction: column;
+        }
+        
+        .header {
+          text-align: center;
+          border-bottom: 2px solid #000;
+          padding-bottom: 8px;
+          margin-bottom: 12px;
+        }
+        
+        .title {
+          font-size: 17pt;
+          font-weight: bold;
+          color: #000;
+          margin-bottom: 4px;
+        }
+        
+        .date {
+          font-size: 9pt;
+          color: #555;
+        }
+        
+        .info-section {
+          border: 1px solid #ccc;
+          padding: 8px;
+          margin-bottom: 12px;
+          background: #f9f9f9;
+        }
+        
+        .info-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 20px;
+          font-size: 11pt;
+        }
+        
+        .info-item {
+          margin: 2px 0;
+        }
+        
+        .label {
+          font-weight: bold;
+          color: #000;
+          display: inline-block;
+          width: 70px;
+        }
+        
+        .results-header {
+          font-size: 13pt;
+          font-weight: bold;
+          color: #000;
+          margin: 6px 0 6px 0;
+          border-bottom: 1px solid #ccc;
+          padding-bottom: 3px;
+        }
+        
+        .content {
+          white-space: pre-wrap;
+          font-family: 'Courier New', monospace;
+          font-size: 9pt;
+          line-height: 1.2;
+          border: 1px solid #ddd;
+          padding: 12px;
+          background: #fdfdfd;
+          word-break: break-word;
+          overflow-wrap: break-word;
+          flex: 1;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="page">
+        <div class="header">
+          <h1 class="title">LABORATORY RESULT REPORT</h1>
+          <p class="date">Generated: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+        </div>
+        
+        <div class="info-section">
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="label">Patient:</span> ${selectedPatient?.name || 'Not selected'}
+            </div>
+            <div class="info-item">
+              <span class="label">Test Type:</span> ${resultType || 'Not specified'}
+            </div>
+            <div class="info-item">
+              <span class="label">Authorized:</span> ${authorizedBy || 'Not specified'}
+            </div>
+            <div class="info-item">
+              <span class="label">Date:</span> ${new Date().toLocaleDateString()}
+            </div>
+          </div>
+        </div>
+        
+        <h3 class="results-header">TEST RESULTS</h3>
+        <div class="content">${editableText}</div>
+      </div>
+    </body>
+    </html>`;
+  };
+
+  // Simplified save function - no modal, direct save
   const handleSaveLabResult = async () => {
-    // Validation - match LabResults.tsx required fields
+    // Validation
     if (!selectedPatientId) {
       toast({
         title: "Missing Information",
@@ -327,7 +471,7 @@ const DocumentComparison: React.FC = () => {
 
     if (!resultType) {
       toast({
-        title: "Missing Information",
+        title: "Missing Information", 
         description: "Please fill in all required fields",
         variant: "destructive",
       });
@@ -338,33 +482,25 @@ const DocumentComparison: React.FC = () => {
 
     try {
       console.log('=== LAB RESULT SAVE DEBUG START ===');
-      console.log('Saving lab result...');
+      console.log('Generating HTML PDF and saving lab result...');
       console.log('Selected patient ID:', selectedPatientId);
       console.log('Selected patient object:', selectedPatient);
       console.log('Result type:', resultType);
       console.log('Authorized by:', authorizedBy);
+
+      // Generate the professional HTML content
+      const htmlContent = generateProfessionalHTMLPDF();
+      
+      // Create a PDF file from HTML content using blob
+      const pdfBlob = new Blob([htmlContent], { type: 'text/html' });
+      const pdfFileName = `lab_result_${selectedPatient?.name?.replace(/[^a-zA-Z0-9]/g, '_') || 'patient'}_${new Date().toISOString().split('T')[0]}.html`;
+      const pdfFile = new File([pdfBlob], pdfFileName, { type: 'text/html' });
+
+      console.log('HTML PDF file created:', pdfFileName);
       console.log('Editable text length:', editableText?.length);
       console.log('Original file:', state.originalFile?.name, state.originalFile?.size, 'bytes');
 
-      // Validate required fields before creating FormData
-      const requiredFields = {
-        patient: selectedPatientId,
-        test_name: resultType,
-        test_category: resultType.toLowerCase(),
-        specimen_type: resultType.includes('Urine') || resultType.includes('Microbiology') ? 'urine' : 'blood',
-        laboratory_name: 'Health Nexus Lab',
-        lab_reference_number: `LAB-${Date.now()}`,
-        collection_date: new Date().toISOString().split('T')[0],
-        received_date: new Date().toISOString().split('T')[0],
-        reported_date: new Date().toISOString().split('T')[0],
-        test_results: JSON.stringify([]),
-        interpretation: 'Automated extraction from Google Colab algorithms',
-        processing_notes: 'Processed via Google Colab algorithms with AWS Textract OCR system'
-      };
-      
-      console.log('Required fields validation:', requiredFields);
-
-      // Use the exact same FormData structure as LabResults.tsx
+      // Use the exact same FormData structure as before
       const formData = new FormData();
       formData.append('patient', selectedPatientId);
       formData.append('title', `${resultType} Lab Result`);
@@ -374,74 +510,37 @@ const DocumentComparison: React.FC = () => {
       formData.append('status', 'completed');
       formData.append('urgency', 'normal');
       
-      // Lab result specific fields - required (matching LabResults.tsx exactly)
+      // Lab result specific fields
       formData.append('test_name', resultType);
       formData.append('test_category', resultType.toLowerCase());
       formData.append('specimen_type', resultType.includes('Urine') || resultType.includes('Microbiology') ? 'urine' : 'blood');
-      formData.append('laboratory_name', 'Health Nexus Lab'); // documentDetails?.laboratoryName || 'Health Nexus Lab' - keeping simple for now
+      formData.append('laboratory_name', 'Health Nexus Lab');
       formData.append('lab_reference_number', `LAB-${Date.now()}`);
-      formData.append('collection_date', new Date().toISOString().split('T')[0]); // documentDetails?.testDate logic could be added later
+      formData.append('collection_date', new Date().toISOString().split('T')[0]);
       formData.append('received_date', new Date().toISOString().split('T')[0]);
       formData.append('reported_date', new Date().toISOString().split('T')[0]);
-      formData.append('test_results', JSON.stringify([])); // extractedTestResults.length > 0 ? extractedTestResults : [] - keeping simple for now
-      formData.append('interpretation', 'Automated extraction from Google Colab algorithms'); // matches LabResults.tsx when no test results
+      formData.append('test_results', JSON.stringify([]));
+      formData.append('interpretation', 'Automated extraction from Google Colab algorithms');
       formData.append('processing_notes', 'Processed via Google Colab algorithms with AWS Textract OCR system');
       
-      // Only add authorized_by if we have a value
       if (authorizedBy && authorizedBy.trim()) {
         formData.append('authorized_by', authorizedBy.trim());
       }
       
-      // Include the original file
+      // Include the original file AND the generated HTML file as processed_file
       formData.append('document', state.originalFile);
+      formData.append('processed_file', pdfFile);
 
-      // Log FormData contents for debugging
-      console.log('=== DETAILED FORMDATA DEBUG ===');
-      console.log('FormData contents:');
-      for (let [key, value] of formData.entries()) {
-        if (value instanceof File) {
-          console.log(`${key}: [File] ${value.name} (${value.size} bytes, ${value.type})`);
-        } else {
-          console.log(`${key}: ${value}`);
-        }
-      }
-      console.log('=== END FORMDATA DEBUG ===');
-
-      console.log('Making request to:', 'http://localhost:8000/api/medical-documents/lab-results/');
+      console.log('Making request to save lab result...');
       
       const response = await fetch('http://localhost:8000/api/medical-documents/lab-results/', {
         method: 'POST',
         body: formData,
       });
 
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
       if (!response.ok) {
-        // Get the actual error response from the server
-        console.log('=== SERVER ERROR RESPONSE DEBUG ===');
-        console.log('Response status:', response.status);
-        console.log('Response statusText:', response.statusText);
-        
-        let errorData;
-        const contentType = response.headers.get('content-type');
-        console.log('Response content-type:', contentType);
-        
-        try {
-          if (contentType && contentType.includes('application/json')) {
-            errorData = await response.json();
-            console.log('Server JSON error response:', JSON.stringify(errorData, null, 2));
-          } else {
-            errorData = await response.text();
-            console.log('Server text error response:', errorData);
-          }
-        } catch (parseError) {
-          console.log('Error parsing server response:', parseError);
-          errorData = `Failed to parse server response. Status: ${response.status}`;
-        }
-        console.log('=== END SERVER ERROR DEBUG ===');
-        
-        throw new Error(errorData?.error || errorData || `HTTP ${response.status}: ${response.statusText}`);
+        const errorData = await response.text();
+        throw new Error(errorData || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const savedLabResult = await response.json();
@@ -450,34 +549,20 @@ const DocumentComparison: React.FC = () => {
       
       toast({
         title: "Success",
-        description: `Lab result saved to ${selectedPatient?.name}'s medical record successfully!`,
+        description: `Professional lab result saved to ${selectedPatient?.name}'s medical record!`,
       });
 
       // Navigate back to lab results
       navigate('/lab-results', {
         state: {
           savedLabResult: savedLabResult,
-          message: "Lab result saved successfully with manual corrections",
+          message: "Professional lab result saved successfully",
           autoDetected: autoDetectionResults
         }
       });
 
     } catch (error) {
-      console.log('=== ERROR DEBUG START ===');
       console.error('Error saving lab result:', error);
-      
-      if (error instanceof Error) {
-        console.log('Error message:', error.message);
-        console.log('Error stack:', error.stack);
-      }
-      
-      console.log('Current form state:');
-      console.log('- selectedPatientId:', selectedPatientId);
-      console.log('- resultType:', resultType);
-      console.log('- authorizedBy:', authorizedBy);
-      console.log('- editableText length:', editableText?.length);
-      console.log('=== ERROR DEBUG END ===');
-      
       toast({
         title: "Save Error",
         description: `Failed to save lab result: ${error instanceof Error ? error.message : 'Please try again.'}`,
@@ -485,6 +570,48 @@ const DocumentComparison: React.FC = () => {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  // View function - opens the same HTML format in new window
+  const handleViewLabResult = () => {
+    // Validation
+    if (!selectedPatientId) {
+      toast({
+        title: "Missing Information",
+        description: "Please select a patient before viewing the lab result.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!resultType) {
+      toast({
+        title: "Missing Information",
+        description: "Please specify the result type before viewing the lab result.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Generate and open the HTML content
+    const htmlContent = generateProfessionalHTMLPDF();
+    const viewWindow = window.open('', '_blank', 'width=1000,height=1200,scrollbars=yes,resizable=yes');
+    
+    if (viewWindow) {
+      viewWindow.document.write(htmlContent);
+      viewWindow.document.close();
+      
+      toast({
+        title: "Lab Result Opened", 
+        description: "Professional PDF lab result opened in new tab.",
+      });
+    } else {
+      toast({
+        title: "Popup Blocked",
+        description: "Please allow popups to view the lab result.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -557,31 +684,378 @@ const DocumentComparison: React.FC = () => {
   };
 
   const downloadCorrectedText = () => {
-    const content = `Lab Result Report
+    const content = `${editableText}`;
+    
+    // Open in a PDF-sized viewing window that maintains the content
+    const viewWindow = window.open('', '_blank', 'width=1000,height=1200,scrollbars=yes,resizable=yes');
+    if (viewWindow) {
+      viewWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Lab Result Report - ${selectedPatient?.name || 'Patient'}</title>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            /* PDF-optimized styling for single page */
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            
+        body { 
+          font-family: 'Times New Roman', serif; 
+          font-size: 12pt;
+          line-height: 1.4;
+          background-color: #ffffff;
+          color: #000000;
+          width: 8.5in;
+          min-height: 13in;
+          margin: 0 auto;
+          padding: 0.4in;
+          position: relative;
+          overflow-y: auto;
+          overflow-x: hidden;
+        }            .page {
+              width: 100%;
+              min-height: 12.2in;
+              background: white;
+              box-shadow: 0 0 10px rgba(0,0,0,0.1);
+              padding: 0.3in;
+              display: flex;
+              flex-direction: column;
+            }
+            
+            .header {
+              text-align: center;
+              border-bottom: 2px solid #000;
+              padding-bottom: 8px;
+              margin-bottom: 12px;
+              flex-shrink: 0;
+            }
+            
+            .title {
+              font-size: 17pt;
+              font-weight: bold;
+              color: #000;
+              margin-bottom: 4px;
+            }
+            
+            .date {
+              font-size: 10pt;
+              color: #555;
+            }
+            
+            .info-section {
+              border: 1px solid #ccc;
+              padding: 8px;
+              margin-bottom: 12px;
+              background: #f9f9f9;
+              flex-shrink: 0;
+            }
+            
+            .info-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr 1fr;
+              gap: 20px;
+              font-size: 11pt;
+            }
+            
+            .info-item {
+              margin: 2px 0;
+            }
+            
+            .label {
+              font-weight: bold;
+              color: #000;
+              display: inline-block;
+              width: 70px;
+            }
+            
+            .results-header {
+              font-size: 13pt;
+              font-weight: bold;
+              color: #000;
+              margin: 6px 0 6px 0;
+              border-bottom: 1px solid #ccc;
+              padding-bottom: 3px;
+              flex-shrink: 0;
+            }
+            
+            .content {
+              white-space: pre-wrap;
+              font-family: 'Courier New', monospace;
+              font-size: 10pt;
+              line-height: 1.3;
+              border: 1px solid #ddd;
+              padding: 10px;
+              background: #fdfdfd;
+              word-break: break-word;
+              overflow-wrap: break-word;
+              flex: 1;
+              overflow-y: auto;
+              max-height: 9in;
+            }
+            
+            .download-actions {
+              position: fixed;
+              top: 20px;
+              right: 20px;
+              background: rgba(255,255,255,0.95);
+              padding: 12px;
+              border-radius: 6px;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+              z-index: 1000;
+            }
+            
+            .action-btn {
+              display: block;
+              width: 130px;
+              margin: 4px 0;
+              padding: 8px 12px;
+              border: none;
+              border-radius: 4px;
+              font-size: 10pt;
+              cursor: pointer;
+              transition: all 0.2s;
+            }
+            
+            .pdf-btn {
+              background: #dc2626;
+              color: white;
+            }
+            
+            .pdf-btn:hover {
+              background: #b91c1c;
+            }
+            
+            .download-btn {
+              background: #2563eb;
+              color: white;
+            }
+            
+            .download-btn:hover {
+              background: #1d4ed8;
+            }
+            
+            .print-btn {
+              background: #059669;
+              color: white;
+            }
+            
+            .print-btn:hover {
+              background: #047857;
+            }
+            
+            .copy-btn {
+              background: #7c3aed;
+              color: white;
+            }
+            
+            .copy-btn:hover {
+              background: #6d28d9;
+            }
+            
+            /* Print styles for single page PDF */
+            @media print {
+              body {
+                width: 8.5in;
+                height: 11in;
+                margin: 0;
+                padding: 0.4in;
+                font-size: 9pt;
+                overflow: hidden;
+              }
+              
+              .download-actions { 
+                display: none !important; 
+              }
+              
+              .page {
+                box-shadow: none;
+                margin: 0;
+                padding: 0.2in;
+                height: 10.2in;
+                min-height: 10.2in;
+              }
+              
+              .header {
+                padding-bottom: 5px;
+                margin-bottom: 8px;
+              }
+              
+              .title {
+                font-size: 12pt;
+              }
+              
+              .info-section {
+                padding: 6px;
+                margin-bottom: 8px;
+              }
+              
+              .info-grid {
+                font-size: 8pt;
+              }
+              
+              .results-header {
+                font-size: 10pt;
+                margin: 5px 0 5px 0;
+              }
+              
+              .content {
+                border: 1px solid #000;
+                font-size: 7pt;
+                line-height: 1.1;
+                padding: 6px;
+                overflow: hidden;
+                flex: 1;
+                max-height: none;
+              }
+            }
+            
+            /* Responsive for smaller screens */
+            @media screen and (max-width: 1100px) {
+              body {
+                width: 95%;
+                padding: 15px;
+              }
+              
+              .info-grid {
+                grid-template-columns: 1fr;
+              }
+              
+              .download-actions {
+                position: relative;
+                margin-top: 15px;
+                right: auto;
+                top: auto;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="page">
+            <div class="header">
+              <h1 class="title">LABORATORY RESULT REPORT</h1>
+              <p class="date">Generated: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+            </div>
+            
+            <div class="info-section">
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="label">Patient:</span> ${selectedPatient?.name || 'Not selected'}
+                </div>
+                <div class="info-item">
+                  <span class="label">Test Type:</span> ${resultType || 'Not specified'}
+                </div>
+                <div class="info-item">
+                  <span class="label">Authorized:</span> ${authorizedBy || 'Not specified'}
+                </div>
+                <div class="info-item">
+                  <span class="label">Date:</span> ${new Date().toLocaleDateString()}
+                </div>
+              </div>
+            </div>
+            
+            <h3 class="results-header">TEST RESULTS</h3>
+            <div class="content">${editableText}</div>
+          </div>
+          
+          <div class="download-actions">
+            <button class="action-btn pdf-btn" onclick="generatePDF()">Save PDF</button>
+            <button class="action-btn download-btn" onclick="downloadAsFile()">Save TXT</button>
+            <button class="action-btn print-btn" onclick="window.print()">Print</button>
+            <button class="action-btn copy-btn" onclick="copyToClipboard()">Copy</button>
+          </div>
+          
+          <script>
+            function generatePDF() {
+              window.print();
+            }
+            
+            function downloadAsFile() {
+              const content = \`Lab Result Report
 Patient: ${selectedPatient?.name || 'Not selected'}
 Test Type: ${resultType || 'Not specified'}
-
 Authorized By: ${authorizedBy || 'Not specified'}
-
+Date: ${new Date().toLocaleDateString()}
 
 Results:
-${editableText}
-`;
-    
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `lab_result_${selectedPatient?.name || 'patient'}_${new Date().toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    toast({
-      title: "Download Started",
-      description: "Lab result file has been downloaded.",
-    });
+${editableText}\`;
+              const blob = new Blob([content], { type: 'text/plain' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'lab_result_${selectedPatient?.name?.replace(/[^a-zA-Z0-9]/g, '_') || 'patient'}_${new Date().toISOString().split('T')[0]}.txt';
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            }
+            
+            function copyToClipboard() {
+              const content = \`Lab Result Report
+Patient: ${selectedPatient?.name || 'Not selected'}
+Test Type: ${resultType || 'Not specified'}
+Authorized By: ${authorizedBy || 'Not specified'}
+Date: ${new Date().toLocaleDateString()}
+
+Results:
+${editableText}\`;
+              navigator.clipboard.writeText(content).then(function() {
+                alert('Report copied to clipboard successfully!');
+              }).catch(function() {
+                const textArea = document.createElement('textarea');
+                textArea.value = content;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Report copied to clipboard!');
+              });
+            }
+            
+            window.addEventListener('load', function() {
+              if (window.outerWidth < 1000 || window.outerHeight < 1200) {
+                window.resizeTo(1000, 1200);
+              }
+            });
+          </script>
+        </body>
+        </html>
+      `);
+      viewWindow.document.close();
+      
+      toast({
+        title: "Single-Page PDF View",
+        description: "Lab result report opened in compressed single-page format.",
+      });
+    } else {
+      // Fallback to direct download if popup is blocked
+      const cleanContent = `Lab Result Report
+Patient: ${selectedPatient?.name || 'Not selected'}
+Test Type: ${resultType || 'Not specified'}
+Authorized By: ${authorizedBy || 'Not specified'}
+Date: ${new Date().toLocaleDateString()}
+
+Results:
+${editableText}`;
+      const blob = new Blob([cleanContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `lab_result_${selectedPatient?.name || 'patient'}_${new Date().toISOString().split('T')[0]}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Download Started",
+        description: "Lab result file has been downloaded.",
+      });
+    }
   };
 
   if (!state) {
@@ -678,7 +1152,7 @@ ${editableText}
                 </Button>
                 <Button variant="outline" size="sm" onClick={downloadCorrectedText}>
                   <Download className="h-3 w-3 mr-1" />
-                  Download
+                  View & Download
                 </Button>
               </div>
             </CardTitle>
@@ -823,21 +1297,22 @@ ${editableText}
         </Button>
         
         <Button
+          variant="outline"
+          onClick={handleViewLabResult}
+          disabled={!selectedPatientId || !resultType}
+          className="min-w-[120px]"
+        >
+          <Eye className="h-4 w-4 mr-2" />
+          View
+        </Button>
+        
+        <Button
           onClick={handleSaveLabResult}
           disabled={isSaving || !selectedPatientId || !resultType}
-          className="min-w-[140px]"
+          className="min-w-[120px]"
         >
-          {isSaving ? (
-            <>
-              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            <>
-              <Save className="h-4 w-4 mr-2" />
-              Save Lab Result
-            </>
-          )}
+          <Save className="h-4 w-4 mr-2" />
+          {isSaving ? 'Saving...' : 'Save'}
         </Button>
       </div>
 

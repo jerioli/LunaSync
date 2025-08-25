@@ -162,7 +162,8 @@ class LabResultViewSet(viewsets.ModelViewSet):
                           status=status.HTTP_400_BAD_REQUEST)
         
         patient = get_object_or_404(Patient, id=patient_id)
-        lab_results = self.get_queryset().filter(document__patient=patient)
+        # Order by document creation date descending (newest first)
+        lab_results = self.get_queryset().filter(document__patient=patient).order_by('-document__created_at')
         serializer = self.get_serializer(lab_results, many=True)
         
         return Response({

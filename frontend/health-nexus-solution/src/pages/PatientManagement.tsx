@@ -23,6 +23,13 @@ import { ArrowLeft, Edit, Eye, File, FileText, Heart, Plus, Printer, Save, Steth
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+// Type declaration for jsPDF
+declare global {
+  interface Window {
+    jspdf?: any;
+  }
+}
+
 const PatientManagement = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -1706,57 +1713,32 @@ const PatientManagement = () => {
                           variant="outline" 
                           size="sm"
                           onClick={() => {
-                            const content = `
-                              <div style="font-family: Arial, sans-serif; padding: 20px;">
-                                <h2>Lab Result</h2>
-                                <p><strong>Patient:</strong> ${patientData.name}</p>
-                                <p><strong>Test Name:</strong> ${result.test_name}</p>
-                                <p><strong>Test Category:</strong> ${result.test_category}</p>
-                                <p><strong>Specimen Type:</strong> ${result.specimen_type}</p>
-                                <p><strong>Laboratory:</strong> ${result.laboratory_name || 'N/A'}</p>
-                                <p><strong>Collection Date:</strong> ${result.collection_date ? new Date(result.collection_date).toLocaleDateString() : 'N/A'}</p>
-                                <p><strong>Document Date:</strong> ${result.document?.document_date ? new Date(result.document.document_date).toLocaleDateString() : 'N/A'}</p>
-                                <p><strong>Status:</strong> ${result.document?.status || 'Unknown'}</p>
-                                
-                                ${(result.test_results && result.test_results.length > 0) ? `
-                                  <h3 style="margin-top: 20px;">Test Results:</h3>
-                                  <table style="border-collapse: collapse; width: 100%; margin-top: 10px;">
-                                    <thead>
-                                      <tr style="background-color: #f5f5f5;">
-                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Test</th>
-                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Result</th>
-                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Unit</th>
-                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Reference Range</th>
-                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Status</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      ${(result.test_results || []).map(test => `
-                                        <tr>
-                                          <td style="border: 1px solid #ddd; padding: 8px;">${test.test_name}</td>
-                                          <td style="border: 1px solid #ddd; padding: 8px;">${test.result_value}</td>
-                                          <td style="border: 1px solid #ddd; padding: 8px;">${test.unit}</td>
-                                          <td style="border: 1px solid #ddd; padding: 8px;">${test.reference_range}</td>
-                                          <td style="border: 1px solid #ddd; padding: 8px; ${test.status === 'critical' ? 'color: red; font-weight: bold;' : test.status === 'abnormal' ? 'color: orange; font-weight: bold;' : ''}">${test.status || 'normal'}</td>
-                                        </tr>
-                                      `).join('')}
-                                    </tbody>
-                                  </table>
-                                ` : ''}
-                                
-                                ${result.interpretation ? `<p><strong>Interpretation:</strong></p><div style="margin-top: 10px; white-space: pre-wrap;">${result.interpretation}</div>` : ''}
-                                ${result.clinical_significance ? `<p><strong>Clinical Significance:</strong></p><div style="margin-top: 10px; white-space: pre-wrap;">${result.clinical_significance}</div>` : ''}
-                                ${result.recommendations ? `<p><strong>Recommendations:</strong></p><div style="margin-top: 10px; white-space: pre-wrap;">${result.recommendations}</div>` : ''}
-                                ${result.document?.content ? `<p><strong>Document Content:</strong></p><div style="margin-top: 10px; white-space: pre-wrap;">${result.document.content}</div>` : ''}
-                              </div>
-                            `;
-                            const newWindow = window.open();
-                            if (newWindow) {
-                              newWindow.document.write(content);
-                              newWindow.document.close();
+                            // Simply open the saved processed_file PDF
+                            const processedFileUrl = (result.document as any)?.processed_file;
+                            
+                            if (processedFileUrl) {
+                              // Open the saved professional PDF directly
+                              const pdfUrl = processedFileUrl.startsWith('http') 
+                                ? processedFileUrl 
+                                : `http://localhost:8000${processedFileUrl}`;
+                              
+                              console.log('Opening saved PDF at:', pdfUrl);
+                              window.open(pdfUrl, '_blank');
+                              
+                              toast({
+                                title: "Lab Result Opened",
+                                description: "Saved PDF lab result opened from patient record.",
+                              });
+                            } else {
+                              // No saved PDF available
+                              toast({
+                                title: "No PDF Available",
+                                description: "No processed PDF found for this lab result. Please re-upload through Lab Results page.",
+                                variant: "destructive",
+                              });
                             }
                           }}
-                          title="View Lab Result"
+                          title="View Saved Lab Result PDF"
                         >
                           <Eye className="h-3 w-3" />
                         </Button>

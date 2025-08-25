@@ -39,8 +39,12 @@ class LabResultCreateSerializer(serializers.ModelSerializer):
     status = serializers.CharField(required=False, default='approved', write_only=True)
     urgency = serializers.CharField(required=False, default='routine', write_only=True)
     
+    # File fields for original document and processed PDF
+    document = serializers.FileField(required=False, write_only=True)
+    processed_file = serializers.FileField(required=False, write_only=True)
+    
     # Read-only fields for the response
-    document = MedicalDocumentSerializer(read_only=True)
+    document_info = MedicalDocumentSerializer(source='document', read_only=True)
     patient_name = serializers.CharField(source='document.patient.name', read_only=True)
     
     class Meta:
@@ -55,8 +59,10 @@ class LabResultCreateSerializer(serializers.ModelSerializer):
             # Document creation fields (write_only)
             'patient', 'created_by', 'authorized_by', 'title', 'description', 
             'content', 'document_date', 'status', 'urgency',
+            # File fields
+            'document', 'processed_file',
             # Read-only fields
-            'document', 'patient_name'
+            'document_info', 'patient_name'
         ]
     
     def create(self, validated_data):
@@ -66,7 +72,13 @@ class LabResultCreateSerializer(serializers.ModelSerializer):
         print(f"Patient: {validated_data.get('patient')}")
         print(f"Created by: {validated_data.get('created_by')}")
         print(f"Title: {validated_data.get('title')}")
+        print(f"Has document file: {'document' in validated_data}")
+        print(f"Has processed_file: {'processed_file' in validated_data}")
         print("=" * 50)
+        
+        # Extract file fields before creating document
+        original_file = validated_data.pop('document', None)
+        processed_file = validated_data.pop('processed_file', None)
         
         # Get or create a default user for testing purposes
         created_by = validated_data.pop('created_by', None)
@@ -126,6 +138,15 @@ class LabResultCreateSerializer(serializers.ModelSerializer):
             'status': validated_data.pop('status', 'approved'),
             'urgency': validated_data.pop('urgency', 'routine'),
         }
+        
+        # Add file fields if provided
+        if original_file:
+            document_data['original_file'] = original_file
+            print(f"Added original_file: {original_file.name}")
+        
+        if processed_file:
+            document_data['processed_file'] = processed_file
+            print(f"Added processed_file: {processed_file.name}")
         
         # If we have an authorized_by name but no user, store it in the content
         if authorized_by_name and not authorized_by_user:
