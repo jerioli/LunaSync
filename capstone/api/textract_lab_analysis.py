@@ -1,15 +1,17 @@
 """
 Amazon Textract OCR API for Lab Results Processing
 Enhanced table extraction and structured data processing for medical documents
+Enhanced to handle slanted/rotated documents with line-by-line detection
+Includes Google Colab algorithms for maximum accuracy - merged implementation
 """
 
-import os
 import io
 import json
 import base64
 import re
+import math
 from typing import List, Dict, Any, Tuple
-from PIL import Image, ImageEnhance, ImageFilter
+from PIL import Image, ImageEnhance, ImageFilter, ImageOps, ImageDraw
 import boto3
 import pandas as pd
 from django.http import JsonResponse
@@ -21,6 +23,14 @@ import traceback
 from .models import AWSCredentials
 
 logger = logging.getLogger(__name__)
+
+# Optional imports for advanced processing
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
+    logger.warning("NumPy not available, using fallback methods for rotation detection")
 
 def get_aws_credentials():
     """Get AWS credentials from database for security - keeping all other optimizations"""
@@ -65,36 +75,480 @@ def get_textract_client():
         logger.error(f"Failed to create Textract client: {e}")
         raise Exception(f"AWS Textract client configuration failed: {e}")
 
-def preprocess_image_for_ocr(image_bytes: bytes) -> bytes:
-    """Simple image preprocessing - match Google Colab approach for speed"""
+
+def build_positional_tui(blocks, output_width=120):
+    """
+    Build positional TUI output preserving original layout
+    EXACT Google Colab implementation - Direct translation
+    
+    Args:
+        blocks: AWS Textract blocks
+        output_width: Output width for text formatting (default: 120)
+    
+    Returns:
+        str: Formatted text with preserved positioning
+    """
+    logger.info(f'🔍 build_positional_tui called with {len(blocks)} blocks')
+    
+    # Collect all words with their positions (exact same as Colab)
+    words = []
+    for block in blocks:
+        if block['BlockType'] == 'WORD' and 'Text' in block:
+            box = block['Geometry']['BoundingBox']
+            words.append({
+                'text': block['Text'],
+                'left': box['Left'],
+                'top': box['Top'],
+                'width': box['Width'],
+                'height': box['Height']
+            })
+
+    if len(words) == 0:
+        logger.warning('❌ No words found in blocks')
+        return "No text detected"
+
+    logger.info(f'📊 Found {len(words)} words')
+
+    # Calculate document boundaries (exact same as Colab)
+    min_left = min(w['left'] for w in words)
+    max_right = max(w['left'] + w['width'] for w in words)
+    min_top = min(w['top'] for w in words)
+    max_bottom = max(w['top'] + w['height'] for w in words)
+
+    logger.info(f'📐 Document boundaries: left={min_left}, right={max_right}, top={min_top}, bottom={max_bottom}')
+
+    # Create dynamic row grouping with adaptive tolerance (exact same as Colab)
+    vertical_positions = sorted(list(set(w['top'] for w in words)))
+    row_groups = []
+    current_group = [vertical_positions[0]]
+
+    for i in range(1, len(vertical_positions)):
+        pos = vertical_positions[i]
+        if pos - current_group[-1] < 0.005:  # Adaptive tolerance - EXACT same value
+            current_group.append(pos)
+        else:
+            if HAS_NUMPY:
+                row_groups.append(np.mean(current_group))
+            else:
+                row_groups.append(sum(current_group) / len(current_group))  # Fallback without numpy
+            current_group = [pos]
+
+    if current_group:
+        if HAS_NUMPY:
+            row_groups.append(np.mean(current_group))
+        else:
+            row_groups.append(sum(current_group) / len(current_group))
+
+    logger.info(f'📊 Created {len(row_groups)} row groups')
+
+    # Organize words by row (exact same as Colab)
+    rows = {}
+    for word in words:
+        # Find closest row group
+        row_key = min(row_groups, key=lambda x: abs(x - word['top']))
+        if row_key not in rows:
+            rows[row_key] = []
+        rows[row_key].append(word)
+
+    # Sort rows top-to-bottom (exact same as Colab)
+    sorted_rows = sorted(rows.items(), key=lambda x: x[0])
+
+    logger.info(f'📊 Organized into {len(sorted_rows)} rows')
+
+    # Create output grid (exact same as Colab)
+    output_lines = []
+    prev_row_key = None
+
+    for row_key, words_in_row in sorted_rows:
+        # Add vertical spacing between rows (EXACT same threshold)
+        if prev_row_key is not None and (row_key - prev_row_key) > 0.02:
+            output_lines.append("")  # Add empty line for vertical spacing
+
+        prev_row_key = row_key
+
+        # Sort words left-to-right
+        words_in_row.sort(key=lambda x: x['left'])
+
+        # Create row buffer
+        row_buffer = [' '] * output_width
+
+        # Place words in row buffer (exact same as Colab)
+        for word in words_in_row:
+            # Calculate position in output grid
+            if max_right > min_left:  # Prevent division by zero
+                col_pos = int(((word['left'] - min_left) / (max_right - min_left)) * (output_width - 1))
+            else:
+                col_pos = 0
+            
+            word_length = len(word['text'])
+
+            # Ensure word fits in buffer
+            if col_pos < output_width:
+                end_pos = min(col_pos + word_length, output_width)
+
+                # Check for overlap (exact same logic as Colab)
+                has_overlap = False
+                for i in range(col_pos, end_pos):
+                    if row_buffer[i] != ' ':
+                        has_overlap = True
+                        break
+
+                if has_overlap:
+                    # Handle overlap by moving to next available space (exact same as Colab)
+                    for i in range(col_pos, output_width):
+                        if row_buffer[i] == ' ':
+                            col_pos = i
+                            break
+                    end_pos = min(col_pos + word_length, output_width)
+
+                # Place word in buffer
+                for i, char in enumerate(word['text']):
+                    pos = col_pos + i
+                    if 0 <= pos < output_width:
+                        row_buffer[pos] = char
+
+        # Convert to string and trim right (exact same as Colab)
+        line_text = ''.join(row_buffer).rstrip()
+        output_lines.append(line_text)
+
+    logger.info(f'✅ build_positional_tui complete, generated {len(output_lines)} lines')
+    return '\n'.join(output_lines)
+
+def format_as_table(blocks):
+    """
+    Enhanced table formatting using Textract's table detection
+    EXACT Google Colab implementation - Direct translation
+    
+    Args:
+        blocks: AWS Textract blocks
+    
+    Returns:
+        str: Formatted table text with borders
+    """
+    logger.info(f'🔍 format_as_table called with {len(blocks)} blocks')
+    
+    # Extract table data (exact same as Colab)
+    tables = []
+    current_table = []
+    current_row = []
+
+    for block in blocks:
+        if block['BlockType'] == 'TABLE':
+            if current_table:
+                tables.append(current_table)
+            current_table = []
+        elif block['BlockType'] == 'CELL':
+            if 'Relationships' in block:
+                cell_text = ""
+                for rel in block['Relationships']:
+                    if rel['Type'] == 'CHILD':
+                        for child_id in rel['Ids']:
+                            # Find corresponding word block (exact same as Colab)
+                            word_block = next((b for b in blocks if b['Id'] == child_id and b['BlockType'] == 'WORD'), None)
+                            if word_block and 'Text' in word_block:
+                                cell_text += word_block['Text'] + " "
+                current_row.append(cell_text.strip())
+        elif block['BlockType'] == 'ROW':
+            if current_row:
+                current_table.append(current_row)
+            current_row = []
+
+    if current_row:
+        current_table.append(current_row)
+    if current_table:
+        tables.append(current_table)
+
+    logger.info(f'📊 Found {len(tables)} tables')
+
+    # Format tables with borders (exact same as Colab)
+    formatted_tables = []
+    for table in tables:
+        if not table or len(table) == 0 or not table[0]:
+            continue
+
+        # Calculate column widths (exact same as Colab)
+        col_widths = []
+        for i in range(len(table[0])):
+            max_width = max(len(str(row[i] if i < len(row) else '')) for row in table)
+            col_widths.append(max_width)
+
+        # Create horizontal border (exact same Unicode characters as Colab)
+        horizontal_border = '┌' + '┬'.join('─' * (w + 2) for w in col_widths) + '┐'
+
+        # Build table (exact same as Colab)
+        table_lines = [horizontal_border]
+        for i, row in enumerate(table):
+            # Format row
+            row_str = "│"
+            for j, col_width in enumerate(col_widths):
+                cell = str(row[j] if j < len(row) else '')
+                row_str += f" {cell.ljust(col_width)} │"
+            table_lines.append(row_str)
+
+            # Add separator after header (exact same as Colab)
+            if i == 0:
+                sep = '├' + '┼'.join('─' * (w + 2) for w in col_widths) + '┤'
+                table_lines.append(sep)
+
+        # Add bottom border (exact same as Colab)
+        bottom_border = '└' + '┴'.join('─' * (w + 2) for w in col_widths) + '┘'
+        table_lines.append(bottom_border)
+
+        formatted_tables.append('\n'.join(table_lines))
+
+    logger.info(f'✅ format_as_table complete: {len(formatted_tables)} tables formatted')
+    return '\n\n'.join(formatted_tables)
+
+def process_document_with_colab_algorithms(blocks):
+    """
+    Process document using EXACT Google Colab algorithms for maximum accuracy
+    
+    Args:
+        blocks: AWS Textract blocks from detect_document_text or analyze_document
+    
+    Returns:
+        dict: Processed results with positioned text and formatted tables
+    """
+    logger.info('🚀 Processing document with Google Colab algorithms...')
+    logger.info(f'📊 Input blocks: {len(blocks)} blocks')
+    
+    if not blocks:
+        logger.warning('❌ No blocks provided')
+        return {
+            'success': False,
+            'error': 'No blocks provided',
+            'positioned_text': '',
+            'formatted_tables': '',
+            'combined_text': ''
+        }
+
     try:
-        # Minimal processing to match Google Colab speed and accuracy
-        # Just return the original bytes for maximum speed
-        logger.info(f"Using original image without preprocessing for speed (Google Colab approach)")
-        return image_bytes
+        # Debug: Check block types
+        block_types = {}
+        for block in blocks:
+            block_type = block.get('BlockType', 'UNKNOWN')
+            block_types[block_type] = block_types.get(block_type, 0) + 1
+        
+        logger.info(f'📋 Block types: {block_types}')
+        
+        # Use the EXACT same functions as Google Colab
+        positioned_text = build_positional_tui(blocks, 120)
+        table_text = format_as_table(blocks)
+        
+        logger.info(f'📝 Positioned text length: {len(positioned_text)}')
+        logger.info(f'📊 Table text length: {len(table_text) if table_text else 0}')
+        
+        # Combine outputs exactly like Colab
+        combined_text = positioned_text
+        if table_text:
+            combined_text += "\n\n" + table_text
+        
+        logger.info(f'✅ Final combined text length: {len(combined_text)}')
+        logger.info('✅ Document processing complete with Google Colab-identical accuracy')
+        
+        return {
+            'success': True,
+            'positioned_text': positioned_text,
+            'formatted_tables': table_text,
+            'combined_text': combined_text,
+            'blocks_processed': len(blocks),
+            'algorithm_source': 'Google Colab - Exact Implementation'
+        }
         
     except Exception as e:
-        logger.error(f"Error in image preprocessing: {e}")
+        logger.error(f'❌ Processing failed: {str(e)}')
+        logger.error(f'❌ Full error: {traceback.format_exc()}')
+        return {
+            'success': False,
+            'error': str(e),
+            'positioned_text': '',
+            'formatted_tables': '',
+            'combined_text': ''
+        }
+
+# ============================================================================
+# DOCUMENT ROTATION AND PREPROCESSING
+# ============================================================================
+
+def detect_document_rotation(image_bytes: bytes) -> float:
+    """Detect rotation angle of document using text line analysis"""
+    try:
+        # Convert bytes to PIL Image
+        image = Image.open(io.BytesIO(image_bytes))
+        
+        # Convert to grayscale for better edge detection
+        if image.mode != 'L':
+            image = image.convert('L')
+        
+        # Enhance contrast
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(2.0)
+        
+        # Apply edge detection filter
+        image = image.filter(ImageFilter.FIND_EDGES)
+        
+        # Convert to numpy array for line detection
+        try:
+            import cv2
+            img_array = np.array(image)
+            
+            # Use Hough Line Transform to detect lines
+            lines = cv2.HoughLines(img_array, 1, np.pi/180, threshold=100)
+            
+            if lines is not None:
+                angles = []
+                for rho, theta in lines[:20]:  # Use first 20 lines
+                    angle = theta * 180 / np.pi
+                    # Convert to rotation angle (text should be horizontal)
+                    if angle > 90:
+                        angle = angle - 180
+                    angles.append(angle)
+                
+                # Find most common angle (mode)
+                if angles:
+                    # Calculate median angle for stability
+                    rotation_angle = np.median(angles)
+                    logger.info(f"Detected document rotation: {rotation_angle:.2f} degrees")
+                    return rotation_angle
+            
+        except ImportError:
+            logger.warning("OpenCV not available, using alternative rotation detection")
+            # Fallback method without OpenCV
+            return detect_rotation_fallback(image)
+            
+    except Exception as e:
+        logger.error(f"Error detecting document rotation: {e}")
+    
+    return 0.0  # No rotation detected
+
+def detect_rotation_fallback(image: Image.Image) -> float:
+    
+    try:
+        # Simple edge-based rotation detection
+        width, height = image.size
+        
+        # Sample horizontal lines at different heights
+        angles = []
+        for y in range(height // 4, 3 * height // 4, height // 10):
+            pixels = list(image.crop((0, y, width, y + 1)).getdata())
+            
+            # Find edge transitions
+            transitions = []
+            for i in range(1, len(pixels)):
+                if abs(pixels[i] - pixels[i-1]) > 50:  # Edge threshold
+                    transitions.append(i)
+            
+            # Calculate line angle from edge pattern
+            if len(transitions) >= 2:
+                # Simple linear regression on transition points
+                x_coords = list(range(len(transitions)))
+                y_coords = transitions
+                if len(x_coords) > 1:
+                    slope = sum((x - sum(x_coords)/len(x_coords)) * (y - sum(y_coords)/len(y_coords)) 
+                              for x, y in zip(x_coords, y_coords)) / sum((x - sum(x_coords)/len(x_coords))**2 
+                              for x in x_coords)
+                    angle = math.atan(slope) * 180 / math.pi
+                    angles.append(angle)
+        
+        if angles:
+            return sum(angles) / len(angles)
+    
+    except Exception as e:
+        logger.error(f"Error in fallback rotation detection: {e}")
+    
+    return 0.0
+
+def correct_document_rotation(image_bytes: bytes, rotation_angle: float) -> bytes:
+    """Correct document rotation by rotating the image"""
+    try:
+        if abs(rotation_angle) < 1.0:  # Skip correction for minor rotations
+            return image_bytes
+            
+        # Convert bytes to PIL Image
+        image = Image.open(io.BytesIO(image_bytes))
+        
+        # Rotate image to correct orientation
+        corrected_image = image.rotate(-rotation_angle, expand=True, fillcolor='white')
+        
+        # Convert back to bytes
+        output = io.BytesIO()
+        corrected_image.save(output, format='PNG', quality=95)
+        corrected_bytes = output.getvalue()
+        
+        logger.info(f"Corrected document rotation by {rotation_angle:.2f} degrees")
+        return corrected_bytes
+        
+    except Exception as e:
+        logger.error(f"Error correcting document rotation: {e}")
+        return image_bytes  # Return original on error
+
+def preprocess_image_for_ocr(image_bytes: bytes) -> bytes:
+    """Enhanced image preprocessing with rotation correction for slanted documents"""
+    try:
+        logger.info("Starting enhanced image preprocessing with rotation detection")
+        
+        # Step 1: Detect document rotation
+        rotation_angle = detect_document_rotation(image_bytes)
+        
+        # Step 2: Correct rotation if significant
+        if abs(rotation_angle) > 1.0:
+            logger.info(f"Correcting document rotation: {rotation_angle:.2f} degrees")
+            image_bytes = correct_document_rotation(image_bytes, rotation_angle)
+        else:
+            logger.info("No significant rotation detected, skipping correction")
+        
+        # Step 3: Additional enhancement for better OCR
+        image = Image.open(io.BytesIO(image_bytes))
+        
+        # Convert to RGB if needed
+        if image.mode not in ['RGB', 'L']:
+            image = image.convert('RGB')
+        
+        # Enhance contrast for better text recognition
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.2)
+        
+        # Enhance sharpness
+        enhancer = ImageEnhance.Sharpness(image)
+        image = enhancer.enhance(1.1)
+        
+        # Save enhanced image
+        output = io.BytesIO()
+        image.save(output, format='PNG', quality=95)
+        enhanced_bytes = output.getvalue()
+        
+        logger.info("Image preprocessing completed successfully")
+        return enhanced_bytes
+        
+    except Exception as e:
+        logger.error(f"Error in enhanced image preprocessing: {e}")
         return image_bytes  # Return original on any error
 
 def extract_text_with_enhanced_textract(image_bytes: bytes) -> Tuple[str, List[Dict]]:
-    """Enhanced Textract extraction with better configuration for lab results"""
+    """Enhanced Textract extraction with rotation correction and line-by-line detection"""
     try:
         # Initialize Textract client
         textract_client = get_textract_client()
         if not textract_client:
             raise Exception("Textract client not available")
         
-        # Use detect_document_text for fast and accurate text extraction (same as Google Colab)
+        # Step 1: Preprocess image to correct rotation
+        logger.info("Preprocessing image for rotation correction")
+        processed_image_bytes = preprocess_image_for_ocr(image_bytes)
+        
+        # Step 2: Use detect_document_text for line-by-line extraction
+        logger.info("Performing Textract OCR with line-by-line detection")
         response = textract_client.detect_document_text(
-            Document={'Bytes': image_bytes}
+            Document={'Bytes': processed_image_bytes}
         )
         
-        # Extract text blocks with position information
-        text_blocks = []
+        # Step 3: Extract and organize text blocks by lines
+        lines = []
+        words = []
+        
         for block in response['Blocks']:
             if block['BlockType'] == 'LINE':
-                text_blocks.append({
+                lines.append({
                     'text': block['Text'],
                     'confidence': block['Confidence'],
                     'geometry': block['Geometry'],
@@ -103,19 +557,100 @@ def extract_text_with_enhanced_textract(image_bytes: bytes) -> Tuple[str, List[D
                     'height': block['Geometry']['BoundingBox']['Height'],
                     'width': block['Geometry']['BoundingBox']['Width']
                 })
+            elif block['BlockType'] == 'WORD':
+                words.append({
+                    'text': block['Text'],
+                    'confidence': block['Confidence'],
+                    'geometry': block['Geometry'],
+                    'top': block['Geometry']['BoundingBox']['Top'],
+                    'left': block['Geometry']['BoundingBox']['Left']
+                })
         
-        # Sort blocks by position (top to bottom, left to right)
-        text_blocks.sort(key=lambda x: (x['top'], x['left']))
+        # Step 4: Sort lines by vertical position (top to bottom)
+        lines.sort(key=lambda x: x['top'])
         
-        # Combine into full text
-        full_text = '\n'.join([block['text'] for block in text_blocks])
+        # Step 5: Group words into lines if LINE detection missed some
+        if len(words) > len(lines) * 2:  # More words than expected for lines
+            logger.info("Reconstructing lines from word-level detection")
+            reconstructed_lines = reconstruct_lines_from_words(words)
+            if reconstructed_lines:
+                lines.extend(reconstructed_lines)
+                lines.sort(key=lambda x: x['top'])
         
-        logger.info(f"Enhanced Textract extracted {len(text_blocks)} text blocks")
-        return full_text, text_blocks
+        # Step 6: Combine into full text with proper line breaks
+        full_text = '\n'.join([line['text'] for line in lines])
+        
+        logger.info(f"Enhanced Textract extracted {len(lines)} lines with avg confidence: {sum(l['confidence'] for l in lines)/len(lines) if lines else 0:.2f}%")
+        return full_text, lines
         
     except Exception as e:
         logger.error(f"Enhanced Textract extraction failed: {e}")
         return None, None
+
+def reconstruct_lines_from_words(words: List[Dict]) -> List[Dict]:
+    """Reconstruct lines from individual words when line detection fails"""
+    try:
+        if not words:
+            return []
+        
+        # Group words by approximate Y position (line height)
+        word_groups = {}
+        line_threshold = 0.01  # Threshold for grouping words into lines
+        
+        for word in words:
+            y_pos = word['top']
+            # Find existing group or create new one
+            found_group = False
+            for group_y in word_groups:
+                if abs(y_pos - group_y) < line_threshold:
+                    word_groups[group_y].append(word)
+                    found_group = True
+                    break
+            
+            if not found_group:
+                word_groups[y_pos] = [word]
+        
+        # Convert groups to line format
+        reconstructed_lines = []
+        for y_pos, group_words in word_groups.items():
+            # Sort words in group by X position (left to right)
+            group_words.sort(key=lambda w: w['left'])
+            
+            # Combine words into line text
+            line_text = ' '.join([w['text'] for w in group_words])
+            
+            # Calculate line bounding box
+            left = min(w['left'] for w in group_words)
+            top = min(w['top'] for w in group_words) 
+            right = max(w['left'] + w['geometry']['BoundingBox']['Width'] for w in group_words)
+            bottom = max(w['top'] + w['geometry']['BoundingBox']['Height'] for w in group_words)
+            
+            # Average confidence
+            avg_confidence = sum(w['confidence'] for w in group_words) / len(group_words)
+            
+            reconstructed_lines.append({
+                'text': line_text,
+                'confidence': avg_confidence,
+                'geometry': {
+                    'BoundingBox': {
+                        'Top': top,
+                        'Left': left,
+                        'Width': right - left,
+                        'Height': bottom - top
+                    }
+                },
+                'top': top,
+                'left': left,
+                'height': bottom - top,
+                'width': right - left
+            })
+        
+        logger.info(f"Reconstructed {len(reconstructed_lines)} lines from {len(words)} words")
+        return reconstructed_lines
+        
+    except Exception as e:
+        logger.error(f"Error reconstructing lines from words: {e}")
+        return []
 
 def extract_lab_results_with_enhanced_patterns(text: str) -> List[Dict[str, Any]]:
     """Enhanced lab result extraction with comprehensive patterns"""
@@ -659,12 +1194,8 @@ def textract_lab_analysis(request):
         critical_values = [r for r in structured_results if r.get('status') == 'critical']
         abnormal_values = [r for r in structured_results if r.get('status') == 'abnormal']
         
-        # Use Google Colab algorithms for maximum accuracy
-        # These algorithms use advanced positioning and text reconstruction
-        # to dramatically improve OCR accuracy beyond basic AWS Textract
+        # Use Google Colab algorithms for maximum accuracy (now merged in same file)
         try:
-            from .google_colab_textract import process_document_with_colab_algorithms
-            
             # Process with EXACT Google Colab algorithms for superior text positioning
             logger.info('🚀 Using Google Colab algorithms for maximum accuracy...')
             logger.info(f'Input blocks for Google Colab: {len(raw_textract_blocks)} blocks')
@@ -760,8 +1291,8 @@ def health_check(request):
             'status': 'healthy',
             'service': 'AWS Textract OCR Django Backend with Google Colab Algorithms',
             'aws_textract': aws_status,
-            'algorithms': 'Google Colab Enhanced Processing',
-            'timestamp': '2025-01-24T22:11:00Z'
+            'algorithms': 'Google Colab Enhanced Processing - Merged Implementation',
+            'timestamp': '2025-08-26T00:00:00Z'
         })
     
     except Exception as e:

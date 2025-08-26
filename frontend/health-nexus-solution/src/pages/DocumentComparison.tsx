@@ -961,31 +961,30 @@ const DocumentComparison: React.FC = () => {
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <style>
-            /* PDF-optimized styling for single page */
+            /* Professional medical document styling matching prescription format */
             * {
               margin: 0;
               padding: 0;
               box-sizing: border-box;
             }
             
-        body { 
-          font-family: 'Times New Roman', serif; 
-          font-size: 12pt;
-          line-height: 1.4;
-          background-color: #ffffff;
-          color: #000000;
-          width: 8.5in;
-          min-height: 13in;
-          margin: 0 auto;
-          padding: 0.4in;
-          position: relative;
-          overflow-y: auto;
-          overflow-x: hidden;
-        }            .page {
+            body { 
+              font-family: Arial, sans-serif; 
+              font-size: 12pt;
+              line-height: 1.6;
+              background-color: #ffffff;
+              color: #333333;
+              width: 8.5in;
+              min-height: 11in;
+              margin: 0 auto;
+              padding: 0.5in;
+              position: relative;
+            }
+            
+            .page {
               width: 100%;
-              min-height: 12.2in;
+              min-height: 10in;
               background: white;
-              box-shadow: 0 0 10px rgba(0,0,0,0.1);
               padding: 0.3in;
               display: flex;
               flex-direction: column;
@@ -993,65 +992,204 @@ const DocumentComparison: React.FC = () => {
             
             .header {
               text-align: center;
-              border-bottom: 2px solid #000;
-              padding-bottom: 8px;
-              margin-bottom: 12px;
-              flex-shrink: 0;
+              margin-bottom: 30px;
+              padding-bottom: 20px;
+              border-bottom: 2px solid #059669;
+            }
+            
+            .clinic-name {
+              font-size: 20pt;
+              font-weight: bold;
+              color: #059669;
+              margin-bottom: 8px;
+            }
+            
+            .clinic-info {
+              font-size: 10pt;
+              color: #666666;
+              margin-bottom: 15px;
             }
             
             .title {
-              font-size: 17pt;
+              font-size: 18pt;
               font-weight: bold;
-              color: #000;
-              margin-bottom: 4px;
+              color: #059669;
+              margin-bottom: 8px;
+              text-transform: uppercase;
+              letter-spacing: 1px;
             }
             
-            .date {
-              font-size: 10pt;
-              color: #555;
+            .generation-date {
+              font-size: 9pt;
+              color: #888888;
+              font-style: italic;
             }
             
-            .info-section {
-              border: 1px solid #ccc;
-              padding: 8px;
-              margin-bottom: 12px;
-              background: #f9f9f9;
-              flex-shrink: 0;
-            }
-            
-            .info-grid {
+            .patient-info {
+              background: #f8fffe;
+              border: 1px solid #d1fae5;
+              border-radius: 8px;
+              padding: 15px;
+              margin-bottom: 25px;
               display: grid;
               grid-template-columns: 1fr 1fr 1fr;
               gap: 20px;
-              font-size: 11pt;
             }
             
             .info-item {
-              margin: 2px 0;
+              margin-bottom: 8px;
             }
             
             .label {
               font-weight: bold;
-              color: #000;
-              display: inline-block;
-              width: 70px;
+              color: #059669;
+              display: block;
+              margin-bottom: 2px;
+              font-size: 11pt;
+            }
+            
+            .value {
+              color: #333333;
+              font-size: 12pt;
+            }
+            
+            .results-section {
+              margin-top: 20px;
             }
             
             .results-header {
-              font-size: 13pt;
+              font-size: 16pt;
               font-weight: bold;
-              color: #000;
-              margin: 6px 0 6px 0;
-              border-bottom: 1px solid #ccc;
-              padding-bottom: 3px;
-              flex-shrink: 0;
+              color: #059669;
+              margin-bottom: 15px;
+              padding-bottom: 8px;
+              border-bottom: 2px solid #d1fae5;
+              text-transform: uppercase;
             }
             
             .content {
               white-space: pre-wrap;
-              font-family: 'Courier New', monospace;
+              font-family: Arial, sans-serif;
+              font-size: 11pt;
+              line-height: 1.5;
+              color: #333333;
+              background: #fafafa;
+              border: 1px solid #e5e7eb;
+              border-radius: 6px;
+              padding: 20px;
+              min-height: 300px;
+            }
+            
+            .signature-section {
+              margin-top: 40px;
+              text-align: right;
+              border-top: 1px solid #e5e7eb;
+              padding-top: 20px;
+            }
+            
+            .signature-line {
+              border-bottom: 1px solid #333;
+              width: 200px;
+              margin-left: auto;
+              margin-bottom: 5px;
+            }
+            
+            .doctor-info {
+              font-size: 11pt;
+              color: #059669;
+              font-weight: bold;
+            }
+            
+            .footer {
+              text-align: center;
+              margin-top: 30px;
+              font-size: 9pt;
+              color: #888888;
+              font-style: italic;
+            }
+            
+            .download-actions {
+              position: fixed;
+              top: 20px;
+              right: 20px;
+              background: rgba(255,255,255,0.95);
+              padding: 12px;
+              border-radius: 6px;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+              z-index: 1000;
+            }
+            
+            .action-btn {
+              display: block;
+              width: 130px;
+              margin: 4px 0;
+              padding: 8px 12px;
+              border: none;
+              border-radius: 4px;
               font-size: 10pt;
-              line-height: 1.3;
+              cursor: pointer;
+              transition: all 0.2s;
+              font-weight: 500;
+            }
+            
+            .pdf-btn {
+              background: #059669;
+              color: white;
+            }
+            
+            .pdf-btn:hover {
+              background: #047857;
+            }
+            
+            .download-btn {
+              background: #059669;
+              color: white;
+            }
+            
+            .download-btn:hover {
+              background: #047857;
+            }
+            
+            .print-btn {
+              background: #059669;
+              color: white;
+            }
+            
+            .print-btn:hover {
+              background: #047857;
+            }
+            
+            .copy-btn {
+              background: #059669;
+              color: white;
+            }
+            
+            .copy-btn:hover {
+              background: #047857;
+            }
+            
+            @media print {
+              .download-actions { 
+                display: none !important; 
+              }
+              
+              body {
+                margin: 0;
+                padding: 0;
+              }
+              
+              .page {
+                box-shadow: none;
+                margin: 0;
+                padding: 0.5in;
+              }
+            }
+            
+            .content {
+              white-space: pre-wrap;
+              font-family: Arial, sans-serif;
+              font-size: 12pt;
+              line-height: 1.4;
               border: 1px solid #ddd;
               padding: 10px;
               background: #fdfdfd;
@@ -1128,7 +1266,8 @@ const DocumentComparison: React.FC = () => {
                 height: 11in;
                 margin: 0;
                 padding: 0.4in;
-                font-size: 9pt;
+                font-family: Arial, sans-serif;
+                font-size: 12pt;
                 overflow: hidden;
               }
               
@@ -1169,8 +1308,9 @@ const DocumentComparison: React.FC = () => {
               
               .content {
                 border: 1px solid #000;
-                font-size: 7pt;
-                line-height: 1.1;
+                font-family: Arial, sans-serif;
+                font-size: 11pt;
+                line-height: 1.4;
                 padding: 6px;
                 overflow: hidden;
                 flex: 1;
@@ -1200,30 +1340,65 @@ const DocumentComparison: React.FC = () => {
         </head>
         <body>
           <div class="page">
+            <!-- Header Section -->
             <div class="header">
-              <h1 class="title">LABORATORY RESULT REPORT</h1>
-              <p class="date">Generated: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+              <div class="clinic-name">MedSync Health Center</div>
+              <div class="clinic-info">
+                123 Medical Plaza, Healthcare District<br/>
+                Phone: (555) 123-4567 | Email: info@medsync.com
+              </div>
+              <div class="title">Laboratory Result Report</div>
+              <div class="generation-date">Generated: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</div>
             </div>
             
-            <div class="info-section">
-              <div class="info-grid">
-                <div class="info-item">
-                  <span class="label">Patient:</span> ${selectedPatient?.name || 'Not selected'}
-                </div>
-                <div class="info-item">
-                  <span class="label">Test Type:</span> ${resultType || 'Not specified'}
-                </div>
-                <div class="info-item">
-                  <span class="label">Authorized:</span> ${authorizedBy || 'Not specified'}
-                </div>
-                <div class="info-item">
-                  <span class="label">Date:</span> ${new Date().toLocaleDateString()}
-                </div>
+            <!-- Patient Information Section -->
+            <div class="patient-info">
+              <div class="info-item">
+                <span class="label">Patient Name:</span>
+                <span class="value">${selectedPatient?.name || 'Not selected'}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Date of Birth:</span>
+                <span class="value">${selectedPatient?.dob || 'N/A'}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Patient ID:</span>
+                <span class="value">${selectedPatient?.id || 'N/A'}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Test Type:</span>
+                <span class="value">${resultType || 'Not specified'}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Report Date:</span>
+                <span class="value">${new Date().toLocaleDateString()}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Authorized By:</span>
+                <span class="value">${authorizedBy || 'Medical Officer'}</span>
               </div>
             </div>
             
-            <h3 class="results-header">TEST RESULTS</h3>
-            <div class="content">${editableText}</div>
+            <!-- Test Results Section -->
+            <div class="results-section">
+              <h3 class="results-header">Test Results</h3>
+              <div class="content">${editableText}</div>
+            </div>
+            
+            <!-- Doctor Signature Section -->
+            <div class="signature-section">
+              <div class="signature-line"></div>
+              <div class="doctor-info">
+                Dr. ${authorizedBy || 'Medical Officer'}<br/>
+                Licensed Medical Practitioner<br/>
+                MedSync Health Center
+              </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="footer">
+              This is an electronically generated laboratory report. For verification, please contact our laboratory department.
+            </div>
           </div>
           
           <div class="download-actions">
