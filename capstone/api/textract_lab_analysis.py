@@ -10,6 +10,7 @@ import json
 import base64
 import re
 import math
+import os
 from typing import List, Dict, Any, Tuple
 from PIL import Image, ImageEnhance, ImageFilter, ImageOps, ImageDraw
 import boto3
@@ -20,7 +21,6 @@ from django.views.decorators.http import require_http_methods
 from django.conf import settings
 import logging
 import traceback
-from .models import AWSCredentials
 
 logger = logging.getLogger(__name__)
 
@@ -33,34 +33,27 @@ except ImportError:
     logger.warning("NumPy not available, using fallback methods for rotation detection")
 
 def get_aws_credentials():
-    """Get AWS credentials from database for security - keeping all other optimizations"""
+    """Get AWS credentials from environment variables for security"""
     try:
-        # Use database credentials for security (test if this maintains accuracy)
-        aws_config = AWSCredentials.get_active_credentials()
-        if aws_config:
-            logger.info("Using AWS credentials from database for security")
-            return {
-                'aws_access_key_id': aws_config.aws_access_key_id,
-                'aws_secret_access_key': aws_config.aws_secret_access_key,
-                'region_name': aws_config.aws_region
-            }
-        else:
-            logger.warning("No active AWS credentials found in database, falling back to direct credentials")
-            # Fallback to direct credentials if database is not configured
-            return {
-                'aws_access_key_id': 'AKIAZZ56MPEX5EMQ7WUD',
-                'aws_secret_access_key': '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',
-                'region_name': 'us-east-1'
-            }
-    except Exception as e:
-        logger.error(f"Error retrieving AWS credentials from database: {e}")
-        logger.warning("Falling back to direct credentials due to database error")
-        # Fallback to direct credentials on any database error
+        # Get credentials from environment variables
+        aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID')
+        aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
+        aws_region = os.getenv('AWS_REGION', 'us-east-1')
+        
+        if not aws_access_key_id or not aws_secret_access_key:
+            logger.warning("AWS credentials not found in environment variables")
+            return None
+            
+        logger.info("Using AWS credentials from environment variables")
         return {
-            'aws_access_key_id': 'AKIAZZ56MPEX5EMQ7WUD',
-            'aws_secret_access_key': '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',
-            'region_name': 'us-east-1'
+            'aws_access_key_id': aws_access_key_id,
+            'aws_secret_access_key': aws_secret_access_key,
+            'region_name': aws_region
         }
+        
+    except Exception as e:
+        logger.error(f"Error retrieving AWS credentials from environment: {e}")
+        return None
 
 def get_textract_client():
     """Get configured AWS Textract client"""

@@ -5,8 +5,7 @@ from rest_framework.permissions import BasePermission
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from .models import AWSCredentials
-from .serializers import AWSCredentialsSerializer
+import os
 
 class IsAdminUser(BasePermission):
     """
@@ -28,88 +27,57 @@ class IsAdminUser(BasePermission):
         print(f"DEBUG: Permission result: {result}")
         return result
 
-@api_view(['GET', 'POST'])
-@permission_classes([])  # No permissions for testing
-def aws_credentials_test(request):
-    """Simple test view for AWS credentials"""
-    if request.method == 'GET':
-        credentials = AWSCredentials.objects.all()
-        serializer = AWSCredentialsSerializer(credentials, many=True)
-        return Response(serializer.data)
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def aws_credentials_status(request):
+    """Check AWS credentials status from environment variables"""
+    aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID')
+    aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
+    aws_region = os.getenv('AWS_REGION', 'us-east-1')
     
-    elif request.method == 'POST':
-        print(f"DEBUG: POST request received, user: {request.user}")
-        serializer = AWSCredentialsSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    status_data = {
+        'configured': bool(aws_access_key_id and aws_secret_access_key),
+        'region': aws_region,
+        'access_key_preview': aws_access_key_id[:8] + '...' if aws_access_key_id else None,
+        'message': 'AWS credentials are configured via environment variables' if aws_access_key_id and aws_secret_access_key else 'AWS credentials not configured'
+    }
+    
+    return Response(status_data)
 
-@method_decorator(csrf_exempt, name='dispatch')
-class AWSCredentialsViewSet(viewsets.ModelViewSet):
-    """ViewSet for managing AWS credentials - Admin access only"""
-    queryset = AWSCredentials.objects.all()
-    serializer_class = AWSCredentialsSerializer
-    permission_classes = [IsAdminUser]
-    
-    def get_queryset(self):
-        """Get all AWS credentials for admin users"""
-        return AWSCredentials.objects.all()
-    
-    def perform_create(self, serializer):
-        """Create AWS credentials"""
-        serializer.save()
-    
-    def create(self, request, *args, **kwargs):
-        """Create or update AWS credentials"""
-        # Check if active credentials already exist
-        active_credentials = AWSCredentials.objects.filter(is_active=True).first()
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def test_aws_connection(request):
+    """Test the AWS credentials by making a simple API call"""
+    try:
+        import boto3
+        aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID')
+        aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
+        aws_region = os.getenv('AWS_REGION', 'us-east-1')
         
-        if active_credentials:
-            # Update existing active credentials
-            serializer = self.get_serializer(active_credentials, data=request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            # Create new credentials
-            return super().create(request, *args, **kwargs)
-    
-    def list(self, request, *args, **kwargs):
-        """List AWS credentials (without secret keys)"""
-        return super().list(request, *args, **kwargs)
-    
-    @action(detail=False, methods=['get'])
-    def active(self, request):
-        """Get the currently active AWS configuration"""
-        active_config = AWSCredentials.get_active_credentials()
-        if active_config:
-            serializer = self.get_serializer(active_config)
-            return Response(serializer.data)
-        return Response({'detail': 'No active AWS configuration found'}, status=status.HTTP_404_NOT_FOUND)
-    
-    @action(detail=True, methods=['post'])
-    def test_connection(self, request, pk=None):
-        """Test the AWS credentials by making a simple API call"""
-        credentials = self.get_object()
-        try:
-            import boto3
-            client = boto3.client(
-                'textract',
-                aws_access_key_id=credentials.aws_access_key_id,
-                aws_secret_access_key=credentials.aws_secret_access_key,
-                region_name=credentials.aws_region
-            )
-            # Test by accessing client properties
-            region = client.meta.region_name
+        if not aws_access_key_id or not aws_secret_access_key:
             return Response({
-                'status': 'success',
-                'message': f'Successfully connected to AWS Textract in region {region}',
-                'region': region
-            })
-        except Exception as e:
-            return Response({
-                'status': 'error',
-                'message': f'Failed to connect to AWS: {str(e)}'
+                'success': False,
+                'message': 'AWS credentials not configured in environment variables'
             }, status=status.HTTP_400_BAD_REQUEST)
+        
+        client = boto3.client(
+            'textract',
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            region_name=aws_region
+        )
+        
+        # Test connection with a simple call
+        response = client.list_adapters()  # Simple API call to test credentials
+        
+        return Response({
+            'success': True,
+            'message': 'AWS credentials are valid and working',
+            'region': aws_region
+        })
+        
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': f'AWS connection test failed: {str(e)}'
+        }, status=status.HTTP_400_BAD_REQUEST)

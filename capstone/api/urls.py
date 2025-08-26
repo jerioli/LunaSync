@@ -5,14 +5,14 @@ from .textract_lab_analysis import textract_lab_analysis, health_check
 
 # Create router and register viewsets
 router = DefaultRouter()
-router.register(r'aws-credentials', views.AWSCredentialsViewSet, basename='aws-credentials')
 
 urlpatterns = [
     # Include router URLs
     path('', include(router.urls)),
     
-    # Simple test endpoint for AWS credentials
-    path('aws-credentials-test/', views.aws_credentials_test, name='aws_credentials_test'),
+    # AWS credentials management endpoints
+    path('aws-credentials/status/', views.aws_credentials_status, name='aws_credentials_status'),
+    path('aws-credentials/test/', views.test_aws_connection, name='test_aws_connection'),
     
     # Textract endpoints
     path('textract/upload/', textract_lab_analysis, name='textract_upload'),

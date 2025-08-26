@@ -43,11 +43,8 @@ export const useChatbotLogic = () => {
   // Function to fetch patient data by patient ID
   const fetchPatientData = async (patientId: string) => {
     try {
-      console.log('Fetching patient data for ID:', patientId);
-      
       // First check if patient ID exists and get the patient data
       const checkResponse = await axiosInstance.get(`/patients/check-patient-id/?patient_id=${encodeURIComponent(patientId)}`);
-      console.log('Patient ID check response:', checkResponse.data);
       
       if (!checkResponse.data.exists) {
         throw new Error('Patient not found');
@@ -55,7 +52,6 @@ export const useChatbotLogic = () => {
       
       // The patient data is already in the check response
       if (checkResponse.data.patient) {
-        console.log('Patient data found in check response:', checkResponse.data.patient);
         return checkResponse.data.patient;
       }
       
@@ -63,7 +59,6 @@ export const useChatbotLogic = () => {
       const dbId = checkResponse.data.patient_id || checkResponse.data.id;
       if (dbId) {
         const response = await axiosInstance.get(`/patients/${dbId}/`);
-        console.log('Patient data response:', response.data);
         return response.data;
       }
       
@@ -381,7 +376,6 @@ export const useChatbotLogic = () => {
       const uniqueWords = [...new Set(allWords.map(word => word.toLowerCase()))];
       
       setProfanityWords(uniqueWords);
-      console.log('Loaded profanity words:', uniqueWords.length);
       
     } catch (error) {
       console.error('Error fetching profanity words:', error);
@@ -1215,21 +1209,6 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
   };
 
   const handleOptionSelect = async (value: string, messageKey?: string) => {
-    console.log('=== HANDLE OPTION SELECT DEBUG ===');
-    console.log('Selected value:', value);
-    console.log('Message key:', messageKey);
-    console.log('Current chat mode:', chatMode);
-    console.log('Current chat step:', chatStep);
-    console.log('Timestamp:', new Date().toISOString());
-    console.log('=== END OPTION SELECT DEBUG ===');
-    
-    // Add specific debugging for submission buttons
-    if (value === 'submit-record-request' || value === 'submit-prescription-request' || value === 'submit-prescription') {
-      console.log('🚨 SUBMISSION BUTTON CLICKED!');
-      console.log('Button value:', value);
-      console.log('Current mode should be:', chatMode);
-    }
-    
     // Disable the message options when an option is selected
     if (messageKey) {
       setDisabledMessages(prev => new Set([...prev, messageKey]));
@@ -1458,13 +1437,12 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
             is_pending_confirmation: true
           };
 
-          // Log the data being sent
-          console.log('Submitting appointment data:', appointmentData);
+          
 
           // Submit appointment to API
           api.appointments.create(appointmentData)
             .then(response => {
-              console.log('Appointment created:', response);
+            
               
               // Create the new appointment object using the response data directly
               const newAppointment: Appointment = {
@@ -1478,13 +1456,13 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
                 notes: appointmentForm.notes || ''  // Only use the user's note, not the patient details
               };
               
-              console.log('New appointment object:', newAppointment);
+             
               
               addAppointment(newAppointment);
               
               // Force refresh availability data by clearing any cached data
               setTimeout(() => {
-                console.log('Appointment confirmed, availability data should be refreshed on next query');
+                // Availability data will be refreshed on next query
               }, 100);
               
               setTimeout(() => {
@@ -1697,16 +1675,11 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       }
     } else if (chatMode === 'medicalRecord') {
       // Handle medical record submission
-      console.log('Medical record option selected:', value);
       if (value === 'submit-record-request') {
-        console.log('Submit medical record button clicked!');
-        console.log('Current medicalRecordForm state:', medicalRecordForm);
         addMessage('user', 'Submit medical record request');
         
         try {
-          console.log('=== STARTING MEDICAL RECORD SUBMISSION ===');
           await submitMedicalRecordRequest();
-          console.log('=== MEDICAL RECORD SUBMISSION COMPLETED ===');
         } catch (error) {
           console.error('=== MEDICAL RECORD SUBMISSION FAILED ===');
           console.error('Submission error:', error);
@@ -1738,16 +1711,11 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       }
     } else if (chatMode === 'prescription') {
       // Handle prescription submission
-      console.log('Prescription option selected:', value);
       if (value === 'submit-prescription-request' || value === 'submit-prescription') {
-        console.log('Submit prescription button clicked!');
-        console.log('Current prescriptionForm state:', prescriptionForm);
         addMessage('user', 'Submit prescription request');
         
         try {
-          console.log('=== STARTING PRESCRIPTION SUBMISSION ===');
           await submitPrescriptionRequest();
-          console.log('=== PRESCRIPTION SUBMISSION COMPLETED ===');
         } catch (error) {
           console.error('=== PRESCRIPTION SUBMISSION FAILED ===');
           console.error('Submission error:', error);
@@ -1885,7 +1853,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     } else if (chatStep === 4) {
       // Date selected (both flows)
       const selectedDate = new Date(value);
-      console.log('Selected date:', selectedDate);
+     
       setIsInputDisabled(false); // Re-enable input after date selection
       addMessage('user', `I want an appointment on ${selectedDate.toLocaleDateString()}`);
       setAppointmentForm(prev => ({ ...prev, date: selectedDate }));
@@ -1932,12 +1900,12 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         });
       } else {
         // Date first flow - show available doctors
-        console.log('Starting to fetch available doctors for date:', selectedDate);
+       
         getAvailableDoctorsForDate(selectedDate).then(availableDoctors => {
-          console.log('Received available doctors:', availableDoctors);
+       
           
           if (!availableDoctors || availableDoctors.length === 0) {
-            console.log('No doctors available, showing error message');
+            
             setTimeout(() => {
             addBotMessage( 'I apologize, but there are no doctors available on this date. Please select a different date.');
               // Show available dates again
@@ -1955,13 +1923,13 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
             return;
           }
 
-          console.log('Displaying available doctors:', availableDoctors);
+         
           setTimeout(() => {
             const doctorOptions = availableDoctors.map(doctor => ({
               label: `Dr. ${doctor.first_name} ${doctor.last_name}`,
               value: doctor.id.toString()
             }));
-            console.log('Doctor options for display:', doctorOptions);
+          
           addBotMessage('The following doctors are available on this date:', doctorOptions);
             setChatStep(5);
           }, 500);
@@ -2441,8 +2409,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
 
   const submitAppointmentRequest = async () => {
     try {
-      console.log('Submitting appointment request with form data:', appointmentForm);
-      
+    
       // Format the date to YYYY-MM-DD string
       const formattedDate = appointmentForm.date!.toISOString().split('T')[0];
 
@@ -2484,22 +2451,8 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         is_pending_confirmation: true
       };
 
-      console.log('Making request to create appointment:', appointmentData);
-      console.log('tempFormData:', tempFormData);
-      console.log('appointmentForm name fields:', {
-        firstName: appointmentForm.firstName,
-        middleInitial: appointmentForm.middleInitial,
-        lastName: appointmentForm.lastName,
-        suffix: appointmentForm.suffix
-      });
-      console.log('Final appointmentData name fields:', {
-        firstName: appointmentData.firstName,
-        middleInitial: appointmentData.middleInitial,
-        lastName: appointmentData.lastName,
-        suffix: appointmentData.suffix
-      });
       const response = await api.appointments.create(appointmentData);
-      console.log('Appointment created successfully:', response);
+     
 
       // Create the new appointment object
       const newAppointment: Appointment = {
@@ -2563,8 +2516,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
 
   const submitMedicalRecordRequest = async () => {
     try {
-      console.log('Submitting medical record request with form data:', medicalRecordForm);
-      
+    
       const formData = new FormData();
       formData.append('request_type', medicalRecordForm.requestType);
       formData.append('patient_id', medicalRecordForm.patientId);
@@ -2591,22 +2543,8 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         formData.append('id_verification_back', medicalRecordForm.idVerificationBack);
       }
 
-      // Debug: Log all form data being sent
-      console.log('=== MEDICAL CERTIFICATE FORM DATA DEBUG ===');
-      for (let [key, value] of formData.entries()) {
-        if (value instanceof File) {
-          console.log(`${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
-        } else {
-          console.log(`${key}: ${value}`);
-        }
-      }
-      console.log('=== END FORM DATA DEBUG ===');
-
-      console.log('Making request to:', `/medical-certificates/`);
-      
       // Get CSRF token
       const csrfToken = getCSRFToken();
-      console.log('CSRF Token:', csrfToken);
       
       const headers = {
         'Content-Type': 'multipart/form-data',
@@ -2618,11 +2556,6 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       
       const response = await axiosInstance.post(`/medical-certificates/`, formData, { headers });
 
-      console.log('=== MEDICAL CERTIFICATE RESPONSE DEBUG ===');
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-      console.log('Response data:', response.data);
-      console.log('=== END RESPONSE DEBUG ===');
       if (response.status === 200 || response.status === 201) {
         addBotMessage('Your medical certificate request has been submitted successfully! Our team will review your request and contact you within 2-3 business days.');
         
@@ -2647,8 +2580,6 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
 
   const submitPrescriptionRequest = async () => {
     try {
-      console.log('Submitting prescription request with form data:', prescriptionForm);
-      
       const formData = new FormData();
       formData.append('patient_id', prescriptionForm.patientId);
       formData.append('medication_name', prescriptionForm.medicationName);
@@ -2682,22 +2613,8 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         formData.append('prescription_image', prescriptionForm.prescriptionImage);
       }
 
-      // Debug: Log all form data being sent
-      console.log('=== PRESCRIPTION FORM DATA DEBUG ===');
-      for (let [key, value] of formData.entries()) {
-        if (value instanceof File) {
-          console.log(`${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
-        } else {
-          console.log(`${key}: ${value}`);
-        }
-      }
-      console.log('=== END FORM DATA DEBUG ===');
-
-      console.log('Making request to:', `/prescription-requests/`);
-      
       // Get CSRF token
       const csrfToken = getCSRFToken();
-      console.log('CSRF Token:', csrfToken);
       
       const headers = {
         'Content-Type': 'multipart/form-data',
@@ -2709,11 +2626,6 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       
       const response = await axiosInstance.post(`/prescription-requests/`, formData, { headers });
 
-      console.log('=== PRESCRIPTION RESPONSE DEBUG ===');
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-      console.log('Response data:', response.data);
-      console.log('=== END RESPONSE DEBUG ===');
       if (response.status === 200 || response.status === 201) {
         addBotMessage('Your prescription request has been submitted successfully! Our team will review your request and contact you within 2-3 business days.');
         
@@ -3222,8 +3134,6 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
 
   const getAvailableDates = async () => {
     try {
-      console.log('Getting available dates across all doctors...');
-      
       // First get all doctors
       const allDoctors = await fetchDoctors();
       if (!allDoctors || allDoctors.length === 0) {
@@ -3250,19 +3160,14 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         
         // Check if any doctor has available time slots on this date
         let hasAvailableSlots = false;
-        console.log(`Checking date ${dateString} for available doctors...`);
         
         for (const doctor of allDoctors) {
           try {
-            console.log(`Checking doctor ${doctor.id} (${doctor.first_name} ${doctor.last_name}) for ${dateString}`);
             const response = await api.availability.getTimeSlots(doctor.id.toString(), dateString);
-            console.log(`Doctor ${doctor.id} response:`, response);
             
             if (response && Array.isArray(response) && response.length > 0) {
               const availability = response[0];
               if (availability && availability.time_slots && Array.isArray(availability.time_slots)) {
-                console.log(`Doctor ${doctor.id} has ${availability.time_slots.length} time slots`);
-                
                 // Check if there are any available (non-booked) slots
                 const availableSlots = availability.time_slots.filter(slot => {
                   const isBooked = Boolean(
@@ -3304,7 +3209,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         }
       }
       
-      console.log('Available dates found:', availableDates.map(d => d.toISOString().split('T')[0]));
+    
       return availableDates;
     } catch (error) {
       console.error('Error getting available dates:', error);
@@ -3326,13 +3231,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
 
   const getAvailableDatesForDoctor = async (doctorId: string) => {
     try {
-      console.log('Fetching available dates for doctor:', {
-        doctorId,
-        currentUser: currentUser?.email
-      });
-
       const response = await api.availability.getAvailableDates(doctorId);
-      console.log('Available dates response:', response);
 
       if (!response || !Array.isArray(response)) {
         console.error('Invalid response format:', response);
@@ -3343,7 +3242,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       const availableDates = response.map((dateStr: string) => {
         // Create date in Pacific Time
         const date = new Date(dateStr + 'T00:00:00-08:00');
-        console.log('Converting date:', { dateStr, date });
+        
         return date;
       });
 
@@ -3355,8 +3254,6 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       const filteredDates = availableDates.filter(date => {
         return date >= today && date <= twoWeeksFromNow;
       });
-
-      console.log('Processed available dates (filtered to 2 weeks):', filteredDates);
       
       return filteredDates;
     } catch (error) {
@@ -3390,16 +3287,9 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       const day = String(date.getDate()).padStart(2, '0');
       const dateString = `${year}-${month}-${day}`;
       
-      console.log('🔍 getAvailableDoctorsForDate called with:');
-      console.log('  - Input date object:', date);
-      console.log('  - Formatted dateString (manual):', dateString);
-      console.log('  - Formatted dateString (ISO):', date.toISOString().split('T')[0]);
-      console.log('  - Date.toLocaleDateString():', date.toLocaleDateString());
-      console.log('  - Date.toDateString():', date.toDateString());
       
       // First, get all doctors
       const allDoctors = await fetchDoctors();
-      console.log('All doctors fetched:', allDoctors);
       
       if (!allDoctors || allDoctors.length === 0) {
         console.error('No doctors found in the response');
@@ -3410,10 +3300,9 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       const availableDoctors = await Promise.all(
         allDoctors.map(async (doctor) => {
           try {
-            console.log(`Checking availability for doctor ${doctor.id} on ${dateString}`);
+            
             const response = await api.availability.getTimeSlots(doctor.id.toString(), dateString);
-            console.log(`Availability response for doctor ${doctor.id}:`, response);
-
+           
             if (response && Array.isArray(response) && response.length > 0) {
               const availability = response[0];
               if (availability && availability.time_slots && Array.isArray(availability.time_slots)) {
@@ -3434,12 +3323,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
                   return !isBooked;
                 });
                 
-                if (availableSlots.length > 0) {
-                  console.log(`Doctor ${doctor.id} has ${availableSlots.length} available slots`);
-                  return doctor;
-                } else {
-                  console.log(`Doctor ${doctor.id} has no available slots on ${dateString}`);
-                }
+               
               }
             } else {
               console.log(`No time slots data found for doctor ${doctor.id} on ${dateString}`);
@@ -3474,15 +3358,11 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       const day = String(date.getDate()).padStart(2, '0');
       const dateString = `${year}-${month}-${day}`;
       
-      console.log('Fetching time slots with params:', {
-        doctorId,
-        dateString
-      });
       
       // Fetch time slots from the API with cache-busting parameter
       const response = await api.availability.getTimeSlots(doctorId, dateString);
       
-      console.log('Received time slots response:', response);
+
       
       // Check if response is an array and has at least one item
       if (!Array.isArray(response) || response.length === 0) {
@@ -3509,13 +3389,8 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         return [];
       }
       
-      console.log('All time slots for doctor:', availability.time_slots);
       
-      // Log detailed booking status for each slot
-      availability.time_slots.forEach(slot => {
-        console.log(`Slot ${slot.start_time}: is_booked=${slot.is_booked} (type: ${typeof slot.is_booked})`);
-      });
-      
+     
       const availableSlots = availability.time_slots.filter(slot => {
         // Handle all possible truthy representations of "booked"
         const isBooked = Boolean(
@@ -3531,10 +3406,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         );
         return !isBooked;
       });
-      
-      console.log('Available slots count:', availableSlots.length);
-      console.log('Available slots before formatting:', availableSlots.map(s => `${s.start_time} (is_booked: ${s.is_booked})`));
-      
+     
       // Filter out booked slots and format for display
       const formattedAvailableSlots = availableSlots.map(slot => {
         const [hours, minutes] = slot.start_time.split(':');
@@ -3544,16 +3416,8 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         return `${displayHour}:${minutes} ${ampm}`;
       });
 
-      console.log('Final formatted available slots:', formattedAvailableSlots);
-      
-      if (formattedAvailableSlots.length === 0) {
-        console.log('No available slots found after filtering');
-        toast({
-          title: "No Available Times",
-          description: "All time slots for this doctor are already booked on the selected date. Please select a different date or doctor.",
-          variant: "destructive"
-        });
-      }
+     
+     
       
       return formattedAvailableSlots;
     } catch (error) {
@@ -3574,9 +3438,9 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
   const fetchDoctors = async () => {
     try {
       setIsLoadingDoctors(true);
-      console.log('Fetching doctors...');
+      
       const response = await api.doctors.getAll();
-      console.log('Doctors response:', response);
+     
       setDoctors(response);
       return response;
     } catch (error) {
@@ -3595,11 +3459,11 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
   const fetchDoctorsWithAvailability = async () => {
     try {
       setIsLoadingDoctors(true);
-      console.log('Fetching doctors with availability...');
+     
       
       // First fetch all doctors
       const allDoctors = await api.doctors.getAll();
-      console.log('All doctors:', allDoctors);
+     
       
       // Check availability for each doctor
       const doctorsWithAvailability = [];
@@ -3609,17 +3473,16 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           const availableDates = await getAvailableDatesForDoctor(doctor.id.toString());
           if (availableDates.length > 0) {
             doctorsWithAvailability.push(doctor);
-            console.log(`Doctor ${doctor.first_name} ${doctor.last_name} has ${availableDates.length} available dates`);
+           
           } else {
-            console.log(`Doctor ${doctor.first_name} ${doctor.last_name} has no available dates`);
+           
           }
         } catch (error) {
-          console.error(`Error checking availability for doctor ${doctor.id}:`, error);
-          // Skip this doctor if there's an error checking availability
+          
         }
       }
       
-      console.log('Doctors with availability:', doctorsWithAvailability);
+      
       setDoctors(doctorsWithAvailability);
       return doctorsWithAvailability;
     } catch (error) {

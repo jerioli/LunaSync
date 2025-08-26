@@ -80,8 +80,8 @@ export default function BulkImportModal({ type, onUploadComplete }: BulkImportMo
     
     const csvContent = headers.join(',') + '\n' + 
       (type === 'patients' 
-        ? `John,Doe,M,Jr,john.doe@email.com,+1234567890,${currentDate},male,"123 Main St",single\nJane,Smith,L,,jane.smith@email.com,+0987654321,${currentDate},female,"456 Oak Ave",married`
-        : 'Jane,Smith,jane.smith@hospital.com,+1234567890,doctor,cardiology,MD12345\nJohn,Doe,john.doe@hospital.com,+0987654321,nurse,emergency,RN67890');
+        ? `John,Doe,M,Jr,john.doe@email.com,+1234567890,${currentDate},male,"123 Main St",single\nJane,Smith,,,jane.smith@email.com,+0987654321,${currentDate},female,"456 Oak Ave",married\nAaron,Lowe III,,,aaron.lowe@email.com,+1122334455,${currentDate},male,,single`
+        : 'Jane,Smith,jane.smith@hospital.com,+1234567890,doctor,cardiology,MD12345\nJohn,Doe,john.doe@hospital.com,+0987654321,nurse,emergency,RN67890\nSarah,Johnson,sarah.johnson@hospital.com,+5566778899,receptionist,,');
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);

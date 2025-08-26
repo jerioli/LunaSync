@@ -80,6 +80,10 @@ class BulkPatientUploadView(APIView):
             print(f"DEBUG: DataFrame shape: {df.shape}")
             print(f"DEBUG: DataFrame columns: {list(df.columns)}")
             
+            # Replace NaN values with empty strings to prevent 'nan' strings
+            df = df.fillna('')
+            print(f"DEBUG: NaN values replaced with empty strings")
+            
             # Convert DataFrame to list of dictionaries
             data = df.to_dict('records')
             print(f"DEBUG: Converted to {len(data)} records")
@@ -115,20 +119,20 @@ class BulkPatientUploadView(APIView):
                         name = ""
                         if 'name' in patient_data and patient_data['name']:
                             # Old format - use existing name
-                            name = str(patient_data['name']).strip()
+                            name = str(patient_data['name']).strip() if patient_data['name'] else ""
                         else:
                             # New format - construct name from components
                             name_parts = []
-                            if patient_data.get('first_name'):
+                            if patient_data.get('first_name') and patient_data.get('first_name').strip():
                                 name_parts.append(str(patient_data['first_name']).strip())
-                            if patient_data.get('middle_initial'):
+                            if patient_data.get('middle_initial') and patient_data.get('middle_initial').strip():
                                 middle = str(patient_data['middle_initial']).strip()
                                 if middle and not middle.endswith('.'):
                                     middle += '.'
                                 name_parts.append(middle)
-                            if patient_data.get('last_name'):
+                            if patient_data.get('last_name') and patient_data.get('last_name').strip():
                                 name_parts.append(str(patient_data['last_name']).strip())
-                            if patient_data.get('suffix'):
+                            if patient_data.get('suffix') and patient_data.get('suffix').strip():
                                 name_parts.append(str(patient_data['suffix']).strip())
                             
                             name = ' '.join(filter(None, name_parts))
@@ -149,20 +153,30 @@ class BulkPatientUploadView(APIView):
                             errors.append(error_msg)
                             continue
                         
-                        # Clean and prepare data
+                        # Clean and prepare data with proper empty value handling
+                        def clean_field(value):
+                            """Clean field value, returning None for empty values"""
+                            if not value or str(value).strip() == '':
+                                return None
+                            return str(value).strip()
+                        
                         clean_data = {
                             'name': name,
-                            'first_name': str(patient_data.get('first_name', '')).strip() if patient_data.get('first_name') else None,
-                            'last_name': str(patient_data.get('last_name', '')).strip() if patient_data.get('last_name') else None,
-                            'middle_initial': str(patient_data.get('middle_initial', '')).strip() if patient_data.get('middle_initial') else None,
-                            'suffix': str(patient_data.get('suffix', '')).strip() if patient_data.get('suffix') else None,
-                            'email': str(patient_data.get('email', '')).strip().lower(),
-                            'phone': str(patient_data.get('phone', '')).strip(),
+                            'first_name': clean_field(patient_data.get('first_name')),
+                            'last_name': clean_field(patient_data.get('last_name')),
+                            'middle_initial': clean_field(patient_data.get('middle_initial')),
+                            'suffix': clean_field(patient_data.get('suffix')),
+                            'email': clean_field(patient_data.get('email')),
+                            'phone': clean_field(patient_data.get('phone')),
                             'date_of_birth': patient_data.get('date_of_birth'),
-                            'gender': patient_data.get('gender', 'other'),
-                            'address': str(patient_data.get('address', '')).strip(),
-                            'marital_status': patient_data.get('marital_status', 'single'),
+                            'gender': clean_field(patient_data.get('gender')) or 'other',
+                            'address': clean_field(patient_data.get('address')),
+                            'marital_status': clean_field(patient_data.get('marital_status')) or 'single',
                         }
+                        
+                        # Ensure email is lowercase if present
+                        if clean_data['email']:
+                            clean_data['email'] = clean_data['email'].lower()
                         
                         # Remove None values to avoid issues
                         clean_data = {k: v for k, v in clean_data.items() if v is not None}
@@ -266,6 +280,9 @@ class BulkStaffUploadView(APIView):
                 return Response({'error': 'Unsupported file format. Use CSV or Excel.'}, 
                               status=status.HTTP_400_BAD_REQUEST)
             
+            # Replace NaN values with empty strings to prevent 'nan' strings
+            df = df.fillna('')
+            
             # Convert DataFrame to list of dictionaries
             data = df.to_dict('records')
             return self._process_staff_data(data)
@@ -297,23 +314,32 @@ class BulkStaffUploadView(APIView):
                             errors.append(f"Row {i+1}: Missing required fields: {', '.join(missing_fields)}")
                             continue
                         
-                        # Clean and prepare data
+                        # Clean and prepare data with proper empty value handling
+                        def clean_field(value):
+                            """Clean field value, returning empty string for empty values"""
+                            if not value or str(value).strip() == '':
+                                return ''
+                            return str(value).strip()
+                        
                         clean_data = {
-                            'first_name': str(staff_data.get('first_name', '')).strip(),
-                            'last_name': str(staff_data.get('last_name', '')).strip(),
-                            'email': str(staff_data.get('email', '')).strip().lower(),
-                            'phone': str(staff_data.get('phone', '')).strip(),
-                            'role': str(staff_data.get('role', '')).strip().lower(),
-                            'username': str(staff_data.get('email', '')).strip().lower(),
+                            'first_name': clean_field(staff_data.get('first_name')),
+                            'last_name': clean_field(staff_data.get('last_name')),
+                            'email': clean_field(staff_data.get('email')).lower(),
+                            'phone': clean_field(staff_data.get('phone')),
+                            'role': clean_field(staff_data.get('role')).lower(),
+                            'username': clean_field(staff_data.get('email')).lower(),
                             'password': 'TempPass123!',  # Default password
                             'force_password_change': True
                         }
                         
-                        # Add optional fields
-                        if staff_data.get('department'):
-                            clean_data['department'] = str(staff_data.get('department', '')).strip()
-                        if staff_data.get('license_number'):
-                            clean_data['license_number'] = str(staff_data.get('license_number', '')).strip()
+                        # Add optional fields with empty value handling
+                        department = clean_field(staff_data.get('department'))
+                        if department:
+                            clean_data['department'] = department
+                            
+                        license_number = clean_field(staff_data.get('license_number'))
+                        if license_number:
+                            clean_data['license_number'] = license_number
                         
                         # Validate role
                         if clean_data['role'] not in valid_roles:
