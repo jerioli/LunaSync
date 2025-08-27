@@ -1234,6 +1234,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     if (value === 'hi') {
       addMessage('user', 'Hi');
       setChatStep(1);
+      setIsInputDisabled(false); // Ensure input is enabled after greeting
       setTimeout(() => {
         addBotMessage(t('chatbot.howCanIHelp'), [
           { label: t('appointment.schedule'), value: 'appointment' },
@@ -1295,6 +1296,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     if (value === 'appointment') {
       setChatMode('appointment');
       addMessage('user', 'Schedule Appointment');
+      setIsInputDisabled(false); // Ensure input is enabled for new service
       setTimeout(() => {
         addBotMessage('How would you like to schedule your appointment?', [
           { label: '1. Select Doctor First', value: 'doctor-first' },
@@ -1305,6 +1307,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     } else if (value === 'medicalRecord') {
       setChatMode('medicalRecord');
       addMessage('user', 'Request Medical Certificate');
+      setIsInputDisabled(false); // Ensure input is enabled for new service
       setTimeout(() => {
         addBotMessage('I can help you request a medical certificate. Please provide your Patient ID to proceed.');
         addBotMessage('Your Patient ID is in the format: P-YYYYMMDD-XXXX (e.g., P-20250822-1234). You can find it in your previous appointment emails or medical records.');
@@ -1313,6 +1316,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     } else if (value === 'prescription') {
       setChatMode('prescription');
       addMessage('user', 'Request Prescription');
+      setIsInputDisabled(false); // Ensure input is enabled for new service
       setTimeout(() => {
         addBotMessage('I can help you request a prescription. Please provide your Patient ID to proceed.');
         addBotMessage('Your Patient ID is in the format: P-YYYYMMDD-XXXX (e.g., P-20250822-1234). You can find it in your previous appointment emails or medical records.');
@@ -1480,6 +1484,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
                     { label: 'No, Thank You', value: 'end' }
                   ]);
                   setChatStep(1);
+                  setIsInputDisabled(false); // Re-enable input for new service selection
                   resetForms();
                 }, 1000);
               }, 500);
@@ -1595,10 +1600,11 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
                addBotMessage( 'Is there anything else I can help you with?', [
                   { label: 'Schedule Another Appointment', value: 'appointment' },
                   { label: 'Request E-Prescription', value: 'prescription' },
-                  { label: 'Request Medical Records', value: 'medical-records' },
+                  { label: 'Request Medical Records', value: 'medicalRecord' },
                   { label: 'No, Thank You', value: 'end' }
                 ]);
                 setChatStep(1);
+                setIsInputDisabled(false); // Re-enable input for new service selection
                 resetForms();
               }, 1000);
             }, 2000);
@@ -1663,10 +1669,11 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           addBotMessage( 'Appointment cancelled. Is there anything else I can help you with?', [
               { label: 'Schedule an Appointment', value: 'appointment' },
               { label: 'Request E-Prescription', value: 'prescription' },
-              { label: 'Request Medical Records', value: 'medical-records' },
+              { label: 'Request Medical Records', value: 'medicalRecord' },
               { label: 'No, Thank You', value: 'end' }
             ]);
             setChatStep(1);
+            setIsInputDisabled(false); // Re-enable input for new service selection
             resetForms();
           }, 500);
         }
@@ -1685,15 +1692,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           console.error('Submission error:', error);
         }
         
-        setTimeout(() => {
-         addBotMessage( 'Is there anything else I can help you with?', [
-            { label: 'Schedule an Appointment', value: 'appointment' },
-            { label: 'Request E-Prescription', value: 'prescription' },
-            { label: 'No, Thank You', value: 'end' }
-          ]);
-          setChatStep(1);
-          resetForms();
-        }, 1000);
+        // Note: Service menu is handled inside submitMedicalRecordRequest() on success
       } else if (value === 'cancel-record-request') {
         addMessage('user', 'Cancel request');
         
@@ -1721,15 +1720,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           console.error('Submission error:', error);
         }
         
-        setTimeout(() => {
-        addBotMessage( 'Is there anything else I can help you with?', [
-            { label: 'Schedule an Appointment', value: 'appointment' },
-            { label: 'Request Medical Records', value: 'medicalRecord' },
-            { label: 'No, Thank You', value: 'end' }
-          ]);
-          setChatStep(1);
-          resetForms();
-        }, 1000);
+        // Note: Service menu is handled inside submitPrescriptionRequest() on success
       } else if (value === 'cancel-prescription-request' || value === 'cancel-prescription') {
         addMessage('user', 'Cancel request');
         
@@ -2559,6 +2550,18 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       if (response.status === 200 || response.status === 201) {
         addBotMessage('Your medical certificate request has been submitted successfully! Our team will review your request and contact you within 2-3 business days.');
         
+        setTimeout(() => {
+          addBotMessage('Is there anything else I can help you with?', [
+            { label: 'Schedule an Appointment', value: 'appointment' },
+            { label: 'Request E-Prescription', value: 'prescription' },
+            { label: 'Request Another Medical Certificate', value: 'medicalRecord' },
+            { label: 'No, Thank You', value: 'end' }
+          ]);
+          setChatStep(1);
+          setIsInputDisabled(false); // Re-enable input for new service selection
+          resetForms();
+        }, 1000);
+        
         toast({
           title: "Medical Certificate Request Submitted",
           description: "Your request has been received and will be processed within 2-3 business days.",
@@ -2628,6 +2631,18 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
 
       if (response.status === 200 || response.status === 201) {
         addBotMessage('Your prescription request has been submitted successfully! Our team will review your request and contact you within 2-3 business days.');
+        
+        setTimeout(() => {
+          addBotMessage('Is there anything else I can help you with?', [
+            { label: 'Schedule an Appointment', value: 'appointment' },
+            { label: 'Request Another Prescription', value: 'prescription' },
+            { label: 'Request Medical Certificate', value: 'medicalRecord' },
+            { label: 'No, Thank You', value: 'end' }
+          ]);
+          setChatStep(1);
+          setIsInputDisabled(false); // Re-enable input for new service selection
+          resetForms();
+        }, 1000);
         
         toast({
           title: "Prescription Request Submitted",
@@ -2791,6 +2806,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       }, 500);
     } else if (value === 'end') {
       addMessage('user', 'No, thank you');
+      setIsInputDisabled(true); // Disable input when conversation ends
       
       setTimeout(() => {
         addBotMessage('Thank you for chatting with MedySync! If you need assistance in the future, just say hi to start a new conversation.');
@@ -2999,6 +3015,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     setDisabledMessages(new Set()); // Clear disabled messages when resetting
     setExistingPatient(null); // Clear existing patient data when resetting
     setTempFormData({}); // Clear temporary form data when resetting
+    setIsInputDisabled(false); // Ensure input is enabled when resetting
     setAppointmentForm({
       date: undefined,
       time: '',
@@ -3129,6 +3146,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     setShowChat(true);
     setMessages([]);
     setChatStep(0);
+    setIsInputDisabled(false); // Ensure input is enabled when starting chat
     resetForms();
   };
 
