@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { useClinic } from '@/contexts/ClinicContext';
 import { toast } from '@/hooks/use-toast';
 import { AlertCircle, ArrowLeft, CheckCircle, Eye, FileText, Home, Minus, Plus, RotateCcw, Save, Stethoscope, User } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 // Type declaration for jsPDF
@@ -119,7 +119,13 @@ const DocumentComparison: React.FC = () => {
   const [resizeDirection, setResizeDirection] = useState('');
   const [textareaHeight, setTextareaHeight] = useState(400);
   const [isDocumentVisible, setIsDocumentVisible] = useState(true);
-  const [velocity, setVelocity] = useState({ x: 0, y: 0 });
+  
+  // Use refs for smooth real-time movement without lag
+  const floatingWindowRef = useRef<HTMLDivElement>(null);
+  const currentPosRef = useRef({ x: 16, y: 16 });
+  const animationFrameRef = useRef<number | null>(null);
+  const isDraggingRef = useRef(false);
+  const isResizingRef = useRef(false);
 
   // Enhanced patient matching function from LabResults.tsx (moved inside component)
   const findPatientFromText = (text: string, detectedName?: string): any | undefined => {
@@ -228,22 +234,27 @@ const DocumentComparison: React.FC = () => {
     return undefined;
   };
 
-  // Floating window drag handlers
+  // Optimized floating window drag handlers for real-time movement
   const handleMouseDown = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).classList.contains('resize-handle')) return;
+    
     setIsDragging(true);
+    isDraggingRef.current = true;
+    
     const rect = e.currentTarget.getBoundingClientRect();
     setDragOffset({
       x: e.clientX - rect.left,
       y: e.clientY - rect.top
     });
+    
     e.preventDefault();
   };
 
-  // Resize handlers
+  // Optimized resize handlers
   const handleResizeStart = (e: React.MouseEvent, direction: string) => {
     e.stopPropagation();
     setIsResizing(true);
+    isResizingRef.current = true;
     setResizeDirection(direction);
     setDragOffset({
       x: e.clientX,
@@ -251,8 +262,17 @@ const DocumentComparison: React.FC = () => {
     });
   };
 
+  // Real-time position update using transform for better performance
+  const updateFloatingWindowPosition = (x: number, y: number) => {
+    if (floatingWindowRef.current) {
+      // Use transform for hardware acceleration and smoother movement
+      floatingWindowRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    }
+    currentPosRef.current = { x, y };
+  };
+
   const handleResize = (e: MouseEvent) => {
-    if (!isResizing) return;
+    if (!isResizingRef.current) return;
 
     const deltaX = e.clientX - dragOffset.x;
     const deltaY = e.clientY - dragOffset.y;
@@ -260,25 +280,27 @@ const DocumentComparison: React.FC = () => {
     setWindowSize(prev => {
       let newWidth = prev.width;
       let newHeight = prev.height;
-      let newPosX = floatingWindowPos.x;
-      let newPosY = floatingWindowPos.y;
+      let newPosX = currentPosRef.current.x;
+      let newPosY = currentPosRef.current.y;
 
       if (resizeDirection.includes('right')) {
         newWidth = Math.max(200, prev.width + deltaX);
       }
       if (resizeDirection.includes('left')) {
         newWidth = Math.max(200, prev.width - deltaX);
-        newPosX = floatingWindowPos.x + deltaX;
+        newPosX = currentPosRef.current.x + deltaX;
       }
       if (resizeDirection.includes('bottom')) {
         newHeight = Math.max(150, prev.height + deltaY);
       }
       if (resizeDirection.includes('top')) {
         newHeight = Math.max(150, prev.height - deltaY);
-        newPosY = floatingWindowPos.y + deltaY;
+        newPosY = currentPosRef.current.y + deltaY;
       }
 
-      setFloatingWindowPos({ x: newPosX, y: newPosY });
+      // Update position immediately for smooth resize
+      updateFloatingWindowPosition(newPosX, newPosY);
+      
       return { width: newWidth, height: newHeight };
     });
 
@@ -313,48 +335,67 @@ const DocumentComparison: React.FC = () => {
     setIsDocumentVisible(!isDocumentVisible);
   };
 
-  // Add event listeners for mouse events with velocity tracking
+  // Optimized event listeners for smooth real-time movement
   React.useEffect(() => {
-    let lastMousePos = { x: 0, y: 0 };
-    let lastTime = Date.now();
-
+    let rafId: number | null = null;
+    
     const handleMove = (e: MouseEvent) => {
-      const currentTime = Date.now();
-      const deltaTime = currentTime - lastTime;
-      
-      if (isDragging) {
-        const newPos = {
-          x: e.clientX - dragOffset.x,
-          y: e.clientY - dragOffset.y
-        };
-        
-        // Calculate velocity for bounce effect
-        if (deltaTime > 0) {
-          const velX = (e.clientX - lastMousePos.x) / deltaTime * 16; // Convert to pixels per frame
-          const velY = (e.clientY - lastMousePos.y) / deltaTime * 16;
-          setVelocity({ x: velX, y: velY });
+      if (isDraggingRef.current) {
+        // Cancel previous frame if still pending
+        if (rafId) {
+          cancelAnimationFrame(rafId);
         }
         
-        setFloatingWindowPos(newPos);
-      }
-      if (isResizing) {
-        handleResize(e);
+        // Use requestAnimationFrame for smooth 60fps updates
+        rafId = requestAnimationFrame(() => {
+          const newPos = {
+            x: e.clientX - dragOffset.x,
+            y: e.clientY - dragOffset.y
+          };
+          
+          // Apply boundary constraints in real-time
+          const screenWidth = window.innerWidth;
+          const screenHeight = window.innerHeight;
+          const constrainedPos = {
+            x: Math.max(0, Math.min(newPos.x, screenWidth - windowSize.width)),
+            y: Math.max(0, Math.min(newPos.y, screenHeight - windowSize.height))
+          };
+          
+          // Update position immediately via DOM for instant feedback
+          updateFloatingWindowPosition(constrainedPos.x, constrainedPos.y);
+          rafId = null;
+        });
       }
       
-      lastMousePos = { x: e.clientX, y: e.clientY };
-      lastTime = currentTime;
+      if (isResizingRef.current) {
+        handleResize(e);
+      }
     };
 
     const handleUp = () => {
+      if (isDraggingRef.current) {
+        // Cancel any pending animation frame
+        if (rafId) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
+        
+        // Sync final position with React state
+        setFloatingWindowPos({ ...currentPosRef.current });
+      }
+      
       setIsDragging(false);
       setIsResizing(false);
       setResizeDirection('');
+      isDraggingRef.current = false;
+      isResizingRef.current = false;
+      
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     };
 
     if (isDragging || isResizing) {
-      document.addEventListener('mousemove', handleMove, { passive: false });
+      document.addEventListener('mousemove', handleMove, { passive: true });
       document.addEventListener('mouseup', handleUp);
       if (isDragging) {
         document.body.style.cursor = 'grabbing';
@@ -367,8 +408,12 @@ const DocumentComparison: React.FC = () => {
       document.removeEventListener('mouseup', handleUp);
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
+      
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
     };
-  }, [isDragging, isResizing, dragOffset.x, dragOffset.y]);
+  }, [isDragging, isResizing, dragOffset.x, dragOffset.y, windowSize.width, windowSize.height]);
 
   // Handle window resize for textarea height adjustment
   React.useEffect(() => {
@@ -382,53 +427,13 @@ const DocumentComparison: React.FC = () => {
     return () => window.removeEventListener('resize', handleWindowResize);
   }, [editableText]);
 
-  // Bounce effect for floating window
+  // Sync initial position with refs using transform
   React.useEffect(() => {
-    const checkBounds = () => {
-      if (!isDocumentVisible) return;
-
-      const screenWidth = window.innerWidth;
-      const screenHeight = window.innerHeight;
-      let newX = floatingWindowPos.x;
-      let newY = floatingWindowPos.y;
-      let newVelX = velocity.x;
-      let newVelY = velocity.y;
-      let bounced = false;
-
-      // Check right boundary
-      if (newX + windowSize.width > screenWidth) {
-        newX = screenWidth - windowSize.width;
-        newVelX = -Math.abs(newVelX) * 0.8; // Bounce with damping
-        bounced = true;
-      }
-      // Check left boundary
-      if (newX < 0) {
-        newX = 0;
-        newVelX = Math.abs(newVelX) * 0.8;
-        bounced = true;
-      }
-      // Check bottom boundary
-      if (newY + windowSize.height > screenHeight) {
-        newY = screenHeight - windowSize.height;
-        newVelY = -Math.abs(newVelY) * 0.8;
-        bounced = true;
-      }
-      // Check top boundary
-      if (newY < 0) {
-        newY = 0;
-        newVelY = Math.abs(newVelY) * 0.8;
-        bounced = true;
-      }
-
-      if (bounced) {
-        setFloatingWindowPos({ x: newX, y: newY });
-        setVelocity({ x: newVelX, y: newVelY });
-      }
-    };
-
-    const interval = setInterval(checkBounds, 16); // 60fps check
-    return () => clearInterval(interval);
-  }, [floatingWindowPos, windowSize, velocity, isDocumentVisible]);
+    currentPosRef.current = floatingWindowPos;
+    if (floatingWindowRef.current) {
+      floatingWindowRef.current.style.transform = `translate3d(${floatingWindowPos.x}px, ${floatingWindowPos.y}px, 0)`;
+    }
+  }, [floatingWindowPos.x, floatingWindowPos.y]);
 
   useEffect(() => {
     // Check if we have the required data
@@ -1617,16 +1622,19 @@ ${editableText}`;
           </CardContent>
         </Card>
 
-        {/* Floating Original Document Window - Toggleable */}
+        {/* Floating Original Document Window - Optimized for Real-time Movement */}
         {isDocumentVisible && (
           <div 
-            className="fixed z-50 bg-white border border-gray-300 shadow-lg"
+            ref={floatingWindowRef}
+            className="fixed z-50 bg-white border border-gray-300 shadow-lg transition-none"
             style={{
-              left: `${floatingWindowPos.x}px`,
-              top: `${floatingWindowPos.y}px`,
+              left: '0px',
+              top: '0px',
               width: `${windowSize.width}px`,
               height: `${windowSize.height}px`,
-              cursor: isDragging ? 'grabbing' : 'default'
+              cursor: isDragging ? 'grabbing' : 'default',
+              willChange: 'transform', // Optimize for animations
+              transform: `translate3d(${floatingWindowPos.x}px, ${floatingWindowPos.y}px, 0)` // Use transform for better performance
             }}
           >
             {/* Header - Minimal with Toggle */}

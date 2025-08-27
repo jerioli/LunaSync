@@ -35,14 +35,6 @@ interface TextractBlock {
   }>;
 }
 
-interface ExtractedWord {
-  text: string;
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-}
-
 // Local interfaces for this component - updated to match API structure
 interface LocalLabTestResult {
   test_name: string;
@@ -89,8 +81,6 @@ const LabResults = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [processedBlocks, setProcessedBlocks] = useState<TextractBlock[]>([]);
-  const [showRawOutput, setShowRawOutput] = useState(false);
-  const [editableText, setEditableText] = useState('');
   const [backendConnected, setBackendConnected] = useState(false);
   const [backendType, setBackendType] = useState<string>('None');
   // Add state for visualization data
@@ -117,7 +107,6 @@ const LabResults = () => {
       if (state.processCompleted && state.correctedText) {
         // Set the corrected text
         setOcrExtractedText(state.correctedText);
-        setEditableText(state.correctedText);
         
         // Set the original file if available
         if (state.originalFile) {
@@ -169,7 +158,6 @@ const LabResults = () => {
       // Set the extracted text
       const extractedText = result.text;
       setOcrExtractedText(extractedText);
-      setEditableText(extractedText);
       
       // Set visualization data if available
       if (result.visualizationData) {
@@ -295,7 +283,6 @@ const LabResults = () => {
     setDocumentDetails(null);
     setUploadedFile(null);
     setProcessedBlocks([]);
-    setEditableText('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -320,7 +307,6 @@ const LabResults = () => {
     console.log('Available patients:', patients.map(p => ({ id: p.id, name: p.name })));
     
     setOcrExtractedText(text);
-    setEditableText(text);
     
     // Store extracted test results and document details
     if (structuredData && structuredData.length > 0) {
@@ -733,8 +719,8 @@ const LabResults = () => {
                 blocks={processedBlocks}
                 uploadedFile={uploadedFile}
                 extractedText={ocrExtractedText || ''}
-                editableText={editableText}
-                onTextChange={setEditableText}
+                editableText={ocrExtractedText || ''}
+                onTextChange={() => {}}
                 visualizationData={visualizationData}
               />
               
@@ -764,7 +750,7 @@ const LabResults = () => {
                   </Button>
                   
                   <ExportButton 
-                    text={editableText}
+                    text={ocrExtractedText || ''}
                     visualizationData={visualizationData}
                     filename={uploadedFile ? uploadedFile.name.replace(/\.[^/.]+$/, "") : "lab-result"}
                     isDisabled={isProcessing}

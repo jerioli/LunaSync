@@ -158,12 +158,6 @@ const OCRVisualizer: React.FC<OCRVisualizerProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const generateTextFromBlocks = () => {
-    const words = blocks.filter(b => b.BlockType === 'WORD');
-    const lines = blocks.filter(b => b.BlockType === 'LINE');
-    return lines.map(line => line.Text).join('\n');
-  };
-
   return (
     <div className="space-y-4">
       {uploadedFile && (
