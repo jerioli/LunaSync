@@ -1,31 +1,47 @@
 
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight, Clock, Eye, EyeOff, Trash2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 const API_BASE_URL = 'http://localhost:8000/api';
 
-interface TimeSlot {
-  id: number;
-  start_time: string;
-  end_time: string;
-  is_booked: boolean;
-  selected: boolean;
-}
+
 
 interface ScheduleSlot {
   date: string;
   time: string;
   available: boolean;
   is_booked?: boolean;
+}
+
+interface ExistingAvailability {
+  id: number;
+  date: string;
+  doctor_id: number;
+  is_available: boolean;
+  max_appointments: number;
+  time_slots: {
+    id: number;
+    start_time: string;
+    end_time: string;
+    is_booked: boolean;
+  }[];
+}
+
+interface PaginationState {
+  currentPage: number;
+  totalPages: number;
+  itemsPerPage: number;
+  totalItems: number;
 }
 
 // Function to get dates in range based on recurring pattern
@@ -57,8 +73,6 @@ const Schedule: React.FC = () => {
   const { toast } = useToast();
   const { currentUser } = useClinic();
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   
   // Schedule generation states
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -68,6 +82,17 @@ const Schedule: React.FC = () => {
   const [endTime, setEndTime] = useState('17:00');
   const [scheduleSlots, setScheduleSlots] = useState<ScheduleSlot[]>([]);
   const [recurringDays, setRecurringDays] = useState<string>('Weekdays');
+
+  // Existing availability management with pagination
+  const [existingAvailability, setExistingAvailability] = useState<ExistingAvailability[]>([]);
+  const [pagination, setPagination] = useState<PaginationState>({
+    currentPage: 1,
+    totalPages: 1,
+    itemsPerPage: 10,
+    totalItems: 0
+  });
+  const [isLoadingExisting, setIsLoadingExisting] = useState(false);
+  const [showExistingAvailability, setShowExistingAvailability] = useState(false);
 
   const generateScheduleSlots = (date: string, start: string, end: string): ScheduleSlot[] => {
     const slots: ScheduleSlot[] = [];
@@ -128,7 +153,12 @@ const Schedule: React.FC = () => {
   };
 
   const handleGenerateSlots = () => {
+    console.log('=== AUTO-FILL SLOTS DEBUG ===');
+    console.log('Function called - handleGenerateSlots');
+    console.log('Form values:', { startDate, endDate, startTime, endTime, recurringDays });
+    
     if (!startDate || !endDate || !startTime || !endTime) {
+      console.log('❌ Missing required fields');
       toast({
         title: 'Missing fields',
         description: 'Please fill in all date and time fields.'
@@ -136,24 +166,46 @@ const Schedule: React.FC = () => {
       return;
     }
 
+    // Validate date range
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (end < start) {
+      console.log('❌ End date is before start date');
+      toast({
+        title: 'Invalid date range',
+        description: 'End date must be after or equal to start date.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    console.log('✅ All fields present and valid, generating dates...');
     const dates = getDatesInRange(startDate, endDate, recurringDays);
+    console.log('Generated dates:', dates);
+    
+    console.log('Generating time slots for each date...');
     const generatedSlots = dates.flatMap(date => 
       generateScheduleSlots(date, startTime, endTime)
     );
+    console.log('Generated slots:', generatedSlots);
 
+    console.log('Setting schedule slots in state...');
     setScheduleSlots(generatedSlots);
     
+    console.log('✅ Auto-fill complete, showing toast');
     toast({
       title: 'Schedule Generated',
       description: `Created ${generatedSlots.length} time slots with 20-minute buffers`
     });
+    console.log('=== AUTO-FILL SLOTS DEBUG END ===');
   };
 
-  const loadAvailability = async () => {
-    if (!selectedDate || !currentUser) return;
+  // Load existing availability with pagination
+  const loadExistingAvailability = async (page: number = 1) => {
+    if (!currentUser) return;
 
     try {
-      setIsLoading(true);
+      setIsLoadingExisting(true);
       
       // Get doctor's ID from database
       const doctorsResponse = await axios.get(`${API_BASE_URL}/doctors/`);
@@ -161,123 +213,142 @@ const Schedule: React.FC = () => {
       const doctor = doctors.find(d => d.email === currentUser.email);
       
       if (!doctor) {
-        console.log('Available doctors:', doctors);
-        console.log('Current user email:', currentUser.email);
         throw new Error('Doctor not found in database');
       }
 
-      // Format date as YYYY-MM-DD
-      const year = selectedDate.getFullYear();
-      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-      const day = String(selectedDate.getDate()).padStart(2, '0');
-      const dateString = `${year}-${month}-${day}`;
-
-      // First try to get existing time slots
-      try {
-        const timeSlotsResponse = await axios.get(`${API_BASE_URL}/time-slots/`, {
-          params: {
-            doctor_id: doctor.id,
-            date: dateString
-          }
-        });
-        console.log('Fetched existing time slots:', timeSlotsResponse.data);
-        
-        if (timeSlotsResponse.data && timeSlotsResponse.data.length > 0) {
-          const slots = timeSlotsResponse.data.map((slot: any) => ({
-            id: slot.id,
-            start_time: slot.start_time,
-            end_time: slot.end_time,
-            is_booked: slot.is_booked,
-            selected: false
-          }));
-          setTimeSlots(slots);
-          return;
+      // Fetch paginated availability
+      const response = await axios.get(`${API_BASE_URL}/availability/`, {
+        params: {
+          doctor_id: doctor.id,
+          page: page,
+          page_size: pagination.itemsPerPage,
+          ordering: '-date' // Show newest first
         }
-      } catch (error) {
-        console.log('No existing time slots found, generating dynamic slots from clinic hours');
+      });
+
+      const data = response.data;
+      
+      // Handle both paginated and non-paginated responses
+      if (data.results) {
+        // Paginated response
+        setExistingAvailability(data.results);
+        setPagination(prev => ({
+          ...prev,
+          currentPage: page,
+          totalPages: Math.ceil(data.count / prev.itemsPerPage),
+          totalItems: data.count
+        }));
+      } else {
+        // Non-paginated response - implement client-side pagination
+        const startIndex = (page - 1) * pagination.itemsPerPage;
+        const endIndex = startIndex + pagination.itemsPerPage;
+        const paginatedData = data.slice(startIndex, endIndex);
+        
+        setExistingAvailability(paginatedData);
+        setPagination(prev => ({
+          ...prev,
+          currentPage: page,
+          totalPages: Math.ceil(data.length / prev.itemsPerPage),
+          totalItems: data.length
+        }));
       }
 
-      // Generate time slots dynamically (fallback)
-      const generatedTimeSlots = generateDefaultTimeSlots();
-      
-      if (generatedTimeSlots.length === 0) {
-        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        const dayName = dayNames[selectedDate.getDay()];
-        
-        toast({
-          title: "Clinic Closed",
-          description: `The clinic is closed on ${dayName}s. Please select a different date.`,
-          variant: "destructive"
-        });
-        setTimeSlots([]);
-        return;
-      }
-      
-      // Convert generated time slots to the format expected by the component
-      const slots = generatedTimeSlots.map((timeSlot, index) => {
-        // Convert display time back to 24-hour format for start_time
-        const startTime24 = convertDisplayTimeTo24Hour(timeSlot);
-        
-        // Calculate end time (20 minutes later)
-        const [hours, minutes] = startTime24.split(':').map(Number);
-        const endTimeMinutes = hours * 60 + minutes + 20;
-        const endHours = Math.floor(endTimeMinutes / 60);
-        const endMins = endTimeMinutes % 60;
-        const endTime24 = `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
-        
-        return {
-          id: index + 1000, // Use a high number to avoid conflicts with existing IDs
-          start_time: startTime24,
-          end_time: endTime24,
-          is_booked: false,
-          selected: false
-        };
-      });
-      
-      setTimeSlots(slots);
     } catch (error: any) {
-      console.error('Error loading availability:', error);
+      console.error('Error loading existing availability:', error);
       toast({
         title: "Error",
-        description: error.response?.data?.detail || error.message || "Failed to load availability",
+        description: "Failed to load existing availability",
         variant: "destructive"
       });
     } finally {
-      setIsLoading(false);
+      setIsLoadingExisting(false);
     }
   };
 
-  const generateDefaultTimeSlots = (): string[] => {
-    const slots: string[] = [];
-    for (let hour = 9; hour < 17; hour++) {
-      if (hour === 12) continue; // Skip lunch hour
-      for (let minute = 0; minute < 60; minute += 20) {
-        const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        slots.push(formatTime(timeStr));
-      }
-    }
-    return slots;
-  };
-
-  const toggleTimeSlot = async (id: number) => {
-    if (!selectedDate || !currentUser) return;
-
+  // Check if availability already exists for a specific date
+  const checkExistingAvailability = async (date: string, doctorId: number): Promise<boolean> => {
     try {
-      setTimeSlots(prev => prev.map(slot => 
-        slot.id === id ? { ...slot, selected: !slot.selected } : slot
-      ));
+      console.log(`🔍 Checking availability for date: ${date}, doctor_id: ${doctorId}`);
+      
+      // Use the same API call as loadExistingAvailability but check for specific date
+      const response = await axios.get(`${API_BASE_URL}/availability/`, {
+        params: {
+          doctor_id: doctorId,
+          page_size: 1000 // Get a large number to check all records
+        }
+      });
+      
+      console.log(`📡 Full availability API response:`, response.data);
+      
+      let availabilityRecords = [];
+      if (response.data.results) {
+        // Paginated response
+        availabilityRecords = response.data.results;
+      } else {
+        // Non-paginated response
+        availabilityRecords = response.data;
+      }
+      
+      // Check if any record matches the specific date
+      const existsForDate = availabilityRecords.some((record: any) => record.date === date);
+      console.log(`📊 Date ${date} exists: ${existsForDate} (found ${availabilityRecords.length} total records)`);
+      
+      if (existsForDate) {
+        const matchingRecord = availabilityRecords.find((record: any) => record.date === date);
+        console.log(`📋 Matching record for ${date}:`, matchingRecord);
+      }
+      
+      return existsForDate;
+    } catch (error) {
+      console.error('❌ Error checking existing availability:', error);
+      return false;
+    }
+  };
+
+  // Delete existing availability
+  const deleteAvailability = async (availabilityId: number) => {
+    try {
+      setIsLoadingExisting(true);
+      await axios.delete(`${API_BASE_URL}/availability/${availabilityId}/`);
+      
+      toast({
+        title: "Success",
+        description: "Availability deleted successfully"
+      });
+      
+      // Reload the current page
+      await loadExistingAvailability(pagination.currentPage);
     } catch (error: any) {
-      console.error('Error updating time slot:', error);
+      console.error('Error deleting availability:', error);
       toast({
         title: "Error",
-        description: "Failed to update time slot",
+        description: "Failed to delete availability",
         variant: "destructive"
       });
+    } finally {
+      setIsLoadingExisting(false);
     }
   };
 
+
+
+
+
   const savePattern = async () => {
+    console.log('=== SAVE PATTERN DEBUG ===');
+    console.log('Function called - savePattern');
+    console.log('Form values:', { startDate, endDate, startTime, endTime, recurringDays });
+    console.log('Current user:', currentUser);
+    
     if (!startDate || !endDate || !startTime || !endTime || !currentUser) {
+      console.log('❌ Missing required fields or user');
+      console.log('Missing:', {
+        startDate: !startDate,
+        endDate: !endDate, 
+        startTime: !startTime,
+        endTime: !endTime,
+        currentUser: !currentUser
+      });
       toast({
         title: "Missing fields",
         description: "Please fill in all date and time fields.",
@@ -286,22 +357,46 @@ const Schedule: React.FC = () => {
       return;
     }
 
+    // Validate date range
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (end < start) {
+      console.log('❌ End date is before start date');
+      toast({
+        title: 'Invalid date range',
+        description: 'End date must be after or equal to start date.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     try {
+      console.log('✅ All fields present and valid, starting save process...');
       setIsLoading(true);
 
       // Get doctor's ID
+      console.log('Fetching doctor information...');
       const doctorsResponse = await axios.get(`${API_BASE_URL}/doctors/`);
+      console.log('Doctors API response:', doctorsResponse.data);
       const doctors = doctorsResponse.data;
       const doctor = doctors.find(d => d.email === currentUser.email);
       
       if (!doctor) {
+        console.log('❌ Doctor not found');
+        console.log('Available doctors:', doctors);
+        console.log('Looking for email:', currentUser.email);
         throw new Error('Doctor not found in database');
       }
+      
+      console.log('✅ Found doctor:', doctor);
 
       // Generate dates based on recurring pattern
+      console.log('Generating dates with pattern:', recurringDays);
       const dates = getDatesInRange(startDate, endDate, recurringDays);
+      console.log('Generated dates:', dates);
       
       if (dates.length === 0) {
+        console.log('❌ No dates generated from pattern');
         toast({
           title: "No dates selected",
           description: "The selected date range and recurring pattern resulted in no valid dates.",
@@ -310,10 +405,50 @@ const Schedule: React.FC = () => {
         return;
       }
 
-      // Create availability and time slots for each date
-      let successCount = 0;
+      console.log('✅ Checking for existing availability...');
+      // Check for existing availability and filter out duplicates
+      const existingDates: string[] = [];
+      const newDates: string[] = [];
+      
       for (const date of dates) {
+        console.log(`Checking if availability exists for date: ${date}`);
+        const exists = await checkExistingAvailability(date, doctor.id);
+        console.log(`Date ${date} exists: ${exists}`);
+        if (exists) {
+          existingDates.push(date);
+        } else {
+          newDates.push(date);
+        }
+      }
+
+      console.log('Existing dates:', existingDates);
+      console.log('New dates to create:', newDates);
+
+      if (existingDates.length > 0) {
+        console.log('⚠️ Found duplicate dates, will skip them');
+        toast({
+          title: "Duplicate dates found",
+          description: `Skipping ${existingDates.length} dates that already have availability: ${existingDates.slice(0, 3).join(', ')}${existingDates.length > 3 ? '...' : ''}`,
+          variant: "default"
+        });
+      }
+
+      if (newDates.length === 0) {
+        console.log('❌ No new dates to save');
+        toast({
+          title: "No new dates to save",
+          description: "All selected dates already have availability set up.",
+          variant: "default"
+        });
+        return;
+      }
+
+      console.log(`✅ Creating availability for ${newDates.length} new dates...`);
+      // Create availability and time slots for new dates only
+      let successCount = 0;
+      for (const date of newDates) {
         try {
+          console.log(`Creating availability for date: ${date}`);
           // Create availability for this date
           const availabilityData = {
             doctor_id: Number(doctor.id),
@@ -322,19 +457,24 @@ const Schedule: React.FC = () => {
             max_appointments: 8
           };
 
+          console.log('Posting availability data:', availabilityData);
           const availabilityResponse = await axios.post(`${API_BASE_URL}/availability/`, availabilityData);
+          console.log('Availability response:', availabilityResponse.data);
           const createdAvailability = availabilityResponse.data;
           
           if (!createdAvailability || typeof createdAvailability.id !== 'number') {
-            console.warn(`Failed to create availability for ${date}`);
+            console.warn(`❌ Failed to create availability for ${date}`);
             continue;
           }
 
+          console.log(`✅ Created availability ${createdAvailability.id} for ${date}`);
           // Generate time slots for this date
           const daySlots = generateScheduleSlots(date, startTime, endTime);
+          console.log(`Generated ${daySlots.length} time slots for ${date}:`, daySlots);
           
           // Create time slots
           for (const slot of daySlots) {
+            console.log(`Creating time slot: ${slot.time} for ${date}`);
             const startTime24 = convertDisplayTimeTo24Hour(slot.time);
             
             // Calculate end time (20 minutes later)
@@ -350,142 +490,56 @@ const Schedule: React.FC = () => {
               is_booked: false
             };
 
-            await axios.post(`${API_BASE_URL}/availability/${createdAvailability.id}/create_time_slot/`, timeSlotData);
+            console.log('Posting time slot data:', timeSlotData);
+            const timeSlotResponse = await axios.post(`${API_BASE_URL}/availability/${createdAvailability.id}/create_time_slot/`, timeSlotData);
+            console.log('Time slot response:', timeSlotResponse.data);
           }
           
+          console.log(`✅ Successfully created all time slots for ${date}`);
           successCount++;
         } catch (dateError) {
-          console.warn(`Failed to create availability for ${date}:`, dateError);
+          console.error(`❌ Failed to create availability for ${date}:`, dateError);
         }
       }
 
-      // Refresh the current day's availability
-      await loadAvailability();
+      console.log(`✅ Completed creation process. Success count: ${successCount}/${newDates.length}`);
+      // Refresh the existing availability list
+      console.log('Refreshing existing availability list...');
+      await loadExistingAvailability(pagination.currentPage);
 
+      console.log('✅ Showing success toast');
       toast({
         title: "Pattern Saved",
-        description: `Successfully created availability for ${successCount} out of ${dates.length} dates (${recurringDays}, ${startTime}-${endTime})`,
+        description: `Successfully created availability for ${successCount} out of ${newDates.length} new dates (${recurringDays}, ${startTime}-${endTime})`,
       });
+      console.log('=== SAVE PATTERN DEBUG END ===');
 
     } catch (error: any) {
-      console.error('Error saving pattern:', error);
+      console.error('❌ Error saving pattern:', error);
+      console.error('Error details:', error.response?.data);
       toast({
         title: "Error",
         description: error.response?.data?.detail || error.message || "Failed to save pattern",
         variant: "destructive"
       });
     } finally {
+      console.log('Setting loading to false');
       setIsLoading(false);
     }
   };
 
-  const saveAvailability = async () => {
-    if (!selectedDate || !currentUser) return;
 
-    const selectedSlots = timeSlots.filter(slot => slot.selected);
-    
-    if (selectedSlots.length === 0) {
-      toast({
-        title: "No time slots selected",
-        description: "Please select at least one time slot for your availability",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    try {
-      setIsLoading(true);
 
-      // Get doctor's ID
-      const doctorsResponse = await axios.get(`${API_BASE_URL}/doctors/`);
-      const doctors = doctorsResponse.data;
-      const doctor = doctors.find(d => d.email === currentUser.email);
-      
-      if (!doctor) {
-        throw new Error('Doctor not found in database');
-      }
 
-      // Format date correctly without timezone conversion
-      const year = selectedDate.getFullYear();
-      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-      const day = String(selectedDate.getDate()).padStart(2, '0');
-      const formattedDate = `${year}-${month}-${day}`;
 
-      console.log('Date handling:', {
-        original: selectedDate,
-        formatted: formattedDate,
-        year,
-        month,
-        day
-      });
 
-      // Create availability
-      const availabilityData = {
-        doctor_id: Number(doctor.id),
-        date: formattedDate,
-        is_available: true,
-        max_appointments: 8
-      };
 
-      console.log('Creating availability with data:', availabilityData);
-      const availabilityResponse = await axios.post(`${API_BASE_URL}/availability/`, availabilityData);
-      const createdAvailability = availabilityResponse.data;
-      if (!createdAvailability || typeof createdAvailability.id !== 'number') {
-        throw new Error('Availability creation failed: missing id in response');
-      }
-      const availability: { id: number } = { id: createdAvailability.id };
-      console.log('Created availability:', availability);
-
-      // Create time slots
-      for (const slot of selectedSlots) {
-        // Format time strings to HH:MM:SS format
-        const startTime = slot.start_time.includes(':') ? slot.start_time : `${slot.start_time}:00`;
-        const endTime = slot.end_time.includes(':') ? slot.end_time : `${slot.end_time}:00`;
-
-        const timeSlotData = {
-          start_time: startTime,
-          end_time: endTime,
-          is_booked: false
-        };
-        console.log('Creating time slot with data:', timeSlotData);
-        const timeSlotResponse = await axios.post(`${API_BASE_URL}/availability/${availability.id}/create_time_slot/`, timeSlotData);
-        console.log('Created time slot:', timeSlotResponse.data);
-      }
-
-      // Refresh the time slots
-      await loadAvailability();
-
-      toast({
-        title: "Success",
-        description: `Your availability for ${selectedDate.toLocaleDateString()} has been saved`,
-      });
-    } catch (error: any) {
-      console.error('Error saving availability:', error);
-      console.error('Error response:', error.response?.data);
-      toast({
-        title: "Error",
-        description: error.response?.data?.detail || error.message || "Failed to save availability",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const selectAllSlots = () => {
-    setTimeSlots(prev => prev.map(slot => ({ ...slot, selected: true })));
-  };
-
-  const clearAllSlots = () => {
-    setTimeSlots(prev => prev.map(slot => ({ ...slot, selected: false })));
-  };
-
-  // Load availability when selected date changes
+  // Load existing availability on component mount
   useEffect(() => {
-    if (selectedDate) {
-      loadAvailability();
+    if (currentUser?.role === 'doctor') {
+      loadExistingAvailability(1);
     }
-  }, [selectedDate]);
+  }, [currentUser]);
 
   if (currentUser?.role !== 'doctor') {
     return (
@@ -597,55 +651,192 @@ const Schedule: React.FC = () => {
                 Save Pattern
               </Button>
             </div>
+          </div>
+        </CardContent>
+      </Card>
 
-            {scheduleSlots.length > 0 && (
-              <div className="mt-6">
-                <h2 className="font-semibold mb-4">Generated Schedule</h2>
+      {/* Existing Availability Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Existing Availability
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowExistingAvailability(!showExistingAvailability)}
+            >
+              {showExistingAvailability ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showExistingAvailability ? 'Hide' : 'Show'} ({pagination.totalItems})
+            </Button>
+          </CardTitle>
+          <CardDescription>
+            View and manage your existing availability slots
+          </CardDescription>
+        </CardHeader>
+        
+        {showExistingAvailability && (
+          <CardContent>
+            {isLoadingExisting ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : existingAvailability.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No existing availability found
+              </div>
+            ) : (
+              <>
                 <div className="border rounded-lg overflow-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Date</TableHead>
-                        <TableHead>Time</TableHead>
+                        <TableHead>Time Slots</TableHead>
+                        <TableHead>Booked/Total</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Edit</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {scheduleSlots.map((slot, index) => (
-                        <TableRow 
-                          key={`${slot.date}-${slot.time}`}
-                          className={slot.available ? 'bg-green-50' : 'bg-gray-100'}
-                        >
-                          <TableCell>{slot.date}</TableCell>
-                          <TableCell>{slot.time}</TableCell>
-                          <TableCell>
-                            <span className={slot.available ? 'text-green-600 font-medium' : 'text-gray-500'}>
-                              {slot.available ? 'Available' : 'Unavailable'}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const newSlots = [...scheduleSlots];
-                                newSlots[index].available = !newSlots[index].available;
-                                setScheduleSlots(newSlots);
-                              }}
-                            >
-                              Toggle
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {existingAvailability.map((availability) => {
+                        const bookedSlots = availability.time_slots.filter(slot => slot.is_booked).length;
+                        const totalSlots = availability.time_slots.length;
+                        
+                        return (
+                          <TableRow key={availability.id}>
+                            <TableCell className="font-medium">
+                              {new Date(availability.date).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-wrap gap-1">
+                                {availability.time_slots.slice(0, 3).map((slot, index) => (
+                                  <span
+                                    key={index}
+                                    className={`px-2 py-1 text-xs rounded ${
+                                      slot.is_booked
+                                        ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                        : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                    }`}
+                                  >
+                                    {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
+                                  </span>
+                                ))}
+                                {availability.time_slots.length > 3 && (
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                                      >
+                                        +{availability.time_slots.length - 3} more
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-80">
+                                      <div className="space-y-2">
+                                        <h4 className="font-medium text-sm">
+                                          All Time Slots ({availability.time_slots.length})
+                                        </h4>
+                                        <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+                                          {availability.time_slots.map((slot, index) => (
+                                            <span
+                                              key={index}
+                                              className={`px-2 py-1 text-xs rounded text-center ${
+                                                slot.is_booked
+                                                  ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                                  : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                              }`}
+                                            >
+                                              {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
+                                            </span>
+                                          ))}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground pt-2 border-t">
+                                          <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-1">
+                                              <div className="w-3 h-3 rounded bg-green-100 dark:bg-green-900"></div>
+                                              <span>Available</span>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                              <div className="w-3 h-3 rounded bg-red-100 dark:bg-red-900"></div>
+                                              <span>Booked</span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </PopoverContent>
+                                  </Popover>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <span className={bookedSlots > 0 ? 'text-orange-600' : 'text-green-600'}>
+                                {bookedSlots}/{totalSlots}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <span className={availability.is_available ? 'text-green-600' : 'text-red-600'}>
+                                {availability.is_available ? 'Available' : 'Unavailable'}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => deleteAvailability(availability.id)}
+                                disabled={bookedSlots > 0}
+                                title={bookedSlots > 0 ? "Cannot delete availability with booked slots" : "Delete availability"}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
-              </div>
+
+                {/* Pagination Controls */}
+                {pagination.totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4">
+                    <div className="text-sm text-muted-foreground">
+                      Showing {((pagination.currentPage - 1) * pagination.itemsPerPage) + 1} to{' '}
+                      {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)} of{' '}
+                      {pagination.totalItems} entries
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => loadExistingAvailability(pagination.currentPage - 1)}
+                        disabled={pagination.currentPage === 1 || isLoadingExisting}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Previous
+                      </Button>
+                      <span className="text-sm">
+                        Page {pagination.currentPage} of {pagination.totalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => loadExistingAvailability(pagination.currentPage + 1)}
+                        disabled={pagination.currentPage === pagination.totalPages || isLoadingExisting}
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
-          </div>
-        </CardContent>
+          </CardContent>
+        )}
       </Card>
 
     </div>
