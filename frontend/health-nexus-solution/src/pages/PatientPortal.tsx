@@ -68,6 +68,39 @@ const appointmentSchema = z.object({
 type PatientFormData = z.infer<typeof patientSchema>;
 type AppointmentFormData = z.infer<typeof appointmentSchema>;
 
+// Medical Certificate and Prescription schemas
+const medicalCertSchema = z.object({
+  requestType: z.string().min(1, 'Request type is required'),
+  patientId: z.string().optional(),
+  firstName: z.string().min(1, 'First name is required'),
+  middleInitial: z.string().optional(),
+  lastName: z.string().min(1, 'Last name is required'),
+  suffix: z.string().optional(),
+  dateOfBirth: z.string().min(1, 'Date of birth is required'),
+  email: z.string().email('Invalid email address'),
+  phone: z.string().min(10, 'Phone number must be at least 10 digits'),
+  additionalInfo: z.string().optional(),
+});
+
+const prescriptionSchema = z.object({
+  patientId: z.string().optional(),
+  medicationName: z.string().min(1, 'Medication name is required'),
+  dosage: z.string().min(1, 'Dosage is required'),
+  frequency: z.string().min(1, 'Frequency is required'),
+  duration: z.string().min(1, 'Duration is required'),
+  firstName: z.string().min(1, 'First name is required'),
+  middleInitial: z.string().optional(),
+  lastName: z.string().min(1, 'Last name is required'),
+  suffix: z.string().optional(),
+  dateOfBirth: z.string().min(1, 'Date of birth is required'),
+  email: z.string().email('Invalid email address'),
+  phone: z.string().min(10, 'Phone number must be at least 10 digits'),
+  additionalNotes: z.string().optional(),
+});
+
+type MedicalCertFormData = z.infer<typeof medicalCertSchema>;
+type PrescriptionFormData = z.infer<typeof prescriptionSchema>;
+
 // Note: These hooks need to be implemented or imported from your theme/language context
 // For now, providing mock implementations to prevent errors
 const useTheme = () => ({ 
@@ -159,6 +192,66 @@ const PatientPortal = () => {
     resolver: zodResolver(appointmentSchema),
   });
 
+  // Medical Certificate wizard states
+  const [medCertStep, setMedCertStep] = useState(1);
+  const [medCertIsExistingPatient, setMedCertIsExistingPatient] = useState<boolean | null>(null);
+  const [medCertSearchQuery, setMedCertSearchQuery] = useState('');
+  const [medCertPatients, setMedCertPatients] = useState([]);
+  const [medCertSelectedPatient, setMedCertSelectedPatient] = useState<any>(null);
+  const [medCertRequestType, setMedCertRequestType] = useState('Medical Certificate');
+  const [medCertIdFront, setMedCertIdFront] = useState<File | null>(null);
+  const [medCertIdBack, setMedCertIdBack] = useState<File | null>(null);
+  const [medCertIdFrontPreview, setMedCertIdFrontPreview] = useState<string | null>(null);
+  const [medCertIdBackPreview, setMedCertIdBackPreview] = useState<string | null>(null);
+  const [medCertNotes, setMedCertNotes] = useState('');
+  const [medCertSubmitting, setMedCertSubmitting] = useState(false);
+
+  // Prescription wizard states
+  const [prescriptionStep, setPrescriptionStep] = useState(1);
+  const [prescriptionIsExistingPatient, setPrescriptionIsExistingPatient] = useState<boolean | null>(null);
+  const [prescriptionSearchQuery, setPrescriptionSearchQuery] = useState('');
+  const [prescriptionPatients, setPrescriptionPatients] = useState([]);
+  const [prescriptionSelectedPatient, setPrescriptionSelectedPatient] = useState<any>(null);
+  const [prescriptionIdFront, setPrescriptionIdFront] = useState<File | null>(null);
+  const [prescriptionIdBack, setPrescriptionIdBack] = useState<File | null>(null);
+  const [prescriptionIdFrontPreview, setPrescriptionIdFrontPreview] = useState<string | null>(null);
+  const [prescriptionIdBackPreview, setPrescriptionIdBackPreview] = useState<string | null>(null);
+  const [prescriptionSubmitting, setPrescriptionSubmitting] = useState(false);
+
+  // Form handling for medical cert and prescription
+  const medicalCertForm = useForm<MedicalCertFormData>({
+    resolver: zodResolver(medicalCertSchema),
+    defaultValues: {
+      requestType: 'Medical Certificate',
+      firstName: '',
+      middleInitial: '',
+      lastName: '',
+      suffix: '',
+      dateOfBirth: '',
+      email: '',
+      phone: '',
+      additionalInfo: '',
+    }
+  });
+
+  const prescriptionForm = useForm<PrescriptionFormData>({
+    resolver: zodResolver(prescriptionSchema),
+    defaultValues: {
+      medicationName: '',
+      dosage: '',
+      frequency: '',
+      duration: '',
+      firstName: '',
+      middleInitial: '',
+      lastName: '',
+      suffix: '',
+      dateOfBirth: '',
+      email: '',
+      phone: '',
+      additionalNotes: '',
+    }
+  });
+
   // Dummy data for backward compatibility
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
@@ -183,6 +276,34 @@ const PatientPortal = () => {
     if (e.target.files && e.target.files[0]) {
       setIdPreview(URL.createObjectURL(e.target.files[0]));
     }
+  };
+
+  // CSRF token function
+  const getCSRFToken = () => {
+    const name = 'csrftoken';
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  };
+
+  // Construct full name helper
+  const constructFullName = (form: any) => {
+    const parts = [
+      form.firstName,
+      form.middleInitial,
+      form.lastName,
+      form.suffix
+    ].filter(part => part && part.trim() !== '');
+    return parts.join(' ');
   };
 
   // Old simple notification handler for other modals
@@ -228,6 +349,46 @@ const PatientPortal = () => {
     } catch (error) {
       console.error('Error searching patients:', error);
       setPatients([]);
+    }
+  };
+
+  // Validate patient ID and fetch patient details (using chatbot approach)
+  const validatePatientId = async (patientId: string) => {
+    if (!patientId.trim()) {
+      return { isValid: false, error: 'Please enter your Patient ID' };
+    }
+    
+    try {
+      // Use the same endpoint as chatbot: check-patient-id
+      const checkResponse = await axiosInstance.get(`/patients/check-patient-id/?patient_id=${encodeURIComponent(patientId)}`);
+      
+      if (!checkResponse.data.exists) {
+        return { isValid: false, error: 'Patient ID not found. Please check and try again.' };
+      }
+      
+      // The patient data is already in the check response
+      if (checkResponse.data.patient) {
+        return { isValid: true, patient: checkResponse.data.patient };
+      }
+      
+      // Fallback: if patient data not in check response, fetch using database ID
+      const dbId = checkResponse.data.patient_id || checkResponse.data.id;
+      if (dbId) {
+        const response = await axiosInstance.get(`/patients/${dbId}/`);
+        return { isValid: true, patient: response.data };
+      }
+      
+      return { isValid: false, error: 'Patient data not available' };
+      
+    } catch (error: any) {
+      console.error('Error validating patient ID:', error);
+      if (error.response?.status === 404) {
+        return { isValid: false, error: 'Patient ID not found. Please check and try again.' };
+      }
+      if (error.response?.status === 403) {
+        return { isValid: false, error: 'Access denied. Please check your session and try again.' };
+      }
+      return { isValid: false, error: 'Unable to verify Patient ID. Please try again.' };
     }
   };
 
@@ -395,11 +556,21 @@ const PatientPortal = () => {
         }
         break;
       case 2:
-        if (isExistingPatient && !selectedPatient) {
-          toast.error('Please select a patient');
-          return;
-        }
-        if (!isExistingPatient) {
+        if (isExistingPatient) {
+          // Validate Patient ID for existing patients
+          if (!searchQuery.trim()) {
+            toast.error('Please enter your Patient ID');
+            return;
+          }
+          const validation = await validatePatientId(searchQuery);
+          if (!validation.isValid) {
+            toast.error(validation.error);
+            return;
+          }
+          setSelectedPatient(validation.patient);
+          toast.success('Patient ID verified successfully!');
+        } else {
+          // Validate form for new patients
           const isValid = await patientForm.trigger();
           if (!isValid) {
             toast.error('Please fill in all required fields');
@@ -449,6 +620,182 @@ const PatientPortal = () => {
       return () => clearTimeout(timeoutId);
     }
   }, [searchQuery, isExistingPatient]);
+
+  // Medical Certificate submission
+  const submitMedicalCertRequest = async () => {
+    setMedCertSubmitting(true);
+    
+    try {
+      if (!medCertSearchQuery.trim()) {
+        toast.error('Please enter your Patient ID');
+        setMedCertStep(1);
+        setMedCertSubmitting(false);
+        return;
+      }
+
+      if (!medCertSelectedPatient) {
+        toast.error('Patient information not found. Please verify your Patient ID again.');
+        setMedCertStep(1);
+        setMedCertSubmitting(false);
+        return;
+      }
+
+      const formData = new FormData();
+      
+      formData.append('request_type', medCertRequestType);
+      formData.append('patient_id', medCertSearchQuery);
+      formData.append('additional_info', medCertNotes);
+      
+      // Use the validated patient data from medCertSelectedPatient
+      const patient = medCertSelectedPatient;
+      const fullName = `${patient.first_name || ''} ${patient.middle_initial ? patient.middle_initial + ' ' : ''}${patient.last_name || ''}${patient.suffix ? ' ' + patient.suffix : ''}`.trim();
+      
+      formData.append('patient_name', fullName);
+      formData.append('first_name', patient.first_name || '');
+      formData.append('last_name', patient.last_name || '');
+      formData.append('middle_initial', patient.middle_initial || '');
+      formData.append('suffix', patient.suffix || '');
+      formData.append('date_of_birth', patient.date_of_birth || patient.dateOfBirth || '');
+      formData.append('email', patient.email || '');
+      formData.append('phone', patient.phone_number || patient.phone || '');
+      
+      if (medCertIdFront) {
+        formData.append('id_verification_front', medCertIdFront);
+      }
+      
+      if (medCertIdBack) {
+        formData.append('id_verification_back', medCertIdBack);
+      }
+
+      const csrfToken = getCSRFToken();
+      const headers = {
+        'Content-Type': 'multipart/form-data',
+      };
+      
+      if (csrfToken) {
+        headers['X-CSRFToken'] = csrfToken;
+      }
+      
+      const response = await axiosInstance.post('/medical-certificates/', formData, { headers });
+
+      if (response.status === 200 || response.status === 201) {
+        toast.success('Your medical certificate request has been submitted successfully! Our team will review your request and contact you within 2-3 business days.');
+        resetMedCertModal();
+        setOpenModal(null);
+      } else {
+        throw new Error('Failed to submit request');
+      }
+    } catch (error: any) {
+      console.error('Error submitting medical record request:', error);
+      toast.error('Sorry, there was an error submitting your request. Please try again or contact us directly.');
+    } finally {
+      setMedCertSubmitting(false);
+    }
+  };
+
+  // Prescription submission
+  const submitPrescriptionRequest = async () => {
+    setPrescriptionSubmitting(true);
+    
+    try {
+      if (!prescriptionSearchQuery.trim()) {
+        toast.error('Please enter your Patient ID');
+        setPrescriptionStep(1);
+        setPrescriptionSubmitting(false);
+        return;
+      }
+
+      if (!prescriptionSelectedPatient) {
+        toast.error('Patient information not found. Please verify your Patient ID again.');
+        setPrescriptionStep(1);
+        setPrescriptionSubmitting(false);
+        return;
+      }
+
+      const formData = new FormData();
+      
+      formData.append('patient_id', prescriptionSearchQuery);
+      formData.append('medication_name', prescriptionForm.getValues('medicationName'));
+      formData.append('dosage', prescriptionForm.getValues('dosage'));
+      formData.append('frequency', prescriptionForm.getValues('frequency'));
+      formData.append('duration', prescriptionForm.getValues('duration'));
+      formData.append('additional_notes', prescriptionForm.getValues('additionalNotes') || '');
+      
+      // Use the validated patient data from prescriptionSelectedPatient
+      const patient = prescriptionSelectedPatient;
+      const fullName = `${patient.first_name || ''} ${patient.middle_initial ? patient.middle_initial + ' ' : ''}${patient.last_name || ''}${patient.suffix ? ' ' + patient.suffix : ''}`.trim();
+      
+      formData.append('patient_name', fullName);
+      formData.append('first_name', patient.first_name || '');
+      formData.append('last_name', patient.last_name || '');
+      formData.append('middle_initial', patient.middle_initial || '');
+      formData.append('suffix', patient.suffix || '');
+      formData.append('date_of_birth', patient.date_of_birth || patient.dateOfBirth || '');
+      formData.append('email', patient.email || '');
+      formData.append('phone', patient.phone_number || patient.phone || '');
+      
+      if (prescriptionIdFront) {
+        formData.append('id_verification_front', prescriptionIdFront);
+      }
+      
+      if (prescriptionIdBack) {
+        formData.append('id_verification_back', prescriptionIdBack);
+      }
+
+      const csrfToken = getCSRFToken();
+      const headers = {
+        'Content-Type': 'multipart/form-data',
+      };
+      
+      if (csrfToken) {
+        headers['X-CSRFToken'] = csrfToken;
+      }
+      
+      const response = await axiosInstance.post('/prescription-requests/', formData, { headers });
+
+      if (response.status === 200 || response.status === 201) {
+        toast.success('Your prescription request has been submitted successfully! Our team will review your request and contact you within 2-3 business days.');
+        resetPrescriptionModal();
+        setOpenModal(null);
+      } else {
+        throw new Error('Failed to submit request');
+      }
+    } catch (error: any) {
+      console.error('Error submitting prescription request:', error);
+      toast.error('Sorry, there was an error submitting your request. Please try again or contact us directly.');
+    } finally {
+      setPrescriptionSubmitting(false);
+    }
+  };
+
+  // Reset functions
+  const resetMedCertModal = () => {
+    setMedCertStep(1);
+    setMedCertIsExistingPatient(true); // Always set to existing patient
+    setMedCertSearchQuery('');
+    setMedCertPatients([]);
+    setMedCertSelectedPatient(null);
+    setMedCertRequestType('Medical Certificate');
+    setMedCertIdFront(null);
+    setMedCertIdBack(null);
+    setMedCertIdFrontPreview(null);
+    setMedCertIdBackPreview(null);
+    setMedCertNotes('');
+    medicalCertForm.reset();
+  };
+
+  const resetPrescriptionModal = () => {
+    setPrescriptionStep(1);
+    setPrescriptionIsExistingPatient(true); // Always set to existing patient
+    setPrescriptionSearchQuery('');
+    setPrescriptionPatients([]);
+    setPrescriptionSelectedPatient(null);
+    setPrescriptionIdFront(null);
+    setPrescriptionIdBack(null);
+    setPrescriptionIdFrontPreview(null);
+    setPrescriptionIdBackPreview(null);
+    prescriptionForm.reset();
+  };
 
   const GREETING_TEXT = "Hi! I'm Dr. MDSync, virtual assistant. What can I help you with?";
 
@@ -804,7 +1151,7 @@ const PatientPortal = () => {
           <div className="flex-1 flex justify-end items-center gap-2">
             {/* Schedule Appointment button (moved from hero section) */}
             <Button 
-              onClick={() => navigate('/patient-requests')}
+              onClick={() => setOpenModal("appointment")}
               size="lg"
               className="rounded-full font-bold bg-[#79c942] hover:bg-[#6bb33a] text-white transition-colors
               h-9 w-[180px] min-w-[180px] max-w-[180px]
@@ -1655,37 +2002,21 @@ const PatientPortal = () => {
               <div className="space-y-4">
                 {isExistingPatient ? (
                   <>
-                    <h3 className="text-lg font-semibold text-center mb-4">Search for your patient record</h3>
-                    <Input
-                      placeholder="Search by name, email, or phone number..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full"
-                    />
-                    {patients.length > 0 && (
-                      <div className="space-y-2 max-h-60 overflow-y-auto">
-                        {patients.map((patient: any) => (
-                          <Button
-                            key={patient.id}
-                            variant={selectedPatient?.id === patient.id ? "default" : "outline"}
-                            className={`w-full text-left p-4 h-auto justify-start ${
-                              selectedPatient?.id === patient.id ? 'bg-[#79c942] hover:bg-[#68ab38]' : ''
-                            }`}
-                            onClick={() => setSelectedPatient(patient)}
-                          >
-                            <div>
-                              <div className="font-semibold">{patient.first_name} {patient.last_name}</div>
-                              <div className="text-sm opacity-75">{patient.email} • {patient.phone_number}</div>
-                            </div>
-                          </Button>
-                        ))}
+                    <h3 className="text-lg font-semibold text-center mb-4">Enter your Patient ID</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Patient ID *</label>
+                        <Input
+                          placeholder="Enter your Patient ID"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="w-full"
+                        />
+                        <div className="text-xs text-gray-500 mt-1">
+                          You can find your Patient ID on your previous appointment receipts, medical certificates, or contact the clinic
+                        </div>
                       </div>
-                    )}
-                    {searchQuery && patients.length === 0 && (
-                      <div className="text-center text-gray-500 py-4">
-                        No patients found. Please check your spelling or contact the clinic.
-                      </div>
-                    )}
+                    </div>
                   </>
                 ) : (
                   <>
@@ -1902,6 +2233,22 @@ const PatientPortal = () => {
                         : `${patientForm.getValues('firstName')} ${patientForm.getValues('lastName')}`}
                       </p>
                     </div>
+                    {isExistingPatient && selectedPatient && (
+                      <>
+                        <div>
+                          <h4 className="font-semibold text-gray-700">Patient ID</h4>
+                          <p>{searchQuery}</p>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-700">Email</h4>
+                          <p>{selectedPatient.email || 'Not available'}</p>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-700">Phone</h4>
+                          <p>{selectedPatient.phone_number || selectedPatient.phone || 'Not available'}</p>
+                        </div>
+                      </>
+                    )}
                     <div>
                       <h4 className="font-semibold text-gray-700">Doctor</h4>
                       <p>{selectedDoctor?.first_name} {selectedDoctor?.last_name}</p>
@@ -1969,132 +2316,500 @@ const PatientPortal = () => {
       </Dialog>
 
       {/* =================== MedCert Modal =================== */}
-      <Dialog open={openModal === "medcert"} onOpenChange={() => setOpenModal(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-4 md:p-8">
+      <Dialog open={openModal === "medcert"} onOpenChange={() => { setOpenModal(null); resetMedCertModal(); }}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-6">
           <DialogHeader>
-            <DialogTitle className="text-[#79c942] text-center">Request Medical Certificate</DialogTitle>
+            <DialogTitle className="text-[#79c942] text-center text-2xl font-bold">
+              Request Medical Certificate - Step {medCertStep} of 3
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-6">
-            <div className="flex items-center space-x-2 mb-2">
-              <Checkbox checked={consent} onCheckedChange={(v) => setConsent(!!v)} className="accent-[#79c942]" />
-              <span>
-                I agree to the Terms and Conditions and consent to providing my personal information for processing my request.
-                <span className="inline-flex align-middle ml-1">
-                  <ConsentTooltip text={
-  `By ticking this box:
-1. I confirm that the information I provide is true and correct.
-2. I understand that my personal data will be collected, stored, and used only for the purpose of scheduling my appointment or processing my request (medical certificate or e-prescription).
-3. I consent to the clinic reviewing my request and communicating with me through my selected contact preference (SMS, email, or phone).
-4. I also acknowledge that my request is subject to approval by clinic staff.`
-} />                </span>
-              </span>
-            </div>
-            <div className={consent ? "space-y-6" : "opacity-50 pointer-events-none space-y-6"}>
-              <PersonalInfoFields disabled={!consent} />
-              <div className="space-y-2">
-                <Input type="file" accept="image/*" onChange={handleIdUpload} required />
-                <div className="flex items-center gap-1 text-xs text-[#79c942]">
-                  <Info className="h-3 w-3 text-[#79c942]" />
-                  <span>
-                    Primary IDs only: Driver's License, Passport, Philippine National ID, Postal ID
-                  </span>
+
+          {/* Progress Bar */}
+          <div className="flex justify-between items-center mb-6">
+            {[1, 2, 3].map((step) => (
+              <div key={step} className="flex flex-col items-center">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  step <= medCertStep ? 'bg-[#79c942] text-white' : 'bg-gray-200 text-gray-600'
+                }`}>
+                  {step < medCertStep ? <CheckCircle className="w-5 h-5" /> : step}
                 </div>
-                {idPreview && (
-                  <img src={idPreview} alt="ID Preview" className="w-16 h-16 mt-2 rounded object-cover border" />
-                )}
+                <span className="text-xs mt-1 text-center">
+                  {step === 1 && 'Patient ID'}
+                  {step === 2 && 'Documents'}
+                  {step === 3 && 'Confirm'}
+                </span>
               </div>
-              <Textarea placeholder="Additional notes (optional)" className="mt-2" />
-              <Select value={documentType} onValueChange={setDocumentType} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Receive document via" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pickup">Pick-up</SelectItem>
-                  <SelectItem value="email">Email</SelectItem>
-                </SelectContent>
-              </Select>
-              <div className="flex flex-col md:flex-row justify-end gap-2 mt-4">
-                <Button variant="outline" onClick={() => setOpenModal(null)}>
-                  Cancel
-                </Button>
+            ))}
+          </div>
+
+          <div className="space-y-6">
+            {/* Step 1: Patient ID Input (Previously Step 2) */}
+            {medCertStep === 1 && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-center mb-4">Enter your Patient ID</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Patient ID *</label>
+                    <Input
+                      placeholder="Enter your Patient ID"
+                      value={medCertSearchQuery}
+                      onChange={(e) => setMedCertSearchQuery(e.target.value)}
+                      className="w-full"
+                    />
+                    <div className="text-xs text-gray-500 mt-1">
+                      You can find your Patient ID on your previous appointment receipts, medical certificates, or contact the clinic
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Request Type</label>
+                    <Select value={medCertRequestType} onValueChange={setMedCertRequestType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select request type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Medical Certificate">Medical Certificate</SelectItem>
+                        <SelectItem value="Medical Record">Medical Record</SelectItem>
+                        <SelectItem value="Lab Results">Lab Results</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Document Upload (Previously Step 3) */}
+            {medCertStep === 2 && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-center mb-4">Upload Identification Documents</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">ID Front Side *</label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setMedCertIdFront(file);
+                          setMedCertIdFrontPreview(URL.createObjectURL(file));
+                        }
+                      }}
+                      required
+                    />
+                    <div className="flex items-center gap-1 text-xs text-[#79c942] mt-1">
+                      <Info className="h-3 w-3" />
+                      <span>Driver's License, Passport, National ID, Postal ID</span>
+                    </div>
+                    {medCertIdFrontPreview && (
+                      <img src={medCertIdFrontPreview} alt="ID Front" className="w-32 h-20 mt-2 rounded object-cover border" />
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">ID Back Side</label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setMedCertIdBack(file);
+                          setMedCertIdBackPreview(URL.createObjectURL(file));
+                        }
+                      }}
+                    />
+                    <div className="text-xs text-gray-500 mt-1">Optional for most IDs</div>
+                    {medCertIdBackPreview && (
+                      <img src={medCertIdBackPreview} alt="ID Back" className="w-32 h-20 mt-2 rounded object-cover border" />
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Additional Notes</label>
+                  <Textarea
+                    value={medCertNotes}
+                    onChange={(e) => setMedCertNotes(e.target.value)}
+                    placeholder="Any additional information or special requests..."
+                    rows={3}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Confirmation (Previously Step 4) */}
+            {medCertStep === 3 && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-center mb-4">Confirm Your Request</h3>
+                <div className="bg-gray-50 rounded-lg p-6 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-semibold text-gray-700">Request Type</h4>
+                      <p>{medCertRequestType}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-700">Patient ID</h4>
+                      <p>{medCertSearchQuery}</p>
+                    </div>
+                    {medCertSelectedPatient && (
+                      <>
+                        <div>
+                          <h4 className="font-semibold text-gray-700">Patient Name</h4>
+                          <p>{`${medCertSelectedPatient.first_name || ''} ${medCertSelectedPatient.middle_initial ? medCertSelectedPatient.middle_initial + ' ' : ''}${medCertSelectedPatient.last_name || ''}${medCertSelectedPatient.suffix ? ' ' + medCertSelectedPatient.suffix : ''}`.trim()}</p>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-700">Date of Birth</h4>
+                          <p>{medCertSelectedPatient.date_of_birth || medCertSelectedPatient.dateOfBirth || 'Not available'}</p>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-700">Email</h4>
+                          <p>{medCertSelectedPatient.email || 'Not available'}</p>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-700">Phone</h4>
+                          <p>{medCertSelectedPatient.phone_number || medCertSelectedPatient.phone || 'Not available'}</p>
+                        </div>
+                      </>
+                    )}
+                    <div>
+                      <h4 className="font-semibold text-gray-700">Documents</h4>
+                      <p>{medCertIdFront ? 'ID uploaded' : 'No ID uploaded'}</p>
+                    </div>
+                  </div>
+                  {medCertNotes && (
+                    <div>
+                      <h4 className="font-semibold text-gray-700">Notes</h4>
+                      <p className="text-gray-600">{medCertNotes}</p>
+                    </div>
+                  )}
+                </div>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-2">
+                    <Info className="w-5 h-5 text-yellow-600 mt-0.5" />
+                    <div className="text-sm text-yellow-800">
+                      <p className="font-semibold">Processing Time:</p>
+                      <p>Your request will be processed within 2-3 business days. You will be contacted via email once ready.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="flex justify-between pt-6">
+              <Button
+                variant="outline"
+                onClick={medCertStep === 1 ? () => { setOpenModal(null); resetMedCertModal(); } : () => setMedCertStep(prev => prev - 1)}
+                disabled={medCertSubmitting}
+              >
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                {medCertStep === 1 ? 'Cancel' : 'Previous'}
+              </Button>
+              
+              {medCertStep < 3 ? (
                 <Button
-                  className="bg-[#79c942] hover:bg-[#68ab38] text-white font-bold transition-colors"
-                  onClick={() =>
-                    handleSubmit(
-                      "Your medical records request has been submitted successfully! Our staff will review your request and contact you within 2-3 business days."
-                    )
-                  }
-                  disabled={!consent || !documentType}
+                  onClick={async () => {
+                    if (medCertStep === 1) {
+                      // Validate Patient ID
+                      if (!medCertSearchQuery.trim()) {
+                        toast.error('Please enter your Patient ID');
+                        return;
+                      }
+                      const validation = await validatePatientId(medCertSearchQuery);
+                      if (!validation.isValid) {
+                        toast.error(validation.error);
+                        return;
+                      }
+                      setMedCertSelectedPatient(validation.patient);
+                      toast.success('Patient ID verified successfully!');
+                    }
+                    if (medCertStep === 2 && !medCertIdFront) {
+                      toast.error('Please upload your ID');
+                      return;
+                    }
+                    setMedCertStep(prev => prev + 1);
+                  }}
+                  className="bg-[#79c942] hover:bg-[#68ab38] text-white"
+                  disabled={medCertSubmitting}
                 >
-                  Submit Request
+                  Next
+                  <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
-              </div>
+              ) : (
+                <Button
+                  onClick={submitMedicalCertRequest}
+                  className="bg-[#79c942] hover:bg-[#68ab38] text-white"
+                  disabled={medCertSubmitting}
+                >
+                  {medCertSubmitting ? 'Submitting...' : 'Submit Request'}
+                </Button>
+              )}
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* =================== E-Prescription Modal =================== */}
-      <Dialog open={openModal === "eprescription"} onOpenChange={() => setOpenModal(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-4 md:p-8">
+      <Dialog open={openModal === "eprescription"} onOpenChange={() => { setOpenModal(null); resetPrescriptionModal(); }}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-6">
           <DialogHeader>
-            <DialogTitle className="text-[#79c942] text-center">Request E-Prescription</DialogTitle>
+            <DialogTitle className="text-[#79c942] text-center text-2xl font-bold">
+              Request E-Prescription - Step {prescriptionStep} of 4
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-6">
-            <div className="flex items-center space-x-2 mb-2">
-              <Checkbox checked={existingPatient} onCheckedChange={(v) => setExistingPatient(!!v)} className="accent-[#79c942]" />
-              <span>
-                I agree to the Terms and Conditions and consent to providing my personal information for processing my request.
-                <span className="inline-flex align-middle ml-1">
-                  <ConsentTooltip text={
-  `By ticking this box:
-1. I confirm that the information I provide is true and correct.
-2. I understand that my personal data will be collected, stored, and used only for the purpose of scheduling my appointment or processing my request (medical certificate or e-prescription).
-3. I consent to the clinic reviewing my request and communicating with me through my selected contact preference (SMS, email, or phone).
-4. I also acknowledge that my request is subject to approval by clinic staff.`
-} />                </span>
-              </span>
-            </div>
-            <div className={existingPatient ? "space-y-6" : "opacity-50 pointer-events-none space-y-6"}>
-              <PersonalInfoFields disabled={!existingPatient} />
-              <div className="space-y-2">
-                <Input type="file" accept="image/*" onChange={handleIdUpload} required />
-                <div className="flex items-center gap-1 text-xs text-[#79c942]">
-                  <Info className="h-3 w-3 text-[#79c942]" />
-                  <span>
-                    Primary IDs only: Driver's License, Passport, Philippine National ID, Postal ID
-                  </span>
+
+          {/* Progress Bar */}
+          <div className="flex justify-between items-center mb-6">
+            {[1, 2, 3, 4].map((step) => (
+              <div key={step} className="flex flex-col items-center">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  step <= prescriptionStep ? 'bg-[#79c942] text-white' : 'bg-gray-200 text-gray-600'
+                }`}>
+                  {step < prescriptionStep ? <CheckCircle className="w-5 h-5" /> : step}
                 </div>
-                {idPreview && (
-                  <img src={idPreview} alt="ID Preview" className="w-16 h-16 mt-2 rounded object-cover border" />
-                )}
+                <span className="text-xs mt-1 text-center">
+                  {step === 1 && 'Patient ID'}
+                  {step === 2 && 'Medication'}
+                  {step === 3 && 'Documents'}
+                  {step === 4 && 'Confirm'}
+                </span>
               </div>
-              <Textarea placeholder="Additional notes (optional)" className="mt-2" />
-              <Select value={eprescriptionType} onValueChange={setEPrescriptionType} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Receive e-prescription via" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pickup">Pick-up</SelectItem>
-                  <SelectItem value="email">Email</SelectItem>
-                </SelectContent>
-              </Select>
-              <div className="flex flex-col md:flex-row justify-end gap-2 mt-4">
-                <Button variant="outline" onClick={() => setOpenModal(null)}>
-                  Cancel
-                </Button>
+            ))}
+          </div>
+
+          <div className="space-y-6">
+            {/* Step 1: Patient ID Input (Previously Step 2) */}
+            {prescriptionStep === 1 && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-center mb-4">Enter your Patient ID</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Patient ID *</label>
+                    <Input
+                      placeholder="Enter your Patient ID"
+                      value={prescriptionSearchQuery}
+                      onChange={(e) => setPrescriptionSearchQuery(e.target.value)}
+                      className="w-full"
+                    />
+                    <div className="text-xs text-gray-500 mt-1">
+                      You can find your Patient ID on your previous appointment receipts, medical certificates, or contact the clinic
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Medication Information */}
+            {prescriptionStep === 2 && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-center mb-4">Medication Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Medication Name *</label>
+                    <Input {...prescriptionForm.register('medicationName')} placeholder="e.g., Amoxicillin" />
+                    {prescriptionForm.formState.errors.medicationName && (
+                      <p className="text-red-500 text-sm mt-1">{prescriptionForm.formState.errors.medicationName.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Dosage *</label>
+                    <Input {...prescriptionForm.register('dosage')} placeholder="e.g., 500mg" />
+                    {prescriptionForm.formState.errors.dosage && (
+                      <p className="text-red-500 text-sm mt-1">{prescriptionForm.formState.errors.dosage.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Frequency *</label>
+                    <Input {...prescriptionForm.register('frequency')} placeholder="e.g., 3 times daily" />
+                    {prescriptionForm.formState.errors.frequency && (
+                      <p className="text-red-500 text-sm mt-1">{prescriptionForm.formState.errors.frequency.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Duration *</label>
+                    <Input {...prescriptionForm.register('duration')} placeholder="e.g., 7 days" />
+                    {prescriptionForm.formState.errors.duration && (
+                      <p className="text-red-500 text-sm mt-1">{prescriptionForm.formState.errors.duration.message}</p>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Additional Notes</label>
+                  <Textarea
+                    {...prescriptionForm.register('additionalNotes')}
+                    placeholder="Any additional instructions or information..."
+                    rows={3}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Document Upload (Previously Step 4) */}
+            {prescriptionStep === 3 && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-center mb-4">Upload Documents</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">ID Front Side *</label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setPrescriptionIdFront(file);
+                          setPrescriptionIdFrontPreview(URL.createObjectURL(file));
+                        }
+                      }}
+                      required
+                    />
+                    <div className="flex items-center gap-1 text-xs text-[#79c942] mt-1">
+                      <Info className="h-3 w-3" />
+                      <span>Valid government ID</span>
+                    </div>
+                    {prescriptionIdFrontPreview && (
+                      <img src={prescriptionIdFrontPreview} alt="ID Front" className="w-32 h-20 mt-2 rounded object-cover border" />
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">ID Back Side</label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setPrescriptionIdBack(file);
+                          setPrescriptionIdBackPreview(URL.createObjectURL(file));
+                        }
+                      }}
+                    />
+                    <div className="text-xs text-gray-500 mt-1">Optional</div>
+                    {prescriptionIdBackPreview && (
+                      <img src={prescriptionIdBackPreview} alt="ID Back" className="w-32 h-20 mt-2 rounded object-cover border" />
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Confirmation (Previously Step 5) */}
+            {prescriptionStep === 4 && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-center mb-4">Confirm Your Request</h3>
+                <div className="bg-gray-50 rounded-lg p-6 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-semibold text-gray-700">Patient ID</h4>
+                      <p>{prescriptionSearchQuery}</p>
+                    </div>
+                    {prescriptionSelectedPatient && (
+                      <>
+                        <div>
+                          <h4 className="font-semibold text-gray-700">Patient Name</h4>
+                          <p>{`${prescriptionSelectedPatient.first_name || ''} ${prescriptionSelectedPatient.middle_initial ? prescriptionSelectedPatient.middle_initial + ' ' : ''}${prescriptionSelectedPatient.last_name || ''}${prescriptionSelectedPatient.suffix ? ' ' + prescriptionSelectedPatient.suffix : ''}`.trim()}</p>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-700">Date of Birth</h4>
+                          <p>{prescriptionSelectedPatient.date_of_birth || prescriptionSelectedPatient.dateOfBirth || 'Not available'}</p>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-700">Email</h4>
+                          <p>{prescriptionSelectedPatient.email || 'Not available'}</p>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-700">Phone</h4>
+                          <p>{prescriptionSelectedPatient.phone_number || prescriptionSelectedPatient.phone || 'Not available'}</p>
+                        </div>
+                      </>
+                    )}
+                    <div>
+                      <h4 className="font-semibold text-gray-700">Medication</h4>
+                      <p>{prescriptionForm.getValues('medicationName')} - {prescriptionForm.getValues('dosage')}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-700">Frequency & Duration</h4>
+                      <p>{prescriptionForm.getValues('frequency')} for {prescriptionForm.getValues('duration')}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-700">Documents</h4>
+                      <p>{prescriptionIdFront ? 'ID uploaded' : 'No ID uploaded'}</p>
+                    </div>
+                  </div>
+                  {prescriptionForm.getValues('additionalNotes') && (
+                    <div>
+                      <h4 className="font-semibold text-gray-700">Notes</h4>
+                      <p className="text-gray-600">{prescriptionForm.getValues('additionalNotes')}</p>
+                    </div>
+                  )}
+                </div>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-2">
+                    <Info className="w-5 h-5 text-yellow-600 mt-0.5" />
+                    <div className="text-sm text-yellow-800">
+                      <p className="font-semibold">Processing Time:</p>
+                      <p>Your prescription request will be processed within 2-3 business days. You will be contacted via email once ready.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="flex justify-between pt-6">
+              <Button
+                variant="outline"
+                onClick={prescriptionStep === 1 ? () => { setOpenModal(null); resetPrescriptionModal(); } : () => setPrescriptionStep(prev => prev - 1)}
+                disabled={prescriptionSubmitting}
+              >
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                {prescriptionStep === 1 ? 'Cancel' : 'Previous'}
+              </Button>
+              
+              {prescriptionStep < 4 ? (
                 <Button
-                  className="bg-[#79c942] hover:bg-[#68ab38] text-white font-bold transition-colors"
-                  onClick={() =>
-                    handleSubmit(
-                      "Your medical records request has been submitted successfully! Our staff will review your request and contact you within 2-3 business days."
-                    )
-                  }
-                  disabled={!existingPatient || !eprescriptionType}
+                  onClick={async () => {
+                    if (prescriptionStep === 1) {
+                      // Validate Patient ID
+                      if (!prescriptionSearchQuery.trim()) {
+                        toast.error('Please enter your Patient ID');
+                        return;
+                      }
+                      const validation = await validatePatientId(prescriptionSearchQuery);
+                      if (!validation.isValid) {
+                        toast.error(validation.error);
+                        return;
+                      }
+                      setPrescriptionSelectedPatient(validation.patient);
+                      toast.success('Patient ID verified successfully!');
+                    }
+                    if (prescriptionStep === 2) {
+                      const medicationFields = ['medicationName', 'dosage', 'frequency', 'duration'];
+                      const hasEmptyField = medicationFields.some(field => !prescriptionForm.getValues(field as any));
+                      if (hasEmptyField) {
+                        toast.error('Please fill in all medication details');
+                        return;
+                      }
+                    }
+                    if (prescriptionStep === 3 && !prescriptionIdFront) {
+                      toast.error('Please upload your ID');
+                      return;
+                    }
+                    setPrescriptionStep(prev => prev + 1);
+                  }}
+                  className="bg-[#79c942] hover:bg-[#68ab38] text-white"
+                  disabled={prescriptionSubmitting}
                 >
-                  Submit Request
+                  Next
+                  <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
-              </div>
+              ) : (
+                <Button
+                  onClick={submitPrescriptionRequest}
+                  className="bg-[#79c942] hover:bg-[#68ab38] text-white"
+                  disabled={prescriptionSubmitting}
+                >
+                  {prescriptionSubmitting ? 'Submitting...' : 'Submit Request'}
+                </Button>
+              )}
             </div>
           </div>
         </DialogContent>
