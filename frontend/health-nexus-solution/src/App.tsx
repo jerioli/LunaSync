@@ -25,6 +25,7 @@ import MedicalCertificateManagement from "./pages/MedicalCertificateManagement";
 import NotFound from "./pages/NotFound";
 import PatientManagement from "./pages/PatientManagement";
 import PatientPortal from "./pages/PatientPortal";
+
 import PatientsList from "./pages/PatientsList";
 import PermissionManagement from "./pages/PermissionManagement";
 import PrescriptionManagement from "./pages/PrescriptionManagement";
@@ -105,6 +106,9 @@ const App = () => {
             
             {/* Public patient portal */}
             <Route path="/portal" element={<PatientPortal />} />
+            
+            {/* Patient requests page */}
+           
             
             {/* Patient appointment scheduling */}
             <Route path="/portal/appointment" element={<AppointmentScheduling />} />
