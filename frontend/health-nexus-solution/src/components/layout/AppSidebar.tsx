@@ -93,8 +93,6 @@ export const AppSidebar = () => {
         return [
           { title: 'Dashboard', icon: Home, path: '/' },
           { title: 'Staff', icon: Users, path: '/staff' },
-          { title: 'Patients', icon: Users, path: '/patients' },
-          { title: 'Lab Results', icon: Image, path: '/lab-results' },
           { title: 'Permission Management', icon: Shield, path: '/permissions' },
           { title: 'Audit Logs', icon: FileText, path: '/audit-logs' },
           { title: 'Usage Reports', icon: BarChart3, path: '/usage-reports' },

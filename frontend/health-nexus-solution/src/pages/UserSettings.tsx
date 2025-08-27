@@ -2,13 +2,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useClinic } from '@/contexts/ClinicContext';
-import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { toast } from '@/hooks/use-toast';
 import axios from 'axios';
@@ -18,7 +16,6 @@ import { useEffect, useState } from 'react';
 const UserSettings = () => {
   const { currentUser, setCurrentUser } = useClinic();
   const { theme, setTheme } = useTheme();
-  const { t } = useLanguage();
     // Profile settings
   const [profileData, setProfileData] = useState({
     firstName: '',
@@ -380,14 +377,14 @@ const UserSettings = () => {
         <TabsContent value="appearance" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>{t('settings.preferences')}</CardTitle>
+              <CardTitle>Preferences</CardTitle>
               <CardDescription>
                 Choose how the application looks and behaves for you.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label>{t('settings.themeMode')}</Label>
+                <Label>Theme Mode</Label>
                 <Select value={theme} onValueChange={(value: 'light' | 'dark' | 'system') => setTheme(value)}>
                   <SelectTrigger className="w-[200px]">
                     <SelectValue>
@@ -418,13 +415,6 @@ const UserSettings = () => {
                     </SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-2">
-                <Label>{t('settings.languagePreference')}</Label>
-                <LanguageSelector variant="select" showIcon={true} showLabel={false} />
               </div>
             </CardContent>
           </Card>

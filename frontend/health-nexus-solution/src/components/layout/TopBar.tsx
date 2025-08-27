@@ -3,12 +3,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useClinic } from '@/contexts/ClinicContext';
@@ -159,7 +159,7 @@ export const TopBar: React.FC = () => {
   if (!currentUser) return null; // If no user, don't render the top bar
 
   return (
-    <header className="sticky top-0 z-50 w-full py-2 px-4 md:py-3 md:px-6 border-b bg-white">
+    <header className="sticky top-0 z-50 w-full py-2 px-4 md:py-3 md:px-6 border-b bg-background">
       <div className="flex items-center justify-between">
         {/* Left side - Only Sidebar trigger */}
         <div className="flex items-center">
@@ -188,13 +188,13 @@ export const TopBar: React.FC = () => {
             
             {/* Notification Dropdown */}
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-[280px] sm:w-[320px] bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-[80vh] overflow-y-auto">
-                <div className="p-4 border-b border-gray-100">
-                  <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
-                  <p className="text-xs text-gray-500 mt-1">
+              <div className="absolute right-0 mt-2 w-[280px] sm:w-[320px] bg-background border border-border rounded-lg shadow-lg z-50 max-h-[80vh] overflow-y-auto">
+                <div className="p-4 border-b border-border">
+                  <h3 className="text-sm font-semibold text-foreground">Notifications</h3>
+                  <p className="text-xs text-muted-foreground mt-1">
                     {pendingCount > 0 ? `${pendingCount} pending appointment request${pendingCount > 1 ? 's' : ''}` : 'No pending requests'}
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Debug: {pendingAppointments.length} appointments loaded
                   </p>
                 </div>
@@ -202,8 +202,8 @@ export const TopBar: React.FC = () => {
                 <div className="p-2">
                   {loadingNotifications ? (
                     <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                      <p className="text-sm text-gray-500">Loading notifications...</p>
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
+                      <p className="text-sm text-muted-foreground">Loading notifications...</p>
                     </div>
                   ) : pendingAppointments.length > 0 ? (
                     pendingAppointments.map((appointment) => {
@@ -226,29 +226,29 @@ export const TopBar: React.FC = () => {
                       return (
                         <Card 
                           key={appointment.id} 
-                          className="mb-2 cursor-pointer hover:bg-gray-50 transition-colors"
+                          className="mb-2 cursor-pointer hover:bg-accent transition-colors"
                           onClick={handleNotificationItemClick}
                         >
                           <CardContent className="p-3">
                             <div className="flex items-start gap-3">
                               <div className="flex-shrink-0">
-                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                  <Calendar className="h-4 w-4 text-blue-600" />
+                                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                                  <Calendar className="h-4 w-4 text-primary" />
                                 </div>
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between">
-                                  <p className="text-sm font-medium text-gray-900">
+                                  <p className="text-sm font-medium text-foreground">
                                     New Appointment Request
                                   </p>
-                                  <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
+                                  <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800">
                                     Pending
                                   </Badge>
                                 </div>
-                                <p className="text-xs text-gray-600 mt-1">
+                                <p className="text-xs text-muted-foreground mt-1">
                                   From: <span className="font-medium">{patientName}</span>
                                 </p>
-                                <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                                   <div className="flex items-center gap-1">
                                     <Calendar className="h-3 w-3" />
                                     <span>{new Date(appointment.date).toLocaleDateString()}</span>
@@ -259,7 +259,7 @@ export const TopBar: React.FC = () => {
                                   </div>
                                 </div>
                                 {appointment.appointment_type && (
-                                  <p className="text-xs text-gray-500 mt-1">
+                                  <p className="text-xs text-muted-foreground mt-1">
                                     Type: {appointment.appointment_type}
                                   </p>
                                 )}
@@ -271,14 +271,14 @@ export const TopBar: React.FC = () => {
                     })
                   ) : (
                     <div className="text-center py-8">
-                      <Bell className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500">No pending appointment requests</p>
+                      <Bell className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">No pending appointment requests</p>
                     </div>
                   )}
                 </div>
                 
                 {pendingAppointments.length > 0 && (
-                  <div className="p-3 border-t border-gray-100">
+                  <div className="p-3 border-t border-border">
                     <Button 
                       variant="outline" 
                       size="sm" 

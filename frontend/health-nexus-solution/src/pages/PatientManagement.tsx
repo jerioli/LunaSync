@@ -549,7 +549,7 @@ const PatientManagement = () => {
       printSettings.includeLabResults && 
       printSettings.includeMedicalCertificates;
 
-    // If all documents are selected and we have multiple types, use the merged professional format
+    // Check if we have multiple types of documents
     const hasMultipleDocumentTypes = [
       prescriptions.length > 0,
       soapNotes.length > 0,
@@ -558,12 +558,369 @@ const PatientManagement = () => {
       certificates.length > 0
     ].filter(Boolean).length > 1;
 
+    // If all documents are selected and we have multiple types, use the merged professional format
     if (allDocumentsSelected && hasMultipleDocumentTypes) {
       return generateMergedProfessionalDocument();
     }
 
-    // Otherwise, use the existing format
-    return generateStandardPrintContent();
+    // Otherwise, use individual document printing (each document gets its own page with original design)
+    return generateIndividualDocumentsPrint();
+  };
+
+  // New function for printing individual documents with their original designs
+  const generateIndividualDocumentsPrint = () => {
+    if (!patientData) return '';
+
+    const clinicInfo = clinicSettings || {};
+    const logoUrl = getLogoUrl(clinicInfo?.logo || '');
+    
+    let content = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Patient Documents - ${patientData.name}</title>
+        <meta charset="utf-8">
+        <style>
+          @page {
+            margin: 0.15in;
+            size: A4;
+          }
+          
+          @media print {
+            .page-break {
+              page-break-before: always;
+            }
+            .no-print {
+              display: none;
+            }
+            body {
+              margin: 0;
+              padding: 0;
+              width: 100%;
+              max-width: none;
+            }
+          }
+          
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            max-width: none;
+          }
+        </style>
+      </head>
+      <body>
+    `;
+
+    // Documents sections - Each document type gets its own page with original design
+    if (printSettings.includePrescriptions && prescriptions.length > 0) {
+      prescriptions.forEach((prescription, index) => {
+        if (index > 0 || content.includes('</body>')) content += `<div class="page-break"></div>`;
+
+        const prescriptionId = `RX-${Date.now().toString().slice(-8).toUpperCase()}`;
+        const clinicData = clinicSettings || {};
+        
+        content += `
+          <div style="padding: 40px; max-width: 8.5in; margin: 0 auto; background: white; min-height: 11in;">
+            <!-- Header -->
+            <div style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px;">
+              ${logoUrl ? `<img src="${logoUrl}" alt="Clinic Logo" style="max-height: 60px; margin-bottom: 10px;">` : ''}
+              <div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">${clinicData.clinic_name || 'Medical Clinic'}</div>
+              <div style="font-size: 12px; color: #666;">
+                ${clinicData.address || 'Clinic Address'}<br>
+                ${clinicData.phone || ''} | ${clinicData.email || ''}
+              </div>
+            </div>
+
+            <!-- Prescription Title -->
+            <div style="text-align: center; margin-bottom: 20px;">
+              <div style="font-weight: bold; font-size: 14px;">PRESCRIPTION ID: ${prescriptionId}</div>
+            </div>
+
+            <!-- Location and Date -->
+            <div style="text-align: center; margin-bottom: 30px; font-size: 12px; color: #666;">
+              <div>${clinicData.address || 'Clinic Address'}</div>
+              <div style="margin-top: 10px;">
+                Prescribed on: ${format(new Date(prescription.dateCreated), 'MMMM dd, yyyy')}
+              </div>
+              <div>${format(new Date(prescription.dateCreated), 'hh:mm a')} PHT</div>
+            </div>
+
+            <!-- Patient Info -->
+            <div style="margin-bottom: 20px; font-size: 12px;">
+              <div><strong>Patient:</strong> ${patientData?.name}</div>
+              <div><strong>Age:</strong> ${patientData?.date_of_birth ? Math.floor((new Date().getTime() - new Date(patientData.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 'N/A'} years old</div>
+              <div><strong>Gender:</strong> ${patientData?.gender || 'Not specified'}</div>
+            </div>
+
+            <!-- Rx Symbol -->
+            <div style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">Rx</div>
+
+            <!-- Prescription Details -->
+            <div style="margin-bottom: 40px; font-size: 14px; line-height: 1.6;">
+              <div style="font-weight: bold; margin-bottom: 5px;">${prescription.data.name}</div>
+              <div style="margin-bottom: 10px;">${prescription.data.dose || prescription.data.dosage || ''} - ${prescription.data.quantity || ''}</div>
+              ${prescription.data.notes || prescription.data.description ? `<div style="margin-left: 20px; color: #555;">${prescription.data.notes || prescription.data.description}</div>` : ''}
+            </div>
+
+            <!-- Doctor Signature Area -->
+            <div style="text-align: right; margin-top: 60px;">
+              <div style="border-bottom: 1px solid #000; width: 200px; margin-left: auto; margin-bottom: 5px;"></div>
+              <div style="font-size: 12px;">Dr. ${currentUser?.first_name || currentUser?.name} ${currentUser?.last_name || ''}</div>
+            </div>
+
+            <!-- Footer -->
+            <div style="text-align: center; margin-top: 40px; font-size: 10px; color: #999;">
+              <div style="width: 30px; height: 30px; border-radius: 50%; background: #f0f0f0; margin: 0 auto;"></div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    if (printSettings.includeSoapNotes && soapNotes.length > 0) {
+      soapNotes.forEach((note, index) => {
+        content += `<div class="page-break"></div>`;
+        
+        const clinicData = clinicSettings || {};
+        const soapId = `SOAP-${Date.now().toString().slice(-8).toUpperCase()}`;
+        
+        content += `
+          <div style="padding: 40px; max-width: 8.5in; margin: 0 auto; background: white; min-height: 11in;">
+            <!-- Header -->
+            <div style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px;">
+              ${logoUrl ? `<img src="${logoUrl}" alt="Clinic Logo" style="max-height: 60px; margin-bottom: 10px;">` : ''}
+              <div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">${clinicData.clinic_name || 'Medical Clinic'}</div>
+              <div style="font-size: 12px; color: #666;">
+                ${clinicData.address || 'Clinic Address'}<br>
+                ${clinicData.phone || ''} | ${clinicData.email || ''}
+              </div>
+            </div>
+
+            <!-- SOAP Note Title -->
+            <div style="text-align: center; margin-bottom: 20px;">
+              <div style="font-weight: bold; font-size: 16px;">SOAP NOTE</div>
+              <div style="font-size: 12px; margin-top: 5px;">ID: ${soapId}</div>
+            </div>
+
+            <!-- Patient Info -->
+            <div style="margin-bottom: 30px; font-size: 12px; background: #f9f9f9; padding: 15px; border-radius: 5px;">
+              <div><strong>Patient:</strong> ${patientData?.name}</div>
+              <div><strong>Date:</strong> ${format(new Date(note.dateCreated), 'MMMM dd, yyyy')}</div>
+              <div><strong>Provider:</strong> ${note.createdBy || currentUser?.name || 'Medical Staff'}</div>
+            </div>
+
+            <!-- SOAP Content -->
+            <div style="margin-bottom: 30px;">
+              <div style="margin-bottom: 20px;">
+                <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px; color: #333; border-bottom: 1px solid #ccc; padding-bottom: 3px;">SUBJECTIVE:</div>
+                <div style="margin-left: 15px; line-height: 1.5; white-space: pre-wrap;">${note.data?.subjective || 'Not recorded'}</div>
+              </div>
+              
+              <div style="margin-bottom: 20px;">
+                <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px; color: #333; border-bottom: 1px solid #ccc; padding-bottom: 3px;">OBJECTIVE:</div>
+                <div style="margin-left: 15px; line-height: 1.5; white-space: pre-wrap;">${note.data?.objective || 'Not recorded'}</div>
+              </div>
+              
+              <div style="margin-bottom: 20px;">
+                <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px; color: #333; border-bottom: 1px solid #ccc; padding-bottom: 3px;">ASSESSMENT:</div>
+                <div style="margin-left: 15px; line-height: 1.5; white-space: pre-wrap;">${note.data?.assessment || 'Not recorded'}</div>
+              </div>
+              
+              <div style="margin-bottom: 20px;">
+                <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px; color: #333; border-bottom: 1px solid #ccc; padding-bottom: 3px;">PLAN:</div>
+                <div style="margin-left: 15px; line-height: 1.5; white-space: pre-wrap;">${note.data?.plan || 'Not recorded'}</div>
+              </div>
+            </div>
+
+            <!-- Signature Area -->
+            <div style="text-align: right; margin-top: 60px;">
+              <div style="border-bottom: 1px solid #000; width: 200px; margin-left: auto; margin-bottom: 5px;"></div>
+              <div style="font-size: 12px;">${note.createdBy || currentUser?.name || 'Medical Staff'}</div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    if (printSettings.includeClinicalNotes && blankNotes.length > 0) {
+      blankNotes.forEach((note, index) => {
+        content += `<div class="page-break"></div>`;
+        
+        const clinicData = clinicSettings || {};
+        const noteId = `CN-${Date.now().toString().slice(-8).toUpperCase()}`;
+        
+        content += `
+          <div style="padding: 40px; max-width: 8.5in; margin: 0 auto; background: white; min-height: 11in;">
+            <!-- Header -->
+            <div style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px;">
+              ${logoUrl ? `<img src="${logoUrl}" alt="Clinic Logo" style="max-height: 60px; margin-bottom: 10px;">` : ''}
+              <div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">${clinicData.clinic_name || 'Medical Clinic'}</div>
+              <div style="font-size: 12px; color: #666;">
+                ${clinicData.address || 'Clinic Address'}<br>
+                ${clinicData.phone || ''} | ${clinicData.email || ''}
+              </div>
+            </div>
+
+            <!-- Clinical Note Title -->
+            <div style="text-align: center; margin-bottom: 20px;">
+              <div style="font-weight: bold; font-size: 16px;">CLINICAL NOTE</div>
+              <div style="font-size: 14px; margin-top: 5px;">${note.data?.title || 'General Clinical Note'}</div>
+              <div style="font-size: 12px; margin-top: 5px;">ID: ${noteId}</div>
+            </div>
+
+            <!-- Patient Info -->
+            <div style="margin-bottom: 30px; font-size: 12px; background: #f9f9f9; padding: 15px; border-radius: 5px;">
+              <div><strong>Patient:</strong> ${patientData?.name}</div>
+              <div><strong>Date:</strong> ${format(new Date(note.dateCreated), 'MMMM dd, yyyy')}</div>
+              <div><strong>Provider:</strong> ${note.createdBy || currentUser?.name || 'Medical Staff'}</div>
+            </div>
+
+            <!-- Note Content -->
+            <div style="margin-bottom: 30px; border: 1px solid #ddd; padding: 20px; background: #fdfdfd; min-height: 300px;">
+              <div style="white-space: pre-wrap; line-height: 1.6; font-size: 13px;">${note.data?.content || 'No content recorded'}</div>
+            </div>
+
+            <!-- Signature Area -->
+            <div style="text-align: right; margin-top: 60px;">
+              <div style="border-bottom: 1px solid #000; width: 200px; margin-left: auto; margin-bottom: 5px;"></div>
+              <div style="font-size: 12px;">${note.createdBy || currentUser?.name || 'Medical Staff'}</div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    if (printSettings.includeLabResults && labResults.length > 0) {
+      labResults.forEach((result, index) => {
+        content += `<div class="page-break"></div>`;
+        
+        // Use the actual saved lab result HTML content with original design
+        let labResultContent = result.document?.content || '';
+        
+        // If we have the complete HTML content, use it directly
+        if (labResultContent.includes('<!DOCTYPE html>')) {
+          // Extract just the body content to avoid nested HTML structures
+          let bodyMatch = labResultContent.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+          if (bodyMatch) {
+            labResultContent = bodyMatch[1];
+          } else {
+            // Fallback: remove html, head tags but keep the content
+            labResultContent = labResultContent.replace(/<\/?html[^>]*>/gi, '');
+            labResultContent = labResultContent.replace(/<head[^>]*>[\s\S]*?<\/head>/gi, '');
+            labResultContent = labResultContent.replace(/<\/?body[^>]*>/gi, '');
+          }
+          
+          // Extract and preserve the original styles
+          let styleMatch = result.document?.content?.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+          let originalStyles = styleMatch ? styleMatch[1] : '';
+          
+          content += `
+            <style>
+              ${originalStyles}
+              @page {
+                margin: 0.3in;
+                size: A4;
+              }
+              @media print {
+                .page-break {
+                  page-break-before: always;
+                }
+                body {
+                  margin: 0;
+                  padding: 0;
+                }
+              }
+            </style>
+            ${labResultContent}
+          `;
+        } else {
+          // Fallback: Create a basic lab result layout if content is missing
+          content += `
+            <div style="padding: 40px; max-width: 8.5in; margin: 0 auto; background: white; min-height: 11in; font-family: 'Times New Roman', serif;">
+              <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px;">
+                <h1 style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">LABORATORY RESULT REPORT</h1>
+                <p style="font-size: 12px;">Generated: ${format(new Date(), 'MMMM dd, yyyy')}</p>
+              </div>
+              
+              <div style="margin-bottom: 20px; font-size: 12px; background: #f9f9f9; padding: 15px;">
+                <div><strong>Patient:</strong> ${patientData?.name}</div>
+                <div><strong>Test Type:</strong> ${result.test_name || result.test_category || 'N/A'}</div>
+                <div><strong>Laboratory:</strong> ${result.laboratory_name || 'N/A'}</div>
+                <div><strong>Date:</strong> ${format(new Date(result.document?.document_date || result.document?.created_at || new Date()), 'MMMM dd, yyyy')}</div>
+              </div>
+              
+              <div style="margin-bottom: 20px;">
+                <h3 style="font-size: 14px; font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 5px;">TEST RESULTS</h3>
+                <div style="white-space: pre-wrap; font-family: 'Courier New', monospace; font-size: 11px; border: 1px solid #ddd; padding: 15px; background: #fdfdfd; min-height: 200px;">
+                  ${labResultContent || result.interpretation || 'Test results not available'}
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      });
+    }
+
+    if (printSettings.includeMedicalCertificates && certificates.length > 0) {
+      certificates.forEach((cert, index) => {
+        content += `<div class="page-break"></div>`;
+        
+        // Use the actual saved certificate HTML content with original design
+        let certificateContent = cert.content || '';
+        
+        // Clean the certificate content to work within our document structure
+        if (certificateContent.includes('<!DOCTYPE html>')) {
+          // Extract just the body content to avoid nested HTML structures
+          let bodyMatch = certificateContent.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+          if (bodyMatch) {
+            certificateContent = bodyMatch[1];
+          } else {
+            // Fallback: remove html, head tags but keep the content
+            certificateContent = certificateContent.replace(/<\/?html[^>]*>/gi, '');
+            certificateContent = certificateContent.replace(/<head[^>]*>[\s\S]*?<\/head>/gi, '');
+            certificateContent = certificateContent.replace(/<\/?body[^>]*>/gi, '');
+          }
+          
+          // Extract and preserve the original styles
+          let styleMatch = cert.content?.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+          let originalStyles = styleMatch ? styleMatch[1] : '';
+          
+          content += `
+            <style>
+              ${originalStyles}
+              @page {
+                margin: 0.5in;
+                size: A4;
+              }
+              @media print {
+                .page-break {
+                  page-break-before: always;
+                }
+                body {
+                  margin: 0;
+                  padding: 0;
+                }
+              }
+            </style>
+            ${certificateContent}
+          `;
+        } else {
+          // Add the certificate content as-is if it's already clean
+          content += certificateContent;
+        }
+      });
+    }
+
+    content += `
+      </body>
+      </html>
+    `;
+
+    return content;
   };
 
   const generateMergedProfessionalDocument = () => {
@@ -1423,8 +1780,8 @@ const PatientManagement = () => {
             <!-- Prescription Details -->
             <div style="margin-bottom: 40px; font-size: 14px; line-height: 1.6;">
               <div style="font-weight: bold; margin-bottom: 5px;">${prescription.data.name}</div>
-              <div style="margin-bottom: 10px;">${prescription.data.dosage} ${prescription.data.quantity}</div>
-              ${prescription.data.description ? `<div style="margin-left: 20px; color: #555;">${prescription.data.description}</div>` : ''}
+              <div style="margin-bottom: 10px;">${prescription.data.dose || prescription.data.dosage || ''} - ${prescription.data.quantity || ''}</div>
+              ${prescription.data.notes || prescription.data.description ? `<div style="margin-left: 20px; color: #555;">${prescription.data.notes || prescription.data.description}</div>` : ''}
             </div>
 
             <!-- Doctor Signature Area -->
@@ -1443,92 +1800,236 @@ const PatientManagement = () => {
     }
 
     if (printSettings.includeSoapNotes && soapNotes.length > 0) {
-      content += `<div class="page-break"></div>`;
-      content += `
-        <div class="section">
-          <div class="section-title">SOAP Notes</div>
-      `;
       soapNotes.forEach((note, index) => {
+        content += `<div class="page-break"></div>`;
+        
+        const clinicData = clinicSettings || {};
+        const soapId = `SOAP-${Date.now().toString().slice(-8).toUpperCase()}`;
+        
         content += `
-          <div class="document">
-            <div class="document-title">SOAP Note #${index + 1}</div>
-            <div class="document-date">Created: ${format(new Date(note.dateCreated), 'PPP')}</div>
-            <div class="soap-section">
-              <div class="soap-label">Subjective:</div>
-              <div>${note.data.subjective}</div>
+          <div style="padding: 40px; max-width: 8.5in; margin: 0 auto; background: white; min-height: 11in;">
+            <!-- Header -->
+            <div style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px;">
+              ${logoUrl ? `<img src="${logoUrl}" alt="Clinic Logo" style="max-height: 60px; margin-bottom: 10px;">` : ''}
+              <div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">${clinicData.clinic_name || 'Medical Clinic'}</div>
+              <div style="font-size: 12px; color: #666;">
+                ${clinicData.address || 'Clinic Address'}<br>
+                ${clinicData.phone || ''} | ${clinicData.email || ''}
+              </div>
             </div>
-            <div class="soap-section">
-              <div class="soap-label">Objective:</div>
-              <div>${note.data.objective}</div>
+
+            <!-- SOAP Note Title -->
+            <div style="text-align: center; margin-bottom: 20px;">
+              <div style="font-weight: bold; font-size: 16px;">SOAP NOTE</div>
+              <div style="font-size: 12px; margin-top: 5px;">ID: ${soapId}</div>
             </div>
-            <div class="soap-section">
-              <div class="soap-label">Assessment:</div>
-              <div>${note.data.assessment}</div>
+
+            <!-- Patient Info -->
+            <div style="margin-bottom: 30px; font-size: 12px; background: #f9f9f9; padding: 15px; border-radius: 5px;">
+              <div><strong>Patient:</strong> ${patientData?.name}</div>
+              <div><strong>Date:</strong> ${format(new Date(note.dateCreated), 'MMMM dd, yyyy')}</div>
+              <div><strong>Provider:</strong> ${note.createdBy || currentUser?.name || 'Medical Staff'}</div>
             </div>
-            <div class="soap-section">
-              <div class="soap-label">Plan:</div>
-              <div>${note.data.plan}</div>
+
+            <!-- SOAP Content -->
+            <div style="margin-bottom: 30px;">
+              <div style="margin-bottom: 20px;">
+                <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px; color: #333; border-bottom: 1px solid #ccc; padding-bottom: 3px;">SUBJECTIVE:</div>
+                <div style="margin-left: 15px; line-height: 1.5; white-space: pre-wrap;">${note.data?.subjective || 'Not recorded'}</div>
+              </div>
+              
+              <div style="margin-bottom: 20px;">
+                <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px; color: #333; border-bottom: 1px solid #ccc; padding-bottom: 3px;">OBJECTIVE:</div>
+                <div style="margin-left: 15px; line-height: 1.5; white-space: pre-wrap;">${note.data?.objective || 'Not recorded'}</div>
+              </div>
+              
+              <div style="margin-bottom: 20px;">
+                <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px; color: #333; border-bottom: 1px solid #ccc; padding-bottom: 3px;">ASSESSMENT:</div>
+                <div style="margin-left: 15px; line-height: 1.5; white-space: pre-wrap;">${note.data?.assessment || 'Not recorded'}</div>
+              </div>
+              
+              <div style="margin-bottom: 20px;">
+                <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px; color: #333; border-bottom: 1px solid #ccc; padding-bottom: 3px;">PLAN:</div>
+                <div style="margin-left: 15px; line-height: 1.5; white-space: pre-wrap;">${note.data?.plan || 'Not recorded'}</div>
+              </div>
+            </div>
+
+            <!-- Signature Area -->
+            <div style="text-align: right; margin-top: 60px;">
+              <div style="border-bottom: 1px solid #000; width: 200px; margin-left: auto; margin-bottom: 5px;"></div>
+              <div style="font-size: 12px;">${note.createdBy || currentUser?.name || 'Medical Staff'}</div>
             </div>
           </div>
         `;
       });
-      content += `</div>`;
     }
 
     if (printSettings.includeClinicalNotes && blankNotes.length > 0) {
-      content += `<div class="page-break"></div>`;
-      content += `
-        <div class="section">
-          <div class="section-title">Clinical Notes</div>
-      `;
       blankNotes.forEach((note, index) => {
+        content += `<div class="page-break"></div>`;
+        
+        const clinicData = clinicSettings || {};
+        const noteId = `CN-${Date.now().toString().slice(-8).toUpperCase()}`;
+        
         content += `
-          <div class="document">
-            <div class="document-title">${note.data.title}</div>
-            <div class="document-date">Created: ${format(new Date(note.dateCreated), 'PPP')}</div>
-            <div>${note.data.content}</div>
+          <div style="padding: 40px; max-width: 8.5in; margin: 0 auto; background: white; min-height: 11in;">
+            <!-- Header -->
+            <div style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px;">
+              ${logoUrl ? `<img src="${logoUrl}" alt="Clinic Logo" style="max-height: 60px; margin-bottom: 10px;">` : ''}
+              <div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">${clinicData.clinic_name || 'Medical Clinic'}</div>
+              <div style="font-size: 12px; color: #666;">
+                ${clinicData.address || 'Clinic Address'}<br>
+                ${clinicData.phone || ''} | ${clinicData.email || ''}
+              </div>
+            </div>
+
+            <!-- Clinical Note Title -->
+            <div style="text-align: center; margin-bottom: 20px;">
+              <div style="font-weight: bold; font-size: 16px;">CLINICAL NOTE</div>
+              <div style="font-size: 14px; margin-top: 5px;">${note.data?.title || 'General Clinical Note'}</div>
+              <div style="font-size: 12px; margin-top: 5px;">ID: ${noteId}</div>
+            </div>
+
+            <!-- Patient Info -->
+            <div style="margin-bottom: 30px; font-size: 12px; background: #f9f9f9; padding: 15px; border-radius: 5px;">
+              <div><strong>Patient:</strong> ${patientData?.name}</div>
+              <div><strong>Date:</strong> ${format(new Date(note.dateCreated), 'MMMM dd, yyyy')}</div>
+              <div><strong>Provider:</strong> ${note.createdBy || currentUser?.name || 'Medical Staff'}</div>
+            </div>
+
+            <!-- Note Content -->
+            <div style="margin-bottom: 30px; border: 1px solid #ddd; padding: 20px; background: #fdfdfd; min-height: 300px;">
+              <div style="white-space: pre-wrap; line-height: 1.6; font-size: 13px;">${note.data?.content || 'No content recorded'}</div>
+            </div>
+
+            <!-- Signature Area -->
+            <div style="text-align: right; margin-top: 60px;">
+              <div style="border-bottom: 1px solid #000; width: 200px; margin-left: auto; margin-bottom: 5px;"></div>
+              <div style="font-size: 12px;">${note.createdBy || currentUser?.name || 'Medical Staff'}</div>
+            </div>
           </div>
         `;
       });
-      content += `</div>`;
     }
 
     if (printSettings.includeLabResults && labResults.length > 0) {
-      content += `<div class="page-break"></div>`;
-      content += `
-        <div class="section">
-          <div class="section-title">Lab Results</div>
-      `;
       labResults.forEach((result, index) => {
-        content += `
-          <div class="document">
-            <div class="document-title">Lab Result #${index + 1}</div>
-            <div class="document-date">Date: ${format(new Date((result as any)?.test_date || (result as any)?.date || new Date()), 'PPP')}</div>
-            <div><strong>Test Type:</strong> ${(result as any)?.test_type || (result as any)?.type || 'N/A'}</div>
-            ${(result as any)?.laboratory_name ? `<div><strong>Laboratory:</strong> ${(result as any).laboratory_name}</div>` : ''}
-            ${(result as any)?.doctor_notes ? `<div><strong>Doctor's Notes:</strong> ${(result as any).doctor_notes}</div>` : ''}
-          </div>
-        `;
+        content += `<div class="page-break"></div>`;
+        
+        // Use the actual saved lab result HTML content with original design
+        let labResultContent = result.document?.content || '';
+        
+        // If we have the complete HTML content, use it directly
+        if (labResultContent.includes('<!DOCTYPE html>')) {
+          // Extract just the body content to avoid nested HTML structures
+          let bodyMatch = labResultContent.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+          if (bodyMatch) {
+            labResultContent = bodyMatch[1];
+          } else {
+            // Fallback: remove html, head tags but keep the content
+            labResultContent = labResultContent.replace(/<\/?html[^>]*>/gi, '');
+            labResultContent = labResultContent.replace(/<head[^>]*>[\s\S]*?<\/head>/gi, '');
+            labResultContent = labResultContent.replace(/<\/?body[^>]*>/gi, '');
+          }
+          
+          // Extract and preserve the original styles
+          let styleMatch = result.document?.content?.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+          let originalStyles = styleMatch ? styleMatch[1] : '';
+          
+          content += `
+            <style>
+              ${originalStyles}
+              @page {
+                margin: 0.3in;
+                size: A4;
+              }
+              @media print {
+                .page-break {
+                  page-break-before: always;
+                }
+                body {
+                  margin: 0;
+                  padding: 0;
+                }
+              }
+            </style>
+            ${labResultContent}
+          `;
+        } else {
+          // Fallback: Create a basic lab result layout if content is missing
+          content += `
+            <div style="padding: 40px; max-width: 8.5in; margin: 0 auto; background: white; min-height: 11in; font-family: 'Times New Roman', serif;">
+              <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px;">
+                <h1 style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">LABORATORY RESULT REPORT</h1>
+                <p style="font-size: 12px;">Generated: ${format(new Date(), 'MMMM dd, yyyy')}</p>
+              </div>
+              
+              <div style="margin-bottom: 20px; font-size: 12px; background: #f9f9f9; padding: 15px;">
+                <div><strong>Patient:</strong> ${patientData?.name}</div>
+                <div><strong>Test Type:</strong> ${result.test_name || result.test_category || 'N/A'}</div>
+                <div><strong>Laboratory:</strong> ${result.laboratory_name || 'N/A'}</div>
+                <div><strong>Date:</strong> ${format(new Date(result.document?.document_date || result.document?.created_at || new Date()), 'MMMM dd, yyyy')}</div>
+              </div>
+              
+              <div style="margin-bottom: 20px;">
+                <h3 style="font-size: 14px; font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 5px;">TEST RESULTS</h3>
+                <div style="white-space: pre-wrap; font-family: 'Courier New', monospace; font-size: 11px; border: 1px solid #ddd; padding: 15px; background: #fdfdfd; min-height: 200px;">
+                  ${labResultContent || result.interpretation || 'Test results not available'}
+                </div>
+              </div>
+            </div>
+          `;
+        }
       });
-      content += `</div>`;
     }
 
     if (printSettings.includeMedicalCertificates && certificates.length > 0) {
       certificates.forEach((cert, index) => {
         content += `<div class="page-break"></div>`;
         
-        // Extract just the certificate content without the full HTML wrapper
-        let certificateContent = cert.content;
+        // Use the actual saved certificate HTML content with original design
+        let certificateContent = cert.content || '';
         
-        // Remove HTML, HEAD, and BODY tags if present
-        certificateContent = certificateContent.replace(/<html[^>]*>/gi, '');
-        certificateContent = certificateContent.replace(/<\/html>/gi, '');
-        certificateContent = certificateContent.replace(/<head[^>]*>[\s\S]*?<\/head>/gi, '');
-        certificateContent = certificateContent.replace(/<body[^>]*>/gi, '');
-        certificateContent = certificateContent.replace(/<\/body>/gi, '');
-        
-        // Add the clean certificate content
-        content += certificateContent;
+        // Clean the certificate content to work within our document structure
+        if (certificateContent.includes('<!DOCTYPE html>')) {
+          // Extract just the body content to avoid nested HTML structures
+          let bodyMatch = certificateContent.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+          if (bodyMatch) {
+            certificateContent = bodyMatch[1];
+          } else {
+            // Fallback: remove html, head tags but keep the content
+            certificateContent = certificateContent.replace(/<\/?html[^>]*>/gi, '');
+            certificateContent = certificateContent.replace(/<head[^>]*>[\s\S]*?<\/head>/gi, '');
+            certificateContent = certificateContent.replace(/<\/?body[^>]*>/gi, '');
+          }
+          
+          // Extract and preserve the original styles
+          let styleMatch = cert.content?.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+          let originalStyles = styleMatch ? styleMatch[1] : '';
+          
+          content += `
+            <style>
+              ${originalStyles}
+              @page {
+                margin: 0.5in;
+                size: A4;
+              }
+              @media print {
+                .page-break {
+                  page-break-before: always;
+                }
+                body {
+                  margin: 0;
+                  padding: 0;
+                }
+              }
+            </style>
+            ${certificateContent}
+          `;
+        } else {
+          // Add the certificate content as-is if it's already clean
+          content += certificateContent;
+        }
       });
     }
 
