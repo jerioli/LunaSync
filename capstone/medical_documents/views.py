@@ -12,8 +12,9 @@ from .models import (
 from .serializers import (
     MedicalDocumentSerializer, LabResultSerializer, LabResultCreateSerializer,
     SOAPNoteSerializer, SOAPNoteCreateSerializer, PrescriptionSerializer, 
-    PrescriptionCreateSerializer, ClinicalNoteSerializer, 
-    MedicalCertificateSerializer, PhysicalExaminationSerializer,
+    PrescriptionCreateSerializer, ClinicalNoteSerializer, ClinicalNoteCreateSerializer,
+    MedicalCertificateSerializer, MedicalCertificateCreateSerializer, 
+    PhysicalExaminationSerializer, PhysicalExaminationCreateSerializer,
     DocumentAttachmentSerializer
 )
 from patients.models import Patient
@@ -243,8 +244,12 @@ class PrescriptionViewSet(viewsets.ModelViewSet):
 
 class ClinicalNoteViewSet(viewsets.ModelViewSet):
     queryset = ClinicalNote.objects.all()
-    serializer_class = ClinicalNoteSerializer
     permission_classes = [permissions.AllowAny]  # Temporarily allow unauthenticated access for testing
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return ClinicalNoteCreateSerializer
+        return ClinicalNoteSerializer
     
     def get_queryset(self):
         queryset = ClinicalNote.objects.select_related('document', 'document__patient').all()
@@ -263,8 +268,12 @@ class ClinicalNoteViewSet(viewsets.ModelViewSet):
 
 class MedicalCertificateViewSet(viewsets.ModelViewSet):
     queryset = MedicalCertificate.objects.all()
-    serializer_class = MedicalCertificateSerializer
     permission_classes = [permissions.AllowAny]  # Temporarily allow unauthenticated access for testing
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return MedicalCertificateCreateSerializer
+        return MedicalCertificateSerializer
     
     def get_queryset(self):
         queryset = MedicalCertificate.objects.select_related('document', 'document__patient').all()
@@ -283,8 +292,12 @@ class MedicalCertificateViewSet(viewsets.ModelViewSet):
 
 class PhysicalExaminationViewSet(viewsets.ModelViewSet):
     queryset = PhysicalExamination.objects.all()
-    serializer_class = PhysicalExaminationSerializer
     permission_classes = [permissions.AllowAny]  # Temporarily allow unauthenticated access for testing
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return PhysicalExaminationCreateSerializer
+        return PhysicalExaminationSerializer
     
     def get_queryset(self):
         queryset = PhysicalExamination.objects.select_related('document', 'document__patient').all()

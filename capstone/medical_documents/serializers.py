@@ -204,19 +204,31 @@ class SOAPNoteSerializer(serializers.ModelSerializer):
 
 class SOAPNoteCreateSerializer(serializers.ModelSerializer):
     # For creating SOAP notes with embedded document data
-    patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all())
-    created_by = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False)
-    authorized_by = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False)
+    patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), write_only=True)
+    created_by = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False, write_only=True)
+    authorized_by = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False, write_only=True)
     
-    # Document fields
-    title = serializers.CharField()
-    description = serializers.CharField(required=False, allow_blank=True)
-    document_date = serializers.DateTimeField(required=False)
-    status = serializers.CharField(required=False, default='approved')
+    # Document fields (write-only for creation)
+    title = serializers.CharField(write_only=True)
+    description = serializers.CharField(required=False, allow_blank=True, write_only=True)
+    document_date = serializers.DateTimeField(required=False, write_only=True)
+    status = serializers.CharField(required=False, default='approved', write_only=True)
+    
+    # Read-only fields for response
+    document = MedicalDocumentSerializer(read_only=True)
+    patient_name = serializers.CharField(source='document.patient.name', read_only=True)
     
     class Meta:
         model = SOAPNote
-        exclude = ('document',)
+        fields = [
+            # Write-only fields for creation
+            'patient', 'created_by', 'authorized_by', 'title', 'description', 'document_date', 'status',
+            # SOAP-specific fields
+            'subjective', 'objective', 'assessment', 'plan', 'vital_signs', 
+            'chief_complaint', 'history_present_illness',
+            # Read-only fields for response
+            'id', 'document', 'patient_name'
+        ]
     
     def create(self, validated_data):
         # Get or create a default user for testing purposes
@@ -264,18 +276,32 @@ class PrescriptionSerializer(serializers.ModelSerializer):
 
 class PrescriptionCreateSerializer(serializers.ModelSerializer):
     # For creating prescriptions with embedded document data
-    patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all())
-    created_by = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False)
+    patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), write_only=True)
+    created_by = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False, write_only=True)
     prescribing_physician = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.filter(role='doctor'), required=False)
     
-    # Document fields
-    title = serializers.CharField()
-    description = serializers.CharField(required=False, allow_blank=True)
-    document_date = serializers.DateTimeField(required=False)
+    # Document fields (write-only for creation)
+    title = serializers.CharField(write_only=True)
+    description = serializers.CharField(required=False, allow_blank=True, write_only=True)
+    document_date = serializers.DateTimeField(required=False, write_only=True)
+    status = serializers.CharField(required=False, write_only=True)
+    
+    # Read-only fields for response
+    document = MedicalDocumentSerializer(read_only=True)
+    patient_name = serializers.CharField(source='document.patient.name', read_only=True)
     
     class Meta:
         model = Prescription
-        exclude = ('document',)
+        fields = [
+            # Write-only fields for creation
+            'patient', 'created_by', 'title', 'description', 'document_date', 'status',
+            # Prescription-specific fields
+            'prescription_number', 'prescribing_physician', 'medications', 
+            'general_instructions', 'pharmacy_notes', 'valid_until', 
+            'refills_allowed', 'refills_remaining',
+            # Read-only fields for response
+            'id', 'document', 'patient_name', 'dispensed_date', 'dispensed_by'
+        ]
     
     def create(self, validated_data):
         # Get or create a default user for testing purposes
@@ -297,20 +323,33 @@ class PrescriptionCreateSerializer(serializers.ModelSerializer):
         # Extract document-related data
         document_data = {
             'document_type': 'prescription',
-            'patient': validated_data.get('patient'),
+            'patient': validated_data.pop('patient'),
             'created_by': created_by,
             'authorized_by': prescribing_physician,
             'title': validated_data.pop('title'),
             'description': validated_data.pop('description', ''),
             'document_date': validated_data.pop('document_date', None),
-            'status': 'approved',
+            'status': validated_data.pop('status', 'approved'),
         }
         
         # Create the base document
         document = MedicalDocument.objects.create(**document_data)
         
-        # Create the prescription with the document
-        prescription = Prescription.objects.create(document=document, **validated_data)
+        # Extract prescription-specific data
+        prescription_data = {
+            'document': document,
+            'prescription_number': validated_data.get('prescription_number'),
+            'prescribing_physician': prescribing_physician,
+            'medications': validated_data.get('medications', []),
+            'general_instructions': validated_data.get('general_instructions', ''),
+            'pharmacy_notes': validated_data.get('pharmacy_notes', ''),
+            'valid_until': validated_data.get('valid_until'),
+            'refills_allowed': validated_data.get('refills_allowed', 0),
+            'refills_remaining': validated_data.get('refills_remaining', 0),
+        }
+        
+        # Create the prescription with only prescription-specific fields
+        prescription = Prescription.objects.create(**prescription_data)
         
         return prescription
 
@@ -330,6 +369,57 @@ class MedicalCertificateSerializer(serializers.ModelSerializer):
         model = MedicalCertificate
         fields = '__all__'
 
+class MedicalCertificateCreateSerializer(serializers.ModelSerializer):
+    # For creating medical certificates with embedded document data
+    patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all())
+    created_by = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False)
+    authorized_by = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False)
+    
+    # Document fields
+    title = serializers.CharField()
+    description = serializers.CharField(required=False, allow_blank=True)
+    document_date = serializers.DateTimeField(required=False)
+    status = serializers.CharField(required=False, default='approved')
+    
+    class Meta:
+        model = MedicalCertificate
+        exclude = ('document',)
+    
+    def create(self, validated_data):
+        # Get or create a default user for testing purposes
+        created_by = validated_data.pop('created_by', None)
+        if not created_by:
+            created_by, _ = CustomUser.objects.get_or_create(
+                email='system@demo.com',
+                defaults={
+                    'first_name': 'System',
+                    'last_name': 'User',
+                    'role': 'doctor',
+                    'is_active': True
+                }
+            )
+        
+        # Extract document-related data
+        document_data = {
+            'document_type': 'medical_certificate',
+            'patient': validated_data.pop('patient'),
+            'created_by': created_by,
+            'authorized_by': validated_data.pop('authorized_by', None),
+            'title': validated_data.pop('title'),
+            'description': validated_data.pop('description', ''),
+            'document_date': validated_data.pop('document_date', None),
+            'status': validated_data.pop('status', 'approved'),
+            'content': f"Medical Certificate - {validated_data.get('certificate_type', '').replace('_', ' ').title()}\n\nPurpose: {validated_data.get('purpose', '')}\n\nMedical Opinion: {validated_data.get('medical_opinion', '')}",
+        }
+        
+        # Create the base document
+        document = MedicalDocument.objects.create(**document_data)
+        
+        # Create the medical certificate with the document
+        medical_certificate = MedicalCertificate.objects.create(document=document, **validated_data)
+        
+        return medical_certificate
+
 class PhysicalExaminationSerializer(serializers.ModelSerializer):
     document = MedicalDocumentSerializer(read_only=True)
     patient_name = serializers.CharField(source='document.patient.name', read_only=True)
@@ -337,6 +427,120 @@ class PhysicalExaminationSerializer(serializers.ModelSerializer):
     class Meta:
         model = PhysicalExamination
         fields = '__all__'
+
+class PhysicalExaminationCreateSerializer(serializers.ModelSerializer):
+    # For creating physical examinations with embedded document data
+    patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all())
+    created_by = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False)
+    authorized_by = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False)
+    
+    # Document fields
+    title = serializers.CharField()
+    description = serializers.CharField(required=False, allow_blank=True)
+    document_date = serializers.DateTimeField(required=False)
+    status = serializers.CharField(required=False, default='approved')
+    
+    class Meta:
+        model = PhysicalExamination
+        exclude = ('document',)
+    
+    def create(self, validated_data):
+        # Get or create a default user for testing purposes
+        created_by = validated_data.pop('created_by', None)
+        if not created_by:
+            created_by, _ = CustomUser.objects.get_or_create(
+                email='system@demo.com',
+                defaults={
+                    'first_name': 'System',
+                    'last_name': 'User',
+                    'role': 'doctor',
+                    'is_active': True
+                }
+            )
+        
+        # Extract document-related data
+        document_data = {
+            'document_type': 'physical_examination',
+            'patient': validated_data.pop('patient'),
+            'created_by': created_by,
+            'authorized_by': validated_data.pop('authorized_by', None),
+            'title': validated_data.pop('title'),
+            'description': validated_data.pop('description', ''),
+            'document_date': validated_data.pop('document_date', None),
+            'status': validated_data.pop('status', 'approved'),
+            'content': f"Physical Examination\n\nOverall Impression: {validated_data.get('overall_impression', '')}\n\nAbnormal Findings: {validated_data.get('abnormal_findings', '')}\n\nRecommendations: {validated_data.get('recommendations', '')}",
+        }
+        
+        # Create the base document
+        document = MedicalDocument.objects.create(**document_data)
+        
+        # Create the physical examination with the document
+        physical_examination = PhysicalExamination.objects.create(document=document, **validated_data)
+        
+        return physical_examination
+
+class ClinicalNoteCreateSerializer(serializers.ModelSerializer):
+    # For creating clinical notes with embedded document data
+    patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), write_only=True)
+    created_by = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False, write_only=True)
+    authorized_by = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False, write_only=True)
+    
+    # Document fields (write-only for creation)
+    title = serializers.CharField(write_only=True)
+    description = serializers.CharField(required=False, allow_blank=True, write_only=True)
+    document_date = serializers.DateTimeField(required=False, write_only=True)
+    status = serializers.CharField(required=False, default='approved', write_only=True)
+    
+    # Read-only fields for response
+    document = MedicalDocumentSerializer(read_only=True)
+    patient_name = serializers.CharField(source='document.patient.name', read_only=True)
+    
+    class Meta:
+        model = ClinicalNote
+        fields = [
+            # Write-only fields for creation
+            'patient', 'created_by', 'authorized_by', 'title', 'description', 'document_date', 'status',
+            # Clinical note-specific fields
+            'note_type', 'clinical_context', 'findings', 'recommendations', 
+            'follow_up_required', 'follow_up_date',
+            # Read-only fields for response
+            'id', 'document', 'patient_name'
+        ]
+    
+    def create(self, validated_data):
+        # Get or create a default user for testing purposes
+        created_by = validated_data.pop('created_by', None)
+        if not created_by:
+            created_by, _ = CustomUser.objects.get_or_create(
+                email='system@demo.com',
+                defaults={
+                    'first_name': 'System',
+                    'last_name': 'User',
+                    'role': 'doctor',
+                    'is_active': True
+                }
+            )
+        
+        # Extract document-related data
+        document_data = {
+            'document_type': 'clinical_note',
+            'patient': validated_data.pop('patient'),
+            'created_by': created_by,
+            'authorized_by': validated_data.pop('authorized_by', None),
+            'title': validated_data.pop('title'),
+            'description': validated_data.pop('description', ''),
+            'document_date': validated_data.pop('document_date', None),
+            'status': validated_data.pop('status', 'approved'),
+            'content': f"Clinical Note - {validated_data.get('note_type', '').replace('_', ' ').title()}\n\nFindings: {validated_data.get('findings', '')}\n\nRecommendations: {validated_data.get('recommendations', '')}",
+        }
+        
+        # Create the base document
+        document = MedicalDocument.objects.create(**document_data)
+        
+        # Create the clinical note with the document
+        clinical_note = ClinicalNote.objects.create(document=document, **validated_data)
+        
+        return clinical_note
 
 class DocumentAttachmentSerializer(serializers.ModelSerializer):
     class Meta:

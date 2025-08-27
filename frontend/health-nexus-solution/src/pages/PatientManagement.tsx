@@ -14,9 +14,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
+import { medicalDocumentsAPI } from '@/lib/medicalDocumentsAPI';
 import { Patient } from '@/lib/mock-data';
 import { axiosInstance } from '@/services/api';
-import { medicalDocumentsAPI, type LabResult as APILabResult } from '@/services/medicalDocumentsAPI';
+import { type LabResult as APILabResult } from '@/services/medicalDocumentsAPI';
 import { parseApiError } from '@/utils/errorHandler';
 import { format } from 'date-fns';
 import { ArrowLeft, ChevronLeft, ChevronRight, Edit, Eye, File, FileText, Heart, Plus, Printer, Save, Stethoscope, TestTube, Trash2, Upload, User } from 'lucide-react';
@@ -230,38 +231,74 @@ const PatientManagement = () => {
   }, [patientData, initialLoadComplete]);
 
   // Certificate management functions
-  const handleSaveCertificate = (certificate: any) => {
-    setCertificates(prev => [...prev, certificate]);
-    
-    // Also save to localStorage for persistence
-    const storageKey = `certificates_patient_${id}`;
-    const existingCertificates = localStorage.getItem(storageKey);
-    const certificates = existingCertificates ? JSON.parse(existingCertificates) : [];
-    certificates.push(certificate);
-    localStorage.setItem(storageKey, JSON.stringify(certificates));
-    
-    toast({
-      title: 'Certificate saved',
-      description: 'Medical certificate has been generated and saved successfully.',
-    });
+  const handleSaveCertificate = async (certificate: any) => {
+    try {
+      // Prepare data for backend API
+      const certificateData = {
+        patient: parseInt(id!),
+        title: certificate.data?.title || 'Medical Certificate',
+        description: certificate.data?.description || '',
+        certificate_type: certificate.data?.type || 'fitness',
+        purpose: certificate.data?.purpose || '',
+        medical_opinion: certificate.data?.medicalOpinion || certificate.data?.content || '',
+        valid_from: certificate.data?.validFrom || new Date().toISOString().split('T')[0],
+        valid_until: certificate.data?.validUntil || null,
+        restrictions: certificate.data?.restrictions || '',
+        examination_findings: certificate.data?.examinationFindings || '',
+        document_date: new Date().toISOString(),
+        status: 'approved'
+      };
+
+      // Save to backend
+      const savedCertificate = await medicalDocumentsAPI.createMedicalCertificate(certificateData);
+      
+      // Update local state with the saved certificate
+      setCertificates(prev => [...prev, {
+        ...certificate,
+        id: savedCertificate.id || savedCertificate.document?.id,
+        backendId: savedCertificate.id,
+        documentId: savedCertificate.document?.id
+      }]);
+      
+      toast({
+        title: 'Certificate saved',
+        description: 'Medical certificate has been generated and saved successfully to the database.',
+      });
+    } catch (error) {
+      console.error('Error saving certificate:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save certificate. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const handleDeleteCertificate = (certificateId: number) => {
-    setCertificates(prev => prev.filter(cert => cert.id !== certificateId));
-    
-    // Also remove from localStorage
-    const storageKey = `certificates_patient_${id}`;
-    const existingCertificates = localStorage.getItem(storageKey);
-    if (existingCertificates) {
-      const certificates = JSON.parse(existingCertificates);
-      const updatedCertificates = certificates.filter((cert: any) => cert.id !== certificateId);
-      localStorage.setItem(storageKey, JSON.stringify(updatedCertificates));
+  const handleDeleteCertificate = async (certificateId: number) => {
+    try {
+      // Find the certificate to get its backend ID
+      const certificate = certificates.find(cert => cert.id === certificateId);
+      
+      if (certificate?.backendId) {
+        // Delete from backend
+        await medicalDocumentsAPI.deleteMedicalCertificate(certificate.backendId);
+      }
+      
+      // Update local state
+      setCertificates(prev => prev.filter(cert => cert.id !== certificateId));
+      
+      toast({
+        title: 'Certificate deleted',
+        description: 'Medical certificate has been deleted successfully.',
+      });
+    } catch (error) {
+      console.error('Error deleting certificate:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete certificate. Please try again.',
+        variant: 'destructive',
+      });
     }
-    
-    toast({
-      title: 'Certificate deleted',
-      description: 'Medical certificate has been deleted successfully.',
-    });
   };
 
   const handleDeleteLabResult = async (labResultId: string) => {
@@ -323,87 +360,170 @@ const PatientManagement = () => {
     setShowCreateDialog(true);
   };
 
-  const handleSaveDocument = () => {
+  const handleSaveDocument = async () => {
     if (!createDocumentType) return;
 
-    const document = {
-      id: Date.now(),
-      type: createDocumentType,
-      patientId: patientData?.id,
-      patientName: patientData?.name,
-      dateCreated: new Date().toISOString(),                                                                                                                                                                                                                                                                                                                      
-      data: documentData,
-      createdBy: currentUser?.name || 'Unknown'
-    };
+    try {
+      const baseDocumentData = {
+        patient: parseInt(id!),
+        title: '',
+        description: '',
+        document_date: new Date().toISOString(),
+        status: 'approved'
+      };
 
-    // Save to appropriate state
-    if (createDocumentType === 'prescription') {
-      setPrescriptions(prev => [...prev, document]);
-      const storageKey = `prescriptions_patient_${id}`;
-      const existing = localStorage.getItem(storageKey);
-      const docs = existing ? JSON.parse(existing) : [];
-      docs.push(document);
-      localStorage.setItem(storageKey, JSON.stringify(docs));
-    } else if (createDocumentType === 'soap') {
-      setSoapNotes(prev => [...prev, document]);
-      const storageKey = `soapnotes_patient_${id}`;
-      const existing = localStorage.getItem(storageKey);
-      const docs = existing ? JSON.parse(existing) : [];
-      docs.push(document);
-      localStorage.setItem(storageKey, JSON.stringify(docs));
-    } else if (createDocumentType === 'blank') {
-      setBlankNotes(prev => [...prev, document]);
-      const storageKey = `blanknotes_patient_${id}`;
-      const existing = localStorage.getItem(storageKey);
-      const docs = existing ? JSON.parse(existing) : [];
-      docs.push(document);
-      localStorage.setItem(storageKey, JSON.stringify(docs));
+      if (createDocumentType === 'prescription') {
+        const prescriptionData = {
+          ...baseDocumentData,
+          title: `Prescription for ${patientData?.name}`,
+          description: documentData.notes || '',
+          prescription_number: `RX-${Date.now().toString().slice(-8).toUpperCase()}`,
+          medications: [{
+            name: documentData.name,
+            dose: documentData.dose,
+            quantity: documentData.quantity,
+            frequency: documentData.frequency || documentData.customFrequency,
+            instructions: documentData.notes || ''
+          }],
+          general_instructions: documentData.notes || '',
+          valid_until: documentData.endDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          refills_allowed: 0,
+          refills_remaining: 0
+        };
+
+        const savedPrescription = await medicalDocumentsAPI.createPrescription(prescriptionData);
+        
+        // Update local state
+        const document = {
+          id: savedPrescription.id || Date.now(),
+          type: createDocumentType,
+          patientId: patientData?.id,
+          patientName: patientData?.name,
+          dateCreated: new Date().toISOString(),
+          data: documentData,
+          createdBy: currentUser?.name || 'Unknown',
+          backendId: savedPrescription.id,
+          documentId: savedPrescription.document?.id
+        };
+        
+        setPrescriptions(prev => [...prev, document]);
+        
+      } else if (createDocumentType === 'soap') {
+        const soapData = {
+          ...baseDocumentData,
+          title: `SOAP Note for ${patientData?.name}`,
+          description: 'SOAP Note',
+          subjective: documentData.subjective || '',
+          objective: documentData.objective || '',
+          assessment: documentData.assessment || '',
+          plan: documentData.plan || '',
+          vital_signs: {},
+          chief_complaint: '',
+          history_present_illness: ''
+        };
+
+        const savedSOAP = await medicalDocumentsAPI.createSOAPNote(soapData);
+        
+        // Update local state
+        const document = {
+          id: savedSOAP.id || Date.now(),
+          type: createDocumentType,
+          patientId: patientData?.id,
+          patientName: patientData?.name,
+          dateCreated: new Date().toISOString(),
+          data: documentData,
+          createdBy: currentUser?.name || 'Unknown',
+          backendId: savedSOAP.id,
+          documentId: savedSOAP.document?.id
+        };
+        
+        setSoapNotes(prev => [...prev, document]);
+        
+      } else if (createDocumentType === 'blank') {
+        const clinicalNoteData = {
+          ...baseDocumentData,
+          title: documentData.title || `Clinical Note for ${patientData?.name}`,
+          description: 'Clinical Note',
+          note_type: 'general',
+          clinical_context: documentData.content || '',
+          findings: documentData.content || '',
+          recommendations: '',
+          follow_up_required: false
+        };
+
+        const savedNote = await medicalDocumentsAPI.createClinicalNote(clinicalNoteData);
+        
+        // Update local state
+        const document = {
+          id: savedNote.id || Date.now(),
+          type: createDocumentType,
+          patientId: patientData?.id,
+          patientName: patientData?.name,
+          dateCreated: new Date().toISOString(),
+          data: documentData,
+          createdBy: currentUser?.name || 'Unknown',
+          backendId: savedNote.id,
+          documentId: savedNote.document?.id
+        };
+        
+        setBlankNotes(prev => [...prev, document]);
+      }
+
+      toast({
+        title: 'Document saved',
+        description: `${createDocumentType === 'prescription' ? 'E-Prescription' : createDocumentType === 'soap' ? 'SOAP Note' : 'Clinical Note'} has been saved successfully to the database.`,
+      });
+
+      setShowCreateDialog(false);
+      setCreateDocumentType(null);
+      setDocumentData({});
+      
+    } catch (error) {
+      console.error('Error saving document:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save document. Please try again.',
+        variant: 'destructive',
+      });
     }
-
-    toast({
-      title: 'Document saved',
-      description: `${createDocumentType === 'prescription' ? 'E-Prescription' : createDocumentType === 'soap' ? 'SOAP Note' : 'Blank Note'} has been saved successfully.`,
-    });
-
-    setShowCreateDialog(false);
-    setCreateDocumentType(null);
-    setDocumentData({});
   };
 
-  const handleDeleteDocument = (docId: number, type: 'prescription' | 'soap' | 'blank') => {
-    if (type === 'prescription') {
-      setPrescriptions(prev => prev.filter(doc => doc.id !== docId));
-      const storageKey = `prescriptions_patient_${id}`;
-      const existing = localStorage.getItem(storageKey);
-      if (existing) {
-        const docs = JSON.parse(existing);
-        const updated = docs.filter((doc: any) => doc.id !== docId);
-        localStorage.setItem(storageKey, JSON.stringify(updated));
+  const handleDeleteDocument = async (docId: number, type: 'prescription' | 'soap' | 'blank') => {
+    try {
+      let document;
+      
+      if (type === 'prescription') {
+        document = prescriptions.find(doc => doc.id === docId);
+        if (document?.backendId) {
+          await medicalDocumentsAPI.deletePrescription(document.backendId);
+        }
+        setPrescriptions(prev => prev.filter(doc => doc.id !== docId));
+      } else if (type === 'soap') {
+        document = soapNotes.find(doc => doc.id === docId);
+        if (document?.backendId) {
+          await medicalDocumentsAPI.deleteSOAPNote(document.backendId);
+        }
+        setSoapNotes(prev => prev.filter(doc => doc.id !== docId));
+      } else if (type === 'blank') {
+        document = blankNotes.find(doc => doc.id === docId);
+        if (document?.backendId) {
+          await medicalDocumentsAPI.deleteClinicalNote(document.backendId);
+        }
+        setBlankNotes(prev => prev.filter(doc => doc.id !== docId));
       }
-    } else if (type === 'soap') {
-      setSoapNotes(prev => prev.filter(doc => doc.id !== docId));
-      const storageKey = `soapnotes_patient_${id}`;
-      const existing = localStorage.getItem(storageKey);
-      if (existing) {
-        const docs = JSON.parse(existing);
-        const updated = docs.filter((doc: any) => doc.id !== docId);
-        localStorage.setItem(storageKey, JSON.stringify(updated));
-      }
-    } else if (type === 'blank') {
-      setBlankNotes(prev => prev.filter(doc => doc.id !== docId));
-      const storageKey = `blanknotes_patient_${id}`;
-      const existing = localStorage.getItem(storageKey);
-      if (existing) {
-        const docs = JSON.parse(existing);
-        const updated = docs.filter((doc: any) => doc.id !== docId);
-        localStorage.setItem(storageKey, JSON.stringify(updated));
-      }
-    }
 
-    toast({
-      title: 'Document deleted',
-      description: 'Document has been deleted successfully.',
-    });
+      toast({
+        title: 'Document deleted',
+        description: 'Document has been deleted successfully.',
+      });
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete document. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   // Print functionality
@@ -1511,41 +1631,146 @@ const PatientManagement = () => {
     URL.revokeObjectURL(url);
   };
 
-  // Load certificates from localStorage on component mount
+  // Load documents from backend API on component mount
   useEffect(() => {
     if (id) {
-      // Load certificates
-      const certificatesKey = `certificates_patient_${id}`;
-      const existingCertificates = localStorage.getItem(certificatesKey);
-      if (existingCertificates) {
-        setCertificates(JSON.parse(existingCertificates));
-      }
-
-      // Load prescriptions
-      const prescriptionsKey = `prescriptions_patient_${id}`;
-      const existingPrescriptions = localStorage.getItem(prescriptionsKey);
-      if (existingPrescriptions) {
-        setPrescriptions(JSON.parse(existingPrescriptions));
-      }
-
-      // Load SOAP notes
-      const soapKey = `soapnotes_patient_${id}`;
-      const existingSoap = localStorage.getItem(soapKey);
-      if (existingSoap) {
-        setSoapNotes(JSON.parse(existingSoap));
-      }
-
-      // Load blank notes
-      const blankKey = `blanknotes_patient_${id}`;
-      const existingBlank = localStorage.getItem(blankKey);
-      if (existingBlank) {
-        setBlankNotes(JSON.parse(existingBlank));
-      }
-
-      // Load lab results from database
-      loadLabResults();
+      loadAllDocuments();
     }
   }, [id]);
+
+  // Function to load all documents from database
+  const loadAllDocuments = async () => {
+    if (!id) return;
+    
+    try {
+      // Load medical certificates
+      const certificatesResponse = await medicalDocumentsAPI.getMedicalCertificatesByPatient(id);
+      const mappedCertificates = certificatesResponse.map((cert: any) => ({
+        id: cert.id,
+        type: 'certificate',
+        patientId: cert.document?.patient,
+        patientName: patientData?.name,
+        dateCreated: cert.document?.created_at || cert.document?.document_date,
+        data: {
+          title: cert.document?.title,
+          type: cert.certificate_type,
+          purpose: cert.purpose,
+          medicalOpinion: cert.medical_opinion,
+          validFrom: cert.valid_from,
+          validUntil: cert.valid_until,
+          restrictions: cert.restrictions,
+          examinationFindings: cert.examination_findings
+        },
+        content: cert.document?.content || '',
+        createdBy: cert.document?.created_by?.name || 'Medical Staff',
+        backendId: cert.id,
+        documentId: cert.document?.id
+      }));
+      setCertificates(mappedCertificates);
+
+      // Load prescriptions
+      const prescriptionsResponse = await medicalDocumentsAPI.getPrescriptionsByPatient(id);
+      const mappedPrescriptions = prescriptionsResponse.map((prescription: any) => ({
+        id: prescription.id,
+        type: 'prescription',
+        patientId: prescription.document?.patient,
+        patientName: patientData?.name,
+        dateCreated: prescription.document?.created_at || prescription.document?.document_date,
+        data: {
+          name: prescription.medications?.[0]?.name || 'Medication',
+          dose: prescription.medications?.[0]?.dose || '',
+          quantity: prescription.medications?.[0]?.quantity || '',
+          frequency: prescription.medications?.[0]?.frequency || '',
+          notes: prescription.general_instructions || '',
+          startDate: prescription.document?.document_date?.split('T')[0],
+          endDate: prescription.valid_until
+        },
+        createdBy: prescription.document?.created_by?.name || 'Medical Staff',
+        backendId: prescription.id,
+        documentId: prescription.document?.id
+      }));
+      setPrescriptions(mappedPrescriptions);
+
+      // Load SOAP notes
+      const soapResponse = await medicalDocumentsAPI.getSOAPNotesByPatient(id);
+      const mappedSoapNotes = soapResponse.map((soap: any) => ({
+        id: soap.id,
+        type: 'soap',
+        patientId: soap.document?.patient,
+        patientName: patientData?.name,
+        dateCreated: soap.document?.created_at || soap.document?.document_date,
+        data: {
+          subjective: soap.subjective || '',
+          objective: soap.objective || '',
+          assessment: soap.assessment || '',
+          plan: soap.plan || ''
+        },
+        createdBy: soap.document?.created_by?.name || 'Medical Staff',
+        backendId: soap.id,
+        documentId: soap.document?.id
+      }));
+      setSoapNotes(mappedSoapNotes);
+
+      // Load clinical notes
+      const clinicalResponse = await medicalDocumentsAPI.getClinicalNotesByPatient(id);
+      const mappedClinicalNotes = clinicalResponse.map((note: any) => ({
+        id: note.id,
+        type: 'blank',
+        patientId: note.document?.patient,
+        patientName: patientData?.name,
+        dateCreated: note.document?.created_at || note.document?.document_date,
+        data: {
+          title: note.document?.title || 'Clinical Note',
+          content: note.findings || note.clinical_context || ''
+        },
+        createdBy: note.document?.created_by?.name || 'Medical Staff',
+        backendId: note.id,
+        documentId: note.document?.id
+      }));
+      setBlankNotes(mappedClinicalNotes);
+
+      // Load lab results
+      loadLabResults();
+      
+    } catch (error) {
+      console.error('Failed to load documents:', error);
+      // Fallback to localStorage for backward compatibility
+      loadDocumentsFromLocalStorage();
+    }
+  };
+
+  // Fallback function to load from localStorage
+  const loadDocumentsFromLocalStorage = () => {
+    if (!id) return;
+
+    // Load certificates
+    const certificatesKey = `certificates_patient_${id}`;
+    const existingCertificates = localStorage.getItem(certificatesKey);
+    if (existingCertificates) {
+      setCertificates(JSON.parse(existingCertificates));
+    }
+
+    // Load prescriptions
+    const prescriptionsKey = `prescriptions_patient_${id}`;
+    const existingPrescriptions = localStorage.getItem(prescriptionsKey);
+    if (existingPrescriptions) {
+      setPrescriptions(JSON.parse(existingPrescriptions));
+    }
+
+    // Load SOAP notes
+    const soapKey = `soapnotes_patient_${id}`;
+    const existingSoap = localStorage.getItem(soapKey);
+    if (existingSoap) {
+      setSoapNotes(JSON.parse(existingSoap));
+    }
+
+    // Load blank notes
+    const blankKey = `blanknotes_patient_${id}`;
+    const existingBlank = localStorage.getItem(blankKey);
+    if (existingBlank) {
+      setBlankNotes(JSON.parse(existingBlank));
+    }
+  };
 
   // Function to load lab results from database
   const loadLabResults = async () => {
