@@ -102,8 +102,21 @@ const Appointments = () => {
   // Fetch appointments from backend
   const fetchAppointments = async () => {
     try {
+      console.log('=== FETCHING APPOINTMENTS ===');
+      console.log('Current user:', currentUser);
+      console.log('User role:', currentUser?.role);
+      console.log('Is admin:', isAdmin);
+      console.log('Can manage appointments:', canManageAppointments);
+      
       const response = await axiosInstance.get('appointments/list/');
       console.log('Fetched appointments from API:', response.data);
+      console.log('Number of appointments:', response.data.length);
+      
+      // Log pending appointments specifically
+      const pendingAppointments = response.data.filter(apt => apt.status === 'pending');
+      console.log('Pending appointments found:', pendingAppointments.length);
+      console.log('Pending appointments:', pendingAppointments);
+      
       setAppointments(mapAppointments(response.data));
     } catch (error) {
       console.error('Error fetching appointments:', error);
@@ -198,12 +211,21 @@ const Appointments = () => {
       return result;
     } else if (activeTab === "pending") {
       // Only receptionists and admins can see pending appointments
+      console.log('=== PENDING FILTER DEBUG ===');
+      console.log('Current user role:', currentUser?.role);
+      console.log('isReceptionist:', isReceptionist);
+      console.log('isAdmin:', isAdmin);
+      console.log('canManageAppointments:', canManageAppointments);
+      console.log('Appointment status:', appointment.status);
+      console.log('Appointment ID:', appointment.id);
+      
       if (!canManageAppointments) {
         console.log('Filtering out pending: Cannot manage appointments');
         return false;
       }
       const result = appointment.status === "pending";
       console.log('Pending filter result:', result, 'for appointment:', appointment.id);
+      console.log('=== END PENDING FILTER DEBUG ===');
       return result;
     } else if (activeTab === "ongoing") {
       const result = appointment.status === "ongoing";
@@ -238,6 +260,17 @@ const Appointments = () => {
 
   const totalPages = Math.ceil(filteredAppointments.length / pageSize);
   const paginatedAppointments = filteredAppointments.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  // Debug pagination for pending appointments
+  if (activeTab === "pending") {
+    console.log('=== PAGINATION DEBUG ===');
+    console.log('Filtered appointments count:', filteredAppointments.length);
+    console.log('Current page:', currentPage);
+    console.log('Page size:', pageSize);
+    console.log('Paginated appointments count:', paginatedAppointments.length);
+    console.log('Paginated appointments:', paginatedAppointments);
+    console.log('=== END PAGINATION DEBUG ===');
+  }
 
   // Reset page to 1 when tab or filter changes
   useEffect(() => { setCurrentPage(1); }, [activeTab, appointments]);
@@ -529,7 +562,7 @@ const Appointments = () => {
     }
 
     if (activeTab === "ongoing") {
-      if (isDoctor) {
+      if (isDoctor || isAdmin) {
         return (
           <div className="flex gap-2">
             <Button 
@@ -547,39 +580,11 @@ const Appointments = () => {
               onClick={() => handleStatusUpdate(appointment.id, 'completed')}
             >
               Complete
-            </Button>
-          </div>
-        );
-      } else if (canManageAppointments) {
-        return (
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className={buttonClass}
-              onClick={() => navigate(`/patients/${appointment.patientId}`)}
-            >
-              View Record
-            </Button>
-            <Button 
-              variant="default" 
-              size="sm" 
-              className={`${buttonClass} bg-green-600 hover:bg-green-700`}
-              onClick={() => handleStatusUpdate(appointment.id, 'completed')}
-            >
-              Complete
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className={buttonClass}
-              onClick={() => handleStatusUpdate(appointment.id, 'scheduled')}
-            >
-              Back to Scheduled
             </Button>
           </div>
         );
       }
+      // Removed receptionist actions from ongoing tab - only doctors and admins can manage ongoing appointments
     }
 
     if (activeTab === "completed") {
@@ -772,7 +777,7 @@ const Appointments = () => {
               )}
             </TabsContent>
             
-            {isReceptionist && (
+            {canManageAppointments && (
               <TabsContent value="pending" className="space-y-4">
                 {filteredAppointments.length === 0 ? (
                   <Card>
@@ -807,14 +812,14 @@ const Appointments = () => {
                             <TableHead>Type</TableHead>
                             <TableHead>Doctor</TableHead>
                             <TableHead>Status</TableHead>
-                            {getDisplayNotes(filteredAppointments[0]?.notes) && (
+                            {getDisplayNotes(paginatedAppointments[0]?.notes) && (
                               <TableHead>Notes</TableHead>
                             )}
                             <TableHead className="text-right">Actions</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {filteredAppointments.map((appointment) => (
+                          {paginatedAppointments.map((appointment) => (
                             <TableRow key={appointment.id}>
                               <TableCell className="font-medium">
                                 {getPatientName(appointment.patientId, appointment)}

@@ -67,12 +67,16 @@ FILE_UPLOAD_PERMISSIONS = 0o644  # Secure file permissions
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    # Keep required Django apps (auth depends on contenttypes):
+    'django.contrib.auth',           # ✅ Required for user authentication
+    'django.contrib.contenttypes',   # ✅ Required by auth (but we won't use it)
+    'django.contrib.sessions',       # ✅ Required for audit logging
+    'django.contrib.staticfiles',    # ✅ Required for static files
+    
+    # Remove these unused apps:
+    # 'django.contrib.admin',        # ❌ Using custom frontend
+    # 'django.contrib.messages',     # ❌ Using frontend notifications
+    
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',

@@ -14,7 +14,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
+# Remove admin import since we're not using Django admin
+# from django.contrib import admin
 from django.urls import path
 from appointments.views import AppointmentCreateView
 from .api.views import login_view
@@ -23,7 +24,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # Remove admin URL since we're using custom frontend
+    # path('admin/', admin.site.urls),
+    
     path('api/login/', login_view),
      path('api/', include('accounts.urls')),
    path('api/appointments/', include('appointments.urls')),  # Include appointments URLs
