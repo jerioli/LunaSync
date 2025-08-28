@@ -39,7 +39,6 @@ const AddPatient = () => {
     middle_initial: '',
     suffix: '',
     gender: '',
-    age: '',
     address: '',
     dateOfBirth: '',
     email: '',
@@ -54,7 +53,23 @@ const AddPatient = () => {
   };
   
   const [medicalHistory, setMedicalHistory] = useState({
-    chiefComplaint: ''
+    chiefComplaint: '',
+    categories: {
+      illnesses: false,
+      surgeries: false,
+      medications: false,
+      familyHistory: false,
+      socialHistory: false,
+      allergies: false
+    },
+    categoryDetails: {
+      illnesses: '',
+      surgeries: '',
+      medications: '',
+      familyHistory: '',
+      socialHistory: '',
+      allergies: ''
+    }
   });
   
   // Physical examination state
@@ -68,14 +83,31 @@ const AddPatient = () => {
     notes: ''
   });
   
-  const handleHistoryChange = (field: string, value: string | undefined) => {
+  const handleHistoryChange = (field: string, value: string | boolean | undefined, isCategory = false) => {
     setMedicalHistory(prev => {
-      if (value === undefined) {
-        const updated = { ...prev };
-        delete updated[field];
-        return updated;
+      if (field === 'chiefComplaint') {
+        return { ...prev, chiefComplaint: value as string };
       }
-      return { ...prev, [field]: value };
+      
+      if (isCategory) {
+        // Handle category toggle (checkbox)
+        return {
+          ...prev,
+          categories: { ...prev.categories, [field]: value as boolean }
+        };
+      } else {
+        // Handle category details (textarea content)
+        if (value === undefined) {
+          const updated = { ...prev };
+          updated.categories[field] = false;
+          updated.categoryDetails[field] = '';
+          return updated;
+        }
+        return {
+          ...prev,
+          categoryDetails: { ...prev.categoryDetails, [field]: value as string }
+        };
+      }
     });
   };
   
@@ -163,11 +195,18 @@ const AddPatient = () => {
         date_of_birth: form.dateOfBirth, // Convert from frontend field name
         gender: form.gender.toLowerCase() as 'male' | 'female' | 'other',
         address: form.address,
+        religion: form.religion || undefined,
         marital_status: 'single' as const, // default value
         medical_info: (isDoctor || isAdmin) ? {
           medicalHistory: medicalHistory.chiefComplaint || '',
-          allergies: [],
-          bloodType: ''
+          allergies: medicalHistory.categories.allergies ? [medicalHistory.categoryDetails.allergies] : [],
+          bloodType: '',
+          chiefComplaint: medicalHistory.chiefComplaint,
+          illnesses: medicalHistory.categoryDetails.illnesses,
+          surgeries: medicalHistory.categoryDetails.surgeries,
+          medications: medicalHistory.categoryDetails.medications,
+          familyHistory: medicalHistory.categoryDetails.familyHistory,
+          socialHistory: medicalHistory.categoryDetails.socialHistory
         } : undefined,
         physical_examination: (isDoctor || isAdmin) ? physicalExamination : undefined
       };
@@ -315,10 +354,6 @@ const AddPatient = () => {
                 </Select>
               </div>
               <div>
-                <Label>Age</Label>
-                <Input placeholder="Input your age" value={form.age} onChange={(e) => handleChange('age', e.target.value)} />
-              </div>
-              <div>
                 <Label>Address</Label>
                 <Input placeholder="Input your address" value={form.address} onChange={(e) => handleChange('address', e.target.value)} />
               </div>
@@ -455,41 +490,159 @@ const AddPatient = () => {
                   <Textarea
                     value={medicalHistory.chiefComplaint}
                     onChange={(e) => handleHistoryChange('chiefComplaint', e.target.value)}
-                    placeholder={placeholders.chiefComplaint || 'Enter details here...'}
+                    placeholder="Enter the main reason for this medical consultation..."
+                    rows={4}
                   />
                 </div>
-                <div className="flex gap-6 mb-4">
-                  {['illnesses', 'surgeries', 'allergies', 'medications', 'familyHistory', 'socialHistory'].map((field) => (
-                    <label key={field} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={medicalHistory[field] !== undefined}
-                        onChange={e => {
-                          if (e.target.checked) {
-                            handleHistoryChange(field, '');
-                          } else {
-                            handleHistoryChange(field, undefined);
-                          }
-                        }}
-                      />
-                      <span className="capitalize">{field.replace(/([A-Z])/g, ' $1').trim()}</span>
-                    </label>
-                  ))}
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {['illnesses', 'surgeries', 'allergies', 'medications', 'familyHistory', 'socialHistory'].map(
-                    (field) =>
-                      medicalHistory[field] !== undefined && (
-                        <div key={field}>
-                          <Label>{field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}</Label>
-                          <Textarea
-                            value={medicalHistory[field]}
-                            onChange={e => handleHistoryChange(field, e.target.value)}
-                            placeholder={placeholders[field] || 'Enter details here...'}
-                          />
-                        </div>
-                      )
-                  )}
+                
+                <div className="space-y-4">
+                  <Label className="text-sm font-medium">
+                    Select applicable categories:
+                  </Label>
+                  
+                  {/* First Row: Illnesses, Surgeries, Medications */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Illnesses */}
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="illnesses"
+                          checked={medicalHistory.categories.illnesses}
+                          onChange={(e) => handleHistoryChange('illnesses', e.target.checked, true)}
+                        />
+                        <Label htmlFor="illnesses" className="text-sm font-normal cursor-pointer">
+                          Illnesses
+                        </Label>
+                      </div>
+                      {medicalHistory.categories.illnesses && (
+                        <Textarea
+                          placeholder="List any illnesses"
+                          value={medicalHistory.categoryDetails.illnesses}
+                          onChange={(e) => handleHistoryChange('illnesses', e.target.value)}
+                          rows={2}
+                        />
+                      )}
+                    </div>
+                    
+                    {/* Surgeries */}
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="surgeries"
+                          checked={medicalHistory.categories.surgeries}
+                          onChange={(e) => handleHistoryChange('surgeries', e.target.checked, true)}
+                        />
+                        <Label htmlFor="surgeries" className="text-sm font-normal cursor-pointer">
+                          Surgeries
+                        </Label>
+                      </div>
+                      {medicalHistory.categories.surgeries && (
+                        <Textarea
+                          placeholder="List any surgeries"
+                          value={medicalHistory.categoryDetails.surgeries}
+                          onChange={(e) => handleHistoryChange('surgeries', e.target.value)}
+                          rows={2}
+                        />
+                      )}
+                    </div>
+                    
+                    {/* Medications */}
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="medications"
+                          checked={medicalHistory.categories.medications}
+                          onChange={(e) => handleHistoryChange('medications', e.target.checked, true)}
+                        />
+                        <Label htmlFor="medications" className="text-sm font-normal cursor-pointer">
+                          Medications
+                        </Label>
+                      </div>
+                      {medicalHistory.categories.medications && (
+                        <Textarea
+                          placeholder="List any medications"
+                          value={medicalHistory.categoryDetails.medications}
+                          onChange={(e) => handleHistoryChange('medications', e.target.value)}
+                          rows={2}
+                        />
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Second Row: Family History, Social History, Allergies */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Family History */}
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="familyHistory"
+                          checked={medicalHistory.categories.familyHistory}
+                          onChange={(e) => handleHistoryChange('familyHistory', e.target.checked, true)}
+                        />
+                        <Label htmlFor="familyHistory" className="text-sm font-normal cursor-pointer">
+                          Family History
+                        </Label>
+                      </div>
+                      {medicalHistory.categories.familyHistory && (
+                        <Textarea
+                          placeholder="Describe family medical history"
+                          value={medicalHistory.categoryDetails.familyHistory}
+                          onChange={(e) => handleHistoryChange('familyHistory', e.target.value)}
+                          rows={2}
+                        />
+                      )}
+                    </div>
+                    
+                    {/* Social History */}
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="socialHistory"
+                          checked={medicalHistory.categories.socialHistory}
+                          onChange={(e) => handleHistoryChange('socialHistory', e.target.checked, true)}
+                        />
+                        <Label htmlFor="socialHistory" className="text-sm font-normal cursor-pointer">
+                          Social History
+                        </Label>
+                      </div>
+                      {medicalHistory.categories.socialHistory && (
+                        <Textarea
+                          placeholder="Describe social history"
+                          value={medicalHistory.categoryDetails.socialHistory}
+                          onChange={(e) => handleHistoryChange('socialHistory', e.target.value)}
+                          rows={2}
+                        />
+                      )}
+                    </div>
+                    
+                    {/* Allergies */}
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="allergies"
+                          checked={medicalHistory.categories.allergies}
+                          onChange={(e) => handleHistoryChange('allergies', e.target.checked, true)}
+                        />
+                        <Label htmlFor="allergies" className="text-sm font-normal cursor-pointer">
+                          Allergies
+                        </Label>
+                      </div>
+                      {medicalHistory.categories.allergies && (
+                        <Textarea
+                          placeholder="List any allergies"
+                          value={medicalHistory.categoryDetails.allergies}
+                          onChange={(e) => handleHistoryChange('allergies', e.target.value)}
+                          rows={2}
+                        />
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </>

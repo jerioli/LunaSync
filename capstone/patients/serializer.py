@@ -17,6 +17,7 @@ class PatientSerializer(serializers.ModelSerializer):
             'date_of_birth',
             'gender',
             'address',
+            'religion',  # Added religion field
             'marital_status',
             'medical_info',
             'physical_examination',

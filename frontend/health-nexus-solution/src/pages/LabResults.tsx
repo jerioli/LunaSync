@@ -364,106 +364,151 @@ const LabResults = () => {
     }
   };
   
-  // Enhanced patient matching function
+  // Enhanced patient matching function with doctor context exclusion
   const findPatientFromText = (text: string): string | undefined => {
     if (!patients || patients.length === 0) {
       console.log('No patients available for matching');
       return undefined;
     }
     
-    const textUpper = text.toUpperCase();
     const lines = text.split('\n');
-    
     console.log('Searching for patient in text...');
-    console.log('Text length:', text.length);
-    console.log('Text preview:', text.substring(0, 300) + '...');
     console.log('Available patients:', patients.map(p => ({ id: p.id, name: p.name })));
     
-    // Extract potential patient names from structured lines
-    const potentialNames: string[] = [];
-    
-    for (const line of lines) {
-      const trimmed = line.trim();
-      
-      // Look for patient name patterns
-      const patterns = [
-        /(?:patient|name)\s*:?\s*([^\n\r]+)/i,
-        /^(mr|mrs|ms|dr)\.?\s+([a-z\s]+)/i,
-        /name\s*:\s*([^,\n\r]+)/i
+    // Helper function to detect doctor names
+    const detectDoctorName = (text: string): string | null => {
+      const doctorPatterns = [
+        /(?:Dr\.?\s+|Doctor\s+|Physician\s+)([A-Za-z\s]+)/gi,
+        /(?:Authorized\s+by|Attending|Consultant):\s*Dr\.?\s*([A-Za-z\s]+)/gi,
+        /(?:Signature|Signed):\s*Dr\.?\s*([A-Za-z\s]+)/gi
       ];
       
-      for (const pattern of patterns) {
-        const match = trimmed.match(pattern);
-        if (match) {
-          let extractedName = match[1] || match[2];
-          if (extractedName) {
-            extractedName = extractedName.trim();
-            
-            // Filter out lab/medical terms
-            const excludeTerms = ['pathology', 'medical', 'centre', 'center', 'laboratory', 'lab', 'dr.', 'doctor', 'adithya', 'health', 'clinic'];
-            
-            if (!excludeTerms.some(term => extractedName.toLowerCase().includes(term)) && 
-                extractedName.length > 2 && 
-                extractedName.length < 50) {
-              potentialNames.push(extractedName.toUpperCase());
-              console.log('Extracted potential name:', extractedName);
+      for (const pattern of doctorPatterns) {
+        const matches = [...text.matchAll(pattern)];
+        for (const match of matches) {
+          if (match[1]) {
+            const name = match[1].trim();
+            if (name.length >= 4 && name.length <= 30 && /^[A-Za-z\s]+$/.test(name)) {
+              return name;
             }
+          }
+        }
+      }
+      return null;
+    };
+
+    // Helper function to detect patient names with context validation
+    const detectPatientName = (text: string): { name: string, confidence: number }[] => {
+      const results: { name: string, confidence: number }[] = [];
+      const lines = text.split('\n');
+      
+      // Detect doctor to exclude from patient matching
+      const doctorName = detectDoctorName(text);
+      console.log('Detected doctor name:', doctorName);
+      
+      const patientPatterns = [
+        { pattern: /(?:Patient\s+Name|Name)\s*:\s*([A-Za-z\s]+)/gi, confidence: 0.9 },
+        { pattern: /(?:Patient)\s*:\s*([A-Za-z\s]+)/gi, confidence: 0.8 },
+        { pattern: /^(?:Mr\.?|Mrs\.?|Ms\.?|Miss)\s+([A-Za-z\s]+)/gim, confidence: 0.7 },
+        { pattern: /Name\s*:\s*([A-Za-z\s]+)/gi, confidence: 0.6 }
+      ];
+      
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        
+        // Skip lines that contain doctor indicators
+        const doctorIndicators = [
+          /(?:Dr\.?|Doctor|Physician|Attending|Consultant|Authorized\s+by|Signature|Signed)/i,
+          /(?:Laboratory|Lab|Pathology|Medical|Center|Centre|Hospital)/i
+        ];
+        
+        if (doctorIndicators.some(indicator => indicator.test(trimmedLine))) {
+          continue;
+        }
+        
+        // Extract names using patterns
+        for (const { pattern, confidence } of patientPatterns) {
+          const matches = [...trimmedLine.matchAll(pattern)];
+          for (const match of matches) {
+            if (match[1]) {
+              const extractedName = match[1].trim();
+              
+              // Validate extracted name
+              if (extractedName.length >= 3 && 
+                  extractedName.length <= 40 && 
+                  /^[A-Za-z\s]+$/.test(extractedName)) {
+                
+                // Exclude medical terms and doctor name
+                const medicalTerms = [
+                  'pathology', 'laboratory', 'medical', 'center', 'centre', 
+                  'hospital', 'clinic', 'health', 'lab', 'report', 'test',
+                  'result', 'analysis', 'department', 'service', 'group'
+                ];
+                
+                const nameToCheck = extractedName.toLowerCase();
+                const isDoctorName = doctorName && 
+                  (nameToCheck.includes(doctorName.toLowerCase()) || 
+                   doctorName.toLowerCase().includes(nameToCheck));
+                
+                if (!medicalTerms.some(term => nameToCheck.includes(term)) && !isDoctorName) {
+                  results.push({ name: extractedName, confidence });
+                  console.log(`Extracted potential patient name: "${extractedName}" (confidence: ${confidence})`);
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      return results;
+    };
+
+    // Get potential patient names with confidence scores
+    const detectedNames = detectPatientName(text);
+    
+    if (detectedNames.length === 0) {
+      console.log('No potential patient names detected');
+      return undefined;
+    }
+    
+    // Sort by confidence and try to match
+    detectedNames.sort((a, b) => b.confidence - a.confidence);
+    
+    for (const { name: detectedName, confidence } of detectedNames) {
+      if (confidence < 0.6) continue; // Skip low confidence matches
+      
+      console.log(`Trying to match detected name: "${detectedName}" (confidence: ${confidence})`);
+      
+      for (const patient of patients) {
+        const patientNameUpper = patient.name.toUpperCase();
+        const detectedNameUpper = detectedName.toUpperCase();
+        
+        // Exact match (highest priority)
+        if (detectedNameUpper === patientNameUpper) {
+          console.log(`Found exact match: ${patient.name} (ID: ${patient.id})`);
+          return patient.id;
+        }
+        
+        // Contains match with validation
+        if (detectedNameUpper.includes(patientNameUpper) || patientNameUpper.includes(detectedNameUpper)) {
+          // Additional validation for contains matches
+          const nameParts = patientNameUpper.split(' ');
+          const detectedParts = detectedNameUpper.split(' ');
+          
+          // Ensure significant overlap
+          const commonParts = nameParts.filter(part => 
+            part.length > 2 && detectedParts.some(dp => dp.includes(part) || part.includes(dp))
+          );
+          
+          if (commonParts.length >= Math.min(2, nameParts.length)) {
+            console.log(`Found validated contains match: ${patient.name} (ID: ${patient.id})`);
+            return patient.id;
           }
         }
       }
     }
     
-    // Remove duplicates
-    const uniqueNames = [...new Set(potentialNames)];
-    console.log('Potential patient names found:', uniqueNames);
-    
-    // Match against available patients
-    for (const potentialName of uniqueNames) {
-      for (const patient of patients) {
-        const patientNameUpper = patient.name.toUpperCase();
-        
-        // Exact match
-        if (potentialName === patientNameUpper) {
-          console.log(`Found exact match: ${patient.name} (ID: ${patient.id})`);
-          return patient.id;
-        }
-        
-        // Contains match (both ways)
-        if (potentialName.includes(patientNameUpper) || patientNameUpper.includes(potentialName)) {
-          console.log(`Found contains match: ${patient.name} (ID: ${patient.id}) with "${potentialName}"`);
-          return patient.id;
-        }
-      }
-    }
-    
-    // Fallback: search for any patient name directly in text
-    for (const patient of patients) {
-      const nameUpper = patient.name.toUpperCase();
-      if (textUpper.includes(nameUpper)) {
-        console.log(`Found direct text match: ${patient.name} (ID: ${patient.id})`);
-        return patient.id;
-      }
-    }
-    
-    // Word-by-word matching for partial names
-    for (const patient of patients) {
-      const nameParts = patient.name.toUpperCase().split(' ');
-      let matchCount = 0;
-      
-      for (const part of nameParts) {
-        if (part.length > 2 && textUpper.includes(part)) {
-          matchCount++;
-        }
-      }
-      
-      // Require at least 2 parts to match or 1 long part
-      if (matchCount >= 2 || (matchCount >= 1 && nameParts.some(part => part.length > 5))) {
-        console.log(`Found partial match: ${patient.name} (ID: ${patient.id}) with ${matchCount} matching parts`);
-        return patient.id;
-      }
-    }
-    
-    console.log('No patient match found');
+    console.log('No patient match found after enhanced validation');
     return undefined;
   };
   

@@ -20,7 +20,7 @@ import { axiosInstance } from '@/services/api';
 import { type LabResult as APILabResult } from '@/services/medicalDocumentsAPI';
 import { parseApiError } from '@/utils/errorHandler';
 import { format } from 'date-fns';
-import { ArrowLeft, ChevronLeft, ChevronRight, Edit, Eye, File, FileText, Heart, Plus, Printer, Save, Stethoscope, TestTube, Trash2, Upload, User } from 'lucide-react';
+import { ArrowLeft, Edit, Eye, File, FileText, Heart, Plus, Printer, Save, Stethoscope, TestTube, Trash2, Upload, User } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -88,6 +88,7 @@ const PatientManagement = () => {
   // Print functionality state
   const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [printSettings, setPrintSettings] = useState({
+    includeComprehensiveProfile: true, // Personal info, physical exam, and medical info combined
     includePrescriptions: false,
     includeSoapNotes: false,
     includeClinicalNotes: false,
@@ -114,6 +115,25 @@ const PatientManagement = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  
+  // Medical History states
+  const [medicalHistory, setMedicalHistory] = useState({
+    chiefComplaint: '',
+    categories: {
+      illnesses: false,
+      surgeries: false,
+      medications: false,
+      familyHistory: false,
+      socialHistory: false
+    },
+    categoryDetails: {
+      illnesses: '',
+      surgeries: '',
+      medications: '',
+      familyHistory: '',
+      socialHistory: ''
+    }
+  });
   
   // Pagination states
   const [soapNotesPage, setSoapNotesPage] = useState(1);
@@ -203,6 +223,48 @@ const PatientManagement = () => {
     setInitialLoadComplete(false);
     setPatientData(null);
   }, [id]);
+
+  // Initialize medical history when patient data is loaded
+  useEffect(() => {
+    if (patientData?.medical_info) {
+      setMedicalHistory({
+        chiefComplaint: patientData.medical_info.chiefComplaint || '',
+        categories: {
+          illnesses: !!patientData.medical_info.illnesses,
+          surgeries: !!patientData.medical_info.surgeries,
+          medications: !!patientData.medical_info.medications,
+          familyHistory: !!patientData.medical_info.familyHistory,
+          socialHistory: !!patientData.medical_info.socialHistory
+        },
+        categoryDetails: {
+          illnesses: patientData.medical_info.illnesses || '',
+          surgeries: patientData.medical_info.surgeries || '',
+          medications: patientData.medical_info.medications || '',
+          familyHistory: patientData.medical_info.familyHistory || '',
+          socialHistory: patientData.medical_info.socialHistory || ''
+        }
+      });
+    } else {
+      // Reset to default values if no medical history exists
+      setMedicalHistory({
+        chiefComplaint: '',
+        categories: {
+          illnesses: false,
+          surgeries: false,
+          medications: false,
+          familyHistory: false,
+          socialHistory: false
+        },
+        categoryDetails: {
+          illnesses: '',
+          surgeries: '',
+          medications: '',
+          familyHistory: '',
+          socialHistory: ''
+        }
+      });
+    }
+  }, [patientData]);
 
   // Fetch clinic settings function
   const fetchClinicSettings = async () => {
@@ -541,6 +603,14 @@ const PatientManagement = () => {
   const generatePrintContent = () => {
     if (!patientData) return '';
 
+    // Check if any document types are selected
+    const anyDocumentsSelected = 
+      printSettings.includePrescriptions || 
+      printSettings.includeSoapNotes || 
+      printSettings.includeClinicalNotes || 
+      printSettings.includeLabResults || 
+      printSettings.includeMedicalCertificates;
+
     // Check if all document types are selected for merged format
     const allDocumentsSelected = 
       printSettings.includePrescriptions && 
@@ -558,9 +628,15 @@ const PatientManagement = () => {
       certificates.length > 0
     ].filter(Boolean).length > 1;
 
-    // If all documents are selected and we have multiple types, use the merged professional format
-    if (allDocumentsSelected && hasMultipleDocumentTypes) {
+    // If comprehensive profile is selected along with documents, or all documents are selected with multiple types, use the merged professional format
+    if ((printSettings.includeComprehensiveProfile && anyDocumentsSelected) || 
+        (allDocumentsSelected && hasMultipleDocumentTypes)) {
       return generateMergedProfessionalDocument();
+    }
+
+    // If only comprehensive profile is selected (no documents), use the standard format
+    if (printSettings.includeComprehensiveProfile && !anyDocumentsSelected) {
+      return generateStandardPrintContent();
     }
 
     // Otherwise, use individual document printing (each document gets its own page with original design)
@@ -618,13 +694,13 @@ const PatientManagement = () => {
     // Documents sections - Each document type gets its own page with original design
     if (printSettings.includePrescriptions && prescriptions.length > 0) {
       prescriptions.forEach((prescription, index) => {
-        if (index > 0 || content.includes('</body>')) content += `<div class="page-break"></div>`;
-
+        if (index > 0) content += `<div class="page-break"></div>`;
+        
         const prescriptionId = `RX-${Date.now().toString().slice(-8).toUpperCase()}`;
         const clinicData = clinicSettings || {};
         
         content += `
-          <div style="padding: 40px; max-width: 8.5in; margin: 0 auto; background: white; min-height: 11in;">
+          <div class="document-container" style="padding: 40px; max-width: 8.5in; margin: 0 auto; background: white; min-height: 11in;">
             <!-- Header -->
             <div style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px;">
               ${logoUrl ? `<img src="${logoUrl}" alt="Clinic Logo" style="max-height: 60px; margin-bottom: 10px;">` : ''}
@@ -1128,114 +1204,120 @@ const PatientManagement = () => {
       </div>
     `;
 
-    // Personal Information Section
-    content += `
-      <div class="section">
-        <div class="section-title">Personal Information</div>
-        <div class="document-item">
-          <div class="content">
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 8px;">
-              <div><strong>Full Name:</strong> ${patientData.name}</div>
-              <div><strong>Date of Birth:</strong> ${patientData.date_of_birth ? format(new Date(patientData.date_of_birth), 'MMM dd, yyyy') : 'N/A'}</div>
-              <div><strong>Phone:</strong> ${patientData.phone}</div>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 8px;">
-              <div><strong>Email:</strong> ${patientData.email}</div>
-              <div><strong>Address:</strong> ${patientData.address || 'N/A'}</div>
-              <div><strong>Emergency Contact:</strong> ${(patientData as any)?.emergency_contact || 'N/A'}</div>
+    // Personal Information, Physical Examination, and Medical Information Sections
+    if (printSettings.includeComprehensiveProfile) {
+      // Personal Information Section
+      content += `
+        <div class="section">
+          <div class="section-title">Personal Information</div>
+          <div class="document-item">
+            <div class="content">
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 8px;">
+                <div><strong>Full Name:</strong> ${patientData.name}</div>
+                <div><strong>Date of Birth:</strong> ${patientData.date_of_birth ? format(new Date(patientData.date_of_birth), 'MMM dd, yyyy') : 'N/A'}</div>
+                <div><strong>Phone:</strong> ${patientData.phone}</div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 8px;">
+                <div><strong>Email:</strong> ${patientData.email}</div>
+                <div><strong>Address:</strong> ${patientData.address || 'N/A'}</div>
+                <div><strong>Religion:</strong> ${patientData.religion || 'N/A'}</div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 8px;">
+                <div><strong>Emergency Contact:</strong> ${(patientData as any)?.emergency_contact || 'N/A'}</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
 
-    // Physical Examination Section
-    content += `
-      <div class="section">
-        <div class="section-title">Physical Examination</div>
-        <div class="document-item">
-          <div class="content">
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 8px;">
-              <div><strong>Height:</strong> ${patientData.physical_examination?.height || 'Not recorded'}</div>
-              <div><strong>Weight:</strong> ${patientData.physical_examination?.weight || 'Not recorded'}</div>
-              <div><strong>Blood Pressure:</strong> ${patientData.physical_examination?.bloodPressure || 'Not recorded'}</div>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-              <div><strong>Temperature:</strong> ${patientData.physical_examination?.temperature || 'Not recorded'}</div>
-              <div><strong>Pulse Rate:</strong> ${patientData.physical_examination?.pulseRate || 'Not recorded'}</div>
-              <div><strong>Respiratory Rate:</strong> ${patientData.physical_examination?.respiratoryRate || 'Not recorded'}</div>
+      // Physical Examination Section
+      content += `
+        <div class="section">
+          <div class="section-title">Physical Examination</div>
+          <div class="document-item">
+            <div class="content">
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 8px;">
+                <div><strong>Height:</strong> ${patientData.physical_examination?.height || 'Not recorded'}</div>
+                <div><strong>Weight:</strong> ${patientData.physical_examination?.weight || 'Not recorded'}</div>
+                <div><strong>Blood Pressure:</strong> ${patientData.physical_examination?.bloodPressure || 'Not recorded'}</div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                <div><strong>Temperature:</strong> ${patientData.physical_examination?.temperature || 'Not recorded'}</div>
+                <div><strong>Pulse Rate:</strong> ${patientData.physical_examination?.pulseRate || 'Not recorded'}</div>
+                <div><strong>Respiratory Rate:</strong> ${patientData.physical_examination?.respiratoryRate || 'Not recorded'}</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
 
-    // Medical Information Section
-    content += `
-      <div class="section">
-        <div class="section-title">Medical Information</div>
-        <div class="document-item">
-          <div class="content">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px;">
-              <div><strong>Blood Type:</strong> ${patientData.medical_info?.bloodType || 'N/A'}</div>
-              <div><strong>Known Allergies:</strong> ${patientData.medical_info?.allergies?.join(', ') || 'None recorded'}</div>
-            </div>
-            ${patientData.medical_info?.medicalHistory ? `
-              <div style="margin-top: 8px;">
-                <div><strong>Medical History:</strong></div>
-                <div style="margin-top: 4px; padding-left: 8px; font-size: 11px;">${patientData.medical_info.medicalHistory}</div>
+      // Medical Information Section
+      content += `
+        <div class="section">
+          <div class="section-title">Medical Information</div>
+          <div class="document-item">
+            <div class="content">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px;">
+                <div><strong>Blood Type:</strong> ${patientData.medical_info?.bloodType || 'N/A'}</div>
+                <div><strong>Known Allergies:</strong> ${patientData.medical_info?.allergies?.join(', ') || 'None recorded'}</div>
               </div>
-            ` : ''}
-            
-            ${(patientData.medical_info as any)?.chiefComplaint ? `
-              <div style="margin-top: 8px;">
-                <div><strong>Chief Complaint:</strong></div>
-                <div style="margin-top: 4px; padding-left: 8px; font-size: 11px;">${(patientData.medical_info as any).chiefComplaint}</div>
-              </div>
-            ` : ''}
-            
-            <div style="margin-top: 12px;">
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                ${(patientData.medical_info as any)?.illnesses ? `
-                  <div>
-                    <div><strong>Illnesses:</strong></div>
-                    <div style="margin-top: 2px; padding-left: 8px; font-size: 11px;">${(patientData.medical_info as any).illnesses}</div>
-                  </div>
-                ` : ''}
-                
-                ${(patientData.medical_info as any)?.surgeries ? `
-                  <div>
-                    <div><strong>Surgeries:</strong></div>
-                    <div style="margin-top: 2px; padding-left: 8px; font-size: 11px;">${(patientData.medical_info as any).surgeries}</div>
-                  </div>
-                ` : ''}
-                
-                ${(patientData.medical_info as any)?.medications ? `
-                  <div>
-                    <div><strong>Current Medications:</strong></div>
-                    <div style="margin-top: 2px; padding-left: 8px; font-size: 11px;">${(patientData.medical_info as any).medications}</div>
-                  </div>
-                ` : ''}
-                
-                ${(patientData.medical_info as any)?.familyHistory ? `
-                  <div>
-                    <div><strong>Family History:</strong></div>
-                    <div style="margin-top: 2px; padding-left: 8px; font-size: 11px;">${(patientData.medical_info as any).familyHistory}</div>
-                  </div>
-                ` : ''}
-                
-                ${(patientData.medical_info as any)?.socialHistory ? `
-                  <div>
-                    <div><strong>Social History:</strong></div>
-                    <div style="margin-top: 2px; padding-left: 8px; font-size: 11px;">${(patientData.medical_info as any).socialHistory}</div>
-                  </div>
-                ` : ''}
+              ${patientData.medical_info?.medicalHistory ? `
+                <div style="margin-top: 8px;">
+                  <div><strong>Medical History:</strong></div>
+                  <div style="margin-top: 4px; padding-left: 8px; font-size: 11px;">${patientData.medical_info.medicalHistory}</div>
+                </div>
+              ` : ''}
+              
+              ${(patientData.medical_info as any)?.chiefComplaint ? `
+                <div style="margin-top: 8px;">
+                  <div><strong>Chief Complaint:</strong></div>
+                  <div style="margin-top: 4px; padding-left: 8px; font-size: 11px;">${(patientData.medical_info as any).chiefComplaint}</div>
+                </div>
+              ` : ''}
+              
+              <div style="margin-top: 12px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  ${(patientData.medical_info as any)?.illnesses ? `
+                    <div>
+                      <div><strong>Illnesses:</strong></div>
+                      <div style="margin-top: 2px; padding-left: 8px; font-size: 11px;">${(patientData.medical_info as any).illnesses}</div>
+                    </div>
+                  ` : ''}
+                  
+                  ${(patientData.medical_info as any)?.surgeries ? `
+                    <div>
+                      <div><strong>Surgeries:</strong></div>
+                      <div style="margin-top: 2px; padding-left: 8px; font-size: 11px;">${(patientData.medical_info as any).surgeries}</div>
+                    </div>
+                  ` : ''}
+                  
+                  ${(patientData.medical_info as any)?.medications ? `
+                    <div>
+                      <div><strong>Current Medications:</strong></div>
+                      <div style="margin-top: 2px; padding-left: 8px; font-size: 11px;">${(patientData.medical_info as any).medications}</div>
+                    </div>
+                  ` : ''}
+                  
+                  ${(patientData.medical_info as any)?.familyHistory ? `
+                    <div>
+                      <div><strong>Family History:</strong></div>
+                      <div style="margin-top: 2px; padding-left: 8px; font-size: 11px;">${(patientData.medical_info as any).familyHistory}</div>
+                    </div>
+                  ` : ''}
+                  
+                  ${(patientData.medical_info as any)?.socialHistory ? `
+                    <div>
+                      <div><strong>Social History:</strong></div>
+                      <div style="margin-top: 2px; padding-left: 8px; font-size: 11px;">${(patientData.medical_info as any).socialHistory}</div>
+                    </div>
+                  ` : ''}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
+    }
 
     // E-Prescriptions Section
     if (prescriptions.length > 0) {
@@ -1433,9 +1515,18 @@ const PatientManagement = () => {
           @media print {
             .page-break {
               page-break-before: always;
+              page-break-after: auto;
             }
             .no-print {
               display: none;
+            }
+            body {
+              margin: 0;
+              padding: 0;
+            }
+            .document-container {
+              page-break-inside: avoid;
+              min-height: 100vh;
             }
           }
           
@@ -1592,151 +1683,158 @@ const PatientManagement = () => {
       </div>
     `;
 
-    // Personal Information
-    content += `
-      <div class="section">
-        <div class="section-title">Personal Information</div>
-        <div class="info-grid">
-          <div class="info-item">
-            <span class="info-label">Full Name:</span>
-            <span>${patientData.name}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Date of Birth:</span>
-            <span>${patientData.date_of_birth ? format(new Date(patientData.date_of_birth), 'PPP') : 'N/A'}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Gender:</span>
-            <span class="capitalize">${patientData.gender}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Phone:</span>
-            <span>${patientData.phone}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Email:</span>
-            <span>${patientData.email}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Address:</span>
-            <span>${patientData.address || 'N/A'}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Emergency Contact:</span>
-            <span>${(patientData as any)?.emergency_contact || 'N/A'}</span>
+    // Personal Information, Physical Examination, and Medical Information Sections
+    if (printSettings.includeComprehensiveProfile) {
+      // Personal Information
+      content += `
+        <div class="section">
+          <div class="section-title">Personal Information</div>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Full Name:</span>
+              <span>${patientData.name}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Date of Birth:</span>
+              <span>${patientData.date_of_birth ? format(new Date(patientData.date_of_birth), 'PPP') : 'N/A'}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Gender:</span>
+              <span class="capitalize">${patientData.gender}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Phone:</span>
+              <span>${patientData.phone}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Email:</span>
+              <span>${patientData.email}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Address:</span>
+              <span>${patientData.address || 'N/A'}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Religion:</span>
+              <span>${patientData.religion || 'N/A'}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Emergency Contact:</span>
+              <span>${(patientData as any)?.emergency_contact || 'N/A'}</span>
+            </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
 
-    // Physical Examination
-    content += `
-      <div class="section">
-        <div class="section-title">Physical Examination</div>
-        <div class="info-grid">
-          <div class="info-item">
-            <span class="info-label">Height:</span>
-            <span>${patientData.physical_examination?.height || 'Not recorded'}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Weight:</span>
-            <span>${patientData.physical_examination?.weight || 'Not recorded'}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Blood Pressure:</span>
-            <span>${patientData.physical_examination?.bloodPressure || 'Not recorded'}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Temperature:</span>
-            <span>${patientData.physical_examination?.temperature || 'Not recorded'}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Pulse Rate:</span>
-            <span>${patientData.physical_examination?.pulseRate || 'Not recorded'}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Respiratory Rate:</span>
-            <span>${patientData.physical_examination?.respiratoryRate || 'Not recorded'}</span>
+      // Physical Examination
+      content += `
+        <div class="section">
+          <div class="section-title">Physical Examination</div>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Height:</span>
+              <span>${patientData.physical_examination?.height || 'Not recorded'}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Weight:</span>
+              <span>${patientData.physical_examination?.weight || 'Not recorded'}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Blood Pressure:</span>
+              <span>${patientData.physical_examination?.bloodPressure || 'Not recorded'}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Temperature:</span>
+              <span>${patientData.physical_examination?.temperature || 'Not recorded'}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Pulse Rate:</span>
+              <span>${patientData.physical_examination?.pulseRate || 'Not recorded'}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Respiratory Rate:</span>
+              <span>${patientData.physical_examination?.respiratoryRate || 'Not recorded'}</span>
+            </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
 
-    // Medical Information
-    content += `
-      <div class="section">
-        <div class="section-title">Medical Information</div>
-        <div class="info-grid">
-          <div class="info-item">
-            <span class="info-label">Blood Type:</span>
-            <span>${patientData.medical_info?.bloodType || 'N/A'}</span>
+      // Medical Information
+      content += `
+        <div class="section">
+          <div class="section-title">Medical Information</div>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Blood Type:</span>
+              <span>${patientData.medical_info?.bloodType || 'N/A'}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Known Allergies:</span>
+              <span>${patientData.medical_info?.allergies?.join(', ') || 'None recorded'}</span>
+            </div>
           </div>
-          <div class="info-item">
-            <span class="info-label">Known Allergies:</span>
-            <span>${patientData.medical_info?.allergies?.join(', ') || 'None recorded'}</span>
+          ${patientData.medical_info?.medicalHistory ? `
+            <div class="info-item">
+              <span class="info-label">Medical History:</span>
+              <div style="margin-top: 5px;">${patientData.medical_info.medicalHistory}</div>
+            </div>
+          ` : ''}
+          
+          ${(patientData.medical_info as any)?.chiefComplaint ? `
+            <div class="info-item">
+              <span class="info-label">Chief Complaint:</span>
+              <div style="margin-top: 5px;">${(patientData.medical_info as any).chiefComplaint}</div>
+            </div>
+          ` : ''}
+          
+          <div class="info-grid" style="margin-top: 15px;">
+            ${(patientData.medical_info as any)?.illnesses ? `
+              <div class="info-item">
+                <span class="info-label">Illnesses:</span>
+                <div style="margin-top: 3px;">${(patientData.medical_info as any).illnesses}</div>
+              </div>
+            ` : ''}
+            
+            ${(patientData.medical_info as any)?.surgeries ? `
+              <div class="info-item">
+                <span class="info-label">Surgeries:</span>
+                <div style="margin-top: 3px;">${(patientData.medical_info as any).surgeries}</div>
+              </div>
+            ` : ''}
+            
+            ${(patientData.medical_info as any)?.medications ? `
+              <div class="info-item">
+                <span class="info-label">Current Medications:</span>
+                <div style="margin-top: 3px;">${(patientData.medical_info as any).medications}</div>
+              </div>
+            ` : ''}
+            
+            ${(patientData.medical_info as any)?.familyHistory ? `
+              <div class="info-item">
+                <span class="info-label">Family History:</span>
+                <div style="margin-top: 3px;">${(patientData.medical_info as any).familyHistory}</div>
+              </div>
+            ` : ''}
+            
+            ${(patientData.medical_info as any)?.socialHistory ? `
+              <div class="info-item">
+                <span class="info-label">Social History:</span>
+                <div style="margin-top: 3px;">${(patientData.medical_info as any).socialHistory}</div>
+              </div>
+            ` : ''}
           </div>
         </div>
-        ${patientData.medical_info?.medicalHistory ? `
-          <div class="info-item">
-            <span class="info-label">Medical History:</span>
-            <div style="margin-top: 5px;">${patientData.medical_info.medicalHistory}</div>
-          </div>
-        ` : ''}
-        
-        ${(patientData.medical_info as any)?.chiefComplaint ? `
-          <div class="info-item">
-            <span class="info-label">Chief Complaint:</span>
-            <div style="margin-top: 5px;">${(patientData.medical_info as any).chiefComplaint}</div>
-          </div>
-        ` : ''}
-        
-        <div class="info-grid" style="margin-top: 15px;">
-          ${(patientData.medical_info as any)?.illnesses ? `
-            <div class="info-item">
-              <span class="info-label">Illnesses:</span>
-              <div style="margin-top: 3px;">${(patientData.medical_info as any).illnesses}</div>
-            </div>
-          ` : ''}
-          
-          ${(patientData.medical_info as any)?.surgeries ? `
-            <div class="info-item">
-              <span class="info-label">Surgeries:</span>
-              <div style="margin-top: 3px;">${(patientData.medical_info as any).surgeries}</div>
-            </div>
-          ` : ''}
-          
-          ${(patientData.medical_info as any)?.medications ? `
-            <div class="info-item">
-              <span class="info-label">Current Medications:</span>
-              <div style="margin-top: 3px;">${(patientData.medical_info as any).medications}</div>
-            </div>
-          ` : ''}
-          
-          ${(patientData.medical_info as any)?.familyHistory ? `
-            <div class="info-item">
-              <span class="info-label">Family History:</span>
-              <div style="margin-top: 3px;">${(patientData.medical_info as any).familyHistory}</div>
-            </div>
-          ` : ''}
-          
-          ${(patientData.medical_info as any)?.socialHistory ? `
-            <div class="info-item">
-              <span class="info-label">Social History:</span>
-              <div style="margin-top: 3px;">${(patientData.medical_info as any).socialHistory}</div>
-            </div>
-          ` : ''}
-        </div>
-      </div>
-    `;
+      `;
+    }
 
     // Documents sections (existing format)
     if (printSettings.includePrescriptions && prescriptions.length > 0) {
-      content += `<div class="page-break"></div>`;
       prescriptions.forEach((prescription, index) => {
+        content += `<div class="page-break"></div>`;
         const prescriptionId = `${Date.now().toString().slice(-8).toUpperCase()}`;
         const clinicData = clinicSettings || {};
         content += `
-          <div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; font-family: Arial, sans-serif;">
+          <div class="document-container" style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; font-family: Arial, sans-serif;">
             <!-- Header with Logo and QR -->
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
               <div>
@@ -2371,7 +2469,26 @@ const PatientManagement = () => {
         dataToSend.medical_info = {
           bloodType: dataToSend.medical_info.bloodType || '',
           allergies: dataToSend.medical_info.allergies || [],
-          medicalHistory: dataToSend.medical_info.medicalHistory || ''
+          medicalHistory: dataToSend.medical_info.medicalHistory || '',
+          chiefComplaint: medicalHistory.chiefComplaint,
+          illnesses: medicalHistory.categoryDetails.illnesses,
+          surgeries: medicalHistory.categoryDetails.surgeries,
+          medications: medicalHistory.categoryDetails.medications,
+          familyHistory: medicalHistory.categoryDetails.familyHistory,
+          socialHistory: medicalHistory.categoryDetails.socialHistory
+        };
+      } else {
+        // If no medical_info exists, create it with the medical history
+        dataToSend.medical_info = {
+          bloodType: '',
+          allergies: [],
+          medicalHistory: '',
+          chiefComplaint: medicalHistory.chiefComplaint,
+          illnesses: medicalHistory.categoryDetails.illnesses,
+          surgeries: medicalHistory.categoryDetails.surgeries,
+          medications: medicalHistory.categoryDetails.medications,
+          familyHistory: medicalHistory.categoryDetails.familyHistory,
+          socialHistory: medicalHistory.categoryDetails.socialHistory
         };
       }
       
@@ -3341,7 +3458,7 @@ const PatientManagement = () => {
                     {isDeleting ? 'Deleting...' : 'Delete'}
                   </Button>
                 )}
-                {canEdit && (
+                {canEdit && activeTab !== 'overview' && (
                   <Button onClick={() => setIsEditing(true)} disabled={isDeleting}>
                     <Edit className="mr-2 h-4 w-4" />
                     Edit Record
@@ -3433,406 +3550,6 @@ const PatientManagement = () => {
             isEditing={isEditing && (isDoctor || isAdmin)} // Doctors and admins can edit physical exam data
             onUpdate={(updatedData) => setPatientData(prev => ({ ...prev, ...updatedData }))}
           />
-          {/* Calculate paginated notes */}
-          {(() => {
-            const soapStartIndex = (soapNotesPage - 1) * notesPerPage;
-            const soapEndIndex = soapStartIndex + notesPerPage;
-            const paginatedSoapNotes = soapNotes.slice(soapStartIndex, soapEndIndex);
-            const soapTotalPages = Math.ceil(soapNotes.length / notesPerPage);
-            
-            const clinicalStartIndex = (clinicalNotesPage - 1) * notesPerPage;
-            const clinicalEndIndex = clinicalStartIndex + notesPerPage;
-            const paginatedClinicalNotes = blankNotes.slice(clinicalStartIndex, clinicalEndIndex);
-            const clinicalTotalPages = Math.ceil(blankNotes.length / notesPerPage);
-            
-            return (
-          <div className="mt-8 flex flex-col md:flex-row gap-8">
-            <div className="w-full md:w-1/2 flex flex-col border rounded-lg bg-white p-4 shadow-sm order-1">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-semibold text-md">SOAP Notes ({soapNotes.length})</h4>
-                {(isDoctor || isAdmin) && (
-                  <Button size="sm" variant="outline" onClick={() => handleCreateDocument('soap')} className="flex items-center gap-1">
-                    <Plus className="h-3 w-3" />
-                    Add
-                  </Button>
-                )}
-              </div>
-              <div className="flex-1">
-                {paginatedSoapNotes.length > 0 ? (
-                  <>
-                    <ul className="space-y-2 mb-4">
-                      {paginatedSoapNotes.map((note, idx) => (
-                        <li key={note.id || idx} className="p-3 border rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3 flex-1">
-                              <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                                S
-                              </div>
-                              <div className="flex-1">
-                                <div className="text-sm font-medium text-gray-900">SOAP Note #{soapStartIndex + idx + 1}</div>
-                                <div className="text-xs text-green-600">
-                                  {note.data?.assessment ? note.data.assessment.substring(0, 60) + (note.data.assessment.length > 60 ? '...' : '') : 'Assessment: Not provided'}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  Created: {new Date(note.dateCreated).toLocaleDateString()} | By: {note.createdBy || currentUser?.name || 'Medical Staff'}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                onClick={async () => {
-                                  // Fetch current clinic settings
-                                  let currentClinicSettings = clinicSettings;
-                                  if (!currentClinicSettings) {
-                                    try {
-                                      currentClinicSettings = await fetchClinicSettings();
-                                    } catch (error) {
-                                      console.error('Failed to fetch clinic settings:', error);
-                                      currentClinicSettings = {};
-                                    }
-                                  }
-                                  
-                                  const noteId = `${Date.now().toString().slice(-8).toUpperCase()}`;
-                                  const clinicData = currentClinicSettings || {};
-                                  
-                                  const content = `
-                                    <!DOCTYPE html>
-                                    <html>
-                                    <head>
-                                      <title>SOAP Note - ${patientData?.name}</title>
-                                      <meta charset="utf-8">
-                                      <style>
-                                        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-                                        @media print { body { margin: 0; } }
-                                      </style>
-                                    </head>
-                                    <body>
-                                      <div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; font-family: Arial, sans-serif;">
-                                        <!-- Header with Logo and QR -->
-                                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
-                                          <div>
-                                            ${clinicData.logo ? 
-                                              `<img src="${getLogoUrl(clinicData.logo)}" alt="Clinic Logo" style="height: 50px; width: auto; margin-bottom: 10px;">` : 
-                                              `<div style="width: 50px; height: 50px; background: #f0f0f0; margin-bottom: 10px;"></div>`
-                                            }
-                                            <div style="font-size: 14px; color: #333;">${clinicData.clinic_name || 'Medical Center'}</div>
-                                          </div>
-                                          <div style="text-align: center;">
-                                            <div style="width: 80px; height: 80px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666;">
-                                              QR CODE
-                                            </div>
-                                          </div>
-                                        </div>
-
-                                        <!-- Note ID -->
-                                        <div style="text-align: center; margin-bottom: 20px;">
-                                          <div style="font-weight: bold; font-size: 14px;">SOAP NOTE ID: ${noteId}</div>
-                                        </div>
-
-                                        <!-- Location and Date -->
-                                        <div style="text-align: center; margin-bottom: 30px; font-size: 12px; color: #666;">
-                                          <div>${clinicData.address || 'Clinic Address'}</div>
-                                          <div style="margin-top: 10px;">
-                                            Created on: ${format(new Date(note.dateCreated), 'MMMM dd, yyyy')}
-                                          </div>
-                                          <div>${format(new Date(note.dateCreated), 'hh:mm a')} PHT</div>
-                                        </div>
-
-                                        <!-- Patient Info -->
-                                        <div style="margin-bottom: 20px; font-size: 12px;">
-                                          <div><strong>Patient:</strong> ${patientData?.name}</div>
-                                          <div><strong>Age:</strong> ${patientData?.date_of_birth ? Math.floor((new Date().getTime() - new Date(patientData.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 'N/A'} years old</div>
-                                          <div><strong>Gender:</strong> ${patientData?.gender || 'Not specified'}</div>
-                                        </div>
-
-                                        <!-- SOAP Symbol -->
-                                        <div style="font-size: 24px; font-weight: bold; margin-bottom: 15px; color: #059669;">SOAP</div>
-
-                                        <!-- SOAP Details -->
-                                        <div style="margin-bottom: 40px; font-size: 14px; line-height: 1.6;">
-                                          <div style="margin-bottom: 15px;">
-                                            <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">Subjective:</div>
-                                            <div style="margin-left: 20px; color: #333;">${note.data?.subjective || 'Not recorded'}</div>
-                                          </div>
-                                          <div style="margin-bottom: 15px;">
-                                            <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">Objective:</div>
-                                            <div style="margin-left: 20px; color: #333;">${note.data?.objective || 'Not recorded'}</div>
-                                          </div>
-                                          <div style="margin-bottom: 15px;">
-                                            <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">Assessment:</div>
-                                            <div style="margin-left: 20px; color: #333;">${note.data?.assessment || 'Not recorded'}</div>
-                                          </div>
-                                          <div style="margin-bottom: 15px;">
-                                            <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">Plan:</div>
-                                            <div style="margin-left: 20px; color: #333;">${note.data?.plan || 'Not recorded'}</div>
-                                          </div>
-                                        </div>
-
-                                        <!-- Doctor Signature Area -->
-                                        <div style="text-align: right; margin-top: 60px;">
-                                          <div style="border-bottom: 1px solid #000; width: 200px; margin-left: auto; margin-bottom: 5px;"></div>
-                                          <div style="font-size: 12px;">Dr. ${currentUser?.first_name || currentUser?.name} ${currentUser?.last_name || ''}</div>
-                                        </div>
-
-                                        <!-- Footer -->
-                                        <div style="text-align: center; margin-top: 40px; font-size: 10px; color: #999;">
-                                          <div style="width: 30px; height: 30px; border-radius: 50%; background: #f0f0f0; margin: 0 auto;"></div>
-                                        </div>
-                                      </div>
-                                    </body>
-                                    </html>
-                                  `;
-                                  const newWindow = window.open('', '_blank');
-                                  if (newWindow) {
-                                    newWindow.document.write(content);
-                                    newWindow.document.close();
-                                  }
-                                }}
-                                title="View SOAP Note"
-                              >
-                                <Eye className="h-3 w-3" />
-                              </Button>
-                              {(isDoctor || isAdmin) && (
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => handleDeleteDocument(note.id, 'soap')}
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                  title="Delete SOAP Note"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                    {soapTotalPages > 1 && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          Page {soapNotesPage} of {soapTotalPages}
-                        </span>
-                        <div className="flex gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={() => setSoapNotesPage(p => Math.max(1, p - 1))}
-                            disabled={soapNotesPage === 1}
-                            className="flex items-center gap-1"
-                          >
-                            <ChevronLeft className="h-3 w-3" />
-                            Previous
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={() => setSoapNotesPage(p => Math.min(soapTotalPages, p + 1))}
-                            disabled={soapNotesPage === soapTotalPages}
-                            className="flex items-center gap-1"
-                          >
-                            Next
-                            <ChevronRight className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-sm text-muted-foreground">No SOAP notes available.</div>
-                )}
-              </div>
-            </div>
-            <div className="w-full md:w-1/2 flex flex-col border rounded-lg bg-white p-4 shadow-sm order-2 md:ml-auto">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-semibold text-md">Clinical Notes ({blankNotes.length})</h4>
-                {(isDoctor || isAdmin) && (
-                  <Button size="sm" variant="outline" onClick={() => handleCreateDocument('blank')} className="flex items-center gap-1">
-                    <Plus className="h-3 w-3" />
-                    Add
-                  </Button>
-                )}
-              </div>
-              <div className="flex-1">
-                {paginatedClinicalNotes.length > 0 ? (
-                  <>
-                    <ul className="space-y-2 mb-4">
-                      {paginatedClinicalNotes.map((note, idx) => (
-                        <li key={note.id || idx} className="p-3 border rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3 flex-1">
-                              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                                N
-                              </div>
-                              <div className="flex-1">
-                                <div className="text-sm font-medium text-gray-900">{note.data?.title || `Clinical Note #${clinicalStartIndex + idx + 1}`}</div>
-                                <div className="text-xs text-blue-600">
-                                  {note.data?.content ? note.data.content.substring(0, 60) + (note.data.content.length > 60 ? '...' : '') : 'No content preview available'}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  Created: {new Date(note.dateCreated).toLocaleDateString()} | By: {note.createdBy || currentUser?.name || 'Medical Staff'}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                onClick={async () => {
-                                  // Fetch current clinic settings
-                                  let currentClinicSettings = clinicSettings;
-                                  if (!currentClinicSettings) {
-                                    try {
-                                      currentClinicSettings = await fetchClinicSettings();
-                                    } catch (error) {
-                                      console.error('Failed to fetch clinic settings:', error);
-                                      currentClinicSettings = {};
-                                    }
-                                  }
-                                  
-                                  const noteId = `${Date.now().toString().slice(-8).toUpperCase()}`;
-                                  const clinicData = currentClinicSettings || {};
-                                  
-                                  const content = `
-                                    <!DOCTYPE html>
-                                    <html>
-                                    <head>
-                                      <title>Clinical Note - ${patientData?.name}</title>
-                                      <meta charset="utf-8">
-                                      <style>
-                                        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-                                        @media print { body { margin: 0; } }
-                                      </style>
-                                    </head>
-                                    <body>
-                                      <div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; font-family: Arial, sans-serif;">
-                                        <!-- Header with Logo and QR -->
-                                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
-                                          <div>
-                                            ${clinicData.logo ? 
-                                              `<img src="${getLogoUrl(clinicData.logo)}" alt="Clinic Logo" style="height: 50px; width: auto; margin-bottom: 10px;">` : 
-                                              `<div style="width: 50px; height: 50px; background: #f0f0f0; margin-bottom: 10px;"></div>`
-                                            }
-                                            <div style="font-size: 14px; color: #333;">${clinicData.clinic_name || 'Medical Center'}</div>
-                                          </div>
-                                          <div style="text-align: center;">
-                                            <div style="width: 80px; height: 80px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666;">
-                                              QR CODE
-                                            </div>
-                                          </div>
-                                        </div>
-
-                                        <!-- Note ID -->
-                                        <div style="text-align: center; margin-bottom: 20px;">
-                                          <div style="font-weight: bold; font-size: 14px;">CLINICAL NOTE ID: ${noteId}</div>
-                                        </div>
-
-                                        <!-- Location and Date -->
-                                        <div style="text-align: center; margin-bottom: 30px; font-size: 12px; color: #666;">
-                                          <div>${clinicData.address || 'Clinic Address'}</div>
-                                          <div style="margin-top: 10px;">
-                                            Created on: ${format(new Date(note.dateCreated), 'MMMM dd, yyyy')}
-                                          </div>
-                                          <div>${format(new Date(note.dateCreated), 'hh:mm a')} PHT</div>
-                                        </div>
-
-                                        <!-- Patient Info -->
-                                        <div style="margin-bottom: 20px; font-size: 12px;">
-                                          <div><strong>Patient:</strong> ${patientData?.name}</div>
-                                          <div><strong>Age:</strong> ${patientData?.date_of_birth ? Math.floor((new Date().getTime() - new Date(patientData.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 'N/A'} years old</div>
-                                          <div><strong>Gender:</strong> ${patientData?.gender || 'Not specified'}</div>
-                                        </div>
-
-                                        <!-- Note Symbol -->
-                                        <div style="font-size: 24px; font-weight: bold; margin-bottom: 15px; color: #2563eb;">Clinical Note</div>
-
-                                        <!-- Note Details -->
-                                        <div style="margin-bottom: 40px; font-size: 14px; line-height: 1.6;">
-                                          <div style="font-weight: bold; margin-bottom: 10px; color: #2563eb;">${note.data?.title || 'Clinical Note'}</div>
-                                          <div style="margin-left: 20px; color: #333; white-space: pre-wrap;">${note.data?.content || 'No content recorded'}</div>
-                                        </div>
-
-                                        <!-- Doctor Signature Area -->
-                                        <div style="text-align: right; margin-top: 60px;">
-                                          <div style="border-bottom: 1px solid #000; width: 200px; margin-left: auto; margin-bottom: 5px;"></div>
-                                          <div style="font-size: 12px;">Dr. ${currentUser?.first_name || currentUser?.name} ${currentUser?.last_name || ''}</div>
-                                        </div>
-
-                                        <!-- Footer -->
-                                        <div style="text-align: center; margin-top: 40px; font-size: 10px; color: #999;">
-                                          <div style="width: 30px; height: 30px; border-radius: 50%; background: #f0f0f0; margin: 0 auto;"></div>
-                                        </div>
-                                      </div>
-                                    </body>
-                                    </html>
-                                  `;
-                                  const newWindow = window.open('', '_blank');
-                                  if (newWindow) {
-                                    newWindow.document.write(content);
-                                    newWindow.document.close();
-                                  }
-                                }}
-                                title="View Clinical Note"
-                              >
-                                <Eye className="h-3 w-3" />
-                              </Button>
-                              {(isDoctor || isAdmin) && (
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => handleDeleteDocument(note.id, 'blank')}
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                  title="Delete Clinical Note"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                    {clinicalTotalPages > 1 && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          Page {clinicalNotesPage} of {clinicalTotalPages}
-                        </span>
-                        <div className="flex gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={() => setClinicalNotesPage(p => Math.max(1, p - 1))}
-                            disabled={clinicalNotesPage === 1}
-                            className="flex items-center gap-1"
-                          >
-                            <ChevronLeft className="h-3 w-3" />
-                            Previous
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={() => setClinicalNotesPage(p => Math.min(clinicalTotalPages, p + 1))}
-                            disabled={clinicalNotesPage === clinicalTotalPages}
-                            className="flex items-center gap-1"
-                          >
-                            Next
-                            <ChevronRight className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-sm text-muted-foreground">No clinical notes available.</div>
-                )}
-              </div>
-            </div>
-          </div>
-          ); // Close the return statement
-          })() // Close the IIFE
-          }
           {isEditing && (isDoctor || isAdmin) && (
             <div className="mt-4 flex justify-end">
               <Button onClick={handleNext}>
@@ -3848,6 +3565,7 @@ const PatientManagement = () => {
             isEditing={isEditing && (isDoctor || isAdmin)} // Doctors and admins can edit medical info
             onUpdate={(updatedData) => setPatientData(prev => ({ ...prev, ...updatedData }))}
           />
+          
           {isEditing && (
             <div className="mt-4 flex justify-end">
               <Button onClick={handleNext}>
@@ -4000,11 +3718,23 @@ const PatientManagement = () => {
           
           <div className="space-y-4">
             <div className="text-sm text-muted-foreground">
-              Personal information, physical examination, and medical information will always be included.
-              Select additional documents to include:
+              Select the sections and documents to include in the patient record:
             </div>
             
             <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="comprehensiveProfile"
+                  checked={printSettings.includeComprehensiveProfile}
+                  onCheckedChange={(checked) => handlePrintSettingsChange('includeComprehensiveProfile', !!checked)}
+                />
+                <label htmlFor="comprehensiveProfile" className="font-medium">
+                  Comprehensive Profile (Personal Info, Physical Exam, Medical Info)
+                </label>
+              </div>
+              
+              <hr className="my-2" />
+              
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="prescriptions"

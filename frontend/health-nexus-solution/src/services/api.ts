@@ -125,6 +125,7 @@ export interface Patient {
   date_of_birth: string;
   gender?: string;
   address?: string;
+  religion?: string; // Added missing religion field
   marital_status?: string;
   medical_info?: any;
   physical_examination?: any;

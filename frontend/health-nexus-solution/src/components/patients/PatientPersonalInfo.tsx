@@ -155,6 +155,20 @@ const PatientPersonalInfo: React.FC<PatientPersonalInfoProps> = ({
             )}
           </div>
           
+          <div className="space-y-2">
+            <Label htmlFor="religion">Religion</Label>
+            {isEditing ? (
+              <Input 
+                id="religion" 
+                value={patient.religion || ''} 
+                onChange={(e) => onUpdate({ religion: e.target.value })}
+                placeholder="Enter religion"
+              />
+            ) : (
+              <div className="p-2 border rounded-md bg-muted/20">{patient.religion || 'N/A'}</div>
+            )}
+          </div>
+          
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="address">Address</Label>
             {isEditing ? (

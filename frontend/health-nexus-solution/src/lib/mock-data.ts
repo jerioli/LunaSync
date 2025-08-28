@@ -38,6 +38,7 @@ export type Patient = {
   date_of_birth?: string; // Use camelCase for frontend
   gender: 'male' | 'female' | 'other';
   address: string;
+  religion?: string;
   marital_status?: 'single' | 'married' | 'divorced' | 'widowed'; // Use camelCase for frontend
   medical_info?: {
       bloodType?: string;
