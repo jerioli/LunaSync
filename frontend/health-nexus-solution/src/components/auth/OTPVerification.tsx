@@ -1,34 +1,42 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import axios from 'axios';
-import { ArrowLeft, Mail, Phone, RefreshCw } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { OTPInput } from './OTPInput';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import axios from "axios";
+import { ArrowLeft, Mail, Phone, RefreshCw } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { OTPInput } from "./OTPInput";
 
 interface OTPVerificationProps {
   identifier: string; // email or phone
-  identifierType: 'email' | 'phone';
+  identifierType: "email" | "phone";
   onVerificationSuccess: (userData: any) => void;
   onBack: () => void;
   className?: string;
+  onOTPComplete?: (otpValue: string) => void;
 }
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = "http://localhost:8000/api";
 
 export const OTPVerification: React.FC<OTPVerificationProps> = ({
   identifier,
   identifierType,
   onVerificationSuccess,
   onBack,
-  className
+  className,
+  onOTPComplete,
 }) => {
-  const [otp, setOtp] = useState('');
+  const [otp, setOtp] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
   const [canResend, setCanResend] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   // Countdown timer
   useEffect(() => {
@@ -43,65 +51,83 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const handleOTPComplete = async (otpValue: string) => {
     setOtp(otpValue);
-    await verifyOTP(otpValue);
+    if (onOTPComplete) {
+      onOTPComplete(otpValue);
+    } else {
+      await verifyOTP(otpValue);
+    }
   };
 
   const verifyOTP = async (otpValue: string) => {
     setIsVerifying(true);
-    setError('');
-    
+    setError("");
+
     try {
       const response = await axios.post(`${API_BASE_URL}/auth/verify-otp/`, {
         identifier,
         identifier_type: identifierType,
-        otp: otpValue
+        otp: otpValue,
       });
 
       if (response.data.success) {
-        console.log('=== OTP API Response ===');
-        console.log('Full API response:', response.data);
-        console.log('force_password_change from API:', response.data.force_password_change);
-        console.log('force_password_change type:', typeof response.data.force_password_change);
-        
+        console.log("=== OTP API Response ===");
+        console.log("Full API response:", response.data);
+        console.log(
+          "force_password_change from API:",
+          response.data.force_password_change
+        );
+        console.log(
+          "force_password_change type:",
+          typeof response.data.force_password_change
+        );
+
         const userData = {
           id: String(response.data.user.id),
           name: response.data.user.name || response.data.user.username,
           username: response.data.user.username,
           email: response.data.user.email,
           phone: response.data.user.phone,
-          role: response.data.user.role || 'doctor',
+          role: response.data.user.role || "doctor",
           accessToken: response.data.user.accessToken,
           refreshToken: response.data.user.refreshToken,
-          force_password_change: response.data.force_password_change
+          force_password_change: response.data.force_password_change,
         };
 
-        console.log('=== UserData Created ===');
-        console.log('userData object:', userData);
-        console.log('userData.force_password_change:', userData.force_password_change);
+        console.log("=== UserData Created ===");
+        console.log("userData object:", userData);
+        console.log(
+          "userData.force_password_change:",
+          userData.force_password_change
+        );
 
-        toast.success('🎉 Login successful! Welcome to MedSync.');
+        toast.success("🎉 Login successful! Welcome to MedSync.");
         onVerificationSuccess(userData);
       } else {
-        setError(response.data.error || 'Invalid OTP');
-        toast.error('❌ Invalid OTP. Please check your code and try again.');
+        setError(response.data.error || "Invalid OTP");
+        toast.error("❌ Invalid OTP. Please check your code and try again.");
       }
     } catch (error: any) {
-      console.error('Verify OTP error:', error);
-      const errorMessage = error.response?.data?.error || 'Failed to verify OTP';
+      console.error("Verify OTP error:", error);
+      const errorMessage =
+        error.response?.data?.error || "Failed to verify OTP";
       setError(errorMessage);
-      
+
       // Enhanced error messages
-      if (errorMessage.includes('expired')) {
-        toast.error('⏰ Your verification code has expired. Please request a new one.');
-      } else if (errorMessage.includes('Invalid OTP')) {
-        toast.error('🔐 Invalid verification code. Please check and try again.');
+      if (errorMessage.includes("expired")) {
+        toast.error(
+          "⏰ Your verification code has expired. Please request a new one."
+        );
+      } else if (errorMessage.includes("Invalid OTP")) {
+        toast.error(
+          "🔐 Invalid verification code. Please check and try again."
+        );
       } else {
-        toast.error('❌ ' + errorMessage);
+        toast.error("❌ " + errorMessage);
       }
     } finally {
       setIsVerifying(false);
@@ -110,32 +136,34 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
 
   const handleResendOTP = async () => {
     setIsResending(true);
-    setError('');
-    
+    setError("");
+
     try {
       const response = await axios.post(`${API_BASE_URL}/auth/send-otp/`, {
         identifier,
-        identifier_type: identifierType
+        identifier_type: identifierType,
       });
 
       if (response.data.success) {
-        const method = identifierType === 'email' ? 'email' : 'SMS';
-        toast.success(`📱 New verification code sent via ${method}! Check your ${identifierType}.`);
+        const method = identifierType === "email" ? "email" : "SMS";
+        toast.success(
+          `📱 New verification code sent via ${method}! Check your ${identifierType}.`
+        );
         setTimeLeft(300); // Reset timer
         setCanResend(false);
-        setOtp('');
+        setOtp("");
       } else {
-        toast.error('❌ ' + (response.data.error || 'Failed to resend OTP'));
+        toast.error("❌ " + (response.data.error || "Failed to resend OTP"));
       }
-      
     } catch (error: any) {
-      console.error('Resend OTP error:', error);
-      const errorMessage = error.response?.data?.error || 'Failed to resend OTP';
-      
-      if (errorMessage.includes('rate limit')) {
-        toast.error('⏱️ Please wait before requesting another code.');
+      console.error("Resend OTP error:", error);
+      const errorMessage =
+        error.response?.data?.error || "Failed to resend OTP";
+
+      if (errorMessage.includes("rate limit")) {
+        toast.error("⏱️ Please wait before requesting another code.");
       } else {
-        toast.error('❌ ' + errorMessage);
+        toast.error("❌ " + errorMessage);
       }
     } finally {
       setIsResending(false);
@@ -144,20 +172,21 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
 
   const handleOtpChange = (otpValue: string) => {
     setOtp(otpValue);
-    if (error) setError(''); // Clear error when user starts typing
+    if (error) setError(""); // Clear error when user starts typing
   };
 
   const handleManualVerify = () => {
     if (otp.length === 6) {
       verifyOTP(otp);
     } else {
-      toast.error('Please enter a complete 6-digit OTP');
+      toast.error("Please enter a complete 6-digit OTP");
     }
   };
 
-  const maskedIdentifier = identifierType === 'email' 
-    ? identifier.replace(/(.{2})(.*)(@.*)/, '$1***$3')
-    : identifier.replace(/(\d{3})(\d{3})(\d{4})/, '$1-***-$3');
+  const maskedIdentifier =
+    identifierType === "email"
+      ? identifier.replace(/(.{2})(.*)(@.*)/, "$1***$3")
+      : identifier.replace(/(\d{3})(\d{3})(\d{4})/, "$1-***-$3");
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-clinic-gray dark:bg-gray-900 relative">
@@ -170,11 +199,11 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
           <h1 className="text-3xl font-bold text-clinic-blue">MedSync</h1>
           <p className="text-gray-500">Verify Your Identity</p>
         </div>
-        
+
         <Card className={className}>
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-              {identifierType === 'email' ? (
+              {identifierType === "email" ? (
                 <Mail className="h-6 w-6 text-blue-600" />
               ) : (
                 <Phone className="h-6 w-6 text-blue-600" />
@@ -182,9 +211,12 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
             </div>
             <CardTitle>Enter Verification Code</CardTitle>
             <CardDescription>
-              We've sent a 6-digit verification code to<br />
-              <span className="font-semibold text-foreground">{maskedIdentifier}</span>
-              {identifierType === 'phone' && (
+              We've sent a 6-digit verification code to
+              <br />
+              <span className="font-semibold text-foreground">
+                {maskedIdentifier}
+              </span>
+              {identifierType === "phone" && (
                 <div className="text-xs text-blue-600 mt-1">
                   📱 Powered by iProg SMS for reliable delivery
                 </div>
@@ -201,19 +233,17 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
                 error={!!error}
                 className="mb-4"
               />
-              
+
               {error && (
-                <div className="text-sm text-red-600 text-center">
-                  {error}
-                </div>
+                <div className="text-sm text-red-600 text-center">{error}</div>
               )}
 
-              <Button 
+              <Button
                 onClick={handleManualVerify}
                 disabled={isVerifying || otp.length !== 6}
                 className="w-full"
               >
-                {isVerifying ? 'Verifying...' : 'Verify Code'}
+                {isVerifying ? "Verifying..." : "Verify Code"}
               </Button>
             </div>
 
@@ -225,7 +255,7 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
                   <span className="text-red-600">Code expired</span>
                 )}
               </div>
-              
+
               <Button
                 variant="ghost"
                 onClick={handleResendOTP}
@@ -238,16 +268,12 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
                     Sending...
                   </>
                 ) : (
-                  `Resend ${identifierType === 'email' ? 'Email' : 'SMS'}`
+                  `Resend ${identifierType === "email" ? "Email" : "SMS"}`
                 )}
               </Button>
             </div>
 
-            <Button
-              variant="ghost"
-              onClick={onBack}
-              className="w-full"
-            >
+            <Button variant="ghost" onClick={onBack} className="w-full">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Login
             </Button>

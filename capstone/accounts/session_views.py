@@ -21,91 +21,203 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
+# --- 2FA Session Login View ---
 class SessionLoginView(APIView):
     """
-    Enhanced login view with proper session management
+    Step 1: Authenticate credentials, send OTP, require OTP verification before login
     """
     permission_classes = [AllowAny]
-    
+
     def post(self, request):
         try:
             email = request.data.get('email')
             username = request.data.get('username')
             password = request.data.get('password')
-            
-            print(f"[DEBUG] Login attempt - Email: {email}, Username: {username}")
-            
-            # Use the custom authentication backend that handles email/username
+
+            print(f"[DEBUG] 2FA Login attempt - Email: {email}, Username: {username}")
+
             user = None
-            
             if email:
-                # Try authenticating with email using our custom backend
-                print(f"[DEBUG] Attempting authentication with email: {email}")
                 user = authenticate(request, username=email, password=password)
-                print(f"[DEBUG] Email authentication result: {user}")
             elif username:
-                # Try authenticating with username
-                print(f"[DEBUG] Attempting authentication with username: {username}")
                 user = authenticate(request, username=username, password=password)
-                print(f"[DEBUG] Username authentication result: {user}")
-            
+
             if user and user.is_active:
-                # Clear any existing sessions for this user
-                self.clear_user_sessions(user)
-                
-                # Create new session
-                login(request, user)
-                
-                # Set session variables
-                request.session['user_id'] = user.id
-                request.session['username'] = user.username
-                request.session['role'] = getattr(user, 'role', 'doctor')
-                request.session['login_time'] = str(timezone.now())
-                
-                # Force session save
+                # Store pending user ID in session (do not log in yet)
+                request.session['pending_2fa_user_id'] = user.id
                 request.session.save()
-                
-                logger.info(f"User {user.username} logged in successfully. Session ID: {request.session.session_key}")
-                
+
+                # Generate and send OTP (reuse SendOTPView logic)
+                identifier = user.email if user.email else user.phone
+                identifier_type = 'email' if user.email else 'phone'
+
+                # Generate 6-digit OTP
+                import secrets
+                otp = ''.join([str(secrets.randbelow(10)) for _ in range(6)])
+                from django.core.cache import cache
+                cache_key = f"otp_{identifier}_{identifier_type}"
+                cache.set(cache_key, otp, 300)  # 5 minutes
+
+                # Send OTP
+                otp_sent = False
+
+                try:
+                    if identifier_type == 'email':
+                        try:
+                            from clinic.models import ClinicSettings
+                            clinic_settings = ClinicSettings.objects.first()
+                        except:
+                            clinic_settings = None
+                        from appointments.email_utils import send_otp_email
+                        otp_result = send_otp_email(identifier, otp, clinic_settings)
+                        if isinstance(otp_result, tuple):
+                            success, message = otp_result
+                        else:
+                            success, message = otp_result, ''
+                        otp_sent = success
+                    elif identifier_type == 'phone':
+                        from accounts.iprog_sms_service import iprog_sms_service
+                        otp_result = iprog_sms_service.send_otp_sms(identifier, otp)
+                        if isinstance(otp_result, tuple):
+                            success, message, reference_id = otp_result
+                        else:
+                            success, message, reference_id = otp_result, '', None
+                        otp_sent = success
+                except Exception as e:
+                    print(f"[2FA OTP] Failed to send OTP: {e}")
+
+                print(f"[2FA OTP] OTP sent to {identifier_type}: {otp_sent}")
+
                 return Response({
                     'success': True,
-                    'user': {
-                        'id': user.id,
-                        'name': user.get_full_name() or user.username,
-                        'email': user.email,
-                        'username': user.username,
-                        'role': getattr(user, 'role', 'doctor'),
-                        'can_manage_appointments': getattr(user, 'can_manage_appointments', False),
-                        'can_manage_patients': getattr(user, 'can_manage_patients', False),
-                        'can_manage_staff': getattr(user, 'can_manage_staff', False),
-                        'can_view_reports': getattr(user, 'can_view_reports', False),
-                        'can_manage_clinic_settings': getattr(user, 'can_manage_clinic_settings', False),
-                        'can_manage_permissions': getattr(user, 'can_manage_permissions', False),
-                        'can_access_integrations': getattr(user, 'can_access_integrations', False),
-                        'can_view_audit_logs': getattr(user, 'can_view_audit_logs', False),
-                        'can_view_usage_reports': getattr(user, 'can_view_usage_reports', False),
-                        'can_access_security_testing': getattr(user, 'can_access_security_testing', False),
-                    },
-                    'session_id': request.session.session_key,
-                    'message': 'Login successful',
-                    'force_password_change': getattr(user, 'force_password_change', False)
+                    '2fa_required': True,
+                    'message': 'OTP sent. Please verify to complete login.',
+                    'identifier': identifier,
+                    'identifier_type': identifier_type
                 })
-            
-            print(f"[DEBUG] Authentication failed for email: {email}, username: {username}")
+
+            print(f"[DEBUG] 2FA Authentication failed for email: {email}, username: {username}")
             return Response({
                 'success': False,
                 'error': 'Invalid credentials'
             }, status=status.HTTP_401_UNAUTHORIZED)
-            
+
         except Exception as e:
-            print(f"[DEBUG] Login error: {str(e)}")
+            print(f"[DEBUG] 2FA Login error: {str(e)}")
             return Response({
                 'success': False,
                 'error': 'Login failed'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
     def clear_user_sessions(self, user):
-        """Clear all existing sessions for a user"""
+        try:
+            user_sessions = Session.objects.all()
+            for session in user_sessions:
+                data = session.get_decoded()
+                if data.get('_auth_user_id') == str(user.id):
+                    session.delete()
+        except Exception as e:
+            logger.warning(f"Failed to clear user sessions: {str(e)}")
+
+
+# --- 2FA OTP Verification View ---
+class SessionOTPVerifyView(APIView):
+    """
+    Step 2: Verify OTP and complete login (create session)
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        try:
+            identifier = request.data.get('identifier')
+            identifier_type = request.data.get('identifier_type')
+            otp = request.data.get('otp')
+
+            if not identifier or not identifier_type or not otp:
+                return Response({
+                    'success': False,
+                    'error': 'identifier, identifier_type, and otp are required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            from django.core.cache import cache
+            cache_key = f"otp_{identifier}_{identifier_type}"
+            stored_otp = cache.get(cache_key)
+            if not stored_otp or stored_otp != otp:
+                return Response({
+                    'success': False,
+                    'error': 'Invalid or expired OTP'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Find pending user from session
+            pending_user_id = request.session.get('pending_2fa_user_id')
+            if not pending_user_id:
+                return Response({
+                    'success': False,
+                    'error': 'No pending 2FA login found. Please login again.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            from accounts.models import CustomUser
+            try:
+                user = CustomUser.objects.get(id=pending_user_id)
+            except CustomUser.DoesNotExist:
+                return Response({
+                    'success': False,
+                    'error': 'User not found.'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            # Clear OTP and pending state
+            cache.delete(cache_key)
+            del request.session['pending_2fa_user_id']
+
+            # Clear any existing sessions for this user
+            self.clear_user_sessions(user)
+
+            # Log in the user and create session
+            from django.contrib.auth import login
+            # Set backend for multi-backend compatibility
+            user.backend = 'django.contrib.auth.backends.ModelBackend'
+            login(request, user)
+            request.session['user_id'] = user.id
+            request.session['username'] = user.username
+            request.session['role'] = getattr(user, 'role', 'doctor')
+            request.session['login_time'] = str(timezone.now())
+            request.session.save()
+
+            logger.info(f"[2FA] User {user.username} logged in successfully. Session ID: {request.session.session_key}")
+
+            return Response({
+                'success': True,
+                'user': {
+                    'id': user.id,
+                    'name': user.get_full_name() or user.username,
+                    'email': user.email,
+                    'username': user.username,
+                    'role': getattr(user, 'role', 'doctor'),
+                    'can_manage_appointments': getattr(user, 'can_manage_appointments', False),
+                    'can_manage_patients': getattr(user, 'can_manage_patients', False),
+                    'can_manage_staff': getattr(user, 'can_manage_staff', False),
+                    'can_view_reports': getattr(user, 'can_view_reports', False),
+                    'can_manage_clinic_settings': getattr(user, 'can_manage_clinic_settings', False),
+                    'can_manage_permissions': getattr(user, 'can_manage_permissions', False),
+                    'can_access_integrations': getattr(user, 'can_access_integrations', False),
+                    'can_view_audit_logs': getattr(user, 'can_view_audit_logs', False),
+                    'can_view_usage_reports': getattr(user, 'can_view_usage_reports', False),
+                    'can_access_security_testing': getattr(user, 'can_access_security_testing', False),
+                },
+                'session_id': request.session.session_key,
+                'message': 'Login successful',
+                'force_password_change': getattr(user, 'force_password_change', False)
+            })
+
+        except Exception as e:
+            print(f"[DEBUG] 2FA OTP verify error: {str(e)}")
+            return Response({
+                'success': False,
+                'error': 'OTP verification failed'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def clear_user_sessions(self, user):
         try:
             user_sessions = Session.objects.all()
             for session in user_sessions:

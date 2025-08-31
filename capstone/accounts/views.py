@@ -1179,7 +1179,17 @@ class VerifyOTPView(APIView):
         # Debug: Check user's force_password_change status
         print(f"[DEBUG] User {user.username} force_password_change: {user.force_password_change}")
         
-        # Return user data (similar to login response)
+        # Create a Django session for the user (like session-based login)
+        from django.contrib.auth import login
+        request.user = user
+        login(request, user)
+        request.session['user_id'] = user.id
+        request.session['username'] = user.username
+        request.session['role'] = getattr(user, 'role', 'doctor')
+        request.session['login_time'] = str(datetime.now())
+        request.session.save()
+
+        # Return user data and session info
         return Response({
             'success': True,
             'user': {
@@ -1188,9 +1198,18 @@ class VerifyOTPView(APIView):
                 'name': user.get_full_name() or user.username,
                 'email': user.email,
                 'role': user.role,
-                'accessToken': 'dummy_access_token',  # In production, generate JWT token
-                'refreshToken': 'dummy_refresh_token'  # In production, generate refresh token
+                'can_manage_appointments': getattr(user, 'can_manage_appointments', False),
+                'can_manage_patients': getattr(user, 'can_manage_patients', False),
+                'can_manage_staff': getattr(user, 'can_manage_staff', False),
+                'can_view_reports': getattr(user, 'can_view_reports', False),
+                'can_manage_clinic_settings': getattr(user, 'can_manage_clinic_settings', False),
+                'can_manage_permissions': getattr(user, 'can_manage_permissions', False),
+                'can_access_integrations': getattr(user, 'can_access_integrations', False),
+                'can_view_audit_logs': getattr(user, 'can_view_audit_logs', False),
+                'can_view_usage_reports': getattr(user, 'can_view_usage_reports', False),
+                'can_access_security_testing': getattr(user, 'can_access_security_testing', False),
             },
+            'session_id': request.session.session_key,
             'force_password_change': getattr(user, 'force_password_change', False)
         })
 

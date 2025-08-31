@@ -1,2 +1,4 @@
 *.pyc
 .env
+# Ignore Django media files
+capstone/media/

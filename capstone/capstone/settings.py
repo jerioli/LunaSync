@@ -50,15 +50,16 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_DOMAIN = None     # Allow for localhost development
 SESSION_SAVE_EVERY_REQUEST = True  # Update session on every request
 
-# For development - set these to True in production with HTTPS
-SESSION_COOKIE_SECURE = False  # Set to True with HTTPS
-CSRF_COOKIE_SECURE = False     # Set to True with HTTPS
-SECURE_SSL_REDIRECT = False    # Set to True in production
 
-# Allow cross-origin cookies for development
-SESSION_COOKIE_SAMESITE = None  # Allow cross-origin requests in development (changed from 'Lax')
-CSRF_COOKIE_SAMESITE = None     # Allow cross-origin CSRF tokens (changed from 'Lax')
+# For cross-origin cookies (required for frontend/backend on different ports)
+SESSION_COOKIE_SECURE = True  # Required for SameSite=None
+CSRF_COOKIE_SECURE = True     # Required for SameSite=None
+SECURE_SSL_REDIRECT = False   # Set to True in production
+
+SESSION_COOKIE_SAMESITE = 'None'  # Must be string 'None' for cross-origin
+CSRF_COOKIE_SAMESITE = 'None'     # Must be string 'None' for cross-origin
 SESSION_COOKIE_NAME = 'sessionid'  # Default session cookie name
+CSRF_COOKIE_NAME = 'csrftoken'     # Default CSRF cookie name
 
 # File Upload Security
 FILE_UPLOAD_PERMISSIONS = 0o644  # Secure file permissions
@@ -112,11 +113,9 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:4173",  # Vite preview port
 ]
 
-# Disable CSRF for development
-CSRF_USE_SESSIONS = False
-CSRF_COOKIE_NAME = None
 
-# Disable CSRF protection completely for development  
+# Disable CSRF for development (use with caution)
+CSRF_USE_SESSIONS = False
 CSRF_CHECK_DISABLED = True
 
 CORS_ALLOW_METHODS = [
@@ -194,7 +193,7 @@ DATABASES = {
         'HOST':'127.0.0.1',
         'PORT':'5432',
         'OPTIONS': {
-            'sslmode': 'prefer',  # Enable SSL for database connections
+            'sslmode': 'require',  # Enable SSL for database connections
             'connect_timeout': 60,
         },
     }
@@ -315,5 +314,20 @@ TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER', '')  # Your Twilio phone 
 OTP_LENGTH = 6
 OTP_EXPIRY_MINUTES = 5
 OTP_MAX_ATTEMPTS = 3
+
+# --- SSL Test Management Command ---
+# Place this in a file like management/commands/db_ssl_test.py in any app, e.g., 'accounts'.
+# Usage: python manage.py db_ssl_test
+
+def create_db_ssl_test_command():
+    import os
+    commands_dir = os.path.join(BASE_DIR, 'accounts', 'management', 'commands')
+    os.makedirs(commands_dir, exist_ok=True)
+    command_path = os.path.join(commands_dir, 'db_ssl_test.py')
+    if not os.path.exists(command_path):
+        with open(command_path, 'w') as f:
+            f.write('''from django.core.management.base import BaseCommand\nfrom django.db import connection\n\nclass Command(BaseCommand):\n    help = \'Test if DB connection is using SSL\'\n\n    def handle(self, *args, **options):\n        with connection.cursor() as cursor:\n            cursor.execute(\'SELECT ssl_is_used();\')\n            ssl_used = cursor.fetchone()[0]\n            if ssl_used:\n                self.stdout.write(self.style.SUCCESS(\'SSL is enabled for this DB connection!\'))\n            else:\n                self.stdout.write(self.style.ERROR(\'SSL is NOT enabled for this DB connection!\'))\n''')
+
+create_db_ssl_test_command()
 
 

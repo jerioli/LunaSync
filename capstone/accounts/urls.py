@@ -13,7 +13,7 @@ from accounts.bulk_patient_staff_views import (
     BulkPatientDeleteView, BulkStaffDeleteView
 )
 from accounts.session_views import (
-    SessionLoginView, SessionStatusView, SessionLogoutView, SessionValidationView
+    SessionLoginView, SessionStatusView, SessionLogoutView, SessionValidationView, SessionOTPVerifyView
 )
 
 
@@ -59,6 +59,7 @@ urlpatterns = [
     
     # Session Management endpoints
     path('auth/session-login/', SessionLoginView.as_view(), name='session-login'),
+    path('auth/session-verify-otp/', SessionOTPVerifyView.as_view(), name='session-verify-otp'),
     path('auth/session-status/', SessionStatusView.as_view(), name='session-status'),
     path('auth/session-logout/', SessionLogoutView.as_view(), name='session-logout'),
     path('auth/session-validate/', SessionValidationView.as_view(), name='session-validate'),
