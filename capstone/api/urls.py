@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
+from . import qr
 from .textract_lab_analysis import textract_lab_analysis, health_check
 
 # Create router and register viewsets
@@ -17,4 +18,10 @@ urlpatterns = [
     # Textract endpoints
     path('textract/upload/', textract_lab_analysis, name='textract_upload'),
     path('textract/health/', health_check, name='textract_health_check'),
+
+    # QR code for prescription
+    path('prescriptions/<uuid:prescription_id>/qr/', qr.prescription_qr, name='prescription_qr'),
+
+    # Minimal public prescription detail page
+    path('prescriptions/<uuid:prescription_id>/', views.prescription_detail, name='prescription_detail'),
 ]

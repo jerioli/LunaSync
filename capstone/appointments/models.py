@@ -44,6 +44,7 @@ class Appointment(models.Model):
     patient_email = models.EmailField(blank=True, null=True)
     patient_phone = models.CharField(max_length=20, blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
+    
     gender = models.CharField(max_length=20, choices=[
         ('male', 'Male'),
         ('female', 'Female'),
@@ -98,7 +99,6 @@ class Appointment(models.Model):
                 old_status = old_appointment.status
             except Appointment.DoesNotExist:
                 pass
-        
         super().save(*args, **kwargs)
         
         # Update corresponding TimeSlot booking status

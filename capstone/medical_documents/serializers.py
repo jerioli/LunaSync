@@ -269,10 +269,22 @@ class SOAPNoteCreateSerializer(serializers.ModelSerializer):
 class PrescriptionSerializer(serializers.ModelSerializer):
     document = MedicalDocumentSerializer(read_only=True)
     patient_name = serializers.CharField(source='document.patient.name', read_only=True)
+    document_uuid = serializers.UUIDField(source='document.id', read_only=True)
     
     class Meta:
         model = Prescription
-        fields = '__all__'
+        fields = [
+            'id', 'document', 'patient_name', 'document_uuid',
+            'prescription_number', 'prescribing_physician', 'medications',
+            'general_instructions', 'pharmacy_notes', 'valid_until',
+            'refills_allowed', 'refills_remaining', 'dispensed_date', 'dispensed_by'
+        ]
+    
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Add document_uuid to the output
+        data['document_uuid'] = str(instance.document.id) if instance.document else None
+        return data
 
 class PrescriptionCreateSerializer(serializers.ModelSerializer):
     # For creating prescriptions with embedded document data
@@ -304,42 +316,41 @@ class PrescriptionCreateSerializer(serializers.ModelSerializer):
         ]
     
     def create(self, validated_data):
-        # Get or create a default user for testing purposes
+        request = self.context.get('request')
         created_by = validated_data.pop('created_by', None)
+        prescribing_physician = validated_data.get('prescribing_physician')
+        # If not provided, use request.user if doctor
+        if not prescribing_physician and request and hasattr(request, 'user') and getattr(request.user, 'role', None) == 'doctor':
+            prescribing_physician = request.user
         if not created_by:
-            # Create or get a default system user for testing
-            created_by, _ = CustomUser.objects.get_or_create(
-                email='system@demo.com',
-                defaults={
-                    'first_name': 'System',
-                    'last_name': 'User',
-                    'role': 'doctor',
-                    'is_active': True
-                }
-            )
-        
-        prescribing_physician = validated_data.get('prescribing_physician') or created_by
-        
+            if request and hasattr(request, 'user'):
+                created_by = request.user
+            else:
+                created_by, _ = CustomUser.objects.get_or_create(
+                    email='system@demo.com',
+                    defaults={
+                        'first_name': 'System',
+                        'last_name': 'User',
+                        'role': 'doctor',
+                        'is_active': True
+                    }
+                )
         # Extract document-related data
         document_data = {
             'document_type': 'prescription',
             'patient': validated_data.pop('patient'),
             'created_by': created_by,
-            'authorized_by': prescribing_physician,
+            'authorized_by': prescribing_physician or created_by,
             'title': validated_data.pop('title'),
             'description': validated_data.pop('description', ''),
             'document_date': validated_data.pop('document_date', None),
             'status': validated_data.pop('status', 'approved'),
         }
-        
-        # Create the base document
         document = MedicalDocument.objects.create(**document_data)
-        
-        # Extract prescription-specific data
         prescription_data = {
             'document': document,
             'prescription_number': validated_data.get('prescription_number'),
-            'prescribing_physician': prescribing_physician,
+            'prescribing_physician': prescribing_physician or created_by,
             'medications': validated_data.get('medications', []),
             'general_instructions': validated_data.get('general_instructions', ''),
             'pharmacy_notes': validated_data.get('pharmacy_notes', ''),
@@ -347,10 +358,7 @@ class PrescriptionCreateSerializer(serializers.ModelSerializer):
             'refills_allowed': validated_data.get('refills_allowed', 0),
             'refills_remaining': validated_data.get('refills_remaining', 0),
         }
-        
-        # Create the prescription with only prescription-specific fields
         prescription = Prescription.objects.create(**prescription_data)
-        
         return prescription
 
 class ClinicalNoteSerializer(serializers.ModelSerializer):

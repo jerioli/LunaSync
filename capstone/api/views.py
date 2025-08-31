@@ -1,3 +1,35 @@
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from medical_documents.models import MedicalDocument
+import json
+
+# Minimal public prescription detail view
+def prescription_detail(request, prescription_id):
+    doc = get_object_or_404(MedicalDocument, id=prescription_id, document_type='prescription')
+    # Fetch the related Prescription object
+    try:
+        prescription = doc.prescription_detail
+        meds = prescription.medications if prescription.medications else []
+        patient_name = doc.patient.name if doc.patient else 'N/A'
+        doctor = prescription.prescribing_physician
+        doctor_name = f"{doctor.first_name} {doctor.last_name}".strip() if doctor else 'N/A'
+    except Exception:
+        meds = []
+        patient_name = 'N/A'
+        doctor_name = 'N/A'
+    html = f"""
+    <html><head><title>Prescription #{doc.id}</title></head><body>
+    <h2>Prescription #{doc.id}</h2>
+    <p><b>Patient:</b> {patient_name}</p>
+    <p><b>Prescribing Doctor:</b> {doctor_name}</p>
+    <p><b>Date:</b> {doc.document_date}</p>
+    <h3>Medications:</h3>
+    <ul>
+    {''.join(f'<li>{m.get('name','')} - {m.get('dose','')} {m.get('quantity','')} {m.get('frequency','')}</li>' for m in meds) if meds else '<li>No medications listed.</li>'}
+    </ul>
+    </body></html>
+    """
+    return HttpResponse(html)
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
