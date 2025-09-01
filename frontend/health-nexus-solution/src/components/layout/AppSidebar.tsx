@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Sidebar,
   SidebarContent,
@@ -9,10 +9,10 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar
-} from '@/components/ui/sidebar';
-import { useClinic } from '@/contexts/ClinicContext';
-import { cn } from '@/lib/utils';
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { useClinic } from "@/contexts/ClinicContext";
+import { cn } from "@/lib/utils";
 import {
   BarChart3,
   Calendar,
@@ -22,87 +22,132 @@ import {
   Home,
   Image,
   Plug,
+  RefreshCw,
   Settings,
   Shield,
-  Users
-} from 'lucide-react';
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+  Users,
+} from "lucide-react";
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+
+// Type definitions for menu items
+interface MenuSubItem {
+  title: string;
+  icon: any;
+  path: string;
+}
+
+interface MenuItem {
+  title: string;
+  icon: any;
+  path: string;
+  subItems?: MenuSubItem[];
+}
 
 export const AppSidebar = () => {
   const [openDocMgmt, setOpenDocMgmt] = React.useState(false);
-  const { currentUser } = useClinic();
+  const { currentUser, setCurrentUser } = useClinic();
   const location = useLocation();
   const { setOpenMobile } = useSidebar();
 
   if (!currentUser) return null;
-  const getMenuItems = () => {
-    switch (currentUser.role) {
-      case 'doctor':
-        return [
-          { title: 'Dashboard', icon: Home, path: '/' },
-          { title: 'Patients', icon: Users, path: '/patients' },
-          { title: 'Appointments', icon: Calendar, path: '/appointments' },
-          { title: 'Lab Results', icon: Image, path: '/lab-results' },
-          { title: 'My Schedule', icon: Calendar, path: '/schedule' },
-          {
-            title: 'Document Management',
+
+  // Create a key based on user permissions to force re-render when permissions change
+  const permissionKey = `${currentUser.can_manage_permissions}-${currentUser.can_manage_staff}-${currentUser.can_manage_patients}-${currentUser.can_manage_appointments}`;
+
+  const getMenuItems = (): MenuItem[] => {
+    // Base items available to all users
+    const baseItems: MenuItem[] = [
+      { title: "Dashboard", icon: Home, path: "/" },
+    ];
+
+    // Permission-based navigation items
+    const permissionItems: (MenuItem | null)[] = [
+      // Staff management
+      currentUser.can_manage_staff
+        ? { title: "Staff", icon: Users, path: "/staff" }
+        : null,
+
+      // Patient management
+      currentUser.can_manage_patients
+        ? { title: "Patients", icon: Users, path: "/patients" }
+        : null,
+
+      // Appointment management - default for doctors, permission-based for others
+      currentUser.role === "doctor" || currentUser.can_manage_appointments
+        ? { title: "Appointments", icon: Calendar, path: "/appointments" }
+        : null,
+
+      // Schedule - only for doctors
+      currentUser.role === "doctor"
+        ? { title: "Schedule", icon: Calendar, path: "/schedule" }
+        : null,
+
+      // Lab Results - Only for doctors and admins (not superadmin, not receptionist)
+      ["doctor", "admin"].includes(currentUser.role)
+        ? { title: "Lab Results", icon: Image, path: "/lab-results" }
+        : null,
+
+      // Document Management - only for receptionist, doctor, and admin (not superadmin as per requirements)
+      ["receptionist", "doctor", "admin"].includes(currentUser.role)
+        ? {
+            title: "Document Management",
             icon: FileText,
+            path: "/document-management",
             subItems: [
-              { title: 'Medical Certificates', icon: FileCheck, path: '/medical-certificates' },
-              { title: 'Prescription Requests', icon: ClipboardList, path: '/prescription-management' },
+              {
+                title: "Medical Certificates",
+                icon: FileCheck,
+                path: "/medical-certificates",
+              },
+              {
+                title: "Prescription Requests",
+                icon: ClipboardList,
+                path: "/prescription-management",
+              },
             ],
-          },
-          { title: 'User Settings', icon: Settings, path: '/user-settings' },
-        ];
-      case 'receptionist':
-        return [
-          { title: 'Dashboard', icon: Home, path: '/' },
-          { title: 'Patients', icon: Users, path: '/patients' },
-          { title: 'Appointments', icon: Calendar, path: '/appointments' },
-          {
-            title: 'Document Management',
-            icon: FileText,
-            subItems: [
-              { title: 'Medical Certificates', icon: FileCheck, path: '/medical-certificates' },
-              { title: 'Prescription Requests', icon: ClipboardList, path: '/prescription-management' },
-            ],
-          },
-          { title: 'User Settings', icon: Settings, path: '/user-settings' },
-          
-        ];
-      case 'admin':
-        return [
-          { title: 'Dashboard', icon: Home, path: '/' },
-          { title: 'Staff', icon: Users, path: '/staff' },
-           { title: 'Appointments', icon: Calendar, path: '/appointments' },
-          { title: 'Patients', icon: Users, path: '/patients' },
-          { title: 'Lab Results', icon: Image, path: '/lab-results' },
-          {
-            title: 'Document Management',
-            icon: FileText,
-            subItems: [
-              { title: 'Medical Certificates', icon: FileCheck, path: '/medical-certificates' },
-              { title: 'Prescription Requests', icon: ClipboardList, path: '/prescription-management' },
-            ],
-          },
-          { title: 'ClinicSettings', icon: Settings, path: '/settings' },
-          { title: 'User Settings', icon: Settings, path: '/user-settings' },
-        ];
-      case 'superadmin':
-        return [
-          { title: 'Dashboard', icon: Home, path: '/' },
-          { title: 'Staff', icon: Users, path: '/staff' },
-          { title: 'Permission Management', icon: Shield, path: '/permissions' },
-          { title: 'Audit Logs', icon: FileText, path: '/audit-logs' },
-          { title: 'Usage Reports', icon: BarChart3, path: '/usage-reports' },
-          { title: 'Integrations', icon: Plug, path: '/integrations' },
-          { title: 'Security Testing', icon: Shield, path: '/security-testing' },
-          { title: 'User Settings', icon: Settings, path: '/user-settings' }
-        ];
-      default:
-        return [];
-    }
+          }
+        : null,
+
+      // Clinic settings - Hide for superadmin as per requirements, show for admin with permission
+      currentUser.can_manage_clinic_settings &&
+      currentUser.role !== "superadmin"
+        ? { title: "Clinic Settings", icon: Settings, path: "/settings" }
+        : null,
+
+      // Permission Management - Only show for superadmin
+      currentUser.role === "superadmin"
+        ? { title: "Permission Management", icon: Shield, path: "/permissions" }
+        : null,
+
+      // Audit Logs - Show if user has permission
+      currentUser.can_view_audit_logs
+        ? { title: "Audit Logs", icon: FileText, path: "/audit-logs" }
+        : null,
+
+      // Usage Reports - Show if user has permission
+      currentUser.can_view_usage_reports
+        ? { title: "Usage Reports", icon: BarChart3, path: "/usage-reports" }
+        : null,
+
+      // Integrations - Show if user has permission
+      currentUser.can_access_integrations
+        ? { title: "Integrations", icon: Plug, path: "/integrations" }
+        : null,
+
+      // Security Testing - Show if user has permission
+      currentUser.can_access_security_testing
+        ? { title: "Security Testing", icon: Shield, path: "/security-testing" }
+        : null,
+    ].filter(Boolean) as MenuItem[]; // Remove null values and cast to MenuItem[]
+
+    // User Settings - available to all users
+    const userSettingsItems: MenuItem[] = [
+      { title: "User Settings", icon: Settings, path: "/user-settings" },
+    ];
+
+    // Combine all items
+    return [...baseItems, ...permissionItems, ...userSettingsItems];
   };
 
   const menuItems = getMenuItems();
@@ -111,32 +156,89 @@ export const AppSidebar = () => {
     setOpenMobile(false); // Close sidebar on menu click
   };
   return (
-    <Sidebar>
+    <Sidebar key={permissionKey}>
       <SidebarHeader className="flex flex-col items-center gap-2 p-4">
-  <div className="text-xl font-bold text-[#79c942]">LUNASync</div>
-        <Link to="/user-settings" className="flex items-center gap-2 mt-2 cursor-pointer hover:bg-gray-100 rounded p-2 w-fit" title="Go to Settings">
+        <div className="text-xl font-bold text-[#79c942]">LUNASync</div>
+        <Link
+          to="/user-settings"
+          className="flex items-center gap-2 mt-2 cursor-pointer hover:bg-gray-100 rounded p-2 w-fit"
+          title="Go to Settings"
+        >
           <Avatar>
             <AvatarImage src={currentUser.image} alt={currentUser.name} />
             <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div>
             <div className="font-medium">{currentUser.name}</div>
-            <div className="text-xs text-muted-foreground capitalize">{currentUser.role}</div>
+            <div className="text-xs text-muted-foreground capitalize">
+              {currentUser.role}
+            </div>
           </div>
         </Link>
+        {/* Manual refresh button for permissions */}
+        <button
+          onClick={async () => {
+            try {
+              // Manually refresh current user permissions
+              const userResponse = await fetch("/api/auth/current-user/", {
+                credentials: "include",
+              });
+              const userData = await userResponse.json();
+
+              // Update the React context with the new data
+              if (userData.success) {
+                const updatedUser = {
+                  id: String(userData.user.id),
+                  name: userData.user.name,
+                  username: userData.user.username,
+                  email: userData.user.email,
+                  role: userData.user.role,
+                  force_password_change: userData.user.force_password_change,
+                  can_manage_appointments:
+                    userData.user.can_manage_appointments,
+                  can_manage_patients: userData.user.can_manage_patients,
+                  can_manage_staff: userData.user.can_manage_staff,
+                  can_view_reports: userData.user.can_view_reports,
+                  can_manage_clinic_settings:
+                    userData.user.can_manage_clinic_settings,
+                  can_manage_permissions: userData.user.can_manage_permissions,
+                  can_access_integrations:
+                    userData.user.can_access_integrations,
+                  can_view_audit_logs: userData.user.can_view_audit_logs,
+                  can_view_usage_reports: userData.user.can_view_usage_reports,
+                  can_access_security_testing:
+                    userData.user.can_access_security_testing,
+                };
+
+                setCurrentUser(updatedUser);
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+              }
+            } catch (error) {
+              console.error("Manual refresh error:", error);
+            }
+          }}
+          className="flex items-center gap-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded transition-colors"
+          title="Refresh my permissions"
+        >
+          <RefreshCw className="h-3 w-3" />
+          Refresh
+        </button>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              {menuItems.map((item) =>
                 item.subItems ? (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton className="flex items-center gap-2" onClick={() => setOpenDocMgmt((v) => !v)}>
+                    <SidebarMenuButton
+                      className="flex items-center gap-2"
+                      onClick={() => setOpenDocMgmt((v) => !v)}
+                    >
                       <item.icon className="h-5 w-5" />
                       <span>{item.title}</span>
-                      <span className="ml-auto">{openDocMgmt ? '▲' : '▼'}</span>
+                      <span className="ml-auto">{openDocMgmt ? "▲" : "▼"}</span>
                     </SidebarMenuButton>
                     {/* Sub-menu for document management */}
                     {openDocMgmt && (
@@ -148,7 +250,9 @@ export const AppSidebar = () => {
                                 to={sub.path}
                                 className={cn(
                                   "flex items-center gap-2 hover:bg-[#79c942] hover:text-black",
-                                  location.pathname === sub.path ? "bg-[#79c942] text-black" : ""
+                                  location.pathname === sub.path
+                                    ? "bg-[#79c942] text-black"
+                                    : ""
                                 )}
                                 onClick={handleMenuClick}
                               >
@@ -168,7 +272,9 @@ export const AppSidebar = () => {
                         to={item.path}
                         className={cn(
                           "flex items-center gap-2 hover:bg-[#79c942] hover:text-black",
-                          location.pathname === item.path ? "bg-[#79c942] text-black" : ""
+                          location.pathname === item.path
+                            ? "bg-[#79c942] text-black"
+                            : ""
                         )}
                         onClick={handleMenuClick}
                       >
@@ -178,7 +284,7 @@ export const AppSidebar = () => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )
-              ))}
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

@@ -14,12 +14,25 @@ from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+import pyotp
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import CustomUser
 import json
 import logging
 
 logger = logging.getLogger(__name__)
+
+def generate_otp():
+    """Generate a secure 6-digit OTP using pyotp library"""
+    # For simple 6-digit numeric OTP, we can use pyotp.random_base32() 
+    # and generate a HOTP (HMAC-based OTP) for better randomness
+    secret = pyotp.random_base32()
+    hotp = pyotp.HOTP(secret, digits=6)
+    # Use current timestamp as counter for uniqueness
+    import time
+    counter = int(time.time()) 
+    otp = hotp.at(counter)
+    return otp
 
 
 # --- 2FA Session Login View ---
@@ -52,9 +65,8 @@ class SessionLoginView(APIView):
                 identifier = user.email if user.email else user.phone
                 identifier_type = 'email' if user.email else 'phone'
 
-                # Generate 6-digit OTP
-                import secrets
-                otp = ''.join([str(secrets.randbelow(10)) for _ in range(6)])
+                # Generate 6-digit OTP using pyotp library
+                otp = generate_otp()
                 from django.core.cache import cache
                 cache_key = f"otp_{identifier}_{identifier_type}"
                 cache.set(cache_key, otp, 300)  # 5 minutes
@@ -130,11 +142,15 @@ class SessionOTPVerifyView(APIView):
 
     def post(self, request):
         try:
+            print("[DEBUG] SessionOTPVerifyView.post called")
+            print(f"[DEBUG] Request data: {request.data}")
+            print(f"[DEBUG] Session: {dict(request.session.items())}")
             identifier = request.data.get('identifier')
             identifier_type = request.data.get('identifier_type')
             otp = request.data.get('otp')
 
             if not identifier or not identifier_type or not otp:
+                print("[DEBUG] Missing identifier, identifier_type, or otp")
                 return Response({
                     'success': False,
                     'error': 'identifier, identifier_type, and otp are required'
@@ -143,7 +159,9 @@ class SessionOTPVerifyView(APIView):
             from django.core.cache import cache
             cache_key = f"otp_{identifier}_{identifier_type}"
             stored_otp = cache.get(cache_key)
+            print(f"[DEBUG] cache_key: {cache_key}, stored_otp: {stored_otp}")
             if not stored_otp or stored_otp != otp:
+                print("[DEBUG] Invalid or expired OTP")
                 return Response({
                     'success': False,
                     'error': 'Invalid or expired OTP'
@@ -151,7 +169,9 @@ class SessionOTPVerifyView(APIView):
 
             # Find pending user from session
             pending_user_id = request.session.get('pending_2fa_user_id')
+            print(f"[DEBUG] pending_2fa_user_id: {pending_user_id}")
             if not pending_user_id:
+                print("[DEBUG] No pending 2FA login found in session")
                 return Response({
                     'success': False,
                     'error': 'No pending 2FA login found. Please login again.'
@@ -161,6 +181,7 @@ class SessionOTPVerifyView(APIView):
             try:
                 user = CustomUser.objects.get(id=pending_user_id)
             except CustomUser.DoesNotExist:
+                print("[DEBUG] User not found for pending_2fa_user_id")
                 return Response({
                     'success': False,
                     'error': 'User not found.'
@@ -178,13 +199,29 @@ class SessionOTPVerifyView(APIView):
             # Set backend for multi-backend compatibility
             user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)
+            
+            # Set session data
             request.session['user_id'] = user.id
             request.session['username'] = user.username
             request.session['role'] = getattr(user, 'role', 'doctor')
             request.session['login_time'] = str(timezone.now())
-            request.session.save()
+            
+            # Save session with error handling
+            try:
+                request.session.save()
+                print(f"[DEBUG] [2FA] Session saved successfully. Session ID: {request.session.session_key}")
+            except Exception as e:
+                print(f"[DEBUG] [2FA] Session save error: {e}. Creating new session...")
+                # If session save fails, create a new session
+                request.session.flush()
+                request.session.create()
+                request.session['user_id'] = user.id
+                request.session['username'] = user.username
+                request.session['role'] = getattr(user, 'role', 'doctor')
+                request.session['login_time'] = str(timezone.now())
+                request.session.save()
 
-            logger.info(f"[2FA] User {user.username} logged in successfully. Session ID: {request.session.session_key}")
+            print(f"[DEBUG] [2FA] User {user.username} logged in successfully. Session ID: {request.session.session_key}")
 
             return Response({
                 'success': True,
@@ -212,6 +249,8 @@ class SessionOTPVerifyView(APIView):
 
         except Exception as e:
             print(f"[DEBUG] 2FA OTP verify error: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return Response({
                 'success': False,
                 'error': 'OTP verification failed'

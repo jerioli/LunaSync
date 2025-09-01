@@ -52,12 +52,13 @@ SESSION_SAVE_EVERY_REQUEST = True  # Update session on every request
 
 
 # For cross-origin cookies (required for frontend/backend on different ports)
-SESSION_COOKIE_SECURE = True  # Required for SameSite=None
-CSRF_COOKIE_SECURE = True     # Required for SameSite=None
+SESSION_COOKIE_SECURE = False  # Allow cookies over HTTP for local development
+CSRF_COOKIE_SECURE = False     # Allow cookies over HTTP for local development
 SECURE_SSL_REDIRECT = False   # Set to True in production
 
-SESSION_COOKIE_SAMESITE = 'None'  # Must be string 'None' for cross-origin
-CSRF_COOKIE_SAMESITE = 'None'     # Must be string 'None' for cross-origin
+# Use 'Lax' for SAMESITE for local dev, more reliable for localhost cross-origin with credentials
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_NAME = 'sessionid'  # Default session cookie name
 CSRF_COOKIE_NAME = 'csrftoken'     # Default CSRF cookie name
 
@@ -74,14 +75,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',       # ✅ Required for audit logging
     'django.contrib.staticfiles',    # ✅ Required for static files
     
-    # Remove these unused apps:
-    # 'django.contrib.admin',        # ❌ Using custom frontend
-    # 'django.contrib.messages',     # ❌ Using frontend notifications
+   
     
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
-    'api',  # OCR and AWS credentials management
+    'api',  
     'accounts',
     'patients',
     'appointments',
@@ -114,7 +113,7 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 
-# Disable CSRF for development (use with caution)
+
 CSRF_USE_SESSIONS = False
 CSRF_CHECK_DISABLED = True
 
@@ -141,18 +140,18 @@ CORS_ALLOW_HEADERS = [
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'disable_csrf_middleware.DisableCSRFMiddleware',  # Disable CSRF completely for development
-    # 'django.middleware.csrf.CsrfViewMiddleware',  # Temporarily disable CSRF
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'dev_session_middleware.DevSessionMiddleware',  # Custom session middleware for development
-    'systemlogs.middleware.AuditMiddleware',  # Audit logging middleware
-    'debug_middleware.DebugMiddleware',  # Add debug middleware after authentication
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+        'corsheaders.middleware.CorsMiddleware',
+        'django.middleware.security.SecurityMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.middleware.common.CommonMiddleware',
+        'django.middleware.csrf.CsrfViewMiddleware',  # Enable CSRF protection
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        # 'dev_session_middleware.DevSessionMiddleware',  # Custom session middleware for development
+        'systemlogs.middleware.AuditMiddleware',  # Audit logging middleware
+        # 'middleware.debug_middleware.DebugMiddleware',
+        # 'middleware.dev_session_middleware.DevSessionMiddleware', # Add debug middleware after authentication
+        'django.contrib.messages.middleware.MessageMiddleware',
+        'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # 'security_app.middleware.SecurityMiddleware',  # Temporarily disable security middleware
 ]
 AUTH_USER_MODEL = 'accounts.CustomUser'
@@ -163,7 +162,7 @@ AUTHENTICATION_BACKENDS = [
 ROOT_URLCONF = 'capstone.urls'
 
 TEMPLATES = [
-    {
+    { 
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [],
         'APP_DIRS': True,
@@ -256,12 +255,20 @@ DOMAIN_URL = 'http://127.0.0.1:8000'  # Change this to your production domain
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Disable CSRF for API views using session authentication
+# This is needed because DRF SessionAuthentication enforces CSRF even with @csrf_exempt
+from rest_framework.authentication import SessionAuthentication
+
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+    def enforce_csrf(self, request):
+        return  # To not perform the csrf check previously happening
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
+        'capstone.settings.CsrfExemptSessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',  # Keep permissive for now
+        'rest_framework.permissions.IsAuthenticated',  # Require authentication by default
     ],
 }
 
@@ -284,28 +291,14 @@ AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
 # Clinic Configuration
 CLINIC_DEFAULT_EMAIL = 'jeri.olivarez@gmail.com'  # Email to receive review notifications
 
-# ===============================
-# SMS SERVICE CONFIGURATION
-# ===============================
 
-# Semaphore (Philippines SMS Provider) - CONFIGURED
-# Your API key: 1d1b9ab6af89e61b3db59d9ab3796906
-SEMAPHORE_API_KEY = '1d1b9ab6af89e61b3db59d9ab3796906'
-
-# ===============================
-# IPROG SMS API CONFIGURATION (PRIMARY)
-# ===============================
 
 # iProg SMS API - Philippines SMS Provider
 IPROG_API_TOKEN = os.getenv('IPROG_API_TOKEN', '')
 IPROG_API_URL = os.getenv('IPROG_API_URL', 'https://sms.iprogtech.com/api/v1/sms_messages')
 IPROG_SMS_PROVIDER = os.getenv('IPROG_SMS_PROVIDER', '0')  # 0 or 1, default: 0
 
-# ===============================
-# TWILIO CONFIGURATION FOR OTP (BACKUP)
-# ===============================
 
-# Twilio settings - Get these from your Twilio Console
 TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID', '')
 TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN', '')
 TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER', '')  # Your Twilio phone number
@@ -314,20 +307,5 @@ TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER', '')  # Your Twilio phone 
 OTP_LENGTH = 6
 OTP_EXPIRY_MINUTES = 5
 OTP_MAX_ATTEMPTS = 3
-
-# --- SSL Test Management Command ---
-# Place this in a file like management/commands/db_ssl_test.py in any app, e.g., 'accounts'.
-# Usage: python manage.py db_ssl_test
-
-def create_db_ssl_test_command():
-    import os
-    commands_dir = os.path.join(BASE_DIR, 'accounts', 'management', 'commands')
-    os.makedirs(commands_dir, exist_ok=True)
-    command_path = os.path.join(commands_dir, 'db_ssl_test.py')
-    if not os.path.exists(command_path):
-        with open(command_path, 'w') as f:
-            f.write('''from django.core.management.base import BaseCommand\nfrom django.db import connection\n\nclass Command(BaseCommand):\n    help = \'Test if DB connection is using SSL\'\n\n    def handle(self, *args, **options):\n        with connection.cursor() as cursor:\n            cursor.execute(\'SELECT ssl_is_used();\')\n            ssl_used = cursor.fetchone()[0]\n            if ssl_used:\n                self.stdout.write(self.style.SUCCESS(\'SSL is enabled for this DB connection!\'))\n            else:\n                self.stdout.write(self.style.ERROR(\'SSL is NOT enabled for this DB connection!\'))\n''')
-
-create_db_ssl_test_command()
 
 

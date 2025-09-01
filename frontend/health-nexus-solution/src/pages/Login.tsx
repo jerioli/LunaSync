@@ -161,7 +161,8 @@ const Login = () => {
           identifier: otpIdentifier,
           identifier_type: identifierType,
           otp: otpValue,
-        }
+        },
+        { withCredentials: true }
       );
       const result = response.data;
       if (result.success) {
@@ -210,7 +211,7 @@ const Login = () => {
       <OTPVerification
         identifier={otpIdentifier}
         identifierType={identifierType}
-        onVerificationSuccess={() => {}}
+        onVerificationSuccess={handleOTPVerificationSuccess}
         onBack={handleBackToLogin}
         onOTPComplete={handle2FAOTPVerification}
       />

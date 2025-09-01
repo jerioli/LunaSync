@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django.utils import timezone
@@ -22,10 +23,22 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+class MedicalStaffPermission(permissions.BasePermission):
+    """
+    Custom permission to only allow receptionist, doctor, and admin access to medical documents.
+    """
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        # Allow access only to receptionist, doctor, and admin roles
+        allowed_roles = ['receptionist', 'doctor', 'admin']
+        return hasattr(request.user, 'role') and request.user.role in allowed_roles
+
 class MedicalDocumentViewSet(viewsets.ModelViewSet):
     queryset = MedicalDocument.objects.all()
     serializer_class = MedicalDocumentSerializer
-    permission_classes = [permissions.AllowAny]  # Temporarily allow unauthenticated access for testing
+    permission_classes = [IsAuthenticated, MedicalStaffPermission]  # Only receptionist, doctor, and admin
     
     def get_queryset(self):
         queryset = MedicalDocument.objects.all()
@@ -60,11 +73,8 @@ class MedicalDocumentViewSet(viewsets.ModelViewSet):
         return queryset.order_by('-document_date', '-created_at')
     
     def perform_create(self, serializer):
-        # For testing without authentication, create a default user or skip user assignment
-        if self.request.user and self.request.user.is_authenticated:
-            serializer.save(created_by=self.request.user)
-        else:
-            serializer.save()
+        # Always use authenticated user for medical document creation
+        serializer.save(created_by=self.request.user)
         
         # Log the creation
         self._log_document_access(serializer.instance, 'create')
@@ -86,14 +96,14 @@ class MedicalDocumentViewSet(viewsets.ModelViewSet):
     def _log_document_access(self, document, access_type):
         """Log document access for audit trail"""
         try:
-            if self.request.user and self.request.user.is_authenticated:
-                DocumentAccessLog.objects.create(
-                    document=document,
-                    user=self.request.user,
-                    access_type=access_type,
-                    ip_address=self.request.META.get('REMOTE_ADDR'),
-                    user_agent=self.request.META.get('HTTP_USER_AGENT', '')[:500]
-                )
+            # User is guaranteed to be authenticated due to permission class
+            DocumentAccessLog.objects.create(
+                document=document,
+                user=self.request.user,
+                access_type=access_type,
+                ip_address=self.request.META.get('REMOTE_ADDR'),
+                user_agent=self.request.META.get('HTTP_USER_AGENT', '')[:500]
+            )
         except Exception as e:
             logger.error(f"Failed to log document access: {e}")
     
@@ -102,8 +112,7 @@ class MedicalDocumentViewSet(viewsets.ModelViewSet):
         """Approve a document"""
         document = self.get_object()
         document.status = 'approved'
-        if request.user and request.user.is_authenticated:
-            document.authorized_by = request.user
+        document.authorized_by = self.request.user
         document.authorized_at = timezone.now()
         document.save()
         
@@ -124,7 +133,7 @@ class MedicalDocumentViewSet(viewsets.ModelViewSet):
 
 class LabResultViewSet(viewsets.ModelViewSet):
     queryset = LabResult.objects.all()
-    permission_classes = [permissions.AllowAny]  # Temporarily allow unauthenticated access for testing
+    permission_classes = [IsAuthenticated, MedicalStaffPermission]  # Only receptionist, doctor, and admin
     
     def get_serializer_class(self):
         if self.action == 'create':
@@ -181,7 +190,7 @@ class LabResultViewSet(viewsets.ModelViewSet):
 
 class SOAPNoteViewSet(viewsets.ModelViewSet):
     queryset = SOAPNote.objects.all()
-    permission_classes = [permissions.AllowAny]  # Temporarily allow unauthenticated access for testing
+    permission_classes = [IsAuthenticated, MedicalStaffPermission]  # Only receptionist, doctor, and admin
     
     def get_serializer_class(self):
         if self.action == 'create':
@@ -200,7 +209,7 @@ class SOAPNoteViewSet(viewsets.ModelViewSet):
 
 class PrescriptionViewSet(viewsets.ModelViewSet):
     queryset = Prescription.objects.all()
-    permission_classes = [permissions.AllowAny]  # Temporarily allow unauthenticated access for testing
+    permission_classes = [IsAuthenticated, MedicalStaffPermission]  # Only receptionist, doctor, and admin
     
     def get_serializer_class(self):
         if self.action == 'create':
@@ -244,7 +253,7 @@ class PrescriptionViewSet(viewsets.ModelViewSet):
 
 class ClinicalNoteViewSet(viewsets.ModelViewSet):
     queryset = ClinicalNote.objects.all()
-    permission_classes = [permissions.AllowAny]  # Temporarily allow unauthenticated access for testing
+    permission_classes = [IsAuthenticated, MedicalStaffPermission]  # Only receptionist, doctor, and admin
     
     def get_serializer_class(self):
         if self.action == 'create':
@@ -268,7 +277,7 @@ class ClinicalNoteViewSet(viewsets.ModelViewSet):
 
 class MedicalCertificateViewSet(viewsets.ModelViewSet):
     queryset = MedicalCertificate.objects.all()
-    permission_classes = [permissions.AllowAny]  # Temporarily allow unauthenticated access for testing
+    permission_classes = [IsAuthenticated, MedicalStaffPermission]  # Only receptionist, doctor, and admin
     
     def get_serializer_class(self):
         if self.action == 'create':
@@ -292,7 +301,7 @@ class MedicalCertificateViewSet(viewsets.ModelViewSet):
 
 class PhysicalExaminationViewSet(viewsets.ModelViewSet):
     queryset = PhysicalExamination.objects.all()
-    permission_classes = [permissions.AllowAny]  # Temporarily allow unauthenticated access for testing
+    permission_classes = [IsAuthenticated, MedicalStaffPermission]  # Only receptionist, doctor, and admin
     
     def get_serializer_class(self):
         if self.action == 'create':

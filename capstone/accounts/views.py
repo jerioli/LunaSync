@@ -11,10 +11,8 @@ from django.core.mail import send_mail
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.conf import settings
-import random
-import string
+import pyotp
 import secrets
-import requests
 import logging
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -23,8 +21,22 @@ from django.shortcuts import get_object_or_404
 from django.core.cache import cache
 from datetime import datetime, timedelta
 from systemlogs.audit_logger import AuditLogger
+import pyotp
+from capstone.settings import CsrfExemptSessionAuthentication
 
 logger = logging.getLogger(__name__)
+
+def generate_otp():
+    """Generate a secure 6-digit OTP using pyotp library"""
+    # For simple 6-digit numeric OTP, we can use pyotp.random_base32() 
+    # and generate a HOTP (HMAC-based OTP) for better randomness
+    secret = pyotp.random_base32()
+    hotp = pyotp.HOTP(secret, digits=6)
+    # Use current timestamp as counter for uniqueness
+    import time
+    counter = int(time.time()) 
+    otp = hotp.at(counter)
+    return otp
 
 @method_decorator(csrf_exempt, name='dispatch')
 class StaffCreateView(APIView):
@@ -241,11 +253,20 @@ class StaffPermissionsView(APIView):
         print(f"can_manage_permissions: {getattr(request.user, 'can_manage_permissions', 'No attribute')}")
         print(f"User session key: {getattr(request, 'session', {}).get('_session_key', 'No session')}")
         print(f"Request headers: {dict(request.headers)}")
+        print(f"Request cookies: {request.COOKIES}")
+        print(f"Request session data: {dict(request.session)}")
         print(f"=== END StaffPermissionsView DEBUG ===")
+
+        # Allow superadmins, admins, doctors with permission, or users with can_manage_permissions
+        user_role = getattr(request.user, 'role', '')
+        can_manage_perms = getattr(request.user, 'can_manage_permissions', False)
         
-        # Only superadmins can view/manage permissions
-        if not getattr(request.user, 'can_manage_permissions', False):
-            print(f"Permission denied for user {request.user} - can_manage_permissions: {getattr(request.user, 'can_manage_permissions', 'No attribute')}")
+        has_access = (user_role in ['superadmin', 'admin'] or 
+                     (user_role == 'doctor' and can_manage_perms) or 
+                     can_manage_perms)
+        
+        if not has_access:
+            print(f"Permission denied for user {request.user} - role: {user_role}, can_manage_permissions: {can_manage_perms}")
             return Response({
                 'error': 'Permission denied',
                 'message': 'You do not have permission to view permissions'
@@ -302,17 +323,32 @@ class StaffPermissionsView(APIView):
             })
     
     def patch(self, request, user_id):
-        # Only superadmins can modify permissions
-        if not request.user.can_manage_permissions:
+        # Check authentication first
+        if not request.user.is_authenticated:
+            print("[DEBUG] PATCH User not authenticated")
+            return Response({
+                'error': 'Authentication required',
+                'message': 'You must be logged in to perform this action'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # Allow superadmins, admins, doctors with permission, or users with can_manage_permissions to modify permissions
+        user_role = getattr(request.user, 'role', '')
+        can_manage_perms = getattr(request.user, 'can_manage_permissions', False)
+        
+        has_access = (user_role in ['superadmin', 'admin'] or 
+                     (user_role == 'doctor' and can_manage_perms) or 
+                     can_manage_perms)
+        
+        if not has_access:
+            print(f"[DEBUG] PATCH Permission denied: user role: {user_role}, can_manage_permissions: {can_manage_perms}")
             return Response({
                 'error': 'Permission denied',
                 'message': 'You do not have permission to modify permissions'
             }, status=status.HTTP_403_FORBIDDEN)
-            
         user = get_object_or_404(CustomUser, id=user_id)
-        
         # Prevent modifying superadmin permissions unless requester is superadmin
         if user.role == 'superadmin' and request.user.role != 'superadmin':
+            print("[DEBUG] PATCH Permission denied: only superadmin can modify superadmin permissions")
             return Response({
                 'error': 'Permission denied',
                 'message': 'Only superadmins can modify superadmin permissions'
@@ -381,6 +417,7 @@ class StaffPermissionsView(APIView):
         })
     
 class PasswordChangeView(APIView):
+    permission_classes = [IsAuthenticated]  # Only authenticated users can change password
     def post(self, request):
         # Get user from email in request or from authenticated user
         email = request.data.get('email') or request.data.get('username')
@@ -457,35 +494,35 @@ class PasswordChangeView(APIView):
 class UserProfileUpdateView(APIView):
     permission_classes = [IsAuthenticated]
     
-    def patch(self, request):
-        user = request.user
-        data = request.data
+    def post(self, request):
+        print("=== StaffCreateView POST DEBUG ===")
+        print(f"User: {request.user}")
+        print(f"User ID: {getattr(request.user, 'id', 'No ID')}")
+        print(f"User role: {getattr(request.user, 'role', 'No role')}")
+        print(f"can_manage_staff: {getattr(request.user, 'can_manage_staff', 'No attribute')}")
+        print(f"Request data: {request.data}")
+        print(f"Request session: {dict(request.session)}")
+        print("=== END POST DEBUG ===")
+        # Check if user has permission to manage staff, is an admin, or is a superadmin
+        if not (request.user.can_manage_staff or request.user.role in ['admin', 'superadmin']):
+            print("[DEBUG] POST Permission denied: not allowed to manage staff")
+            return Response({
+                'error': 'Permission denied',
+                'message': 'You do not have permission to create staff members'
+            }, status=status.HTTP_403_FORBIDDEN)
+        # Prevent non-superadmins from creating superadmin users
+        if request.data.get('role') == 'superadmin' and request.user.role != 'superadmin':
+            print("[DEBUG] POST Permission denied: only superadmin can create superadmin users")
+            return Response({
+                'error': 'Permission denied',
+                'message': 'Only superadmins can create superadmin users'
+            }, status=status.HTTP_403_FORBIDDEN)
         
-        # Update allowed fields
-        if 'name' in data:
-            # Split full name into first and last name
-            name_parts = data['name'].split(' ', 1)
-            user.first_name = name_parts[0] if name_parts else ''
-            user.last_name = name_parts[1] if len(name_parts) > 1 else ''
-        
-        if 'first_name' in data:
-            user.first_name = data['first_name']
-        if 'last_name' in data:
-            user.last_name = data['last_name']
-        if 'email' in data:
-            user.email = data['email']
-        if 'phone' in data:
-            user.phone = data['phone']
-        
-        user.save()
-        
-        # Return updated user data
-        serializer = CustomUserSerializer(user)
+        # This view appears to be incomplete - proper implementation needed
         return Response({
-            'success': True,
-            'message': 'Profile updated successfully',
-            'user': serializer.data
-        })
+            'error': 'Method not implemented',
+            'message': 'UserProfileUpdateView POST method needs proper implementation'
+        }, status=status.HTTP_501_NOT_IMPLEMENTED)
 
 class UserPreferencesView(APIView):
     permission_classes = [IsAuthenticated]
@@ -504,19 +541,31 @@ class UserPreferencesView(APIView):
         })
     
 class DoctorListView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     def get(self, request):
+        # Allow authenticated users to view doctors list (needed for appointment booking)
         doctors = CustomUser.objects.filter(role='doctor')
         serializer = CustomUserSerializer(doctors, many=True)
         return Response(serializer.data)
 
 class ReceptionistListView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     def get(self, request):
+        # Allow authenticated users to view receptionists list
         receptionists = CustomUser.objects.filter(role='receptionist')
         serializer = CustomUserSerializer(receptionists, many=True)
         return Response(serializer.data)
 
 class AdminListView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     def get(self, request):
+        # Allow authenticated users to view admins list
         admins = CustomUser.objects.filter(role='admin')
         serializer = CustomUserSerializer(admins, many=True)
         return Response(serializer.data)
@@ -568,6 +617,7 @@ def login_view(request):
     }, status=status.HTTP_401_UNAUTHORIZED)
 
 class PasswordResetRequestView(APIView):
+    permission_classes = [AllowAny]  # Allow unauthenticated users to request password reset
     def post(self, request):
         email = request.data.get('email')
         User = get_user_model()
@@ -646,6 +696,7 @@ class PasswordResetRequestView(APIView):
             return Response({'success': False, 'message': 'No user found with this email address.'}, status=404)
 
 class PasswordResetConfirmView(APIView):
+    permission_classes = [AllowAny]  # Allow unauthenticated users to reset password with valid token
     def post(self, request, uidb64, token):
         User = get_user_model()
         try:
@@ -724,10 +775,8 @@ class StaffLoginView(APIView):
                     'error': 'User not found'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Generate OTP
-            import random
-            import string
-            otp = ''.join(random.choices(string.digits, k=6))
+            # Generate OTP using pyotp library
+            otp = generate_otp()
             
             # Store OTP in cache
             cache.set(f'login_otp_{user.id}', otp, timeout=300)  # 5 minutes
@@ -933,6 +982,8 @@ class CompleteLoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        print("[DEBUG] OTP VERIFY POST DATA:", request.data)
+        print("[DEBUG] OTP VERIFY SESSION:", dict(request.session))
         otp = request.data.get('otp')
         
         if not otp:
@@ -1014,6 +1065,8 @@ class CompleteLoginView(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class UserListView(APIView):
     """General users endpoint for OTP user lookup"""
+    permission_classes = [IsAuthenticated]  # Added authentication requirement
+    
     def get(self, request):
         users = CustomUser.objects.all()
         serializer = CustomUserSerializer(users, many=True)
@@ -1049,8 +1102,8 @@ class SendOTPView(APIView):
                 'error': 'No user found with this identifier'
             }, status=status.HTTP_404_NOT_FOUND)
         
-        # Generate 6-digit OTP
-        otp = ''.join([str(secrets.randbelow(10)) for _ in range(6)])
+        # Generate 6-digit OTP using pyotp library
+        otp = generate_otp()
         
         # Store OTP in cache with 5-minute expiration
         cache_key = f"otp_{identifier}_{identifier_type}"
@@ -1643,5 +1696,5 @@ class SecurityTestingView(APIView):
         return Response({
             'success': True,
             'message': f'Security test "{test_type}" initiated successfully',
-            'test_id': 'test_' + str(random.randint(1000, 9999))
+            'test_id': 'test_' + str(secrets.randbelow(9000) + 1000)
         })

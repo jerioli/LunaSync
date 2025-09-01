@@ -8,14 +8,22 @@ from django.http import Http404
 from systemlogs.audit_logger import AuditLogger
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from capstone.settings import CsrfExemptSessionAuthentication
 
 @method_decorator(csrf_exempt, name='dispatch')
 class PatientListCreateView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
+        print(f"[DEBUG] PatientListCreateView GET - User: {request.user}")
+        print(f"[DEBUG] User authenticated: {request.user.is_authenticated}")
+        print(f"[DEBUG] User type: {type(request.user)}")
+        print(f"[DEBUG] Session: {dict(request.session)}")
+        
         # Check if user has permission to view patients
         if not request.user.is_authenticated:
+            print("[DEBUG] User not authenticated - returning 401")
             return Response({
                 'error': 'Authentication required',
                 'message': 'You must be logged in to view patients'
@@ -77,6 +85,7 @@ class PatientListCreateView(APIView):
  
 @method_decorator(csrf_exempt, name='dispatch')
 class PatientListView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
@@ -99,6 +108,7 @@ class PatientListView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class PatientDetailView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [IsAuthenticated]
     def get_object(self, pk):
         try:
@@ -207,6 +217,8 @@ class PatientDetailView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class CheckPatientByEmailView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
     """
     Check if a patient exists by email address.
     Used by chatbot to recognize returning patients.
@@ -258,6 +270,8 @@ class CheckPatientByEmailView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class CheckPatientByPatientIdView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
     """
     Check if a patient exists by Patient ID.
     Used by chatbot to recognize returning patients.
