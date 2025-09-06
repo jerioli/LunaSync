@@ -1,18 +1,27 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import ClinicSettings, FAQ, Review
 from .serializers import ClinicSettingsSerializer, ReviewSerializer
 from django.core.mail import send_mail, EmailMessage
 from django.conf import settings
 
 class ClinicBrandingView(APIView):
+    permission_classes = [AllowAny]  # Allow public access for GET, require auth for PUT
     def get(self, request):
         settings = ClinicSettings.objects.first()
         serializer = ClinicSettingsSerializer(settings)
         return Response(serializer.data)
 
     def put(self, request):
+        # Check if user is authenticated and has admin privileges for updating clinic settings
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        if not (request.user.role in ['admin', 'superadmin'] or request.user.is_superuser):
+            return Response({'error': 'Admin privileges required'}, status=status.HTTP_403_FORBIDDEN)
+            
         settings = ClinicSettings.objects.first()
         data = request.data.copy()
         faqs_data = data.pop('faqs', [])
@@ -36,6 +45,8 @@ class ClinicBrandingView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ReviewCreateView(APIView):
+    permission_classes = [AllowAny]  # Allow public access for reading reviews
+    
     def get(self, request):
         """
         GET: Retrieve all clinic reviews

@@ -169,6 +169,15 @@ class MedicalDocumentsAPI {
     return response.data;
   }
 
+  async createLabResult(formData: FormData) {
+    const response = await axiosInstance.post(`${this.baseURL}/lab-results/`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  }
+
   async deleteLabResult(labResultId: string | number) {
     const response = await axiosInstance.delete(`${this.baseURL}/lab-results/${labResultId}/`);
     return response.data;

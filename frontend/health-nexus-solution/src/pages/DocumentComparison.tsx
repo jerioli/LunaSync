@@ -981,6 +981,7 @@ const DocumentComparison: React.FC = () => {
       const response = await fetch('http://localhost:8000/api/medical-documents/lab-results/', {
         method: 'POST',
         body: formData,
+        credentials: 'include',  // Include session cookies
       });
 
       if (!response.ok) {

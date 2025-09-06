@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Patient
 from .serializer import PatientSerializer
 from django.http import Http404
@@ -271,7 +271,7 @@ class CheckPatientByEmailView(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class CheckPatientByPatientIdView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Allow public access for chatbot patient lookup
     """
     Check if a patient exists by Patient ID.
     Used by chatbot to recognize returning patients.

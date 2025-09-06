@@ -194,19 +194,7 @@ class SessionOTPVerifyView(APIView):
             # Clear any existing sessions for this user
             self.clear_user_sessions(user)
 
-            # Log in the user and create session
-            from django.contrib.auth import login
-            # Set backend for multi-backend compatibility
-            user.backend = 'django.contrib.auth.backends.ModelBackend'
-            login(request, user)
-            
-            # Set session data
-            request.session['user_id'] = user.id
-            request.session['username'] = user.username
-            request.session['role'] = getattr(user, 'role', 'doctor')
-            request.session['login_time'] = str(timezone.now())
-            
-            # Save session with error handling
+            # Save session with error handling FIRST
             try:
                 request.session.save()
                 print(f"[DEBUG] [2FA] Session saved successfully. Session ID: {request.session.session_key}")
@@ -215,11 +203,20 @@ class SessionOTPVerifyView(APIView):
                 # If session save fails, create a new session
                 request.session.flush()
                 request.session.create()
-                request.session['user_id'] = user.id
-                request.session['username'] = user.username
-                request.session['role'] = getattr(user, 'role', 'doctor')
-                request.session['login_time'] = str(timezone.now())
                 request.session.save()
+
+            # Log in the user AFTER session is stable
+            from django.contrib.auth import login
+            # Set backend for multi-backend compatibility
+            user.backend = 'django.contrib.auth.backends.ModelBackend'
+            login(request, user)
+            
+            # Set additional session data AFTER login
+            request.session['user_id'] = user.id
+            request.session['username'] = user.username
+            request.session['role'] = getattr(user, 'role', 'doctor')
+            request.session['login_time'] = str(timezone.now())
+            request.session.save()
 
             print(f"[DEBUG] [2FA] User {user.username} logged in successfully. Session ID: {request.session.session_key}")
 

@@ -1,50 +1,56 @@
 from django.db import migrations
+from django.contrib.auth.hashers import make_password
 
 def create_default_admin(apps, schema_editor):
     CustomUser = apps.get_model('accounts', 'CustomUser')
+    
     # Create default admin
     if not CustomUser.objects.filter(username='admin').exists():
-        CustomUser.objects.create_superuser(
+        admin_user = CustomUser(
             username='admin',
             email='admin@example.com',
-            password='adminpassword',
+            password=make_password('adminpassword'),
             role='admin',
             is_staff=True,
             is_superuser=True
         )
+        admin_user.save()
 
     # Create default superadmin
     if not CustomUser.objects.filter(username='superadmin').exists():
-        CustomUser.objects.create_superuser(
+        superadmin_user = CustomUser(
             username='superadmin',
             email='superadmin@example.com',
-            password='superadminpassword',
+            password=make_password('superadminpassword'),
             role='superadmin',
             is_staff=True,
             is_superuser=True
         )
+        superadmin_user.save()
 
     # Create default doctor
     if not CustomUser.objects.filter(username='doctor').exists():
-        CustomUser.objects.create_user(
+        doctor_user = CustomUser(
             username='doctor',
             email='doctor@example.com',
-            password='doctorpassword',
+            password=make_password('doctorpassword'),
             role='doctor',
             is_staff=True,
             is_superuser=False
         )
+        doctor_user.save()
 
     # Create default receptionist
     if not CustomUser.objects.filter(username='receptionist').exists():
-        CustomUser.objects.create_user(
+        receptionist_user = CustomUser(
             username='receptionist',
             email='receptionist@example.com',
-            password='receptionistpassword',
+            password=make_password('receptionistpassword'),
             role='receptionist',
             is_staff=True,
             is_superuser=False
         )
+        receptionist_user.save()
 
 class Migration(migrations.Migration):
     dependencies = [

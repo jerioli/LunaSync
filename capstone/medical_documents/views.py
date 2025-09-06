@@ -5,6 +5,9 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from capstone.settings import CsrfExemptSessionAuthentication
 from .models import (
     MedicalDocument, LabResult, SOAPNote, Prescription, 
     ClinicalNote, MedicalCertificate, PhysicalExamination,
@@ -28,12 +31,31 @@ class MedicalStaffPermission(permissions.BasePermission):
     Custom permission to only allow receptionist, doctor, and admin access to medical documents.
     """
     def has_permission(self, request, view):
+        print(f"[DEBUG] MedicalStaffPermission check - User: {request.user}")
+        print(f"[DEBUG] User authenticated: {request.user.is_authenticated if request.user else 'No user'}")
+        
         if not request.user or not request.user.is_authenticated:
+            print("[DEBUG] Permission denied: User not authenticated")
             return False
         
-        # Allow access only to receptionist, doctor, and admin roles
-        allowed_roles = ['receptionist', 'doctor', 'admin']
-        return hasattr(request.user, 'role') and request.user.role in allowed_roles
+        # Check if user has role attribute
+        if not hasattr(request.user, 'role'):
+            print(f"[DEBUG] Permission denied: User {request.user} has no role attribute")
+            return False
+            
+        user_role = request.user.role
+        print(f"[DEBUG] User role: {user_role}")
+        
+        # Allow access only to receptionist, doctor, and admin roles (and superadmin)
+        allowed_roles = ['receptionist', 'doctor', 'admin', 'superadmin']
+        has_valid_role = user_role in allowed_roles
+        
+        print(f"[DEBUG] User role '{user_role}' allowed: {has_valid_role}")
+        
+        if not has_valid_role:
+            print(f"[DEBUG] Permission denied: User role '{user_role}' not in allowed roles {allowed_roles}")
+        
+        return has_valid_role
 
 class MedicalDocumentViewSet(viewsets.ModelViewSet):
     queryset = MedicalDocument.objects.all()
@@ -131,14 +153,50 @@ class MedicalDocumentViewSet(viewsets.ModelViewSet):
         
         return Response({'status': 'Document archived'})
 
+@method_decorator(csrf_exempt, name='dispatch')
 class LabResultViewSet(viewsets.ModelViewSet):
     queryset = LabResult.objects.all()
-    permission_classes = [IsAuthenticated, MedicalStaffPermission]  # Only receptionist, doctor, and admin
+    authentication_classes = [CsrfExemptSessionAuthentication]  # Use same auth as patients
+    permission_classes = [IsAuthenticated, MedicalStaffPermission]  # Restored permissions
+    
+    def get_permissions(self):
+        print(f"[DEBUG] LabResultViewSet.get_permissions() called")
+        print(f"[DEBUG] Action: {self.action}")
+        print(f"[DEBUG] Permission classes: {self.permission_classes}")
+        return super().get_permissions()
+    
+    def dispatch(self, request, *args, **kwargs):
+        print(f"[DEBUG] LabResultViewSet.dispatch() called")
+        print(f"[DEBUG] Method: {request.method}")
+        print(f"[DEBUG] User: {request.user}")
+        print(f"[DEBUG] Authenticated: {request.user.is_authenticated}")
+        print(f"[DEBUG] Session key: {request.session.session_key}")
+        print(f"[DEBUG] Session data: {dict(request.session.items())}")
+        print(f"[DEBUG] Cookies: {request.COOKIES}")
+        print(f"[DEBUG] Headers: {dict(request.headers)}")
+        return super().dispatch(request, *args, **kwargs)
     
     def get_serializer_class(self):
         if self.action == 'create':
             return LabResultCreateSerializer
         return LabResultSerializer
+    
+    def create(self, request, *args, **kwargs):
+        print(f"[DEBUG] LabResultViewSet CREATE - User: {request.user}")
+        print(f"[DEBUG] User authenticated: {request.user.is_authenticated}")
+        print(f"[DEBUG] User type: {type(request.user)}")
+        print(f"[DEBUG] User role: {getattr(request.user, 'role', 'No role attribute')}")
+        print(f"[DEBUG] Request method: {request.method}")
+        print(f"[DEBUG] Request path: {request.path}")
+        print(f"[DEBUG] Permission classes: {self.permission_classes}")
+        
+        # Check permissions manually
+        for permission_class in self.permission_classes:
+            permission_instance = permission_class()
+            has_permission = permission_instance.has_permission(request, self)
+            print(f"[DEBUG] Permission {permission_class.__name__}: {has_permission}")
+        
+        return super().create(request, *args, **kwargs)
     
     def get_queryset(self):
         queryset = LabResult.objects.select_related('document', 'document__patient').all()

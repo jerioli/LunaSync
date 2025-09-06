@@ -542,10 +542,10 @@ class UserPreferencesView(APIView):
     
 class DoctorListView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Allow public access for chatbot and appointment booking
     
     def get(self, request):
-        # Allow authenticated users to view doctors list (needed for appointment booking)
+        # Allow public access to view doctors list (needed for chatbot and appointment booking)
         doctors = CustomUser.objects.filter(role='doctor')
         serializer = CustomUserSerializer(doctors, many=True)
         return Response(serializer.data)

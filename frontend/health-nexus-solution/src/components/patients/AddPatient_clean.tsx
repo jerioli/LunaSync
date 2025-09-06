@@ -5,11 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Pencil, Trash2 } from 'lucide-react';
+import { DialogFooter, DialogTitle } from '@/components/ui/dialog';
 import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
 import { parseApiError } from '@/utils/errorHandler';
 import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { medicalDocumentsAPI } from '@/lib/medicalDocumentsAPI';
 
 const AddPatient = () => {
   const navigate = useNavigate();
@@ -47,6 +51,39 @@ const AddPatient = () => {
   });
   
   const [loading, setLoading] = useState(false);
+  
+  // New state for templates and forms
+  const [showForm, setShowForm] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState('');
+  const [currentPrescriptionTab, setCurrentPrescriptionTab] = useState('New');
+  const [templateData, setTemplateData] = useState<any>({});
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  
+  // Medication management state
+  const [medications, setMedications] = useState<any[]>([]);
+  const [currentMedication, setCurrentMedication] = useState({
+    name: '',
+    dose: '',
+    quantity: '',
+    frequency: '',
+    startDate: '',
+    endDate: '',
+    notes: '',
+    nameType: 'Generic'
+  });
+  
+  // Clinical Notes state
+  const [clinicalNoteData, setClinicalNoteData] = useState({
+    title: '',
+    notes: '',
+    findings: '',
+    recommendations: '',
+    followUpRequired: false,
+    followUpDate: ''
+  });
   
   const handleChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -118,6 +155,190 @@ const AddPatient = () => {
     }));
   };
 
+  // Template handling functions
+  const handleTemplateSave = () => {
+    if (selectedTemplate === 'E-Prescription') {
+      // Save prescription with all medications
+      const prescriptionData = {
+        medications: medications,
+        generalNotes: templateData.generalNotes || ''
+      };
+      
+      if (deleteIndex !== null) {
+        const updatedTemplates = [...templates];
+        updatedTemplates[deleteIndex] = { type: selectedTemplate, data: prescriptionData };
+        setTemplates(updatedTemplates);
+        setDeleteIndex(null);
+      } else {
+        setTemplates([...templates, { type: selectedTemplate, data: prescriptionData }]);
+      }
+      setMedications([]);
+      setCurrentMedication({
+        name: '',
+        dose: '',
+        quantity: '',
+        frequency: '',
+        startDate: '',
+        endDate: '',
+        notes: '',
+        nameType: 'Generic'
+      });
+    } else if (selectedTemplate && templateData) {
+      if (deleteIndex !== null) {
+        const updatedTemplates = [...templates];
+        updatedTemplates[deleteIndex] = { type: selectedTemplate, data: templateData };
+        setTemplates(updatedTemplates);
+        setDeleteIndex(null);
+      } else {
+        setTemplates([...templates, { type: selectedTemplate, data: templateData }]);
+      }
+    }
+    setTemplateData({});
+    setSelectedTemplate('');
+    setShowForm(false);
+  };
+
+  // Medication handling functions
+  const handleMedicationChange = (field: string, value: string) => {
+    setCurrentMedication(prev => ({ ...prev, [field]: value }));
+  };
+
+  const addMedication = () => {
+    if (currentMedication.name && currentMedication.dose) {
+      setMedications([...medications, { ...currentMedication, id: Date.now() }]);
+      setCurrentMedication({
+        name: '',
+        dose: '',
+        quantity: '',
+        frequency: '',
+        startDate: '',
+        endDate: '',
+        notes: '',
+        nameType: 'Generic'
+      });
+    }
+  };
+
+  const removeMedication = (id: number) => {
+    setMedications(medications.filter(med => med.id !== id));
+  };
+
+  const editMedication = (id: number) => {
+    const medication = medications.find(med => med.id === id);
+    if (medication) {
+      setCurrentMedication(medication);
+      removeMedication(id);
+    }
+  };
+
+  // Clinical Notes handling functions
+  const handleClinicalNoteChange = (field: string, value: any) => {
+    setClinicalNoteData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const saveClinicalNoteToDatabase = async () => {
+    if (!clinicalNoteData.title || !clinicalNoteData.notes) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please fill in both title and notes fields.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // We need a patient ID, but since this is AddPatient, we don't have one yet
+    // So we'll save it as a template for now and it will be saved when the patient is created
+    if (!form.first_name || !form.last_name) {
+      toast({
+        title: 'Patient Required',
+        description: 'Please fill in patient information first.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      // For now, add it to templates like other documents
+      const clinicalNote = {
+        type: 'Clinical Notes',
+        data: {
+          title: clinicalNoteData.title,
+          notes: clinicalNoteData.notes,
+          findings: clinicalNoteData.findings,
+          recommendations: clinicalNoteData.recommendations,
+          followUpRequired: clinicalNoteData.followUpRequired,
+          followUpDate: clinicalNoteData.followUpDate,
+          saveToDatabase: true // Flag to indicate this should be saved to DB
+        }
+      };
+
+      setTemplates([...templates, clinicalNote]);
+      
+      // Reset form
+      setClinicalNoteData({
+        title: '',
+        notes: '',
+        findings: '',
+        recommendations: '',
+        followUpRequired: false,
+        followUpDate: ''
+      });
+      
+      setSelectedTemplate('');
+      setShowForm(false);
+
+      toast({
+        title: 'Success',
+        description: 'Clinical note will be saved to database when patient is created.',
+      });
+    } catch (error: any) {
+      console.error('Error preparing clinical note:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to prepare clinical note. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handlePrescriptionChange = (field: string, value: any) => {
+    setTemplateData((prev: any) => ({ ...prev, [field]: value }));
+  };
+
+  const handleEditTemplate = (index: number) => {
+    const template = templates[index];
+    setSelectedTemplate(template.type);
+    setDeleteIndex(index);
+    
+    if (template.type === 'E-Prescription') {
+      setMedications(template.data.medications || []);
+      setTemplateData({ generalNotes: template.data.generalNotes || '' });
+    } else if (template.type === 'Clinical Notes') {
+      setClinicalNoteData({
+        title: template.data.title || '',
+        notes: template.data.notes || '',
+        findings: template.data.findings || '',
+        recommendations: template.data.recommendations || '',
+        followUpRequired: template.data.followUpRequired || false,
+        followUpDate: template.data.followUpDate || ''
+      });
+    } else {
+      setTemplateData(template.data);
+    }
+    
+    setShowForm(true);
+  };
+
+  const handleDeleteTemplate = () => {
+    if (deleteIndex !== null) {
+      const updatedTemplates = [...templates];
+      updatedTemplates.splice(deleteIndex, 1);
+      setTemplates(updatedTemplates);
+      setDeleteIndex(null);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   const personalRef = useRef(null);
   const examRef = useRef(null);
   const historyRef = useRef(null);
@@ -135,6 +356,10 @@ const AddPatient = () => {
     medications: 'List any medications', 
     familyHistory: 'Describe family medical history', 
     socialHistory: 'Describe social history',
+    subjective: "Describe the patient's symptoms, complaints, and history in their own words",
+    objective: "Record measurable or observed findings",
+    assessment: "Summarize your clinical assessment or diagnosis",
+    plan: "Outline the treatment plan, follow-up, or next steps",
   };
 
   const handleSaveAll = async () => {
@@ -211,11 +436,42 @@ const AddPatient = () => {
         physical_examination: (isDoctor || isAdmin) ? physicalExamination : undefined
       };
 
-      await addPatient(patientData);
+      const savedPatient = await addPatient(patientData) as any;
+      
+      // Save clinical notes to database if any
+      const clinicalNotesToSave = templates.filter(template => 
+        template.type === 'Clinical Notes' && template.data.saveToDatabase
+      );
+      
+      if (clinicalNotesToSave.length > 0 && savedPatient?.id) {
+        for (const noteTemplate of clinicalNotesToSave) {
+          try {
+            const clinicalNoteData = {
+              patient: savedPatient.id,
+              title: noteTemplate.data.title,
+              description: 'Clinical Note',
+              note_type: 'clinical_note',
+              clinical_context: noteTemplate.data.notes,
+              findings: noteTemplate.data.findings || '',
+              recommendations: noteTemplate.data.recommendations || '',
+              follow_up_required: noteTemplate.data.followUpRequired || false,
+              follow_up_date: noteTemplate.data.followUpDate || null,
+              document_date: new Date().toISOString().split('T')[0],
+              status: 'active'
+            };
+            
+            await medicalDocumentsAPI.createClinicalNote(clinicalNoteData);
+          } catch (noteError) {
+            console.error('Error saving clinical note:', noteError);
+            // Continue with other notes even if one fails
+          }
+        }
+      }
+      
       toast({
         title: 'Success',
         description: (isDoctor || isAdmin)
-          ? `${fullName} has been successfully added as a patient with medical information.`
+          ? `${fullName} has been successfully added as a patient with medical information.${clinicalNotesToSave.length > 0 ? ` ${clinicalNotesToSave.length} clinical note(s) saved.` : ''}`
           : `${fullName} has been successfully added as a patient. Medical information can be added later by a doctor.`,
       });
       
@@ -469,16 +725,436 @@ const AddPatient = () => {
                   </div>
                 </div>
                 
+                {/* SOAP Notes, E-Prescription, and Blank Template Section */}
                 <div className="mt-6">
-                  <h3 className="font-semibold mb-2">Additional Notes</h3>
-                  <Label htmlFor="examNotes">Examination Notes</Label>
-                  <Textarea 
-                    id="examNotes" 
-                    rows={4}
-                    placeholder="Enter additional examination notes, observations, or findings..."
-                    value={physicalExamination.notes} 
-                    onChange={(e) => handlePhysicalExamChange('notes', e.target.value)}
-                  />
+                  <h3 className="font-semibold mb-4">Medical Documentation Templates</h3>
+                  <div className="space-y-4">
+                    <div className="flex gap-4">
+                      <Button onClick={() => { setSelectedTemplate('SOAP Note'); setShowForm(true); }} variant="outline" className="hover:bg-[#1EAEDB] hover:text-white">
+                        SOAP Note
+                      </Button>
+                      <Button onClick={() => { setSelectedTemplate('E-Prescription'); setShowForm(true); }} variant="outline" className="hover:bg-[#1EAEDB] hover:text-white">
+                        E-Prescription
+                      </Button>
+                      <Button onClick={() => { setSelectedTemplate('Clinical Notes'); setShowForm(true); }} variant="outline" className="hover:bg-[#1EAEDB] hover:text-white">
+                        Clinical Notes
+                      </Button>
+                    </div>
+
+                    {showForm && selectedTemplate === 'SOAP Note' && (
+                      <div className="space-y-4 border p-4 rounded-lg">
+                        {['subjective', 'objective', 'assessment', 'plan'].map((field) => (
+                          <div key={field}>
+                            <Label>{field.charAt(0).toUpperCase() + field.slice(1)}</Label>
+                            <Textarea
+                              value={templateData[field] || ''}
+                              onChange={(e) => handlePrescriptionChange(field, e.target.value)}
+                              placeholder={placeholders[field]}
+                              rows={3}
+                            />
+                          </div>
+                        ))}
+                        <div className="flex justify-end gap-2">
+                          <Button variant="outline" className="hover:bg-[#1EAEDB] hover:text-white" onClick={() => setShowCancelDialog(true)}>
+                            Cancel
+                          </Button>
+                          <Button onClick={handleTemplateSave} className="hover:bg-[#1EAEDB]">
+                            Save
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {showForm && selectedTemplate === 'Clinical Notes' && (
+                      <div className="border p-4 rounded-lg">
+                        <div className="space-y-4">
+                          <div>
+                            <Label>Title <span className="text-red-500">*</span></Label>
+                            <Input 
+                              value={clinicalNoteData.title} 
+                              onChange={(e) => handleClinicalNoteChange('title', e.target.value)}
+                              placeholder="Enter clinical note title (e.g., Follow-up Visit, Initial Assessment)"
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label>Clinical Notes <span className="text-red-500">*</span></Label>
+                            <Textarea 
+                              value={clinicalNoteData.notes} 
+                              onChange={(e) => handleClinicalNoteChange('notes', e.target.value)}
+                              placeholder="Enter your clinical notes here..."
+                              rows={4}
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label>Findings</Label>
+                            <Textarea 
+                              value={clinicalNoteData.findings} 
+                              onChange={(e) => handleClinicalNoteChange('findings', e.target.value)}
+                              placeholder="Enter clinical findings..."
+                              rows={3}
+                            />
+                          </div>
+                          
+                          <div>
+                            <Label>Recommendations</Label>
+                            <Textarea 
+                              value={clinicalNoteData.recommendations} 
+                              onChange={(e) => handleClinicalNoteChange('recommendations', e.target.value)}
+                              placeholder="Enter recommendations and treatment plan..."
+                              rows={3}
+                            />
+                          </div>
+                          
+                          <div className="space-y-3">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id="followUpRequired"
+                                checked={clinicalNoteData.followUpRequired}
+                                onChange={(e) => handleClinicalNoteChange('followUpRequired', e.target.checked)}
+                              />
+                              <Label htmlFor="followUpRequired" className="text-sm font-normal cursor-pointer">
+                                Follow-up required
+                              </Label>
+                            </div>
+                            
+                            {clinicalNoteData.followUpRequired && (
+                              <div>
+                                <Label>Follow-up Date</Label>
+                                <Input 
+                                  type="date" 
+                                  value={clinicalNoteData.followUpDate} 
+                                  onChange={(e) => handleClinicalNoteChange('followUpDate', e.target.value)} 
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex justify-end gap-2 mt-4">
+                          <Button variant="outline" className="hover:bg-[#1EAEDB] hover:text-white" onClick={() => setSelectedTemplate('')}>
+                            Cancel
+                          </Button>
+                          <Button onClick={saveClinicalNoteToDatabase} className="hover:bg-[#1EAEDB]">
+                            Save Clinical Note
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {showForm && selectedTemplate === 'E-Prescription' && (
+                      <div className="space-y-4 border p-4 rounded-lg">
+                        <div className="flex gap-2">
+                          {['New', 'Favorites', 'Generic', 'Brand'].map((tab) => (
+                            <Button 
+                              key={tab} 
+                              variant={currentPrescriptionTab === tab ? 'default' : 'outline'} 
+                              onClick={() => setCurrentPrescriptionTab(tab)}
+                              className="hover:bg-[#1EAEDB]"
+                            >
+                              {tab}
+                            </Button>
+                          ))}
+                        </div>
+
+                        {currentPrescriptionTab === 'New' && (
+                          <div className="space-y-4">
+                            {/* Add Medication Form */}
+                            <div className="bg-gray-50 p-4 rounded border">
+                              <h4 className="font-medium mb-3">Add Medication</h4>
+                              <div className="space-y-3">
+                                <div className="flex gap-4">
+                                  <label className="flex items-center gap-2">
+                                    <input 
+                                      type="radio" 
+                                      name="nameType" 
+                                      checked={currentMedication.nameType === 'Generic'} 
+                                      onChange={() => handleMedicationChange('nameType', 'Generic')} 
+                                    />
+                                    Generic Name
+                                  </label>
+                                  <label className="flex items-center gap-2">
+                                    <input 
+                                      type="radio" 
+                                      name="nameType" 
+                                      checked={currentMedication.nameType === 'Brand'} 
+                                      onChange={() => handleMedicationChange('nameType', 'Brand')} 
+                                    />
+                                    Brand Name
+                                  </label>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-3">
+                                  <Input 
+                                    placeholder="Medication Name" 
+                                    value={currentMedication.name} 
+                                    onChange={(e) => handleMedicationChange('name', e.target.value)} 
+                                  />
+                                  <Input 
+                                    placeholder="Dose (e.g., 500mg)" 
+                                    value={currentMedication.dose} 
+                                    onChange={(e) => handleMedicationChange('dose', e.target.value)} 
+                                  />
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-3">
+                                  <Input 
+                                    placeholder="Quantity" 
+                                    value={currentMedication.quantity} 
+                                    onChange={(e) => { 
+                                      if (/^\d*$/.test(e.target.value)) handleMedicationChange('quantity', e.target.value); 
+                                    }} 
+                                  />
+                                  <Select value={currentMedication.frequency} onValueChange={(val) => handleMedicationChange('frequency', val)}>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select frequency" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="Once daily">Once daily</SelectItem>
+                                      <SelectItem value="Twice daily">Twice daily</SelectItem>
+                                      <SelectItem value="Three times daily">Three times daily</SelectItem>
+                                      <SelectItem value="Every 8 hours">Every 8 hours</SelectItem>
+                                      <SelectItem value="Every 6 hours">Every 6 hours</SelectItem>
+                                      <SelectItem value="As needed">As needed</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div>
+                                    <Label>Start Date</Label>
+                                    <Input 
+                                      type="date" 
+                                      value={currentMedication.startDate} 
+                                      onChange={(e) => handleMedicationChange('startDate', e.target.value)} 
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label>End Date</Label>
+                                    <Input 
+                                      type="date" 
+                                      value={currentMedication.endDate} 
+                                      onChange={(e) => handleMedicationChange('endDate', e.target.value)} 
+                                    />
+                                  </div>
+                                </div>
+                                
+                                <Textarea 
+                                  placeholder="Medication-specific notes or instructions" 
+                                  value={currentMedication.notes} 
+                                  onChange={(e) => handleMedicationChange('notes', e.target.value)}
+                                  rows={2}
+                                />
+                                
+                                <Button 
+                                  onClick={addMedication} 
+                                  disabled={!currentMedication.name || !currentMedication.dose}
+                                  className="hover:bg-[#1EAEDB]"
+                                >
+                                  Add Medication
+                                </Button>
+                              </div>
+                            </div>
+
+                            {/* Medications Table */}
+                            {medications.length > 0 && (
+                              <div className="border rounded">
+                                <div className="bg-gray-100 p-3 border-b">
+                                  <h4 className="font-medium">Prescribed Medications</h4>
+                                </div>
+                                <div className="overflow-x-auto">
+                                  <table className="w-full text-sm">
+                                    <thead className="bg-gray-50">
+                                      <tr>
+                                        <th className="p-2 text-left border-r">Medication</th>
+                                        <th className="p-2 text-left border-r">Dose</th>
+                                        <th className="p-2 text-left border-r">Quantity</th>
+                                        <th className="p-2 text-left border-r">Frequency</th>
+                                        <th className="p-2 text-left border-r">Duration</th>
+                                        <th className="p-2 text-left border-r">Notes</th>
+                                        <th className="p-2 text-center">Actions</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {medications.map((med, index) => (
+                                        <tr key={med.id} className="border-b hover:bg-gray-50">
+                                          <td className="p-2 border-r">
+                                            <div className="font-medium">{med.name}</div>
+                                            <div className="text-xs text-gray-500">({med.nameType})</div>
+                                          </td>
+                                          <td className="p-2 border-r">{med.dose}</td>
+                                          <td className="p-2 border-r">{med.quantity}</td>
+                                          <td className="p-2 border-r">{med.frequency}</td>
+                                          <td className="p-2 border-r">
+                                            {med.startDate && med.endDate ? 
+                                              `${med.startDate} to ${med.endDate}` : 
+                                              med.startDate || med.endDate || 'Not specified'
+                                            }
+                                          </td>
+                                          <td className="p-2 border-r">{med.notes || '-'}</td>
+                                          <td className="p-2 text-center">
+                                            <div className="flex justify-center gap-2">
+                                              <Pencil 
+                                                className="h-4 w-4 text-[#1EAEDB] cursor-pointer hover:text-blue-600" 
+                                                onClick={() => editMedication(med.id)}
+                                              />
+                                              <Trash2 
+                                                className="h-4 w-4 text-red-500 cursor-pointer hover:text-red-700" 
+                                                onClick={() => removeMedication(med.id)}
+                                              />
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* General Prescription Notes */}
+                            <div>
+                              <Label>General Prescription Notes</Label>
+                              <Textarea 
+                                placeholder="General notes for this prescription (e.g., dietary instructions, follow-up recommendations)" 
+                                value={templateData.generalNotes || ''} 
+                                onChange={(e) => handlePrescriptionChange('generalNotes', e.target.value)}
+                                rows={3}
+                              />
+                            </div>
+                            
+                            <div className="flex justify-end gap-2 mt-4">
+                              <Button variant="outline" className="hover:bg-[#1EAEDB] hover:text-white" onClick={() => setSelectedTemplate('')}>
+                                Cancel
+                              </Button>
+                              <Button 
+                                onClick={handleTemplateSave} 
+                                className="hover:bg-[#1EAEDB]"
+                                disabled={medications.length === 0}
+                              >
+                                Save Prescription
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Templates Accordion */}
+                    {templates.length > 0 && (
+                      <Accordion type="single" collapsible className="w-full">
+                        {templates.map((item, idx) => (
+                          <AccordionItem key={idx} value={`item-${idx}`} className="relative">
+                            <AccordionTrigger className="text-left">
+                              {item.type} {idx + 1}
+                            </AccordionTrigger>
+                            <div className="absolute right-4 top-3 flex gap-2 z-10">
+                              <Pencil 
+                                className="h-4 w-4 text-[#1EAEDB] cursor-pointer hover:text-blue-600" 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditTemplate(idx);
+                                }} 
+                              />
+                              <Trash2 
+                                className="h-4 w-4 text-red-500 cursor-pointer hover:text-red-700" 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteIndex(idx);
+                                  setShowDeleteConfirm(true);
+                                }} 
+                              />
+                            </div>
+                            <AccordionContent>
+                              <div className="bg-gray-50 p-3 rounded">
+                                {item.type === 'SOAP Note' && (
+                                  <div className="space-y-2">
+                                    <div><strong>Subjective:</strong> {item.data.subjective || 'N/A'}</div>
+                                    <div><strong>Objective:</strong> {item.data.objective || 'N/A'}</div>
+                                    <div><strong>Assessment:</strong> {item.data.assessment || 'N/A'}</div>
+                                    <div><strong>Plan:</strong> {item.data.plan || 'N/A'}</div>
+                                  </div>
+                                )}
+                                {item.type === 'E-Prescription' && (
+                                  <div className="space-y-3">
+                                    {item.data.medications && item.data.medications.length > 0 ? (
+                                      <div className="border rounded">
+                                        <div className="bg-gray-100 p-2 border-b">
+                                          <h5 className="font-medium text-sm">Prescribed Medications</h5>
+                                        </div>
+                                        <div className="overflow-x-auto">
+                                          <table className="w-full text-xs">
+                                            <thead className="bg-gray-50">
+                                              <tr>
+                                                <th className="p-2 text-left border-r">Medication</th>
+                                                <th className="p-2 text-left border-r">Dose</th>
+                                                <th className="p-2 text-left border-r">Qty</th>
+                                                <th className="p-2 text-left border-r">Frequency</th>
+                                                <th className="p-2 text-left border-r">Duration</th>
+                                                <th className="p-2 text-left">Notes</th>
+                                              </tr>
+                                            </thead>
+                                            <tbody>
+                                              {item.data.medications.map((med: any, medIndex: number) => (
+                                                <tr key={medIndex} className="border-b">
+                                                  <td className="p-2 border-r">
+                                                    <div className="font-medium">{med.name}</div>
+                                                    <div className="text-xs text-gray-500">({med.nameType})</div>
+                                                  </td>
+                                                  <td className="p-2 border-r">{med.dose}</td>
+                                                  <td className="p-2 border-r">{med.quantity}</td>
+                                                  <td className="p-2 border-r">{med.frequency}</td>
+                                                  <td className="p-2 border-r">
+                                                    {med.startDate && med.endDate ? 
+                                                      `${med.startDate} to ${med.endDate}` : 
+                                                      med.startDate || med.endDate || 'Not specified'
+                                                    }
+                                                  </td>
+                                                  <td className="p-2">{med.notes || '-'}</td>
+                                                </tr>
+                                              ))}
+                                            </tbody>
+                                          </table>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="text-sm text-gray-500">No medications prescribed</div>
+                                    )}
+                                    {item.data.generalNotes && (
+                                      <div className="bg-blue-50 p-2 rounded">
+                                        <strong className="text-sm">General Notes:</strong>
+                                        <div className="text-sm mt-1">{item.data.generalNotes}</div>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                                {item.type === 'Clinical Notes' && (
+                                  <div className="space-y-2">
+                                    <div><strong>Title:</strong> {item.data.title || 'N/A'}</div>
+                                    <div><strong>Notes:</strong> {item.data.notes || 'N/A'}</div>
+                                    {item.data.findings && <div><strong>Findings:</strong> {item.data.findings}</div>}
+                                    {item.data.recommendations && <div><strong>Recommendations:</strong> {item.data.recommendations}</div>}
+                                    {item.data.followUpRequired && (
+                                      <div className="bg-yellow-50 p-2 rounded">
+                                        <strong>Follow-up Required:</strong> {item.data.followUpDate ? `Scheduled for ${item.data.followUpDate}` : 'Yes'}
+                                      </div>
+                                    )}
+                                    {item.data.saveToDatabase && (
+                                      <div className="bg-blue-50 p-2 rounded text-sm">
+                                        <strong>Status:</strong> Will be saved to database when patient is created
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -660,6 +1336,46 @@ const AddPatient = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation */}
+      {showDeleteConfirm && (
+        <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Deletion</DialogTitle>
+            </DialogHeader>
+            <p>Are you sure you want to delete this template?</p>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleDeleteTemplate} variant="destructive">
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Cancel Dialog */}
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you sure you want to cancel?</DialogTitle>
+          </DialogHeader>
+          <div className="mb-4">
+            All the information will be discarded.
+          </div>
+          <DialogFooter>
+            <Button variant="outline" className="hover:bg-[#1EAEDB] hover:text-white" onClick={() => setShowCancelDialog(false)}>
+              No
+            </Button>
+            <Button variant="destructive" onClick={() => { setShowCancelDialog(false); setShowForm(false); setTemplateData({}); setSelectedTemplate(''); }}>
+              Yes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Cancel Modal */}
       {showCancelModal && (
