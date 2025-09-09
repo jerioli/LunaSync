@@ -202,53 +202,17 @@ const PatientMedicalInfo: React.FC<PatientMedicalInfoProps> = ({
           )}
         </div>
         
-        <Separator />
-        
-        <div className="space-y-2">
-          <Label htmlFor="medicalHistory">Medical History</Label>
-          {isEditing ? (
-            <Textarea 
-              id="medicalHistory" 
-              rows={6}
-              value={patient.medical_info?.medicalHistory || ""}
-              onChange={(e) => onUpdate({ medical_info: { ...patient.medical_info, medicalHistory: e.target.value } })}
-              placeholder="Enter patient medical history, past surgeries, chronic conditions, etc."
-            />
-          ) : (
-            <div className="p-2 border rounded-md bg-muted/20 min-h-[100px] whitespace-pre-wrap">
-              {patient.medical_info?.medicalHistory || "No medical history recorded"}
-            </div>
-          )}
-        </div>
-        
         {isEditing && (
           <div className="space-y-4">
             <Separator />
             <div className="space-y-4">
               <Label className="text-base font-semibold">Detailed Medical History</Label>
               
-              {/* Chief Complaint */}
-              <div className="space-y-2">
-                <Label htmlFor="chiefComplaint">Chief Complaint</Label>
-                <Textarea
-                  id="chiefComplaint"
-                  rows={3}
-                  value={(patient.medical_info as any)?.chiefComplaint || ""}
-                  onChange={(e) => onUpdate({ 
-                    medical_info: { 
-                      ...patient.medical_info, 
-                      chiefComplaint: e.target.value 
-                    } 
-                  })}
-                  placeholder="Enter the main reason for this medical consultation..."
-                />
-              </div>
-              
               {/* Medical History Categories with Checkboxes */}
               <div className="space-y-4">
                 <Label className="text-sm font-medium">Select applicable categories:</Label>
                 <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-                  {['illnesses', 'surgeries', 'medications', 'familyHistory', 'socialHistory'].map((field) => (
+                  {['illnesses', 'surgeries', 'medications', 'familyHistory', 'socialHistory', 'allergies'].map((field) => (
                     <div key={field} className="flex items-center space-x-2">
                       <Checkbox
                         id={`history-${field}`}
@@ -280,7 +244,7 @@ const PatientMedicalInfo: React.FC<PatientMedicalInfoProps> = ({
                 
                 {/* Text areas for selected categories */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {['illnesses', 'surgeries', 'medications', 'familyHistory', 'socialHistory'].map((field) => 
+                  {['illnesses', 'surgeries', 'medications', 'familyHistory', 'socialHistory', 'allergies'].map((field) => 
                     (patient.medical_info as any)?.[field] !== undefined && (
                       <div key={field} className="space-y-2">
                         <Label htmlFor={`${field}Text`}>
@@ -310,18 +274,9 @@ const PatientMedicalInfo: React.FC<PatientMedicalInfoProps> = ({
         {/* Display detailed medical history in view mode */}
         {!isEditing && (
           <div className="space-y-4">
-            {(patient.medical_info as any)?.chiefComplaint && (
-              <div className="space-y-2">
-                <Label className="text-sm font-semibold">Chief Complaint</Label>
-                <div className="p-2 border rounded-md bg-muted/20 text-sm">
-                  {(patient.medical_info as any).chiefComplaint}
-                </div>
-              </div>
-            )}
-            
-            {/* Display other medical history categories */}
+            {/* Display medical history categories */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {['illnesses', 'surgeries', 'medications', 'familyHistory', 'socialHistory'].map((field) => 
+              {['illnesses', 'surgeries', 'medications', 'familyHistory', 'socialHistory', 'allergies'].map((field) => 
                 (patient.medical_info as any)?.[field] && (
                   <div key={field} className="space-y-2">
                     <Label className="text-sm font-semibold capitalize">

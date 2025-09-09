@@ -146,6 +146,55 @@ export const useChatbotLogic = () => {
   // Track typing animation state
   const [isTyping, setIsTyping] = useState(false);
 
+  // Helper function to make responses more natural and varied
+  const getRandomResponse = (responses: string[]): string => {
+    return responses[Math.floor(Math.random() * responses.length)];
+  };
+
+  // Helper function to detect user sentiment and respond appropriately
+  const addEmpathyToResponse = (message: string, userContext?: string): string => {
+    const concernKeywords = ['pain', 'hurt', 'sick', 'emergency', 'urgent', 'worried', 'scared'];
+    const happyKeywords = ['thank', 'great', 'perfect', 'awesome', 'wonderful'];
+    
+    if (userContext) {
+      const lowerContext = userContext.toLowerCase();
+      if (concernKeywords.some(keyword => lowerContext.includes(keyword))) {
+        return `I understand this might be concerning for you. 💙 ${message}`;
+      }
+      if (happyKeywords.some(keyword => lowerContext.includes(keyword))) {
+        return `I am so glad to hear that! 😊 ${message}`;
+      }
+    }
+    return message;
+  };
+
+  // Enhanced validation error messages that are more supportive
+  const getValidationErrorMessage = (type: 'email' | 'phone' | 'date' | 'patientId'): string => {
+    const messages = {
+      email: [
+        'Hmm, that email doesn\'t look quite right! 📧 Could you double-check it?',
+        'I need a valid email address to send you updates! 📧 Please try again.',
+        'Oops! That email format seems off. Could you enter it like: name@example.com?'
+      ],
+      phone: [
+        'I need a complete 11-digit phone number to reach you! 📱',
+        'That phone number seems incomplete. Could you enter all 11 digits?',
+        'Let me get your full phone number (11 digits) so I can contact you if needed! 📱'
+      ],
+      date: [
+        'I need your date of birth in MM/DD/YYYY format! 📅 For example: 01/15/1990',
+        'Could you enter your birth date like this: MM/DD/YYYY? 📅',
+        'I need that date in MM/DD/YYYY format to continue! 📅'
+      ],
+      patientId: [
+        'I need a valid Patient ID to look you up! 🔍 Please make sure it follows this format: P-YYYYMMDD-XXXX',
+        'That Patient ID format doesn\'t look right. Could you check it? It should be like P-20250822-1234',
+        'Let me help you with that Patient ID format: P-YYYYMMDD-XXXX (like P-20250822-1234) 🔍'
+      ]
+    };
+    return getRandomResponse(messages[type]);
+  };
+
   const faqs = clinicCustomization.faqs || [];
 
   // Helper function to create image preview URL
@@ -193,8 +242,9 @@ export const useChatbotLogic = () => {
   useEffect(() => {
     if (showChat) {
       setTimeout(() => {
-        addBotMessage("Hello! I'm Luna, your healthcare assistant. Say hi to start conversation?", [
-          { label: "Hi", value: "hi" }
+        addBotMessage("Hello there! 👋 I'm Luna, your friendly healthcare assistant. I'm here to help make your healthcare experience as smooth as possible. Ready to get started?", [
+          { label: "Hi Luna! 😊", value: "hi" },
+          { label: "Let's get started", value: "hi" }
         ]);
       }, 500);
     }
@@ -573,7 +623,7 @@ export const useChatbotLogic = () => {
           addMessage('user', input);
           setInput('');
           setTimeout(() => {
-            addBotMessage('Please enter a valid Patient ID in the format P-YYYYMMDD-XXXX (e.g., P-20250822-1234):');
+            addBotMessage(getValidationErrorMessage('patientId'));
           }, 500);
           return;
         }
@@ -585,7 +635,7 @@ export const useChatbotLogic = () => {
         // Check if patient already exists (for returning patients only)
         setTimeout(async () => {
           try {
-            addBotMessage('Looking up your information...');
+            addBotMessage('Looking up your information... ⏳');
             
             const response = await api.patients.checkByPatientId(input);
             
@@ -593,9 +643,9 @@ export const useChatbotLogic = () => {
               setExistingPatient(response.patient);
               
               setTimeout(() => {
-                addBotMessage(`Welcome back, ${response.patient.name}! I found your information in our system. Would you like me to use your existing details or update them?`, [
-                  { label: 'Use Existing Info', value: 'use-existing-info' },
-                  { label: 'Update My Info', value: 'update-info' }
+                addBotMessage(`Welcome back, ${response.patient.name}! 🎉 I found your information in our system. Would you like me to use your existing details or update them?`, [
+                  { label: '✅ Use my existing info', value: 'use-existing-info' },
+                  { label: '📝 I need to update something', value: 'update-info' }
                 ]);
                 setChatStep(6.2); // Existing patient choice
                 setIsInputDisabled(true);
@@ -695,7 +745,7 @@ export const useChatbotLogic = () => {
           addMessage('user', input);
           setInput('');
           setTimeout(() => {
-            addBotMessage(t('chatbot.enterValidEmail'));
+            addBotMessage(getValidationErrorMessage('email'));
           }, 500);
           return;
         }
@@ -744,7 +794,7 @@ export const useChatbotLogic = () => {
           addMessage('user', input);
           setInput('');
           setTimeout(() => {
-            addBotMessage('Please enter a valid phone number with exactly 11 digits (e.g., 09123456789):');
+            addBotMessage(getValidationErrorMessage('phone'));
           }, 500);
           return;
         }
@@ -764,7 +814,7 @@ export const useChatbotLogic = () => {
           addMessage('user', input);
           setInput('');
           setTimeout(() => {
-            addBotMessage('Please enter a valid date in MM/DD/YYYY format:');
+            addBotMessage(getValidationErrorMessage('date'));
           }, 500);
           return;
         }
@@ -780,7 +830,7 @@ export const useChatbotLogic = () => {
           addMessage('user', input);
           setInput('');
           setTimeout(() => {
-            addBotMessage('Please enter a valid date of birth (between 1 and 100 years ago):');
+            addBotMessage('Please enter a valid date of birth! 📅 It should be between 1 and 100 years ago.');
           }, 500);
           return;
         }
@@ -1232,15 +1282,15 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
 
     // Handle initial "Hi" button
     if (value === 'hi') {
-      addMessage('user', 'Hi');
+      addMessage('user', 'Hi Luna! 😊');
       setChatStep(1);
       setIsInputDisabled(false); // Ensure input is enabled after greeting
       setTimeout(() => {
-        addBotMessage(t('chatbot.howCanIHelp'), [
-          { label: t('appointment.schedule'), value: 'appointment' },
-          { label: t('chatbot.requestMedicalRecord'), value: 'medicalRecord' },
-          { label: t('chatbot.requestPrescription'), value: 'prescription' },
-          { label: 'FAQs', value: 'faq' },
+        addBotMessage("Great to meet you! 🌟 I'm here to help you with your healthcare needs. What would you like to do today?", [
+          { label: '📅 Book an Appointment', value: 'appointment' },
+          { label: '📋 Get Medical Certificate', value: 'medicalRecord' },
+          { label: '💊 Request Prescription', value: 'prescription' },
+          { label: '❓ Ask Questions (FAQ)', value: 'faq' },
         ]);
       }, 500);
       return;
@@ -1248,12 +1298,12 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     
     if (value === 'faq') {
       setChatMode('faq');
-      addMessage('user', 'FAQs');
+      addMessage('user', 'I have some questions');
       setTimeout(() => {
-        addBotMessage('Here are some frequently asked questions. Please select one or type your own:',
+        addBotMessage('I love answering questions! 💭 Here are some common ones I get asked, or feel free to type your own question:',
           [
             ...faqs.map((faq, i) => ({ label: faq.question, value: `faq_${i}` })),
-            { label: 'Back to Main Menu', value: 'main' },
+            { label: '⬅️ Back to Main Menu', value: 'main' },
           ]
         );
         setChatStep(2);
@@ -1295,50 +1345,50 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     }
     if (value === 'appointment') {
       setChatMode('appointment');
-      addMessage('user', 'Schedule Appointment');
+      addMessage('user', 'I would like to book an appointment');
       setIsInputDisabled(false); // Ensure input is enabled for new service
       setTimeout(() => {
-        addBotMessage('How would you like to schedule your appointment?', [
-          { label: '1. Select Doctor First', value: 'doctor-first' },
-          { label: '2. Select Date First', value: 'date-first' }
+        addBotMessage('Perfect! I would be happy to help you schedule an appointment. 📅 To make this easier for you, how would you prefer to start?', [
+          { label: '👨‍⚕️ I want to choose my doctor first', value: 'doctor-first' },
+          { label: '📅 I have a specific date in mind', value: 'date-first' }
         ]);
         setChatStep(2);
       }, 500);
     } else if (value === 'medicalRecord') {
       setChatMode('medicalRecord');
-      addMessage('user', 'Request Medical Certificate');
+      addMessage('user', 'I need a medical certificate');
       setIsInputDisabled(false); // Ensure input is enabled for new service
       setTimeout(() => {
-        addBotMessage('I can help you request a medical certificate. Please provide your Patient ID to proceed.');
-        addBotMessage('Your Patient ID is in the format: P-YYYYMMDD-XXXX (e.g., P-20250822-1234). You can find it in your previous appointment emails or medical records.');
+        addBotMessage('I can definitely help you get a medical certificate! 📋 To process your request quickly and securely, I will need your Patient ID.');
+        addBotMessage('💡 Your Patient ID follows this format: P-YYYYMMDD-XXXX (like P-20250822-1234). You can find it in your previous appointment emails or medical records.');
         setChatStep(2);
       }, 500);
     } else if (value === 'prescription') {
       setChatMode('prescription');
-      addMessage('user', 'Request Prescription');
+      addMessage('user', 'I need a prescription');
       setIsInputDisabled(false); // Ensure input is enabled for new service
       setTimeout(() => {
-        addBotMessage('I can help you request a prescription. Please provide your Patient ID to proceed.');
-        addBotMessage('Your Patient ID is in the format: P-YYYYMMDD-XXXX (e.g., P-20250822-1234). You can find it in your previous appointment emails or medical records.');
+        addBotMessage('I would be happy to help you request a prescription! 💊 For your safety and security, I will need your Patient ID to get started.');
+        addBotMessage('💡 Your Patient ID follows this format: P-YYYYMMDD-XXXX (like P-20250822-1234). You can find it in your previous appointment emails or medical records.');
         setChatStep(2);
       }, 500);
     } else if (value === 'returning-patient') {
       // Handle returning patient selection
-      addMessage('user', 'Returning Patient');
+      addMessage('user', 'I am a returning patient');
       setTimeout(() => {
-        addBotMessage('Great! Please provide your unique Patient ID so I can look up your information:');
-        addBotMessage('Your Patient ID is in the format: P-YYYYMMDD-XXXX (e.g., P-20250822-1234). You can find it in your previous appointment emails or medical records.');
+        addBotMessage('Welcome back! 🎉 It is always great to see our patients again. To look up your information quickly, I will need your unique Patient ID.');
+        addBotMessage('💡 Your Patient ID follows this format: P-YYYYMMDD-XXXX (like P-20250822-1234). You can find it in your previous appointment emails or medical records.');
         setChatStep(6.1); // Patient ID input for returning patients
         setIsInputDisabled(false);
       }, 500);
     } else if (value === 'first-visit') {
       // Handle first visit selection
-      addMessage('user', 'First Visit');
+      addMessage('user', 'This is my first visit');
       setTimeout(() => {
-        addBotMessage('Welcome! Before we proceed, I need to inform you that we will be collecting some personal information to process your appointment request.');
+        addBotMessage('Welcome to our clinic! 🌟 We are so excited to meet you. Before we proceed, I need to let you know that I will be collecting some personal information to process your appointment request.');
         
         setTimeout(() => {
-          addBotMessage('This includes your full name, email, phone number, and appointment details. Your information will be kept secure and used only for healthcare purposes.');
+          addBotMessage('This includes your full name, email, phone number, and appointment details. Your information will be kept secure and used only for healthcare purposes. 🔒');
           
           setTimeout(() => {
             addBotMessage('Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
@@ -1513,13 +1563,13 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
                   variant: "destructive"
                 });
                 
-                addBotMessage( 'I apologize, but the selected time slot has just been booked by another patient. Please select a different time slot.');
+                addBotMessage('Oh no! 😔 That time slot was just taken by another patient. Let me show you the available times:');
                 
                 // Refresh and show available time slots again
                 getAvailableTimeSlotsForDoctor(appointmentForm.doctorId, appointmentForm.date!).then((times) => {
                   setTimeout(() => {
                     if (times.length === 0) {
-                      addBotMessage( 'Unfortunately, there are no more available time slots for this doctor on the selected date. Please select a different date or doctor.');
+                      addBotMessage('Unfortunately, this doctor is now fully booked for this date. 😞 Would you like to try a different date or choose another doctor?');
                       // Reset to date selection
                       getAvailableDates().then(availableDates => {
                         addBotMessage( 'Please select a different date:', 
@@ -1594,14 +1644,14 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
             await submitAppointmentRequest();
             
             setTimeout(() => {
-             addBotMessage( 'Your appointment has been successfully scheduled! You will receive a confirmation email shortly.');
+              addBotMessage('🎉 Wonderful! Your appointment has been successfully scheduled! You will receive a confirmation email shortly with all the details.');
               
               setTimeout(() => {
-               addBotMessage( 'Is there anything else I can help you with?', [
-                  { label: 'Schedule Another Appointment', value: 'appointment' },
-                  { label: 'Request E-Prescription', value: 'prescription' },
-                  { label: 'Request Medical Records', value: 'medicalRecord' },
-                  { label: 'No, Thank You', value: 'end' }
+                addBotMessage('Is there anything else I can help you with today? 😊', [
+                  { label: '📅 Schedule Another Appointment', value: 'appointment' },
+                  { label: '💊 Request Prescription', value: 'prescription' },
+                  { label: '📋 Request Medical Certificate', value: 'medicalRecord' },
+                  { label: '👋 No, thank you!', value: 'end' }
                 ]);
                 setChatStep(1);
                 setIsInputDisabled(false); // Re-enable input for new service selection
@@ -1742,15 +1792,15 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
   const handleAppointmentOptionSelect = (value: string) => {
     if (chatStep === 2) {
       if (value === 'doctor-first') {
-        addMessage('user', 'I want to select a doctor first');
+        addMessage('user', 'I want to choose my doctor first');
         
         // Show loading message while checking doctor availability
-       addBotMessage( 'Let me check which doctors have available appointments...');
+        addBotMessage('Perfect choice! Let me check which doctors have available appointments... ⏳');
         
         fetchDoctorsWithAvailability().then((doctorsWithAvailability) => {
           if (doctorsWithAvailability.length === 0) {
             setTimeout(() => {
-           addBotMessage( 'I apologize, but no doctors have available appointments in the next 2 weeks. Please try again later or contact us directly.');
+              addBotMessage('I am sorry, but it looks like all our doctors are fully booked for the next 2 weeks. 😔 Please try again later or contact us directly for urgent needs.');
               // Reset chat to initial state
               setTimeout(() => {
                 setMessages([]);
@@ -1767,21 +1817,21 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           }));
           
           setTimeout(() => {
-         addBotMessage( 'Please select a doctor:', doctorOptions);
+            addBotMessage('Great! Here are our available doctors: 👨‍⚕️', doctorOptions);
             setChatStep(3);
             setIsInputDisabled(true); // Disable input when showing doctor options
           }, 500);
         });
       } else if (value === 'date-first') {
-        addMessage('user', 'I want to select a date first');
+        addMessage('user', 'I have a specific date in mind');
         
         // Show loading message while fetching available dates
-      addBotMessage( 'Let me check available dates...');
+        addBotMessage('Excellent! Let me find available dates for you... ⏳');
         
         getAvailableDates().then(availableDates => {
           setTimeout(() => {
             if (availableDates.length === 0) {
-            addBotMessage( 'I apologize, but there are no available dates in the next 2 weeks. Please try again later or contact us directly.');
+              addBotMessage('I am sorry, but there are no available dates in the next 2 weeks. 😔 Please try again later or contact us directly.');
               // Reset chat to initial state
               setTimeout(() => {
                 setMessages([]);
@@ -1791,8 +1841,8 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
               return;
             }
             
-           addBotMessage( 
-              'Please select a date:', 
+            addBotMessage( 
+              'Here are the available dates! 📅 Please choose one that works for you:', 
               undefined, // options
               true, // dateSelector
               false, // timeSelector
@@ -1869,8 +1919,13 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
                 }, 500);
               });
             } else {
+              const timeResponses = [
+                'Perfect! Here are the available time slots for your appointment: ⏰',
+                'Great choice! These are the times I have available: ⏰',
+                'Excellent! Here are your time options: ⏰'
+              ];
               addBotMessage(
-                'Please select a time slot:', 
+                getRandomResponse(timeResponses), 
                 undefined, // options
                 false, // dateSelector
                 true, // timeSelector
@@ -2003,7 +2058,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         setIsInputDisabled(false); // Re-enable input after time slot selection
         
         setTimeout(() => {
-          addBotMessage( 'What type of appointment do you need?', appointmentTypes);
+          addBotMessage('Perfect! What type of appointment do you need today? 🏥', appointmentTypes);
           setChatStep(6);
         }, 500);
       }
@@ -2012,9 +2067,9 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       setAppointmentForm(prev => ({ ...prev, type: value }));
       
       setTimeout(() => {
-        addBotMessage('Perfect! Are you a returning patient or is this your first visit with us?', [
-          { label: 'Returning Patient', value: 'returning-patient' },
-          { label: 'First Visit', value: 'first-visit' }
+        addBotMessage('Great choice! 👍 Now, are you a returning patient or is this your first visit with us?', [
+          { label: '🔄 Returning Patient', value: 'returning-patient' },
+          { label: '🆕 First Visit', value: 'first-visit' }
         ]);
         setChatStep(6.0); // New step for patient type selection
         setIsInputDisabled(true);
@@ -2809,7 +2864,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       setIsInputDisabled(true); // Disable input when conversation ends
       
       setTimeout(() => {
-        addBotMessage('Thank you for chatting with MedySync! If you need assistance in the future, just say hi to start a new conversation.');
+        addBotMessage('Thank you so much for choosing our healthcare services! 🌟 It was wonderful helping you today. If you need any assistance in the future, just say hi and I will be right here to help! Take care! 💙');
       }, 500);
     }
   };

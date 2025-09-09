@@ -4,6 +4,12 @@ import MedicalCertificateGenerator from "@/components/patients/MedicalCertificat
 import PatientMedicalInfo from "@/components/patients/PatientMedicalInfo";
 import PatientPersonalInfo from "@/components/patients/PatientPersonalInfo";
 import PatientPhysicalExamination from "@/components/patients/PatientPhysicalExamination";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +29,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
@@ -41,6 +54,7 @@ import {
   File,
   FileText,
   Heart,
+  Pencil,
   Plus,
   Printer,
   Save,
@@ -118,6 +132,28 @@ const PatientManagement = () => {
   const [blankNotes, setBlankNotes] = useState<any[]>([]);
   const [labResults, setLabResults] = useState<APILabResult[]>([]);
 
+  // Medical Documentation Templates state
+  const [showTemplateForm, setShowTemplateForm] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState("");
+  const [currentPrescriptionTab, setCurrentPrescriptionTab] = useState("New");
+  const [templateData, setTemplateData] = useState<any>({});
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [medications, setMedications] = useState<any[]>([]);
+  const [currentMedication, setCurrentMedication] = useState({
+    name: "",
+    dose: "",
+    quantity: "",
+    frequency: "",
+    startDate: "",
+    endDate: "",
+    notes: "",
+    nameType: "Generic",
+  });
+  const [clinicalNoteData, setClinicalNoteData] = useState({
+    title: "",
+    notes: "",
+  });
+
   // Document creation state
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [createDocumentType, setCreateDocumentType] = useState<
@@ -165,6 +201,235 @@ const PatientManagement = () => {
       ),
     }));
   };
+
+  // Medical Documentation Templates handler functions
+  const placeholders: Record<string, string> = {
+    subjective:
+      "Describe the patient's symptoms, complaints, and history in their own words",
+    objective: "Record measurable or observed findings",
+    assessment: "Summarize your clinical assessment or diagnosis",
+    plan: "Outline the treatment plan, follow-up, or next steps",
+  };
+
+  const handleTemplateSave = async () => {
+    if (selectedTemplate === "E-Prescription") {
+      // Save prescription with all medications to the database
+      try {
+        // Validate that medications exist
+        if (medications.length === 0) {
+          toast({
+            title: "Validation Error",
+            description:
+              "Please add at least one medication to the prescription.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const prescriptionData = {
+          patient: parseInt(id || "0"),
+          title: "E-Prescription",
+          description:
+            "Electronic prescription created from patient management",
+          document_date: new Date().toISOString(),
+          medications: medications,
+          general_instructions: templateData.generalNotes || "",
+          status: "approved",
+          prescription_number: `RX-${Date.now()}`,
+          valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split("T")[0], // 30 days from now
+          refills_allowed: 0,
+          refills_remaining: 0,
+        };
+
+        console.log("Sending prescription data:", prescriptionData);
+        const response = await axiosInstance.post(
+          "/medical-documents/prescriptions/",
+          prescriptionData
+        );
+
+        toast({
+          title: "Success",
+          description: "E-Prescription saved successfully!",
+        });
+
+        // Refresh prescriptions list
+        await loadAllDocuments();
+
+        // Reset form
+        setMedications([]);
+        setCurrentMedication({
+          name: "",
+          dose: "",
+          quantity: "",
+          frequency: "",
+          startDate: "",
+          endDate: "",
+          notes: "",
+          nameType: "Generic",
+        });
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description:
+            error.response?.data?.detail || "Failed to save prescription",
+          variant: "destructive",
+        });
+      }
+    } else if (selectedTemplate === "SOAP Note" && templateData) {
+      try {
+        // Validate that at least one SOAP field has content
+        const hasContent =
+          templateData.subjective ||
+          templateData.objective ||
+          templateData.assessment ||
+          templateData.plan;
+        if (!hasContent) {
+          toast({
+            title: "Validation Error",
+            description:
+              "Please fill in at least one SOAP field (Subjective, Objective, Assessment, or Plan).",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const soapData = {
+          patient: parseInt(id || "0"),
+          title: "SOAP Note",
+          description: "SOAP Note created from patient management",
+          document_date: new Date().toISOString(),
+          subjective: templateData.subjective || "",
+          objective: templateData.objective || "",
+          assessment: templateData.assessment || "",
+          plan: templateData.plan || "",
+          status: "approved",
+        };
+
+        console.log("Sending SOAP data:", soapData);
+        const response = await axiosInstance.post(
+          "/medical-documents/soap-notes/",
+          soapData
+        );
+
+        toast({
+          title: "Success",
+          description: "SOAP Note saved successfully!",
+        });
+
+        // Refresh SOAP notes list
+        await loadAllDocuments();
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description:
+            error.response?.data?.detail || "Failed to save SOAP note",
+          variant: "destructive",
+        });
+      }
+    } else if (selectedTemplate === "Clinical Notes") {
+      await saveClinicalNoteToDatabase();
+    }
+
+    setTemplateData({});
+    setSelectedTemplate("");
+    setShowTemplateForm(false);
+  };
+
+  const handlePrescriptionChange = (field: string, value: any) => {
+    setTemplateData((prev: any) => ({ ...prev, [field]: value }));
+  };
+
+  const handleMedicationChangeTemplate = (field: string, value: string) => {
+    setCurrentMedication((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const addMedication = () => {
+    if (currentMedication.name && currentMedication.dose) {
+      setMedications([
+        ...medications,
+        { ...currentMedication, id: Date.now() },
+      ]);
+      setCurrentMedication({
+        name: "",
+        dose: "",
+        quantity: "",
+        frequency: "",
+        startDate: "",
+        endDate: "",
+        notes: "",
+        nameType: "Generic",
+      });
+    }
+  };
+
+  const removeMedication = (id: number) => {
+    setMedications(medications.filter((med) => med.id !== id));
+  };
+
+  const editMedication = (id: number) => {
+    const medication = medications.find((med) => med.id === id);
+    if (medication) {
+      setCurrentMedication(medication);
+      removeMedication(id);
+    }
+  };
+
+  const handleClinicalNoteChange = (field: string, value: any) => {
+    setClinicalNoteData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const saveClinicalNoteToDatabase = async () => {
+    if (!clinicalNoteData.title || !clinicalNoteData.notes) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in both title and notes fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const clinicalData = {
+        patient: parseInt(id || "0"),
+        title: clinicalNoteData.title,
+        description: "Clinical note created from patient management",
+        document_date: new Date().toISOString(),
+        clinical_context: clinicalNoteData.notes,
+        note_type: "general",
+        status: "approved",
+      };
+
+      console.log("Sending clinical note data:", clinicalData);
+      const response = await axiosInstance.post(
+        "/medical-documents/clinical-notes/",
+        clinicalData
+      );
+
+      toast({
+        title: "Success",
+        description: "Clinical Note saved successfully!",
+      });
+
+      // Refresh clinical notes list
+      await loadAllDocuments();
+
+      // Reset form
+      setClinicalNoteData({
+        title: "",
+        notes: "",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.detail || "Failed to save clinical note",
+        variant: "destructive",
+      });
+    }
+  };
+
   const [prescriptionTab, setPrescriptionTab] = useState("New");
 
   // Print functionality state
@@ -4635,6 +4900,711 @@ const PatientManagement = () => {
               setPatientData((prev) => ({ ...prev, ...updatedData }))
             }
           />
+
+          {/* Medical Documentation Templates Section */}
+          {(isDoctor || isAdmin) && (
+            <div className="mt-6">
+              <h3 className="font-semibold mb-4">
+                Medical Documentation Templates
+              </h3>
+              <div className="space-y-4">
+                <div className="flex gap-4">
+                  <Button
+                    onClick={() => {
+                      setSelectedTemplate("SOAP Note");
+                      setShowTemplateForm(true);
+                    }}
+                    variant="outline"
+                    className="hover:bg-[#1EAEDB] hover:text-white"
+                  >
+                    SOAP Note
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setSelectedTemplate("E-Prescription");
+                      setShowTemplateForm(true);
+                    }}
+                    variant="outline"
+                    className="hover:bg-[#1EAEDB] hover:text-white"
+                  >
+                    E-Prescription
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setSelectedTemplate("Clinical Notes");
+                      setShowTemplateForm(true);
+                    }}
+                    variant="outline"
+                    className="hover:bg-[#1EAEDB] hover:text-white"
+                  >
+                    Clinical Notes
+                  </Button>
+                </div>
+
+                {showTemplateForm && selectedTemplate === "SOAP Note" && (
+                  <div className="space-y-4 border p-4 rounded-lg">
+                    {["subjective", "objective", "assessment", "plan"].map(
+                      (field) => (
+                        <div key={field}>
+                          <Label>
+                            {field.charAt(0).toUpperCase() + field.slice(1)}
+                          </Label>
+                          <Textarea
+                            value={templateData[field] || ""}
+                            onChange={(e) =>
+                              handlePrescriptionChange(field, e.target.value)
+                            }
+                            placeholder={placeholders[field]}
+                            rows={3}
+                          />
+                        </div>
+                      )
+                    )}
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        className="hover:bg-[#1EAEDB] hover:text-white"
+                        onClick={() => {
+                          setSelectedTemplate("");
+                          setShowTemplateForm(false);
+                          setTemplateData({});
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleTemplateSave}
+                        className="hover:bg-[#1EAEDB]"
+                      >
+                        Save
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {showTemplateForm && selectedTemplate === "Clinical Notes" && (
+                  <div className="border p-4 rounded-lg">
+                    <div className="space-y-4">
+                      <div>
+                        <Label>
+                          Title <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          value={clinicalNoteData.title}
+                          onChange={(e) =>
+                            handleClinicalNoteChange("title", e.target.value)
+                          }
+                          placeholder="Enter clinical note title (e.g., Follow-up Visit, Initial Assessment)"
+                        />
+                      </div>
+
+                      <div>
+                        <Label>
+                          Clinical Notes <span className="text-red-500">*</span>
+                        </Label>
+                        <Textarea
+                          value={clinicalNoteData.notes}
+                          onChange={(e) =>
+                            handleClinicalNoteChange("notes", e.target.value)
+                          }
+                          placeholder="Enter your clinical notes here..."
+                          rows={4}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 mt-4">
+                      <Button
+                        variant="outline"
+                        className="hover:bg-[#1EAEDB] hover:text-white"
+                        onClick={() => {
+                          setSelectedTemplate("");
+                          setShowTemplateForm(false);
+                          setClinicalNoteData({
+                            title: "",
+                            notes: "",
+                          });
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={saveClinicalNoteToDatabase}
+                        className="hover:bg-[#1EAEDB]"
+                      >
+                        Save Clinical Note
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {showTemplateForm && selectedTemplate === "E-Prescription" && (
+                  <div className="space-y-4 border p-4 rounded-lg">
+                    <div className="flex gap-2">
+                      {["New", "Favorites", "Generic", "Brand"].map((tab) => (
+                        <Button
+                          key={tab}
+                          variant={
+                            currentPrescriptionTab === tab
+                              ? "default"
+                              : "outline"
+                          }
+                          onClick={() => setCurrentPrescriptionTab(tab)}
+                          className="hover:bg-[#1EAEDB]"
+                        >
+                          {tab}
+                        </Button>
+                      ))}
+                    </div>
+
+                    {currentPrescriptionTab === "New" && (
+                      <div className="space-y-4">
+                        {/* Add Medication Form */}
+                        <div className="bg-gray-50 p-4 rounded border">
+                          <h4 className="font-medium mb-3">Add Medication</h4>
+                          <div className="space-y-3">
+                            <div className="flex gap-4">
+                              <label className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  name="nameType"
+                                  checked={
+                                    currentMedication.nameType === "Generic"
+                                  }
+                                  onChange={() =>
+                                    handleMedicationChangeTemplate(
+                                      "nameType",
+                                      "Generic"
+                                    )
+                                  }
+                                />
+                                Generic Name
+                              </label>
+                              <label className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  name="nameType"
+                                  checked={
+                                    currentMedication.nameType === "Brand"
+                                  }
+                                  onChange={() =>
+                                    handleMedicationChangeTemplate(
+                                      "nameType",
+                                      "Brand"
+                                    )
+                                  }
+                                />
+                                Brand Name
+                              </label>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                              <Input
+                                placeholder="Medication Name"
+                                value={currentMedication.name}
+                                onChange={(e) =>
+                                  handleMedicationChangeTemplate(
+                                    "name",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                              <Input
+                                placeholder="Dose (e.g., 500mg)"
+                                value={currentMedication.dose}
+                                onChange={(e) =>
+                                  handleMedicationChangeTemplate(
+                                    "dose",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                              <Input
+                                placeholder="Quantity"
+                                value={currentMedication.quantity}
+                                onChange={(e) => {
+                                  if (/^\d*$/.test(e.target.value))
+                                    handleMedicationChangeTemplate(
+                                      "quantity",
+                                      e.target.value
+                                    );
+                                }}
+                              />
+                              <Select
+                                value={currentMedication.frequency}
+                                onValueChange={(val) =>
+                                  handleMedicationChangeTemplate(
+                                    "frequency",
+                                    val
+                                  )
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select frequency" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Once daily">
+                                    Once daily
+                                  </SelectItem>
+                                  <SelectItem value="Twice daily">
+                                    Twice daily
+                                  </SelectItem>
+                                  <SelectItem value="Three times daily">
+                                    Three times daily
+                                  </SelectItem>
+                                  <SelectItem value="Every 8 hours">
+                                    Every 8 hours
+                                  </SelectItem>
+                                  <SelectItem value="Every 6 hours">
+                                    Every 6 hours
+                                  </SelectItem>
+                                  <SelectItem value="As needed">
+                                    As needed
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <Label>Start Date</Label>
+                                <Input
+                                  type="date"
+                                  value={currentMedication.startDate}
+                                  onChange={(e) =>
+                                    handleMedicationChangeTemplate(
+                                      "startDate",
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                              </div>
+                              <div>
+                                <Label>End Date</Label>
+                                <Input
+                                  type="date"
+                                  value={currentMedication.endDate}
+                                  onChange={(e) =>
+                                    handleMedicationChangeTemplate(
+                                      "endDate",
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                              </div>
+                            </div>
+
+                            <Textarea
+                              placeholder="Medication-specific notes or instructions"
+                              value={currentMedication.notes}
+                              onChange={(e) =>
+                                handleMedicationChangeTemplate(
+                                  "notes",
+                                  e.target.value
+                                )
+                              }
+                              rows={2}
+                            />
+
+                            <Button
+                              onClick={addMedication}
+                              disabled={
+                                !currentMedication.name ||
+                                !currentMedication.dose
+                              }
+                              className="hover:bg-[#1EAEDB]"
+                            >
+                              Add Medication
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Medications Table */}
+                        {medications.length > 0 && (
+                          <div className="border rounded">
+                            <div className="bg-gray-100 p-3 border-b">
+                              <h4 className="font-medium">
+                                Prescribed Medications
+                              </h4>
+                            </div>
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-sm">
+                                <thead className="bg-gray-50">
+                                  <tr>
+                                    <th className="p-2 text-left border-r">
+                                      Medication
+                                    </th>
+                                    <th className="p-2 text-left border-r">
+                                      Dose
+                                    </th>
+                                    <th className="p-2 text-left border-r">
+                                      Quantity
+                                    </th>
+                                    <th className="p-2 text-left border-r">
+                                      Frequency
+                                    </th>
+                                    <th className="p-2 text-left border-r">
+                                      Duration
+                                    </th>
+                                    <th className="p-2 text-left border-r">
+                                      Notes
+                                    </th>
+                                    <th className="p-2 text-center">Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {medications.map((med, index) => (
+                                    <tr
+                                      key={med.id}
+                                      className="border-b hover:bg-gray-50"
+                                    >
+                                      <td className="p-2 border-r">
+                                        <div className="font-medium">
+                                          {med.name}
+                                        </div>
+                                        <div className="text-xs text-gray-500">
+                                          ({med.nameType})
+                                        </div>
+                                      </td>
+                                      <td className="p-2 border-r">
+                                        {med.dose}
+                                      </td>
+                                      <td className="p-2 border-r">
+                                        {med.quantity}
+                                      </td>
+                                      <td className="p-2 border-r">
+                                        {med.frequency}
+                                      </td>
+                                      <td className="p-2 border-r">
+                                        {med.startDate && med.endDate
+                                          ? `${med.startDate} to ${med.endDate}`
+                                          : med.startDate ||
+                                            med.endDate ||
+                                            "Not specified"}
+                                      </td>
+                                      <td className="p-2 border-r">
+                                        {med.notes || "-"}
+                                      </td>
+                                      <td className="p-2 text-center">
+                                        <div className="flex justify-center gap-2">
+                                          <Pencil
+                                            className="h-4 w-4 text-[#1EAEDB] cursor-pointer hover:text-blue-600"
+                                            onClick={() =>
+                                              editMedication(med.id)
+                                            }
+                                          />
+                                          <Trash2
+                                            className="h-4 w-4 text-red-500 cursor-pointer hover:text-red-700"
+                                            onClick={() =>
+                                              removeMedication(med.id)
+                                            }
+                                          />
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* General Prescription Notes */}
+                        <div>
+                          <Label>General Prescription Notes</Label>
+                          <Textarea
+                            placeholder="Any general instructions or notes for the entire prescription"
+                            value={templateData.generalNotes || ""}
+                            onChange={(e) =>
+                              handlePrescriptionChange(
+                                "generalNotes",
+                                e.target.value
+                              )
+                            }
+                            rows={3}
+                          />
+                        </div>
+
+                        <div className="flex justify-end gap-2 mt-4">
+                          <Button
+                            variant="outline"
+                            className="hover:bg-[#1EAEDB] hover:text-white"
+                            onClick={() => {
+                              setSelectedTemplate("");
+                              setShowTemplateForm(false);
+                              setMedications([]);
+                              setCurrentMedication({
+                                name: "",
+                                dose: "",
+                                quantity: "",
+                                frequency: "",
+                                startDate: "",
+                                endDate: "",
+                                notes: "",
+                                nameType: "Generic",
+                              });
+                              setTemplateData({});
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={handleTemplateSave}
+                            className="hover:bg-[#1EAEDB]"
+                            disabled={medications.length === 0}
+                          >
+                            Save E-Prescription
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Other tabs content would go here if needed */}
+                    {currentPrescriptionTab !== "New" && (
+                      <div className="text-center text-gray-500 py-8">
+                        This feature will be available in future updates.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Display Created Medical Documents */}
+          {(isDoctor || isAdmin) && (
+            <div className="mt-6">
+              <h3 className="font-semibold mb-4">Recent Medical Documents</h3>
+
+              {/* SOAP Notes Section */}
+              {soapNotes.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="font-medium mb-3 text-[#1EAEDB]">
+                    SOAP Notes ({soapNotes.length})
+                  </h4>
+                  <Accordion type="single" collapsible className="w-full">
+                    {soapNotes.slice(0, 3).map((soap, idx) => (
+                      <AccordionItem
+                        key={soap.id}
+                        value={`soap-${idx}`}
+                        className="relative"
+                      >
+                        <AccordionTrigger className="text-left">
+                          SOAP Note -{" "}
+                          {new Date(soap.dateCreated).toLocaleDateString()}
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className="bg-gray-50 p-3 rounded">
+                            <div className="space-y-2">
+                              <div>
+                                <strong>Subjective:</strong>{" "}
+                                {soap.data.subjective || "N/A"}
+                              </div>
+                              <div>
+                                <strong>Objective:</strong>{" "}
+                                {soap.data.objective || "N/A"}
+                              </div>
+                              <div>
+                                <strong>Assessment:</strong>{" "}
+                                {soap.data.assessment || "N/A"}
+                              </div>
+                              <div>
+                                <strong>Plan:</strong> {soap.data.plan || "N/A"}
+                              </div>
+                            </div>
+                            <div className="mt-2 text-sm text-gray-600">
+                              Created by: {soap.createdBy} on{" "}
+                              {new Date(soap.dateCreated).toLocaleString()}
+                            </div>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </div>
+              )}
+
+              {/* E-Prescriptions Section */}
+              {prescriptions.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="font-medium mb-3 text-[#1EAEDB]">
+                    E-Prescriptions ({prescriptions.length})
+                  </h4>
+                  <Accordion type="single" collapsible className="w-full">
+                    {prescriptions.slice(0, 3).map((prescription, idx) => (
+                      <AccordionItem
+                        key={prescription.id}
+                        value={`prescription-${idx}`}
+                        className="relative"
+                      >
+                        <AccordionTrigger className="text-left">
+                          E-Prescription -{" "}
+                          {new Date(
+                            prescription.dateCreated
+                          ).toLocaleDateString()}
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className="bg-gray-50 p-3 rounded">
+                            <div className="space-y-3">
+                              {prescription.data.medications &&
+                              prescription.data.medications.length > 0 ? (
+                                <div className="border rounded">
+                                  <div className="bg-gray-100 p-2 border-b">
+                                    <h5 className="font-medium text-sm">
+                                      Prescribed Medications
+                                    </h5>
+                                  </div>
+                                  <div className="overflow-x-auto">
+                                    <table className="w-full text-xs">
+                                      <thead className="bg-gray-50">
+                                        <tr>
+                                          <th className="p-2 text-left border-r">
+                                            Medication
+                                          </th>
+                                          <th className="p-2 text-left border-r">
+                                            Dose
+                                          </th>
+                                          <th className="p-2 text-left border-r">
+                                            Qty
+                                          </th>
+                                          <th className="p-2 text-left border-r">
+                                            Frequency
+                                          </th>
+                                          <th className="p-2 text-left">
+                                            Notes
+                                          </th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {prescription.data.medications.map(
+                                          (med: any, medIndex: number) => (
+                                            <tr
+                                              key={medIndex}
+                                              className="border-b"
+                                            >
+                                              <td className="p-2 border-r">
+                                                <div className="font-medium">
+                                                  {med.name ||
+                                                    med.medication_name}
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                  (
+                                                  {med.nameType ||
+                                                    med.name_type ||
+                                                    "Generic"}
+                                                  )
+                                                </div>
+                                              </td>
+                                              <td className="p-2 border-r">
+                                                {med.dose || med.dosage}
+                                              </td>
+                                              <td className="p-2 border-r">
+                                                {med.quantity}
+                                              </td>
+                                              <td className="p-2 border-r">
+                                                {med.frequency}
+                                              </td>
+                                              <td className="p-2">
+                                                {med.notes ||
+                                                  med.instructions ||
+                                                  "-"}
+                                              </td>
+                                            </tr>
+                                          )
+                                        )}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="text-sm text-gray-500">
+                                  No medications prescribed
+                                </div>
+                              )}
+                              {prescription.data.generalInstructions && (
+                                <div className="bg-blue-50 p-2 rounded">
+                                  <strong className="text-sm">
+                                    General Instructions:
+                                  </strong>
+                                  <div className="text-sm mt-1">
+                                    {prescription.data.generalInstructions}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            <div className="mt-2 text-sm text-gray-600">
+                              Created by: {prescription.createdBy} on{" "}
+                              {new Date(
+                                prescription.dateCreated
+                              ).toLocaleString()}
+                            </div>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </div>
+              )}
+
+              {/* Clinical Notes Section */}
+              {blankNotes.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="font-medium mb-3 text-[#1EAEDB]">
+                    Clinical Notes ({blankNotes.length})
+                  </h4>
+                  <Accordion type="single" collapsible className="w-full">
+                    {blankNotes.slice(0, 3).map((note, idx) => (
+                      <AccordionItem
+                        key={note.id}
+                        value={`clinical-${idx}`}
+                        className="relative"
+                      >
+                        <AccordionTrigger className="text-left">
+                          {note.data.title} -{" "}
+                          {new Date(note.dateCreated).toLocaleDateString()}
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className="bg-gray-50 p-3 rounded">
+                            <div className="space-y-2">
+                              <div>
+                                <strong>Title:</strong>{" "}
+                                {note.data.title || "N/A"}
+                              </div>
+                              <div>
+                                <strong>Content:</strong>{" "}
+                                {note.data.content || "N/A"}
+                              </div>
+                            </div>
+                            <div className="mt-2 text-sm text-gray-600">
+                              Created by: {note.createdBy} on{" "}
+                              {new Date(note.dateCreated).toLocaleString()}
+                            </div>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </div>
+              )}
+
+              {/* Show message if no documents */}
+              {soapNotes.length === 0 &&
+                prescriptions.length === 0 &&
+                blankNotes.length === 0 && (
+                  <div className="text-center text-gray-500 py-8 bg-gray-50 rounded-lg">
+                    <FileText className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                    <p>No medical documents created yet.</p>
+                    <p className="text-sm">
+                      Use the templates above to create SOAP notes,
+                      prescriptions, or clinical notes.
+                    </p>
+                  </div>
+                )}
+            </div>
+          )}
 
           {isEditing && (
             <div className="mt-4 flex justify-end">
