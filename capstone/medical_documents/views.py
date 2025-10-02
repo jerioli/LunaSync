@@ -24,8 +24,6 @@ from .serializers import (
 )
 from patients.models import Patient
 import logging
-import html
-import re
 
 logger = logging.getLogger(__name__)
 
@@ -614,180 +612,174 @@ def send_medical_certificate_email_endpoint(request):
         return JsonResponse({'error': f'Failed to send email: {str(e)}'}, status=500)
 
 
-@csrf_exempt
+@csrf_exempt 
 def prescription_requests_endpoint(request):
     """
-    Handle prescription requests - fetches actual data from medical_requests app
+    Handle prescription requests - using actual medical_requests models
     """
+    from medical_requests.models import PrescriptionRequest
+    
     if request.method == 'GET':
-        try:
-            # Import the model dynamically to avoid circular import issues
-            from medical_requests.models import PrescriptionRequest
-            
-            # Get all prescription requests
-            requests_data = []
-            prescription_requests = PrescriptionRequest.objects.all().order_by('-requested_at')
-            
-            for req in prescription_requests:
-                # Build the response data to match frontend interface
-                request_data = {
-                    'id': req.id,
-                    'medication_name': req.medication_name,
-                    'dosage': req.dosage,
-                    'frequency': req.frequency,
-                    'duration': req.duration,
-                    'patient_name': req.patient_name,
-                    'date_of_birth': req.date_of_birth,
-                    'email': req.email,
-                    'phone': req.phone,
-                    'additional_notes': req.additional_notes or '',
-                    'status': req.status,
-                    'requested_at': req.requested_at.isoformat() if req.requested_at else None,
-                    'receptionist_approved_at': req.receptionist_approved_at.isoformat() if req.receptionist_approved_at else None,
-                    'doctor_approved_at': req.doctor_approved_at.isoformat() if req.doctor_approved_at else None,
-                    'prescription_content': req.prescription_content or '',
-                    'doctor_notes': req.doctor_notes or '',
-                    'rejection_reason': req.rejection_reason or '',
-                    'id_verification_front': req.id_verification_front.url if req.id_verification_front else None,
-                    'id_verification_back': req.id_verification_back.url if req.id_verification_back else None,
-                    'prescription_image': req.prescription_image.url if req.prescription_image else None
-                }
-                requests_data.append(request_data)
-            
-            return JsonResponse(requests_data, safe=False)
-        except ImportError:
-            # Fallback to empty array if medical_requests app is not available
-            return JsonResponse([], safe=False)
-        except Exception as e:
-            logger.error(f"Error fetching prescription requests: {e}")
-            return JsonResponse([], safe=False)
+        # Get all prescription requests from the database
+        requests = PrescriptionRequest.objects.all().order_by('-requested_at')
+        
+        # Convert to list of dictionaries
+        data = []
+        for req in requests:
+            data.append({
+                'id': req.id,
+                'medication_name': req.medication_name,
+                'dosage': req.dosage,
+                'frequency': req.frequency,
+                'duration': req.duration,
+                'patient_name': req.patient_name,
+                'date_of_birth': req.date_of_birth,
+                'email': req.email,
+                'phone': req.phone,
+                'additional_notes': req.additional_notes,
+                'status': req.status,
+                'requested_at': req.requested_at.isoformat() if req.requested_at else None,
+                'receptionist_approved_at': req.receptionist_approved_at.isoformat() if req.receptionist_approved_at else None,
+                'doctor_approved_at': req.doctor_approved_at.isoformat() if req.doctor_approved_at else None,
+                'prescription_content': req.prescription_content,
+                'doctor_notes': req.doctor_notes,
+                'rejection_reason': req.rejection_reason,
+                'id_verification_front': req.id_verification_front.url if req.id_verification_front else None,
+                'id_verification_back': req.id_verification_back.url if req.id_verification_back else None,
+                'prescription_image': req.prescription_image.url if req.prescription_image else None
+            })
+        
+        return JsonResponse(data, safe=False)
     elif request.method == 'POST':
+        # Handle creating new prescription request
         try:
-            # Import the model dynamically to avoid circular import issues
-            from medical_requests.models import PrescriptionRequest
+            import json
+            from django.core.files.storage import default_storage
             
-            # Create new prescription request from chatbot data
+            # Handle form data
+            medication_name = request.POST.get('medication_name')
+            dosage = request.POST.get('dosage')
+            frequency = request.POST.get('frequency')
+            duration = request.POST.get('duration')
+            patient_name = request.POST.get('patient_name')
+            date_of_birth = request.POST.get('date_of_birth')
+            email = request.POST.get('email')
+            phone = request.POST.get('phone')
+            additional_notes = request.POST.get('additional_notes', '')
+            
+            # Create new prescription request
             prescription_request = PrescriptionRequest.objects.create(
-                medication_name=request.POST.get('medication_name', ''),
-                dosage=request.POST.get('dosage', ''),
-                frequency=request.POST.get('frequency', ''),
-                duration=request.POST.get('duration', ''),
-                patient_name=request.POST.get('patient_name', ''),
-                date_of_birth=request.POST.get('date_of_birth', ''),
-                email=request.POST.get('email', ''),
-                phone=request.POST.get('phone', ''),
-                additional_notes=request.POST.get('additional_notes', ''),
-                id_verification_front=request.FILES.get('id_verification_front'),
-                id_verification_back=request.FILES.get('id_verification_back'),
-                prescription_image=request.FILES.get('prescription_image'),
+                medication_name=medication_name,
+                dosage=dosage,
+                frequency=frequency,
+                duration=duration,
+                patient_name=patient_name,
+                date_of_birth=date_of_birth,
+                email=email,
+                phone=phone,
+                additional_notes=additional_notes,
                 status='pending'
             )
+            
+            # Handle file uploads
+            if 'id_verification_front' in request.FILES:
+                prescription_request.id_verification_front = request.FILES['id_verification_front']
+            if 'id_verification_back' in request.FILES:
+                prescription_request.id_verification_back = request.FILES['id_verification_back']
+            if 'prescription_image' in request.FILES:
+                prescription_request.prescription_image = request.FILES['prescription_image']
+            
+            prescription_request.save()
             
             return JsonResponse({
                 'message': 'Prescription request submitted successfully',
                 'status': 'submitted',
                 'id': prescription_request.id
             }, status=201)
-        except ImportError:
-            # Fallback if medical_requests app is not available
-            return JsonResponse({
-                'message': 'Prescription request submitted successfully',
-                'status': 'submitted',
-                'id': 1
-            }, status=201)
+            
         except Exception as e:
-            logger.error(f"Error creating prescription request: {e}")
-            return JsonResponse({'error': f'Failed to submit request: {str(e)}'}, status=500)
+            return JsonResponse({
+                'error': f'Failed to create prescription request: {str(e)}'
+            }, status=400)
     
     return JsonResponse({'error': 'Method not allowed'}, status=405)
-
-
 @csrf_exempt 
 def medical_certificates_endpoint(request):
     """
-    Handle medical certificate requests - fetches actual data from medical_requests app
+    Handle medical certificate requests - using actual medical_requests models
     """
+    from medical_requests.models import MedicalCertificateRequest
+    
     if request.method == 'GET':
-        try:
-            # Import the model dynamically to avoid circular import issues
-            from medical_requests.models import MedicalCertificateRequest
-            
-            # Get all medical certificate requests
-            requests_data = []
-            cert_requests = MedicalCertificateRequest.objects.all().order_by('-requested_at')
-            
-            for req in cert_requests:
-                # Build the response data to match frontend interface
-                request_data = {
-                    'id': req.id,
-                    'request_type': req.request_type,
-                    'patient_name': req.patient_name,
-                    'date_of_birth': req.date_of_birth,
-                    'email': req.email,
-                    'phone': req.phone,
-                    'additional_info': req.additional_info or '',
-                    'status': req.status,
-                    'requested_at': req.requested_at.isoformat() if req.requested_at else None,
-                    'receptionist_approved_at': req.receptionist_approved_at.isoformat() if req.receptionist_approved_at else None,
-                    'doctor_approved_at': req.doctor_approved_at.isoformat() if req.doctor_approved_at else None,
-                    'certificate_content': req.certificate_content or '',
-                    'doctor_notes': req.doctor_notes or '',
-                    'rejection_reason': req.rejection_reason or '',
-                    'id_verification_front': req.id_verification_front.url if req.id_verification_front else None,
-                    'id_verification_back': req.id_verification_back.url if req.id_verification_back else None
-                }
-                requests_data.append(request_data)
-            
-            return JsonResponse(requests_data, safe=False)
-        except ImportError:
-            # Fallback to empty array if medical_requests app is not available
-            return JsonResponse([], safe=False)
-        except Exception as e:
-            logger.error(f"Error fetching medical certificate requests: {e}")
-            return JsonResponse([], safe=False)
+        # Get all medical certificate requests from the database
+        requests = MedicalCertificateRequest.objects.all().order_by('-requested_at')
+        
+        # Convert to list of dictionaries
+        data = []
+        for req in requests:
+            data.append({
+                'id': req.id,
+                'request_type': req.request_type,
+                'patient_name': req.patient_name,
+                'date_of_birth': req.date_of_birth,
+                'email': req.email,
+                'phone': req.phone,
+                'additional_info': req.additional_info,
+                'status': req.status,
+                'requested_at': req.requested_at.isoformat() if req.requested_at else None,
+                'receptionist_approved_at': req.receptionist_approved_at.isoformat() if req.receptionist_approved_at else None,
+                'doctor_approved_at': req.doctor_approved_at.isoformat() if req.doctor_approved_at else None,
+                'certificate_content': req.certificate_content,
+                'doctor_notes': req.doctor_notes,
+                'rejection_reason': req.rejection_reason,
+                'id_verification_front': req.id_verification_front.url if req.id_verification_front else None,
+                'id_verification_back': req.id_verification_back.url if req.id_verification_back else None
+            })
+        
+        return JsonResponse(data, safe=False)
     elif request.method == 'POST':
+        # Handle creating new medical certificate request
         try:
-            # Import the model dynamically to avoid circular import issues
-            from medical_requests.models import MedicalCertificateRequest
+            import json
+            from django.core.files.storage import default_storage
             
-            # Debug logging
-            logger.info(f"Received POST data: {dict(request.POST)}")
-            logger.info(f"Received FILES: {list(request.FILES.keys())}")
+            # Handle form data
+            request_type = request.POST.get('request_type', 'Medical Certificate')
+            patient_name = request.POST.get('patient_name')
+            date_of_birth = request.POST.get('date_of_birth')
+            email = request.POST.get('email')
+            phone = request.POST.get('phone')
+            additional_info = request.POST.get('additional_info', '')
             
-            # Get patient name from POST data
-            patient_name = request.POST.get('patient_name', '')
-            logger.info(f"Patient name from POST: '{patient_name}'")
-            
-            # Create new medical certificate request from chatbot data
+            # Create new medical certificate request
             cert_request = MedicalCertificateRequest.objects.create(
-                request_type=request.POST.get('request_type', 'general'),
+                request_type=request_type,
                 patient_name=patient_name,
-                date_of_birth=request.POST.get('date_of_birth', ''),
-                email=request.POST.get('email', ''),
-                phone=request.POST.get('phone', ''),
-                additional_info=request.POST.get('additional_info', ''),
-                id_verification_front=request.FILES.get('id_verification_front'),
-                id_verification_back=request.FILES.get('id_verification_back'),
+                date_of_birth=date_of_birth,
+                email=email,
+                phone=phone,
+                additional_info=additional_info,
                 status='pending'
             )
             
-            logger.info(f"Created request with patient_name: '{cert_request.patient_name}'")
+            # Handle file uploads
+            if 'id_verification_front' in request.FILES:
+                cert_request.id_verification_front = request.FILES['id_verification_front']
+            if 'id_verification_back' in request.FILES:
+                cert_request.id_verification_back = request.FILES['id_verification_back']
+            
+            cert_request.save()
             
             return JsonResponse({
                 'message': 'Medical certificate request submitted successfully',
-                'status': 'submitted', 
+                'status': 'submitted',
                 'id': cert_request.id
             }, status=201)
-        except ImportError:
-            # Fallback if medical_requests app is not available
-            return JsonResponse({
-                'message': 'Medical certificate request submitted successfully',
-                'status': 'submitted', 
-                'id': 1
-            }, status=201)
+            
         except Exception as e:
-            logger.error(f"Error creating medical certificate request: {e}")
-            return JsonResponse({'error': f'Failed to submit request: {str(e)}'}, status=500)
+            return JsonResponse({
+                'error': f'Failed to create medical certificate request: {str(e)}'
+            }, status=400)
     
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
@@ -795,130 +787,108 @@ def medical_certificates_endpoint(request):
 @csrf_exempt
 def approve_prescription_endpoint(request, request_id):
     """
-    Handle prescription approval - works with actual prescription request data
+    Handle prescription approval - using actual medical_requests models
     """
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Only POST method allowed'}, status=405)
+    from medical_requests.models import PrescriptionRequest
+    from django.utils import timezone
+    import json
     
-    try:
-        # Import the model dynamically to avoid circular import issues
-        from medical_requests.models import PrescriptionRequest
-        from django.utils import timezone
-        import json
-        
-        # Get the prescription request
+    if request.method == 'POST':
         try:
+            # Get the prescription request
             prescription_request = PrescriptionRequest.objects.get(id=request_id)
+            
+            # Parse request data
+            if request.content_type == 'application/json':
+                data = json.loads(request.body)
+            else:
+                data = request.POST
+            
+            action = data.get('action')
+            
+            if action == 'receptionist_approve':
+                prescription_request.status = 'receptionist_approved'
+                prescription_request.receptionist_approved_at = timezone.now()
+                if request.user.is_authenticated:
+                    prescription_request.receptionist_approved_by = request.user
+                    
+            elif action == 'doctor_approve':
+                prescription_request.status = 'doctor_approved'
+                prescription_request.doctor_approved_at = timezone.now()
+                if request.user.is_authenticated:
+                    prescription_request.doctor_approved_by = request.user
+                prescription_request.prescription_content = data.get('prescription_content', '')
+                prescription_request.doctor_notes = data.get('doctor_notes', '')
+                
+            elif action == 'reject':
+                prescription_request.status = 'rejected'
+                prescription_request.rejection_reason = data.get('rejection_reason', '')
+                
+            prescription_request.save()
+            
+            return JsonResponse({
+                'message': 'Prescription approval processed successfully',
+                'status': prescription_request.status
+            }, status=200)
+            
         except PrescriptionRequest.DoesNotExist:
             return JsonResponse({'error': 'Prescription request not found'}, status=404)
-        
-        # Parse request data
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            data = {}
-        
-        action = data.get('action', 'approve')
-        
-        if action == 'receptionist_approve':
-            prescription_request.status = 'receptionist_approved'
-            prescription_request.receptionist_approved_at = timezone.now()
-            prescription_request.receptionist_approved_by = request.user if hasattr(request, 'user') and request.user.is_authenticated else None
-        elif action == 'doctor_approve':
-            prescription_request.status = 'doctor_approved'
-            prescription_request.doctor_approved_at = timezone.now()
-            prescription_request.doctor_approved_by = request.user if hasattr(request, 'user') and request.user.is_authenticated else None
-            if 'prescription_content' in data:
-                prescription_request.prescription_content = data['prescription_content']
-            if 'doctor_notes' in data:
-                prescription_request.doctor_notes = data['doctor_notes']
-        elif action == 'reject':
-            prescription_request.status = 'rejected'
-            if 'rejection_reason' in data:
-                prescription_request.rejection_reason = data['rejection_reason']
-        elif action == 'complete':
-            prescription_request.status = 'completed'
-            prescription_request.completed_at = timezone.now()
-        
-        prescription_request.save()
-        
-        return JsonResponse({
-            'message': f'Prescription request {action}d successfully',
-            'status': prescription_request.status
-        }, status=200)
-        
-    except ImportError:
-        return JsonResponse({
-            'message': 'Prescription approval processed (fallback)',
-            'status': 'approved'
-        }, status=200)
-    except Exception as e:
-        logger.error(f"Error approving prescription: {e}")
-        return JsonResponse({'error': f'Error processing approval: {str(e)}'}, status=500)
+        except Exception as e:
+            return JsonResponse({'error': f'Failed to process approval: {str(e)}'}, status=400)
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
 @csrf_exempt
 def approve_medical_certificate_endpoint(request, request_id):
     """
-    Handle medical certificate approval - works with actual medical certificate request data
+    Handle medical certificate approval - using actual medical_requests models
     """
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Only POST method allowed'}, status=405)
+    from medical_requests.models import MedicalCertificateRequest
+    from django.utils import timezone
+    import json
     
-    try:
-        # Import the model dynamically to avoid circular import issues
-        from medical_requests.models import MedicalCertificateRequest
-        from django.utils import timezone
-        import json
-        
-        # Get the medical certificate request
+    if request.method == 'POST':
         try:
+            # Get the medical certificate request
             cert_request = MedicalCertificateRequest.objects.get(id=request_id)
+            
+            # Parse request data
+            if request.content_type == 'application/json':
+                data = json.loads(request.body)
+            else:
+                data = request.POST
+            
+            action = data.get('action')
+            
+            if action == 'receptionist_approve':
+                cert_request.status = 'receptionist_approved'
+                cert_request.receptionist_approved_at = timezone.now()
+                if request.user.is_authenticated:
+                    cert_request.receptionist_approved_by = request.user
+                    
+            elif action == 'doctor_approve':
+                cert_request.status = 'doctor_approved'
+                cert_request.doctor_approved_at = timezone.now()
+                if request.user.is_authenticated:
+                    cert_request.doctor_approved_by = request.user
+                cert_request.certificate_content = data.get('certificate_content', '')
+                cert_request.doctor_notes = data.get('doctor_notes', '')
+                
+            elif action == 'reject':
+                cert_request.status = 'rejected'
+                cert_request.rejection_reason = data.get('rejection_reason', '')
+                
+            cert_request.save()
+            
+            return JsonResponse({
+                'message': 'Medical certificate approval processed successfully',
+                'status': cert_request.status
+            }, status=200)
+            
         except MedicalCertificateRequest.DoesNotExist:
             return JsonResponse({'error': 'Medical certificate request not found'}, status=404)
-        
-        # Parse request data
-        try:
-            data = json.loads(request.body) if request.body else {}
-        except json.JSONDecodeError:
-            data = {}
-        
-        action = data.get('action', 'approve')
-        
-        if action == 'receptionist_approve':
-            cert_request.status = 'receptionist_approved'
-            cert_request.receptionist_approved_at = timezone.now()
-            cert_request.receptionist_approved_by = request.user if hasattr(request, 'user') and request.user.is_authenticated else None
-        elif action == 'doctor_approve':
-            cert_request.status = 'doctor_approved'
-            cert_request.doctor_approved_at = timezone.now()
-            cert_request.doctor_approved_by = request.user if hasattr(request, 'user') and request.user.is_authenticated else None
-            if 'certificate_content' in data:
-                cert_request.certificate_content = data['certificate_content']
-            if 'certificate_html' in data:
-                cert_request.certificate_content = data['certificate_html']
-            if 'doctor_notes' in data:
-                cert_request.doctor_notes = data['doctor_notes']
-        elif action == 'reject':
-            cert_request.status = 'rejected'
-            if 'rejection_reason' in data:
-                cert_request.rejection_reason = data['rejection_reason']
-        elif action == 'complete':
-            cert_request.status = 'completed'
-            cert_request.completed_at = timezone.now()
-        
-        cert_request.save()
-        
-        return JsonResponse({
-            'message': f'Medical certificate request {action}d successfully',
-            'status': cert_request.status
-        }, status=200)
-        
-    except ImportError:
-        return JsonResponse({
-            'message': 'Medical certificate approval processed (fallback)',
-            'status': 'approved'
-        }, status=200)
-    except Exception as e:
-        logger.error(f"Error approving medical certificate: {e}")
-        return JsonResponse({'error': f'Error processing approval: {str(e)}'}, status=500)
+        except Exception as e:
+            return JsonResponse({'error': f'Failed to process approval: {str(e)}'}, status=400)
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
