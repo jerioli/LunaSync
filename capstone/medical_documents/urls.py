@@ -3,7 +3,9 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     MedicalDocumentViewSet, LabResultViewSet, SOAPNoteViewSet,
     PrescriptionViewSet, ClinicalNoteViewSet, MedicalCertificateViewSet,
-    PhysicalExaminationViewSet
+    PhysicalExaminationViewSet, send_medical_certificate_email_endpoint,
+    prescription_requests_endpoint, medical_certificates_endpoint,
+    approve_prescription_endpoint, approve_medical_certificate_endpoint
 )
 
 router = DefaultRouter()
@@ -16,5 +18,6 @@ router.register(r'medical-certificates', MedicalCertificateViewSet)
 router.register(r'physical-examinations', PhysicalExaminationViewSet)
 
 urlpatterns = [
-    path('api/medical-documents/', include(router.urls)),
+    path('', include(router.urls)),
+    path('send-medical-certificate-email/', send_medical_certificate_email_endpoint, name='send-medical-certificate-email'),
 ]

@@ -55,27 +55,15 @@ const GenerateMedicalCertificate: React.FC = () => {
 
   const handleSaveCertificate = async (certificate: any) => {
     try {
-      // Save certificate to the backend
-      const response = await axios.post(`/patients/${patientId}/certificates/`, {
-        patient_id: patientId,
-        certificate_type: certificate.data?.fitForWork === 'unfit' ? 'sick_leave' : 
-                         certificate.data?.fitForWork === 'limited' ? 'fitness_limited' : 'fitness',
-        content: certificate.content,
-        diagnosis: certificate.data?.diagnosis || '',
-        recommendations: certificate.data?.recommendations || '',
-        doctor_notes: certificate.data?.doctorNotes || '',
-        valid_from: certificate.data?.restFromDate || new Date().toISOString().split('T')[0],
-        valid_to: certificate.data?.restToDate || new Date().toISOString().split('T')[0],
-        issued_date: certificate.data?.dateIssued || new Date().toISOString().split('T')[0]
-      });
-
-      // Update local state
-      setSavedCertificates(prev => [...prev, response.data]);
+      // Certificate is already saved to backend by the MedicalCertificateGenerator component
+      // We just need to update the local state for display
+      setSavedCertificates(prev => [...prev, certificate]);
       
-      toast.success('Medical certificate saved successfully!');
+      console.log('Certificate added to local state:', certificate);
+      // Don't show a duplicate success toast since the component already shows one
     } catch (error) {
-      console.error('Error saving certificate:', error);
-      toast.error('Failed to save medical certificate');
+      console.error('Error updating local certificate state:', error);
+      toast.error('Failed to update certificate display');
     }
   };
 

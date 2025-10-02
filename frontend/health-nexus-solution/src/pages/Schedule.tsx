@@ -210,9 +210,28 @@ const Schedule: React.FC = () => {
       // Get doctor's ID from database
       const doctorsResponse = await axios.get(`${API_BASE_URL}/doctors/`);
       const doctors: any[] = doctorsResponse.data;
-      const doctor = doctors.find(d => d.email === currentUser.email);
+      
+      // Try multiple ways to find the doctor - ID first (most reliable), then username, then email
+      let doctor = doctors.find(d => d.id === currentUser.id);
+      
+      if (!doctor && currentUser.username) {
+        doctor = doctors.find(d => d.username === currentUser.username);
+      }
+      
+      if (!doctor && currentUser.email) {
+        doctor = doctors.find(d => d.email && d.email === currentUser.email);
+      }
       
       if (!doctor) {
+        console.error('Doctor lookup failed:', {
+          currentUser: currentUser,
+          doctorsFound: doctors.length,
+          searchCriteria: {
+            id: currentUser.id,
+            username: currentUser.username,
+            email: currentUser.email
+          }
+        });
         throw new Error('Doctor not found in database');
       }
 
@@ -379,12 +398,28 @@ const Schedule: React.FC = () => {
       const doctorsResponse = await axios.get(`${API_BASE_URL}/doctors/`);
       console.log('Doctors API response:', doctorsResponse.data);
       const doctors = doctorsResponse.data;
-      const doctor = doctors.find(d => d.email === currentUser.email);
+      
+      // Try multiple identification strategies due to encrypted emails
+      console.log('Looking for doctor with currentUser:', { 
+        id: currentUser.id, 
+        username: currentUser.username, 
+        email: currentUser.email 
+      });
+      
+      let doctor = doctors.find(d => d.id === currentUser.id);
+      if (!doctor) {
+        console.log('Doctor not found by ID, trying username...');
+        doctor = doctors.find(d => d.username === currentUser.username);
+      }
+      if (!doctor && currentUser.email) {
+        console.log('Doctor not found by username, trying email...');
+        doctor = doctors.find(d => d.email && d.email === currentUser.email);
+      }
       
       if (!doctor) {
-        console.log('❌ Doctor not found');
-        console.log('Available doctors:', doctors);
-        console.log('Looking for email:', currentUser.email);
+        console.log('❌ Doctor not found using any method');
+        console.log('Available doctors:', doctors.map(d => ({ id: d.id, username: d.username, email: d.email })));
+        console.log('Searching for:', { id: currentUser.id, username: currentUser.username, email: currentUser.email });
         throw new Error('Doctor not found in database');
       }
       

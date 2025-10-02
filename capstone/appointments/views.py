@@ -32,6 +32,17 @@ class AppointmentCreateView(APIView):
             logger.info(f"Request data type: {type(request.data)}")
             logger.info(f"Request data keys: {request.data.keys()}")
             
+            # Check if this is an existing patient lookup
+            patient_id = request.data.get('patient_id', '').strip()
+            existing_patient = None
+            
+            if patient_id:
+                try:
+                    existing_patient = Patient.objects.get(patient_id=patient_id)
+                    logger.info(f"Found existing patient with ID {patient_id}: {existing_patient.name}")
+                except Patient.DoesNotExist:
+                    logger.warning(f"Patient with ID {patient_id} not found")
+            
             # Transform the incoming data
             data = {
                 # Handle separate name fields from chatbot
@@ -41,19 +52,35 @@ class AppointmentCreateView(APIView):
                 'suffix': request.data.get('suffix', '').strip(),
                 # Legacy patient_name field (for backward compatibility)
                 'patient_name': request.data.get('patient_name', '').strip(),
-                'patient_email': request.data.get('patient_email', '').strip(),
-                'patient_phone': request.data.get('patient_phone', '').strip(),
+                'patient_id': patient_id,  # Include patient ID for existing patient lookup
                 'appointment_type': request.data.get('appointment_type', '').strip(),
                 'date': request.data.get('date', ''),
                 'time': request.data.get('time', ''),
                 'doctor_id': request.data.get('doctor_id'),
                 'status': request.data.get('status', 'scheduled'),
-                # Add required patient fields
-                'date_of_birth': request.data.get('date_of_birth'),
-                'gender': request.data.get('gender'),
-                'address': request.data.get('address'),
-                'marital_status': request.data.get('marital_status')
             }
+            
+            # If we found an existing patient, use their decrypted data
+            if existing_patient:
+                data.update({
+                    'patient_email': existing_patient.email,  # This will be decrypted automatically
+                    'patient_phone': existing_patient.phone,  # This will be decrypted automatically
+                    'date_of_birth': existing_patient.date_of_birth,
+                    'gender': existing_patient.gender,
+                    'address': existing_patient.address,
+                    'marital_status': existing_patient.marital_status,
+                })
+                logger.info(f"Using existing patient data: email={existing_patient.email}, phone={existing_patient.phone}")
+            else:
+                # For new patients, use provided data
+                data.update({
+                    'patient_email': request.data.get('patient_email', '').strip(),
+                    'patient_phone': request.data.get('patient_phone', '').strip(),
+                    'date_of_birth': request.data.get('date_of_birth'),
+                    'gender': request.data.get('gender'),
+                    'address': request.data.get('address'),
+                    'marital_status': request.data.get('marital_status'),
+                })
 
             # Log the transformed data
             logger.info(f"Transformed data: {data}")
@@ -116,6 +143,11 @@ class AppointmentListView(ListAPIView):
     queryset = Appointment.objects.all()
     serializer_class = AppointmentSerializer
     permission_classes = [AllowAny]  # Allow unauthenticated access for now
+    
+    def get_serializer(self, *args, **kwargs):
+        """Override to ensure request context is passed to serializer"""
+        kwargs['context'] = self.get_serializer_context()
+        return super().get_serializer(*args, **kwargs)
 
     def get_queryset(self):
         try:
@@ -131,24 +163,46 @@ class AppointmentListView(ListAPIView):
 
             # Try to fetch appointments with related data
             try:
-                # First try without select_related to see if that's the issue
-                queryset = Appointment.objects.all()
+                # Start with all appointments
+                queryset = Appointment.objects.all().select_related('patient', 'doctor')
+                
+                # Get status filter from query params or URL kwargs
+                status_filter = self.request.GET.get('status') or self.kwargs.get('status')
+                
+                # Handle special "upcoming" status filter
+                if status_filter == 'upcoming':
+                    from datetime import date
+                    queryset = queryset.filter(
+                        status__in=['scheduled', 'ongoing'],
+                        date__gte=date.today()
+                    ).order_by('date', 'time')
+                    logger.info("Filtering for upcoming appointments (scheduled/ongoing, today or future)")
+                elif status_filter and status_filter in dict(Appointment.STATUS_CHOICES):
+                    queryset = queryset.filter(status=status_filter)
+                    logger.info(f"Filtering by status: {status_filter}")
+                elif status_filter and status_filter not in ['upcoming']:
+                    logger.warning(f"Invalid status filter: {status_filter}")
+                
+                doctor_filter = self.request.GET.get('doctor_id')
+                if doctor_filter:
+                    queryset = queryset.filter(doctor_id=doctor_filter)
+                    logger.info(f"Filtering by doctor_id: {doctor_filter}")
+                
+                date_filter = self.request.GET.get('date')
+                if date_filter:
+                    queryset = queryset.filter(date=date_filter)
+                    logger.info(f"Filtering by date: {date_filter}")
+                
                 count = queryset.count()
-                logger.info(f"Found {count} appointments")
+                logger.info(f"Found {count} appointments after filtering")
                 
                 # Log the first few appointments for debugging
                 for appt in queryset[:3]:
-                    logger.info(f"Sample appointment: id={appt.id}")
+                    logger.info(f"Sample appointment: id={appt.id}, status={appt.status}, date={appt.date}")
                     logger.info(f"Patient: {appt.patient}")
                     logger.info(f"Doctor: {appt.doctor}")
-                    logger.info(f"Date: {appt.date}")
-                    logger.info(f"Time: {appt.time}")
                     logger.info(f"Appointment Type: {appt.appointment_type}")
-                    logger.info(f"Status: {appt.status}")
                 
-                # Now try with select_related
-                queryset = Appointment.objects.all().select_related('patient', 'doctor')
-                logger.info("Successfully fetched appointments with select_related")
                 return queryset
             except Exception as query_error:
                 logger.error(f"Query error: {str(query_error)}")
@@ -304,12 +358,14 @@ class AppointmentUpdateStatusView(APIView):
 
             # Handle pending -> scheduled status change
             if appointment.status == 'pending' and new_status == 'scheduled':
+                # Refresh appointment object to get the latest data including patient_id_lookup
+                appointment.refresh_from_db()
                 email_sent = self._handle_appointment_confirmation(appointment)
                 
                 appointment.status = new_status
                 appointment.save()
                 
-                serializer = AppointmentSerializer(appointment)
+                serializer = AppointmentSerializer(appointment, context={'request': request})
                 response_data = serializer.data
                 response_data['email_sent'] = email_sent
                 response_data['patient_created'] = hasattr(appointment, '_patient_created')
@@ -320,7 +376,7 @@ class AppointmentUpdateStatusView(APIView):
                 appointment.status = new_status
                 appointment.save()
                 
-                serializer = AppointmentSerializer(appointment)
+                serializer = AppointmentSerializer(appointment, context={'request': request})
                 return Response(serializer.data)
                 
         except Appointment.DoesNotExist:
@@ -343,40 +399,55 @@ class AppointmentUpdateStatusView(APIView):
             patient = None
             email_sent = False
             
-            # Check if appointment already has a patient (new format)
-            if hasattr(appointment, 'patient_name') and appointment.patient_name:
-                # Check if patient with this email already exists
+            # Debug logging
+            logger.info(f"=== APPOINTMENT CONFIRMATION DEBUG ===")
+            logger.info(f"Appointment ID: {appointment.id}")
+            logger.info(f"Patient Name: {getattr(appointment, 'patient_name', 'NOT SET')}")
+            logger.info(f"Patient Email: {getattr(appointment, 'patient_email', 'NOT SET')}")
+            logger.info(f"Current Patient: {appointment.patient}")
+            logger.info(f"Appointment already has patient assigned: {appointment.patient is not None}")
+            
+            # If appointment already has a patient assigned, use that patient
+            if appointment.patient:
+                patient = appointment.patient
+                logger.info(f"Using already assigned patient {patient.id} ({patient.name}) for appointment {appointment.id}")
+            
+            # Check if appointment has patient details in appointment fields (new format)
+            elif hasattr(appointment, 'patient_name') and appointment.patient_name and appointment.patient_email:
+                # Try to find existing patient by email to avoid duplicates
                 try:
-                    existing_patient = Patient.objects.get(email=appointment.patient_email)
+                    existing_patient_by_email = Patient.objects.get(email=appointment.patient_email)
                     # Patient exists, use the existing one
-                    appointment.patient = existing_patient
-                    patient = existing_patient  # Set the patient variable for email sending
-                    logger.info(f"Using existing patient {existing_patient.id} (email: {appointment.patient_email}) for appointment {appointment.id}")
+                    appointment.patient = existing_patient_by_email
+                    patient = existing_patient_by_email
+                    logger.info(f"Found and using existing patient {existing_patient_by_email.id} (email: {appointment.patient_email}) for appointment {appointment.id}")
                 except Patient.DoesNotExist:
-                    # Create patient from the new appointment fields
+                    # No existing patient found by email, create a new one only if needed
+                    logger.info(f"No existing patient found with email {appointment.patient_email}, creating new patient")
+                    
+                    # Parse the combined patient name into separate fields
+                    name_parts = appointment.patient_name.strip().split() if appointment.patient_name else []
+                    first_name = name_parts[0] if len(name_parts) > 0 else ""
+                    last_name = name_parts[-1] if len(name_parts) > 1 else ""
+                    middle_initial = ""
+                    suffix = ""
+                    
+                    # If there are more than 2 parts, treat middle parts as middle initial
+                    if len(name_parts) > 2:
+                        middle_parts = name_parts[1:-1]
+                        # Check if last part might be a suffix (Jr, Sr, III, etc.)
+                        potential_suffix = name_parts[-1]
+                        if potential_suffix.lower() in ['jr', 'jr.', 'sr', 'sr.', 'ii', 'iii', 'iv', 'v']:
+                            suffix = potential_suffix
+                            last_name = name_parts[-2] if len(name_parts) > 2 else ""
+                            if len(name_parts) > 3:
+                                middle_parts = name_parts[1:-2]
+                        
+                        # Join middle parts as middle initial
+                        if middle_parts:
+                            middle_initial = ' '.join(middle_parts)
+                    
                     try:
-                        # Parse the combined patient name into separate fields
-                        name_parts = appointment.patient_name.strip().split() if appointment.patient_name else []
-                        first_name = name_parts[0] if len(name_parts) > 0 else ""
-                        last_name = name_parts[-1] if len(name_parts) > 1 else ""
-                        middle_initial = ""
-                        suffix = ""
-                        
-                        # If there are more than 2 parts, treat middle parts as middle initial
-                        if len(name_parts) > 2:
-                            middle_parts = name_parts[1:-1]
-                            # Check if last part might be a suffix (Jr, Sr, III, etc.)
-                            potential_suffix = name_parts[-1]
-                            if potential_suffix.lower() in ['jr', 'jr.', 'sr', 'sr.', 'ii', 'iii', 'iv', 'v']:
-                                suffix = potential_suffix
-                                last_name = name_parts[-2] if len(name_parts) > 2 else ""
-                                if len(name_parts) > 3:
-                                    middle_parts = name_parts[1:-2]
-                            
-                            # Join middle parts as middle initial
-                            if middle_parts:
-                                middle_initial = ' '.join(middle_parts)
-                        
                         patient = Patient.objects.create(
                             first_name=first_name,
                             last_name=last_name,
@@ -397,10 +468,6 @@ class AppointmentUpdateStatusView(APIView):
                         
                     except Exception as patient_error:
                         logger.error(f"Error creating patient from appointment fields: {str(patient_error)}")
-                
-                except Exception as lookup_error:
-                    logger.error(f"Error checking for existing patient: {str(lookup_error)}")
-            
             # Check if appointment has patient details in notes (old format)
             elif appointment.notes and 'Patient Details (Pending):' in appointment.notes:
                 try:

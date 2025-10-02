@@ -107,4 +107,13 @@
   .clinic-tag {
     @apply px-2 py-1 rounded-full text-xs font-medium;
   }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }

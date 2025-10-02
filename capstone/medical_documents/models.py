@@ -1,4 +1,5 @@
 from django.db import models
+from security_app.fields import EncryptedCharField, EncryptedTextField
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from patients.models import Patient
@@ -47,8 +48,8 @@ class MedicalDocument(models.Model):
     reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_documents')
     
     # Document metadata
-    title = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
+    title = EncryptedCharField(max_length=800)
+    description = EncryptedTextField(blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     urgency = models.CharField(max_length=20, choices=URGENCY_CHOICES, default='routine')
     
@@ -64,16 +65,16 @@ class MedicalDocument(models.Model):
     processed_file = models.FileField(upload_to='medical_documents/processed/', null=True, blank=True)
     
     # Extracted data (JSON fields for flexibility)
-    extracted_data = models.JSONField(default=dict, blank=True)  # OCR/processed data
-    structured_data = models.JSONField(default=dict, blank=True)  # Organized medical data
-    metadata = models.JSONField(default=dict, blank=True)  # Additional metadata
+    extracted_data = EncryptedTextField(default=dict, blank=True)  # OCR/processed data (as JSON string)
+    structured_data = EncryptedTextField(default=dict, blank=True)  # Organized medical data (as JSON string)
+    metadata = EncryptedTextField(default=dict, blank=True)  # Additional metadata (as JSON string)
     
     # Document content
-    content = models.TextField(blank=True)  # Free text content
+    content = EncryptedTextField(blank=True)  # Free text content
     
     # Confidentiality and access
     is_confidential = models.BooleanField(default=True)
-    access_notes = models.TextField(blank=True)
+    access_notes = EncryptedTextField(blank=True)
     
     class Meta:
         ordering = ['-document_date', '-created_at']
@@ -122,14 +123,14 @@ class LabResult(models.Model):
     document = models.OneToOneField(MedicalDocument, on_delete=models.CASCADE, related_name='lab_result_detail')
     
     # Test information
-    test_name = models.CharField(max_length=255)
+    test_name = EncryptedCharField(max_length=800)
     test_category = models.CharField(max_length=50, choices=TEST_CATEGORIES)
     specimen_type = models.CharField(max_length=50, choices=SPECIMEN_TYPES)
     
     # Laboratory information
-    laboratory_name = models.CharField(max_length=255, blank=True)
-    laboratory_address = models.TextField(blank=True)
-    lab_reference_number = models.CharField(max_length=100, blank=True)
+    laboratory_name = EncryptedCharField(max_length=800, blank=True)
+    laboratory_address = EncryptedTextField(blank=True)
+    lab_reference_number = EncryptedCharField(max_length=300, blank=True)
     
     # Test dates
     collection_date = models.DateTimeField(null=True, blank=True)
@@ -137,18 +138,7 @@ class LabResult(models.Model):
     reported_date = models.DateTimeField(null=True, blank=True)
     
     # Test results (JSON for flexibility with different test types)
-    test_results = models.JSONField(default=list)  # List of individual test results
-    critical_values = models.JSONField(default=list)  # Critical values requiring attention
-    abnormal_values = models.JSONField(default=list)  # Abnormal but non-critical values
-    
-    # Interpretation
-    interpretation = models.TextField(blank=True)
-    clinical_significance = models.TextField(blank=True)
-    recommendations = models.TextField(blank=True)
-    
-    # Quality control
-    specimen_quality = models.CharField(max_length=100, blank=True)
-    processing_notes = models.TextField(blank=True)
+    test_results = EncryptedTextField(default=list)  # List of individual test results (as JSON string)
     
     class Meta:
         db_table = 'lab_result'
@@ -164,17 +154,17 @@ class SOAPNote(models.Model):
     document = models.OneToOneField(MedicalDocument, on_delete=models.CASCADE, related_name='soap_note_detail')
     
     # SOAP components
-    subjective = models.TextField(help_text="Patient's reported symptoms and concerns")
-    objective = models.TextField(help_text="Observable findings, vital signs, examination results")
-    assessment = models.TextField(help_text="Clinical impression and diagnosis")
-    plan = models.TextField(help_text="Treatment plan and follow-up instructions")
+    subjective = EncryptedTextField(help_text="Patient's reported symptoms and concerns")
+    objective = EncryptedTextField(help_text="Observable findings, vital signs, examination results")
+    assessment = EncryptedTextField(help_text="Clinical impression and diagnosis")
+    plan = EncryptedTextField(help_text="Treatment plan and follow-up instructions")
     
     # Associated vital signs
-    vital_signs = models.JSONField(default=dict, blank=True)  # Blood pressure, temperature, etc.
+    vital_signs = EncryptedTextField(default=dict, blank=True)  # Blood pressure, temperature, etc. (as JSON string)
     
     # Clinical context
-    chief_complaint = models.CharField(max_length=255, blank=True)
-    history_present_illness = models.TextField(blank=True)
+    chief_complaint = EncryptedCharField(max_length=800, blank=True)
+    history_present_illness = EncryptedTextField(blank=True)
     
     class Meta:
         db_table = 'soap_note'
@@ -194,11 +184,11 @@ class Prescription(models.Model):
     prescribing_physician = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'doctor'})
     
     # Medications (JSON array for multiple medications)
-    medications = models.JSONField(default=list)  # List of medication objects
+    medications = EncryptedTextField(default=list)  # List of medication objects (as JSON string)
     
     # Instructions
-    general_instructions = models.TextField(blank=True)
-    pharmacy_notes = models.TextField(blank=True)
+    general_instructions = EncryptedTextField(blank=True)
+    pharmacy_notes = EncryptedTextField(blank=True)
     
     # Validity and refills
     valid_until = models.DateField()
@@ -235,9 +225,9 @@ class ClinicalNote(models.Model):
     
     # Note specifics
     note_type = models.CharField(max_length=50, choices=NOTE_TYPES, default='general')
-    clinical_context = models.TextField(blank=True)
-    findings = models.TextField(blank=True)
-    recommendations = models.TextField(blank=True)
+    clinical_context = EncryptedTextField(blank=True)
+    findings = EncryptedTextField(blank=True)
+    recommendations = EncryptedTextField(blank=True)
     follow_up_required = models.BooleanField(default=False)
     follow_up_date = models.DateField(null=True, blank=True)
     
@@ -268,8 +258,8 @@ class MedicalCertificate(models.Model):
     
     # Certificate details
     certificate_type = models.CharField(max_length=50, choices=CERTIFICATE_TYPES)
-    purpose = models.CharField(max_length=255)
-    medical_opinion = models.TextField()
+    purpose = models.CharField(max_length=255, blank=True, default='General medical certificate')
+    medical_opinion = models.TextField(blank=True, default='Medical examination completed')
     
     # Validity
     valid_from = models.DateField()

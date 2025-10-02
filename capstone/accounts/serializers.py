@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from .models import CustomUser
+from security_app.secure_serializers import SecureBaseSerializer
 
-class CustomUserSerializer(serializers.ModelSerializer):
+class CustomUserSerializer(SecureBaseSerializer):
     class Meta:
         model = CustomUser
         fields = [
@@ -14,6 +15,42 @@ class CustomUserSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {
             'password': {'write_only': True},  # Ensure password is write-only
+        }
+    
+    def to_representation(self, instance):
+        """Override to ensure admins and superadmins can see encrypted fields"""
+        data = super().to_representation(instance)
+        
+        # If user is authenticated and has permission to manage staff, show full data
+        if (self.user and self.user.is_authenticated and 
+            (self.user.role in ['admin', 'superadmin'] or 
+             getattr(self.user, 'can_manage_staff', False))):
+            # Return full data for authorized users (encrypted fields are auto-decrypted by model)
+            return data
+        
+        # For unauthenticated or unauthorized users, return limited data
+        if not self.user or not self.user.is_authenticated:
+            return self.get_public_representation(data)
+        
+        # For regular authenticated users, return data but without sensitive fields
+        return {
+            'id': data.get('id'),
+            'username': data.get('username'),
+            'first_name': data.get('first_name'),
+            'last_name': data.get('last_name'),
+            'role': data.get('role'),
+            'is_active': data.get('is_active')
+        }
+    
+    def get_public_representation(self, data):
+        """Return only non-sensitive fields for unauthenticated users"""
+        return {
+            'id': data.get('id'),
+            'username': data.get('username'),
+            'first_name': data.get('first_name'),
+            'last_name': data.get('last_name'),
+            'role': data.get('role'),
+            'is_active': data.get('is_active')
         }
 
     def create(self, validated_data):

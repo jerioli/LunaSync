@@ -2,11 +2,27 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
   id: number;
-  name: string;
+  first_name: string;
+  last_name: string;
+  middle_initial?: string | null;
+  suffix?: string | null;
   username: string;
-  password: string;
+  email?: string | null;
+  phone?: string | null;
+  password?: string;
   role: string;
   force_password_change?: boolean;
+  // Permission fields
+  can_manage_appointments?: boolean;
+  can_manage_patients?: boolean;
+  can_manage_staff?: boolean;
+  can_view_reports?: boolean;
+  can_manage_clinic_settings?: boolean;
+  can_manage_permissions?: boolean;
+  can_access_integrations?: boolean;
+  can_view_audit_logs?: boolean;
+  can_view_usage_reports?: boolean;
+  can_access_security_testing?: boolean;
 }
 
 interface ClinicContextType {
@@ -25,7 +41,7 @@ export const ClinicProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       try {
         const parsedUser = JSON.parse(savedUser);
         // Ensure the user has all required fields
-        if (parsedUser && parsedUser.id && parsedUser.name && parsedUser.email && parsedUser.role) {
+        if (parsedUser && parsedUser.id && parsedUser.name && parsedUser.role) {
           return parsedUser;
         }
       } catch (error) {

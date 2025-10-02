@@ -36,7 +36,7 @@ class PatientListCreateView(APIView):
             }, status=status.HTTP_403_FORBIDDEN)
         
         patients = Patient.objects.all()
-        serializer = PatientSerializer(patients, many=True)
+        serializer = PatientSerializer(patients, many=True, context={'request': request})
         
         # Log read action
         AuditLogger.log_action(
@@ -64,7 +64,7 @@ class PatientListCreateView(APIView):
                 'message': 'You do not have permission to create patients'
             }, status=status.HTTP_403_FORBIDDEN)
         
-        serializer = PatientSerializer(data=request.data)
+        serializer = PatientSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             patient = serializer.save()
             
@@ -103,7 +103,7 @@ class PatientListView(APIView):
             }, status=status.HTTP_403_FORBIDDEN)
         
         patients = Patient.objects.all()
-        serializer = PatientSerializer(patients, many=True)
+        serializer = PatientSerializer(patients, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -131,7 +131,7 @@ class PatientDetailView(APIView):
             }, status=status.HTTP_403_FORBIDDEN)
         
         patient = self.get_object(pk)
-        serializer = PatientSerializer(patient)
+        serializer = PatientSerializer(patient, context={'request': request})
         
         # Log patient view
         AuditLogger.log_patient_action(
@@ -165,7 +165,13 @@ class PatientDetailView(APIView):
         old_serializer = PatientSerializer(patient)
         old_values = old_serializer.data
         
-        serializer = PatientSerializer(patient, data=request.data)
+        # Debug logging for the update request
+        print(f"[DEBUG] Patient UPDATE - ID: {pk}")
+        print(f"[DEBUG] Request data keys: {list(request.data.keys()) if hasattr(request.data, 'keys') else 'No keys'}")
+        print(f"[DEBUG] Medical info type: {type(request.data.get('medical_info'))} - Value: {request.data.get('medical_info')}")
+        print(f"[DEBUG] Physical exam type: {type(request.data.get('physical_examination'))} - Value: {request.data.get('physical_examination')}")
+        
+        serializer = PatientSerializer(patient, data=request.data, context={'request': request})
         if serializer.is_valid():
             updated_patient = serializer.save()
             
@@ -182,7 +188,12 @@ class PatientDetailView(APIView):
             )
             
             return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # Enhanced error logging
+            print(f"[DEBUG] Patient UPDATE validation errors: {serializer.errors}")
+            for field, errors in serializer.errors.items():
+                print(f"[DEBUG] Field '{field}' errors: {errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         # Check if user has permission to delete patients
@@ -287,7 +298,11 @@ class CheckPatientByPatientIdView(APIView):
         
         try:
             patient = Patient.objects.get(patient_id=patient_id)
-            serializer = PatientSerializer(patient)
+            
+            # Create a special context that allows patient data to be decrypted 
+            # when patient_id is provided (treat patient_id as authentication for that patient)
+            special_context = {'request': request, 'allow_patient_id_auth': True, 'patient_id_lookup': patient_id}
+            serializer = PatientSerializer(patient, context=special_context)
             
             # Log the lookup action
             AuditLogger.log_action(

@@ -22,6 +22,9 @@ ssl._create_default_https_context = ssl._create_unverified_context
 # Load environment variables from .env file
 load_dotenv(os.path.join(Path(__file__).resolve().parent.parent, '.env'))
 
+# Encryption key for AES-256 (must be 32 bytes, base64-encoded)
+ENCRYPTION_KEY = os.environ.get('ENCRYPTION_KEY', None)
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -87,7 +90,7 @@ INSTALLED_APPS = [
      'clinic',
     'doctor_availability',
     'medical_documents',
-    'medical_requests',
+    'medical_requests.apps.MedicalRequestsConfig',
     'security_app',  # Security management
     'systemlogs',  # Audit logging system
 ]
@@ -141,11 +144,14 @@ CORS_ALLOW_HEADERS = [
 
 MIDDLEWARE = [
         'corsheaders.middleware.CorsMiddleware',
+        'security_app.security_middleware.EncryptionKeyValidationMiddleware',  # Validate encryption key
         'django.middleware.security.SecurityMiddleware',
         'django.contrib.sessions.middleware.SessionMiddleware',
         'django.middleware.common.CommonMiddleware',
         'django.middleware.csrf.CsrfViewMiddleware',  # Enable CSRF protection
         'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'security_app.security_middleware.DataAccessAuditMiddleware',  # Audit sensitive data access
+        'security_app.security_middleware.SecurityLoggingMiddleware',  # Secure logging
         # 'dev_session_middleware.DevSessionMiddleware',  # Custom session middleware for development
         'systemlogs.middleware.AuditMiddleware',  # Audit logging middleware
         # 'middleware.debug_middleware.DebugMiddleware',

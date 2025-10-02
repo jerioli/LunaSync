@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from patients.models import Patient
 from accounts.models import CustomUser
+from security_app.fields import EncryptedCharField, EncryptedTextField
 import logging
 
 logger = logging.getLogger(__name__)
@@ -39,26 +40,15 @@ class Appointment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    # Patient detail fields for pending appointments
-    patient_name = models.CharField(max_length=255, blank=True, null=True)
-    patient_email = models.EmailField(blank=True, null=True)
-    patient_phone = models.CharField(max_length=20, blank=True, null=True)
-    date_of_birth = models.DateField(blank=True, null=True)
+    # Patient detail fields for pending appointments (encrypted for security)
+    patient_name = EncryptedCharField(max_length=800, blank=True, null=True)
+    patient_email = EncryptedCharField(max_length=600, blank=True, null=True)
+    patient_phone = EncryptedCharField(max_length=100, blank=True, null=True)
+    date_of_birth = EncryptedCharField(max_length=100, blank=True, null=True)
     
-    gender = models.CharField(max_length=20, choices=[
-        ('male', 'Male'),
-        ('female', 'Female'),
-        ('other', 'Other'),
-        ('prefer_not_to_say', 'Prefer not to say')
-    ], blank=True, null=True)
-    address = models.TextField(blank=True, null=True)
-    marital_status = models.CharField(max_length=20, choices=[
-        ('single', 'Single'),
-        ('married', 'Married'),
-        ('divorced', 'Divorced'),
-        ('widowed', 'Widowed'),
-        ('prefer_not_to_say', 'Prefer not to say')
-    ], blank=True, null=True)
+    gender = EncryptedCharField(max_length=100, blank=True, null=True)
+    address = EncryptedTextField(blank=True, null=True)
+    marital_status = EncryptedCharField(max_length=100, blank=True, null=True)
 
     class Meta:
         db_table = 'appointments'

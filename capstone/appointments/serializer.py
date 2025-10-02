@@ -21,7 +21,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
     # Combined name field (stored in database) - not required since we construct it
     patient_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     
-    # Patient ID for returning patients
+    # Patient ID for returning patients (not stored in DB, used for lookup only)
     patient_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     
     def __init__(self, *args, **kwargs):
@@ -33,7 +33,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
     patient_email = serializers.EmailField(required=True)
     patient_phone = serializers.CharField(required=True)
-    date_of_birth = serializers.DateField(required=True)
+    date_of_birth = serializers.DateField(required=True, input_formats=['%Y-%m-%d', '%m/%d/%Y'])  # Accept both date objects and strings
     gender = serializers.ChoiceField(choices=[('male', 'Male'), ('female', 'Female'), ('other', 'Other'), ('prefer_not_to_say', 'Prefer not to say')], required=False, allow_null=True)
     address = serializers.CharField(required=False, allow_blank=True)
     marital_status = serializers.ChoiceField(choices=[('single', 'Single'), ('married', 'Married'), ('divorced', 'Divorced'), ('widowed', 'Widowed'), ('prefer_not_to_say', 'Prefer not to say')], required=False, allow_null=True)
@@ -61,6 +61,9 @@ class AppointmentSerializer(serializers.ModelSerializer):
             'display_time', 'display_date'
         ]
         read_only_fields = ['id', 'created_at']
+        extra_kwargs = {
+            'patient_id': {'write_only': True}  # This field is not stored in DB, only used for input
+        }
 
     def get_display_patient_name(self, obj):
         try:
@@ -264,21 +267,45 @@ class AppointmentSerializer(serializers.ModelSerializer):
             )
         return phone
 
+    def validate_date_of_birth(self, value):
+        """Validate date of birth - DateField handles parsing, we just validate age"""
+        if not value:
+            return value
+        
+        # Value should now be a date object from DateField
+        # Validate that the person is not too old or in the future
+        from django.utils import timezone
+        today = timezone.now().date()
+        
+        if value > today:
+            raise serializers.ValidationError("Date of birth cannot be in the future")
+        
+        # Check if person is not unreasonably old (e.g., over 150 years)
+        if (today - value).days > 150 * 365:
+            raise serializers.ValidationError("Date of birth cannot be more than 150 years ago")
+        
+        return value
+
     def create(self, validated_data):
         """Create a new appointment"""
         try:
             status = validated_data.get('status', 'pending')
             
             # Check if this is a returning patient with Patient ID
-            patient_id = validated_data.pop('patient_id', None)
+            patient_id = validated_data.pop('patient_id', None)  # Remove from validated_data since it's not stored in DB
             existing_patient = None
+            
+            logger.info(f"=== SERIALIZER CREATE DEBUG ===")
+            logger.info(f"Patient ID received: {patient_id}")
+            logger.info(f"Status: {status}")
+            logger.info(f"Patient email: {validated_data.get('patient_email')}")
             
             if patient_id and patient_id.strip():
                 try:
                     existing_patient = Patient.objects.get(patient_id=patient_id.strip())
                     logger.info(f"Found existing patient with ID {patient_id}: {existing_patient.name}")
                 except Patient.DoesNotExist:
-                    logger.warning(f"Patient with ID {patient_id} not found, will create new patient")
+                    logger.warning(f"Patient with ID {patient_id} not found, will try by email")
             
             # Construct full name from components if provided
             first_name = validated_data.pop('firstName', '')
@@ -305,6 +332,9 @@ class AppointmentSerializer(serializers.ModelSerializer):
                 patient_email = validated_data.get('patient_email') or existing_patient.email
                 patient_phone = validated_data.get('patient_phone') or existing_patient.phone
                 date_of_birth = validated_data.get('date_of_birth') or existing_patient.date_of_birth
+                # Convert date object to string for encrypted storage
+                if hasattr(date_of_birth, 'strftime'):
+                    date_of_birth = date_of_birth.strftime('%Y-%m-%d')
                 gender = validated_data.get('gender') or existing_patient.gender
                 address = validated_data.get('address') or existing_patient.address
                 marital_status = validated_data.get('marital_status') or existing_patient.marital_status
@@ -313,43 +343,78 @@ class AppointmentSerializer(serializers.ModelSerializer):
                 if not full_name or not full_name.strip():
                     full_name = existing_patient.name
                 
+                # Use the existing patient - do not create a new one
                 patient = existing_patient
+                logger.info(f"Using existing patient: {existing_patient.name} (ID: {existing_patient.patient_id})")
             else:
-                # Validate that we have at least a name for new patients
-                if not full_name or not full_name.strip():
-                    raise serializers.ValidationError({
-                        'patient_name': 'Patient name is required. Please provide at least a first name or last name.'
-                    })
-                
-                # Extract patient data WITHOUT removing from validated_data
+                # No existing patient found, check if we need to create a new one or find by email
                 patient_email = validated_data.get('patient_email')
-                patient_phone = validated_data.get('patient_phone')
-                date_of_birth = validated_data.get('date_of_birth')
-                gender = validated_data.get('gender')
-                address = validated_data.get('address')
-                marital_status = validated_data.get('marital_status')
                 
-                # Extract patient data for patient record creation
-                patient_data = {
-                    'name': full_name,
-                    'email': patient_email,
-                    'phone': patient_phone,
-                    'date_of_birth': date_of_birth,
-                    'gender': gender,
-                    'address': address,
-                    'marital_status': marital_status
-                }
-                
-                # For pending appointments from the chatbot, don't create patient record yet
-                if status == 'pending':
-                    # Set patient to null for pending appointments
-                    patient = None
+                # Try to find existing patient by email to avoid duplicates
+                if patient_email and status != 'pending':
+                    try:
+                        existing_patient_by_email = Patient.objects.get(email=patient_email)
+                        logger.info(f"Found existing patient by email {patient_email}: {existing_patient_by_email.name}")
+                        
+                        # Use existing patient data but allow updating with new information if provided
+                        patient_phone = validated_data.get('patient_phone') or existing_patient_by_email.phone
+                        date_of_birth = validated_data.get('date_of_birth') or existing_patient_by_email.date_of_birth
+                        # Convert date object to string for encrypted storage
+                        if hasattr(date_of_birth, 'strftime'):
+                            date_of_birth = date_of_birth.strftime('%Y-%m-%d')
+                        gender = validated_data.get('gender') or existing_patient_by_email.gender
+                        address = validated_data.get('address') or existing_patient_by_email.address
+                        marital_status = validated_data.get('marital_status') or existing_patient_by_email.marital_status
+                        
+                        # Use existing patient's name if no new name provided
+                        if not full_name or not full_name.strip():
+                            full_name = existing_patient_by_email.name
+                        
+                        patient = existing_patient_by_email
+                        
+                    except Patient.DoesNotExist:
+                        # No existing patient found by email, create new one
+                        # Validate that we have at least a name for new patients
+                        if not full_name or not full_name.strip():
+                            raise serializers.ValidationError({
+                                'patient_name': 'Patient name is required. Please provide at least a first name or last name.'
+                            })
+                        
+                        # Extract patient data for new patient creation
+                        patient_phone = validated_data.get('patient_phone')
+                        date_of_birth = validated_data.get('date_of_birth')
+                        # Convert date object to string for encrypted storage
+                        if hasattr(date_of_birth, 'strftime'):
+                            date_of_birth = date_of_birth.strftime('%Y-%m-%d')
+                        gender = validated_data.get('gender')
+                        address = validated_data.get('address')
+                        marital_status = validated_data.get('marital_status')
+                        
+                        # Create new patient
+                        patient_data = {
+                            'name': full_name,
+                            'email': patient_email,
+                            'phone': patient_phone,
+                            'date_of_birth': date_of_birth,
+                            'gender': gender,
+                            'address': address,
+                            'marital_status': marital_status
+                        }
+                        
+                        patient = Patient.objects.create(**patient_data)
+                        logger.info(f"Created new patient: {patient.name} (ID: {patient.patient_id})")
                 else:
-                    # For non-pending appointments, create or get patient record
-                    patient, created = Patient.objects.get_or_create(
-                        email=patient_data['email'],
-                        defaults=patient_data
-                    )
+                    # For pending appointments, don't create patient record yet
+                    patient = None
+                    # Still extract the data for appointment fields
+                    patient_phone = validated_data.get('patient_phone')
+                    date_of_birth = validated_data.get('date_of_birth')
+                    # Convert date object to string for encrypted storage
+                    if hasattr(date_of_birth, 'strftime'):
+                        date_of_birth = date_of_birth.strftime('%Y-%m-%d')
+                    gender = validated_data.get('gender')
+                    address = validated_data.get('address')
+                    marital_status = validated_data.get('marital_status')
             
             # Store the full name in the appointment record as well
             validated_data['patient_name'] = full_name

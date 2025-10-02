@@ -15,9 +15,9 @@ import { ArrowUpDown, CheckCircle, ChevronDown, ChevronLeft, ChevronRight, Chevr
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { axiosInstance } from '@/services/api';
 
-// Configure axios
-axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
+// Remove axios default configuration since we're using axiosInstance
 
 interface MedicalCertificateRequest {
   id: number;
@@ -180,7 +180,7 @@ const MedicalCertificateManagement: React.FC = () => {
 
   const fetchClinicInfo = async () => {
     try {
-      const response = await axios.get('/clinics/current/');
+      const response = await axiosInstance.get('/clinics/current/');
       setClinicInfo(response.data);
       
       // Update certificate form data with clinic info
@@ -197,7 +197,7 @@ const MedicalCertificateManagement: React.FC = () => {
 
   const fetchDoctorInfo = async () => {
     try {
-      const response = await axios.get('/doctors/current/');
+      const response = await axiosInstance.get('/doctors/current/');
       setDoctorInfo(response.data);
       
       // Update certificate form data with doctor info
@@ -215,19 +215,24 @@ const MedicalCertificateManagement: React.FC = () => {
 
   const fetchRequests = async () => {
     try {
-      const response = await axios.get('/medical-certificates/');
+      const response = await axiosInstance.get('/medical-certificates/');
       console.log('=== MEDICAL CERTIFICATES API RESPONSE ===');
       console.log('Full response:', response.data);
-      if (response.data.length > 0) {
-        console.log('First request sample:', response.data[0]);
+      
+      // Ensure response.data is an array
+      const requestsData = Array.isArray(response.data) ? response.data : [];
+      
+      if (requestsData.length > 0) {
+        console.log('First request sample:', requestsData[0]);
         console.log('ID verification fields in first request:');
-        console.log('- id_verification_front:', response.data[0].id_verification_front);
-        console.log('- id_verification_back:', response.data[0].id_verification_back);
+        console.log('- id_verification_front:', requestsData[0].id_verification_front);
+        console.log('- id_verification_back:', requestsData[0].id_verification_back);
       }
       console.log('=== END API RESPONSE DEBUG ===');
-      setRequests(response.data);
+      setRequests(requestsData);
     } catch (error) {
       console.error('Error fetching medical certificate requests:', error);
+      setRequests([]); // Set empty array on error
       toast.error('Failed to load medical certificate requests');
     } finally {
       setLoading(false);
@@ -276,7 +281,7 @@ const MedicalCertificateManagement: React.FC = () => {
 
   // Filter and sort requests
   const filteredAndSortedRequests = sortData(
-    requests.filter(request => {
+    (requests || []).filter(request => {
       const matchesSearch = 
         request.patient_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         request.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -350,7 +355,7 @@ const MedicalCertificateManagement: React.FC = () => {
       const certificateHTML = generateMedicalCertificateHTML(templateData);
       
       // Update the request with certificate content
-      const response = await axios.post(`/medical-certificates/${selectedRequest.id}/approve/`, {
+      const response = await axiosInstance.post(`/medical-certificates/${selectedRequest.id}/approve/`, {
         action: 'doctor_approve',
         certificate_content: certificateHTML,
         certificate_html: certificateHTML, // Add HTML version for email
@@ -433,7 +438,7 @@ const MedicalCertificateManagement: React.FC = () => {
         payload.rejection_reason = rejectionReason;
       }
 
-      const response = await axios.post(`/medical-certificates/${requestId}/approve/`, payload);
+      const response = await axiosInstance.post(`/medical-certificates/${requestId}/approve/`, payload);
       
       toast.success(response.data.message);
       fetchRequests();

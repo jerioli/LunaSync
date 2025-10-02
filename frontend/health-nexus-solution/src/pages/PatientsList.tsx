@@ -75,8 +75,8 @@ const PatientsList = () => {
   // Filter patients based on search query
   const filteredPatients = sortedPatients.filter(patient => 
     patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    patient.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    patient.phone.includes(searchQuery) ||
+    (patient.email && patient.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (patient.phone && patient.phone.includes(searchQuery)) ||
     (patient.marital_status || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 

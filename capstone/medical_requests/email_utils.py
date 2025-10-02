@@ -14,9 +14,6 @@ from .pdf_utils import create_medical_certificate_pdf, create_prescription_pdf
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
-from clinic.models import ClinicSettings
-
-logger = logging.getLogger(__name__)
 
 def get_logo_attachment():
     """

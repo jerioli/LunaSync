@@ -8,13 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { useClinic } from '@/contexts/ClinicContext';
-import axios from 'axios';
+import { axiosInstance } from '@/services/api';
 import { ArrowUpDown, CheckCircle, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Eye, Mail, Search, XCircle } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-// Configure axios
-axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
+// Remove axios default configuration since we're using axiosInstance
 
 interface PrescriptionRequest {
   id: number;
@@ -61,17 +60,62 @@ const PrescriptionManagement: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // Helper function to get image URL - similar to how clinic logo is handled
+  const getImageUrl = (imagePath: string) => {
+    console.log('=== GET IMAGE URL DEBUG ===');
+    console.log('Input imagePath:', imagePath);
+    
+    if (!imagePath) {
+      console.log('No imagePath provided, returning null');
+      return null;
+    }
+    
+    let finalUrl;
+    // If it's already a full URL, return as-is
+    if (imagePath.startsWith('http')) {
+      finalUrl = imagePath;
+      console.log('Already full URL:', finalUrl);
+      return finalUrl;
+    }
+    // If it starts with /media/, add the base URL
+    if (imagePath.startsWith('/media/')) {
+      finalUrl = `http://127.0.0.1:8000${imagePath}`;
+      console.log('Starts with /media/, constructed URL:', finalUrl);
+      return finalUrl;
+    }
+    // If it starts with medical_requests/, add the full path
+    if (imagePath.startsWith('medical_requests/')) {
+      finalUrl = `http://127.0.0.1:8000/media/${imagePath}`;
+      console.log('Starts with medical_requests/, constructed URL:', finalUrl);
+      return finalUrl;
+    }
+    // If it's just a filename, assume it's in medical_requests folder
+    if (!imagePath.includes('/')) {
+      finalUrl = `http://127.0.0.1:8000/media/medical_requests/${imagePath}`;
+      console.log('Just filename, constructed URL:', finalUrl);
+      return finalUrl;
+    }
+    // Otherwise, add base URL
+    finalUrl = `http://127.0.0.1:8000${imagePath.startsWith('/') ? imagePath : '/' + imagePath}`;
+    console.log('Default case, constructed URL:', finalUrl);
+    console.log('=== END GET IMAGE URL DEBUG ===');
+    return finalUrl;
+  };
+
   useEffect(() => {
     fetchRequests();
   }, []);
 
   const fetchRequests = async () => {
     try {
-      const response = await axios.get('/prescription-requests/');
-      setRequests(response.data);
+      const response = await axiosInstance.get('/prescription-requests/');
+      // Ensure response.data is an array
+      const requestsData = Array.isArray(response.data) ? response.data : [];
+      setRequests(requestsData);
     } catch (error) {
       console.error('Error fetching prescription requests:', error);
       toast.error('Failed to load prescription requests');
+      setRequests([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -119,7 +163,7 @@ const PrescriptionManagement: React.FC = () => {
 
   // Filter and sort requests
   const filteredAndSortedRequests = sortData(
-    requests.filter(request => {
+    (requests || []).filter(request => {
       const matchesSearch = 
         request.patient_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         request.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -163,7 +207,7 @@ const PrescriptionManagement: React.FC = () => {
         payload.rejection_reason = rejectionReason;
       }
 
-      const response = await axios.post(`/prescription-requests/${requestId}/approve/`, payload);
+      const response = await axiosInstance.post(`/prescription-requests/${requestId}/approve/`, payload);
       
       toast.success(response.data.message);
       fetchRequests();
@@ -421,10 +465,10 @@ const PrescriptionManagement: React.FC = () => {
                                         <div className="flex-1">
                                           <p className="text-xs text-gray-500 mb-1">Front</p>
                                           <img
-                                            src={selectedRequest.id_verification_front}
+                                            src={getImageUrl(selectedRequest.id_verification_front)}
                                             alt="ID Front"
                                             className="w-full h-20 object-contain rounded border cursor-pointer hover:opacity-80"
-                                            onClick={() => window.open(selectedRequest.id_verification_front, '_blank')}
+                                            onClick={() => window.open(getImageUrl(selectedRequest.id_verification_front), '_blank')}
                                           />
                                         </div>
                                       )}
@@ -432,10 +476,10 @@ const PrescriptionManagement: React.FC = () => {
                                         <div className="flex-1">
                                           <p className="text-xs text-gray-500 mb-1">Back</p>
                                           <img
-                                            src={selectedRequest.id_verification_back}
+                                            src={getImageUrl(selectedRequest.id_verification_back)}
                                             alt="ID Back"
                                             className="w-full h-20 object-contain rounded border cursor-pointer hover:opacity-80"
-                                            onClick={() => window.open(selectedRequest.id_verification_back, '_blank')}
+                                            onClick={() => window.open(getImageUrl(selectedRequest.id_verification_back), '_blank')}
                                           />
                                         </div>
                                       )}
@@ -449,10 +493,10 @@ const PrescriptionManagement: React.FC = () => {
                                     <Label className="font-medium text-xs text-muted-foreground">Prescription Image</Label>
                                     <div className="mt-2">
                                       <img
-                                        src={selectedRequest.prescription_image}
+                                        src={getImageUrl(selectedRequest.prescription_image)}
                                         alt="Prescription"
                                         className="w-full h-24 object-contain rounded border cursor-pointer hover:opacity-80"
-                                        onClick={() => window.open(selectedRequest.prescription_image, '_blank')}
+                                        onClick={() => window.open(getImageUrl(selectedRequest.prescription_image), '_blank')}
                                       />
                                     </div>
                                   </div>

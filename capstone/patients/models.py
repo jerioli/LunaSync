@@ -1,4 +1,5 @@
 from django.db import models
+from security_app.fields import EncryptedCharField, EncryptedTextField
 import uuid
 import string
 import random
@@ -8,23 +9,21 @@ class Patient(models.Model):
     patient_id = models.CharField(max_length=20, unique=True, null=True, blank=True)
     
     # Separate name fields - temporarily nullable for migration
-    first_name = models.CharField(max_length=100, blank=True, null=True)
-    last_name = models.CharField(max_length=100, blank=True, null=True)
-    middle_initial = models.CharField(max_length=5, blank=True, null=True)
-    suffix = models.CharField(max_length=20, blank=True, null=True)  # Jr., Sr., III, etc.
-    
+    first_name = EncryptedCharField(max_length=300, blank=True, null=True)
+    last_name = EncryptedCharField(max_length=300, blank=True, null=True)
+    middle_initial = EncryptedCharField(max_length=50, blank=True, null=True)
+    suffix = EncryptedCharField(max_length=100, blank=True, null=True)  # Jr., Sr., III, etc.
     # Keep name field for backward compatibility (computed property)
-    name = models.CharField(max_length=255, blank=True, null=True)
-    
-    email = models.EmailField(unique=True)
-    phone = models.CharField(max_length=20)
+    name = EncryptedCharField(max_length=800, blank=True, null=True)
+    email = EncryptedCharField(max_length=600, unique=False)  # Temporarily disable unique for encrypted fields
+    phone = EncryptedCharField(max_length=100)
     date_of_birth = models.DateField()
     gender = models.CharField(max_length=20, choices=[('male', 'Male'), ('female', 'Female'), ('other', 'Other'), ('prefer_not_to_say', 'Prefer not to say')], blank=True, null=True)
-    address = models.TextField(blank=True, null=True)
-    religion = models.CharField(max_length=100, blank=True, null=True)  # Added religion field
+    address = EncryptedTextField(blank=True, null=True)
+    religion = EncryptedCharField(max_length=300, blank=True, null=True)  # Added religion field
     marital_status = models.CharField(max_length=30, choices=[('single', 'Single'), ('married', 'Married'), ('divorced', 'Divorced'), ('widowed', 'Widowed'), ('prefer_not_to_say', 'Prefer not to say')], blank=True, null=True)
-    medical_info = models.JSONField(blank=True, null=True)  # Store medical info as JSON
-    physical_examination = models.JSONField(blank=True, null=True)  # Store physical examination data as JSON
+    medical_info = EncryptedTextField(blank=True, null=True)  # Store medical info as encrypted JSON string
+    physical_examination = EncryptedTextField(blank=True, null=True)  # Store physical examination data as encrypted JSON string
     registration_date = models.DateField(auto_now_add=True)
 
     class Meta:

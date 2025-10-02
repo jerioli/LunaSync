@@ -640,6 +640,8 @@ export const useChatbotLogic = () => {
             const response = await api.patients.checkByPatientId(input);
             
             if (response.exists && response.patient) {
+              console.log('[DEBUG] Raw patient data from API:', response.patient);
+              console.log('[DEBUG] date_of_birth type:', typeof response.patient.date_of_birth, response.patient.date_of_birth);
               setExistingPatient(response.patient);
               
               setTimeout(() => {
@@ -2125,10 +2127,10 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
  Time: ${appointmentForm.time}
  Doctor: ${doctorName}
  Type: ${appointmentForm.type}
- Patient: ${existingPatient.name}
- Email: ${existingPatient.email}
- Phone: ${existingPatient.phone}
- Date of Birth: ${existingPatient.date_of_birth}
+ Patient: ${existingPatient ? `${existingPatient.first_name || ''} ${existingPatient.middle_initial || ''} ${existingPatient.last_name || ''} ${existingPatient.suffix || ''}`.trim().replace(/\s+/g, ' ') : 'Unknown Patient'}
+ Email: ${existingPatient?.email || 'Not specified'}
+ Phone: ${existingPatient?.phone || 'Not specified'}
+ Date of Birth: ${existingPatient?.date_of_birth || 'Not specified'}
  Gender: ${existingPatient.gender || 'Not specified'}
  Address: ${existingPatient.address || 'Not specified'}
  Marital Status: ${existingPatient.marital_status || 'Not specified'}
@@ -2467,8 +2469,22 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       if (period === 'AM' && hour === 12) hour = 0;
       const formattedTime = `${hour.toString().padStart(2, '0')}:${minutes}:00`;
 
-      // Construct full name from components - use tempFormData if available, otherwise appointmentForm
-      const formDataToUse = Object.keys(tempFormData).length > 0 ? tempFormData : appointmentForm;
+      // Determine which data source to use - prioritize existingPatient, then tempFormData, then appointmentForm
+      const formDataToUse = existingPatient 
+        ? {
+            firstName: existingPatient.first_name || '',
+            middleInitial: existingPatient.middle_initial || '',
+            lastName: existingPatient.last_name || '',
+            suffix: existingPatient.suffix || '',
+            email: existingPatient.email || '',
+            phone: existingPatient.phone || '',
+            dateOfBirth: existingPatient.date_of_birth || '',
+            gender: existingPatient.gender || '',
+            address: existingPatient.address || '',
+            maritalStatus: existingPatient.marital_status || ''
+          }
+        : Object.keys(tempFormData).length > 0 ? tempFormData : appointmentForm;
+        
       const fullName = constructFullName({
         firstName: formDataToUse.firstName || appointmentForm.firstName,
         middleInitial: formDataToUse.middleInitial || appointmentForm.middleInitial,
@@ -2485,7 +2501,54 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         patient_id: appointmentForm.patient_id || null, // Include Patient ID for returning patients
         patient_email: formDataToUse.email || appointmentForm.email,
         patient_phone: formDataToUse.phone || appointmentForm.phone,
-        date_of_birth: (formDataToUse.dateOfBirth || appointmentForm.dateOfBirth) ? new Date(formDataToUse.dateOfBirth || appointmentForm.dateOfBirth).toISOString().split('T')[0] : null,
+        date_of_birth: (() => {
+          const dobValue = formDataToUse.dateOfBirth || appointmentForm.dateOfBirth;
+          console.log(`[DEBUG] Processing date_of_birth - dobValue:`, dobValue, 'type:', typeof dobValue);
+          
+          if (!dobValue) return null;
+          
+          // Always convert to string format to avoid any date object issues
+          let dateString = '';
+          
+          if (typeof dobValue === 'string') {
+            // If it's already a string, check if it's in the right format
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dobValue)) {
+              dateString = dobValue;
+            } else {
+              // Try to parse and reformat
+              const tempDate = new Date(dobValue);
+              if (!isNaN(tempDate.getTime())) {
+                dateString = tempDate.toISOString().split('T')[0];
+              } else {
+                console.error('[DEBUG] Invalid date string:', dobValue);
+                dateString = ''; // Set to empty string for invalid dates
+              }
+            }
+          } else if (dobValue && Object.prototype.toString.call(dobValue) === '[object Date]') {
+            // If it's a Date object, convert to string
+            const dateObj = dobValue as Date;
+            if (!isNaN(dateObj.getTime())) {
+              dateString = dateObj.toISOString().split('T')[0];
+            } else {
+              console.error('[DEBUG] Invalid Date object:', dobValue);
+              dateString = ''; // Set to empty string for invalid dates
+            }
+          } else {
+            // Try to create a Date object from whatever it is
+            const tempDate = new Date(dobValue as any);
+            if (!isNaN(tempDate.getTime())) {
+              dateString = tempDate.toISOString().split('T')[0];
+            } else {
+              console.error('[DEBUG] Could not convert to date:', dobValue);
+              dateString = ''; // Set to empty string for invalid dates
+            }
+          }
+          
+          console.log(`[DEBUG] Final date_of_birth string:`, dateString);
+          
+          // Return as string, not as any other type
+          return String(dateString);
+        })(),
         gender: (formDataToUse.gender || appointmentForm.gender) === 'Prefer not to say' ? 'prefer_not_to_say' : ((formDataToUse.gender || appointmentForm.gender) ? (formDataToUse.gender || appointmentForm.gender).toLowerCase() : null),
         address: formDataToUse.address || appointmentForm.address || null,
         marital_status: (formDataToUse.maritalStatus || appointmentForm.maritalStatus) === 'Prefer not to say' ? 'prefer_not_to_say' : ((formDataToUse.maritalStatus || appointmentForm.maritalStatus) ? (formDataToUse.maritalStatus || appointmentForm.maritalStatus).toLowerCase() : null),

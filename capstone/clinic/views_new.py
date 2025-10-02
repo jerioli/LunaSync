@@ -1,6 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from .models import ClinicSettings, FAQ, Review
 from .serializers import ClinicSettingsSerializer, ReviewSerializer
 from django.core.mail import send_mail, EmailMessage, EmailMultiAlternatives
@@ -8,6 +11,34 @@ from django.conf import settings
 import logging
 
 logger = logging.getLogger(__name__)
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CurrentClinicView(APIView):
+    permission_classes = [AllowAny]  # Allow any user to access clinic info
+    
+    def get(self, request):
+        clinic_settings = ClinicSettings.objects.first()
+        if clinic_settings:
+            serializer = ClinicSettingsSerializer(clinic_settings)
+            return Response(serializer.data)
+        return Response({'error': 'No clinic found'}, status=status.HTTP_404_NOT_FOUND)
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CurrentDoctorView(APIView):
+    permission_classes = [AllowAny]  # Allow any user, but check authentication in method
+    
+    def get(self, request):
+        # Check if user is authenticated
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+            
+        # Return current user data regardless of role
+        return Response({
+            'id': request.user.id,
+            'name': f"{request.user.first_name} {request.user.last_name}",
+            'email': request.user.email,
+            'role': request.user.role
+        })
 
 class ClinicBrandingView(APIView):
     def get(self, request):

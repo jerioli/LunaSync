@@ -32,7 +32,9 @@ export interface Doctor {
   id: number;
   first_name: string;
   last_name: string;
-  email: string;
+  middle_initial?: string | null;
+  suffix?: string | null;
+  email?: string | null;
   phone?: string;
   role: string;
   is_active: boolean;
@@ -53,7 +55,9 @@ export interface Receptionist {
   id: number;
   first_name: string;
   last_name: string;
-  email: string;
+  middle_initial?: string | null;
+  suffix?: string | null;
+  email?: string | null;
   phone?: string;
   role: string;
   is_active: boolean;
@@ -74,7 +78,9 @@ export interface Admin {
   id: number;
   first_name: string;
   last_name: string;
-  email: string;
+  middle_initial?: string | null;
+  suffix?: string | null;
+  email?: string | null;
   phone?: string;
   role: string;
   is_active: boolean;
@@ -94,7 +100,9 @@ export interface StaffMember {
   id: number;
   first_name: string;
   last_name: string;
-  email: string;
+  middle_initial?: string | null;
+  suffix?: string | null;
+  email?: string | null;
   phone?: string;
   username: string;
   role: string;
@@ -116,12 +124,13 @@ export interface Patient {
   id: number;
   patient_id?: string; // Unique Patient ID for returning patients
   name: string; // Keep for backward compatibility
+  fullName?: string; // Computed full name from decrypted components
   first_name?: string;
   last_name?: string;
   middle_initial?: string;
   suffix?: string;
-  email: string;
-  phone: string;
+  email?: string | null;
+  phone?: string | null;
   date_of_birth: string;
   gender?: string;
   address?: string;

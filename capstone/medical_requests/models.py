@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
+from security_app.fields import EncryptedCharField, EncryptedTextField
 
 class MedicalCertificateRequest(models.Model):
     REQUEST_TYPES = [
@@ -19,11 +20,11 @@ class MedicalCertificateRequest(models.Model):
     ]
     
     request_type = models.CharField(max_length=20, choices=REQUEST_TYPES)
-    patient_name = models.CharField(max_length=200)
-    date_of_birth = models.CharField(max_length=20)
-    email = models.EmailField()
-    phone = models.CharField(max_length=20)
-    additional_info = models.TextField(blank=True, null=True)
+    patient_name = EncryptedCharField(max_length=800)  # Encrypted patient name
+    date_of_birth = EncryptedCharField(max_length=100)  # Encrypted DOB
+    email = EncryptedCharField(max_length=600)  # Encrypted email
+    phone = EncryptedCharField(max_length=100)  # Encrypted phone
+    additional_info = EncryptedTextField(blank=True, null=True)  # Encrypted additional info
     id_verification = models.FileField(upload_to='medical_requests/id_verification/', null=True, blank=True)
     id_verification_front = models.FileField(upload_to='medical_requests/id_verification/', null=True, blank=True)
     id_verification_back = models.FileField(upload_to='medical_requests/id_verification/', null=True, blank=True)
@@ -37,10 +38,10 @@ class MedicalCertificateRequest(models.Model):
     doctor_approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='doctor_approved_certificates')
     completed_at = models.DateTimeField(null=True, blank=True)
     
-    # Certificate content
-    certificate_content = models.TextField(blank=True, null=True)
-    doctor_notes = models.TextField(blank=True, null=True)
-    rejection_reason = models.TextField(blank=True, null=True)
+    # Certificate content - encrypted for patient privacy
+    certificate_content = EncryptedTextField(blank=True, null=True)  # Encrypted certificate content
+    doctor_notes = EncryptedTextField(blank=True, null=True)  # Encrypted doctor notes
+    rejection_reason = EncryptedTextField(blank=True, null=True)  # Encrypted rejection reason
     
     class Meta:
         db_table = 'medical_certificate_request'
@@ -57,15 +58,15 @@ class PrescriptionRequest(models.Model):
         ('rejected', 'Rejected'),
     ]
     
-    medication_name = models.CharField(max_length=200)
-    dosage = models.CharField(max_length=100)
-    frequency = models.CharField(max_length=100)
-    duration = models.CharField(max_length=100)
-    patient_name = models.CharField(max_length=200)
-    date_of_birth = models.CharField(max_length=20)
-    email = models.EmailField()
-    phone = models.CharField(max_length=20)
-    additional_notes = models.TextField(blank=True, null=True)
+    medication_name = EncryptedCharField(max_length=600)  # Encrypted medication name
+    dosage = EncryptedCharField(max_length=300)  # Encrypted dosage
+    frequency = EncryptedCharField(max_length=300)  # Encrypted frequency
+    duration = EncryptedCharField(max_length=300)  # Encrypted duration
+    patient_name = EncryptedCharField(max_length=800)  # Encrypted patient name
+    date_of_birth = EncryptedCharField(max_length=100)  # Encrypted DOB
+    email = EncryptedCharField(max_length=600)  # Encrypted email
+    phone = EncryptedCharField(max_length=100)  # Encrypted phone
+    additional_notes = EncryptedTextField(blank=True, null=True)  # Encrypted additional notes
     id_verification = models.FileField(upload_to='medical_requests/id_verification/', null=True, blank=True)
     id_verification_front = models.FileField(upload_to='medical_requests/id_verification/', null=True, blank=True)
     id_verification_back = models.FileField(upload_to='medical_requests/id_verification/', null=True, blank=True)
@@ -80,10 +81,10 @@ class PrescriptionRequest(models.Model):
     doctor_approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='doctor_approved_prescriptions')
     completed_at = models.DateTimeField(null=True, blank=True)
     
-    # Prescription content
-    prescription_content = models.TextField(blank=True, null=True)
-    doctor_notes = models.TextField(blank=True, null=True)
-    rejection_reason = models.TextField(blank=True, null=True)
+    # Prescription content - encrypted for patient privacy
+    prescription_content = EncryptedTextField(blank=True, null=True)  # Encrypted prescription content
+    doctor_notes = EncryptedTextField(blank=True, null=True)  # Encrypted doctor notes
+    rejection_reason = EncryptedTextField(blank=True, null=True)  # Encrypted rejection reason
     
     class Meta:
         db_table = 'prescription_request'

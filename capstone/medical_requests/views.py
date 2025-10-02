@@ -7,9 +7,19 @@ from django.conf import settings
 import json
 import logging
 from .models import MedicalCertificateRequest, PrescriptionRequest
-from .email_utils import send_medical_certificate_email, send_prescription_email
+# Using lazy import to avoid circular import
+# from .email_utils import send_medical_certificate_email, send_prescription_email
 
 logger = logging.getLogger(__name__)
+
+def get_email_functions():
+    """Lazy import of email functions to avoid circular import"""
+    try:
+        from .email_utils import send_medical_certificate_email, send_prescription_email
+        return send_medical_certificate_email, send_prescription_email
+    except ImportError as e:
+        logger.error(f"Could not import email functions: {e}")
+        return None, None
 
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
@@ -101,27 +111,32 @@ def approve_medical_certificate(request, request_id):
             certificate_request.certificate_content = data.get('certificate_content', '')
             certificate_request.doctor_notes = data.get('doctor_notes', '')
             
-            # Send email to patient using our email utility
+            # Send email to patient using lazy import to avoid circular import
             try:
-                # Get HTML content if provided, otherwise use plain text
-                html_content = data.get('certificate_html', certificate_request.certificate_content)
-                
-                # Get doctor name from the approval or from data
-                doctor_name = data.get('doctor_name', 'Health Nexus Medical Team')
-                
-                # Get fitness status from certificate content or doctor notes
-                fitness_status = data.get('fitness_status', 'Fit for work')  # Default to fit for work
-                
-                # Send the email with complete certificate data
-                email_result = send_medical_certificate_email(
-                    patient_email=certificate_request.email,
-                    patient_name=certificate_request.patient_name,
-                    certificate_html=html_content,
-                    doctor_name=doctor_name,
-                    patient_dob=certificate_request.date_of_birth,
-                    fitness_status=fitness_status,
-                    certificate_request=certificate_request
-                )
+                send_medical_certificate_email, send_prescription_email = get_email_functions()
+                if send_medical_certificate_email is None:
+                    logger.error("Email functions not available")
+                    email_result = False
+                else:
+                    # Get HTML content if provided, otherwise use plain text
+                    html_content = data.get('certificate_html', certificate_request.certificate_content)
+                    
+                    # Get doctor name from the approval or from data
+                    doctor_name = data.get('doctor_name', 'Health Nexus Medical Team')
+                    
+                    # Get fitness status from certificate content or doctor notes
+                    fitness_status = data.get('fitness_status', 'Fit for work')  # Default to fit for work
+                    
+                    # Send the email with complete certificate data
+                    email_result = send_medical_certificate_email(
+                        patient_email=certificate_request.email,
+                        patient_name=certificate_request.patient_name,
+                        certificate_html=html_content,
+                        doctor_name=doctor_name,
+                        patient_dob=certificate_request.date_of_birth,
+                        fitness_status=fitness_status,
+                        certificate_request=certificate_request
+                    )
                 
                 if email_result:
                     certificate_request.status = 'completed'
@@ -247,23 +262,28 @@ def approve_prescription(request, request_id):
             prescription_request.prescription_content = data.get('prescription_content', '')
             prescription_request.doctor_notes = data.get('doctor_notes', '')
             
-            # Send email to patient using our email utility
+            # Send email to patient using lazy import to avoid circular import
             try:
-                # Get HTML content if provided, otherwise use plain text
-                html_content = data.get('prescription_html', prescription_request.prescription_content)
-                
-                # Get doctor name
-                doctor_name = data.get('doctor_name', 'Health Nexus Medical Team')
-                
-                # Send the prescription email with complete prescription data
-                email_result = send_prescription_email(
-                    patient_email=prescription_request.email,
-                    patient_name=prescription_request.patient_name,
-                    prescription_html=html_content,
-                    doctor_name=doctor_name,
-                    patient_dob=prescription_request.date_of_birth,
-                    prescription_request=prescription_request
-                )
+                send_medical_certificate_email, send_prescription_email = get_email_functions()
+                if send_prescription_email is None:
+                    logger.error("Email functions not available")
+                    email_result = False
+                else:
+                    # Get HTML content if provided, otherwise use plain text
+                    html_content = data.get('prescription_html', prescription_request.prescription_content)
+                    
+                    # Get doctor name
+                    doctor_name = data.get('doctor_name', 'Health Nexus Medical Team')
+                    
+                    # Send the prescription email with complete prescription data
+                    email_result = send_prescription_email(
+                        patient_email=prescription_request.email,
+                        patient_name=prescription_request.patient_name,
+                        prescription_html=html_content,
+                        doctor_name=doctor_name,
+                        patient_dob=prescription_request.date_of_birth,
+                        prescription_request=prescription_request
+                    )
                 
                 if email_result:
                     prescription_request.status = 'completed'
@@ -292,12 +312,18 @@ def approve_prescription(request, request_id):
         return JsonResponse({'error': str(e)}, status=500)
 
 @csrf_exempt
+@csrf_exempt
 @require_http_methods(["POST"])
 def send_medical_certificate_email_endpoint(request):
     """
     Endpoint to send a medical certificate as an HTML email
     """
     try:
+        # Add logging to help debug
+        logger.info(f"Received email request from {request.META.get('REMOTE_ADDR')}")
+        logger.info(f"Request content type: {request.content_type}")
+        logger.info(f"Request body length: {len(request.body)}")
+        
         data = json.loads(request.body)
         
         patient_name = data.get('patient_name')
@@ -306,10 +332,18 @@ def send_medical_certificate_email_endpoint(request):
         doctor_name = data.get('doctor_name', 'Health Nexus Medical Team')
         hospital_name = data.get('hospital_name', 'HealthNexus Medical Center')
         
+        logger.info(f"Sending medical certificate email to: {patient_email} for patient: {patient_name}")
+        
         if not patient_name or not patient_email or not certificate_html:
+            logger.error("Missing required fields for medical certificate email")
             return JsonResponse({'error': 'Missing required fields'}, status=400)
         
-        # Use the email utility function
+        # Use the email utility function with lazy import to avoid circular import
+        send_medical_certificate_email, send_prescription_email = get_email_functions()
+        if send_medical_certificate_email is None:
+            logger.error("Email functions not available")
+            return JsonResponse({'error': 'Email service not available'}, status=500)
+        
         result = send_medical_certificate_email(
             patient_email=patient_email,
             patient_name=patient_name,
@@ -331,3 +365,16 @@ def send_medical_certificate_email_endpoint(request):
     except Exception as e:
         logger.error(f"Error sending medical certificate email: {str(e)}")
         return JsonResponse({'error': f'Failed to send email: {str(e)}'}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def test_endpoint(request):
+    """
+    Test endpoint to verify URL routing is working
+    """
+    return JsonResponse({
+        'message': 'URL routing is working',
+        'method': request.method,
+        'path': request.path
+    })

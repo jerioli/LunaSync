@@ -81,16 +81,29 @@ const ChangePassword = () => {
       if (response.data.success) {
         toast.success('Password changed successfully!');
         
-        // Update user context to remove force_password_change flag
-        if (currentUser) {
+        // Update user context with the complete user data from backend response
+        if (response.data.user) {
           const updatedUser = {
-            ...currentUser,
+            ...response.data.user,
+            // Ensure permissions are properly set
             force_password_change: false
           };
           
           setCurrentUser(updatedUser);
           
           // Update localStorage as well
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          localStorage.setItem('sessionId', response.data.session_id || '');
+          
+          console.log('[DEBUG] Password changed - Updated user context:', updatedUser);
+        } else if (currentUser) {
+          // Fallback: manually update existing user context
+          const updatedUser = {
+            ...currentUser,
+            force_password_change: false
+          };
+          
+          setCurrentUser(updatedUser);
           localStorage.setItem('user', JSON.stringify(updatedUser));
         }
 

@@ -97,7 +97,7 @@ class SecureLoginView(View):
             
             if user is not None:
                 if user.is_active:
-                    login(request, user)
+                    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                     
                     # Clear failed attempts
                     self.clear_failed_attempts(client_ip, email)

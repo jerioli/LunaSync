@@ -191,7 +191,7 @@ class StaffDetailView(APIView):
     def get(self, request, user_id):
         print(f"[DEBUG] GET request to StaffDetailView for user_id: {user_id}")
         user = get_object_or_404(CustomUser, id=user_id)
-        serializer = CustomUserSerializer(user)
+        serializer = CustomUserSerializer(user, context={'request': request})
         return Response(serializer.data)
     
     def patch(self, request, user_id):
@@ -212,14 +212,16 @@ class StaffDetailView(APIView):
         
         # Temporarily allow all updates for testing
         user = get_object_or_404(CustomUser, id=user_id)
-        serializer = CustomUserSerializer(user, data=request.data, partial=True)
+        serializer = CustomUserSerializer(user, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
-            serializer.save()
+            updated_user = serializer.save()
+            # Return updated data with context for proper decryption
+            response_serializer = CustomUserSerializer(updated_user, context={'request': request})
             print(f"[DEBUG] User updated successfully")
             return Response({
                 'success': True,
                 'message': 'Staff member updated successfully',
-                'data': serializer.data
+                'data': response_serializer.data
             })
         else:
             print(f"[DEBUG] Serializer errors: {serializer.errors}")
@@ -547,7 +549,7 @@ class DoctorListView(APIView):
     def get(self, request):
         # Allow public access to view doctors list (needed for chatbot and appointment booking)
         doctors = CustomUser.objects.filter(role='doctor')
-        serializer = CustomUserSerializer(doctors, many=True)
+        serializer = CustomUserSerializer(doctors, many=True, context={'request': request})
         return Response(serializer.data)
 
 class ReceptionistListView(APIView):
@@ -557,7 +559,7 @@ class ReceptionistListView(APIView):
     def get(self, request):
         # Allow authenticated users to view receptionists list
         receptionists = CustomUser.objects.filter(role='receptionist')
-        serializer = CustomUserSerializer(receptionists, many=True)
+        serializer = CustomUserSerializer(receptionists, many=True, context={'request': request})
         return Response(serializer.data)
 
 class AdminListView(APIView):
@@ -567,7 +569,7 @@ class AdminListView(APIView):
     def get(self, request):
         # Allow authenticated users to view admins list
         admins = CustomUser.objects.filter(role='admin')
-        serializer = CustomUserSerializer(admins, many=True)
+        serializer = CustomUserSerializer(admins, many=True, context={'request': request})
         return Response(serializer.data)
 
 @api_view(['POST'])
@@ -940,11 +942,16 @@ class SessionLoginView(APIView):
             }, status=status.HTTP_401_UNAUTHORIZED)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class CurrentUserView(APIView):
     """Get current user with all permissions"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # Allow any user, but check authentication in method
     
     def get(self, request):
+        # Check if user is authenticated
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+            
         print(f"[DEBUG] CurrentUserView - User: {request.user}")
         print(f"[DEBUG] CurrentUserView - can_manage_permissions: {request.user.can_manage_permissions}")
         
@@ -1069,7 +1076,7 @@ class UserListView(APIView):
     
     def get(self, request):
         users = CustomUser.objects.all()
-        serializer = CustomUserSerializer(users, many=True)
+        serializer = CustomUserSerializer(users, many=True, context={'request': request})
         return Response(serializer.data)
 
 class SendOTPView(APIView):

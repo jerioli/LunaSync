@@ -209,7 +209,7 @@ class SessionOTPVerifyView(APIView):
             from django.contrib.auth import login
             # Set backend for multi-backend compatibility
             user.backend = 'django.contrib.auth.backends.ModelBackend'
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             
             # Set additional session data AFTER login
             request.session['user_id'] = user.id

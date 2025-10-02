@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
+from security_app.fields import EncryptedCharField
 
 class CustomUserManager(UserManager):
     def create_user(self, username=None, email=None, password=None, **extra_fields):
@@ -14,8 +15,8 @@ class CustomUserManager(UserManager):
         return user
 
 class CustomUser(AbstractUser):
-    email = models.EmailField(unique=True)
-    phone = models.CharField(max_length=20, blank=True, null=True)
+    email = EncryptedCharField(max_length=600, unique=True)
+    phone = EncryptedCharField(max_length=100, blank=True, null=True)
     ROLE_CHOICES = (
         ('superadmin', 'Super Admin'),
         ('admin', 'Admin'),

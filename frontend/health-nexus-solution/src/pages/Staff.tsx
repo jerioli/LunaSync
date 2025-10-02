@@ -94,7 +94,10 @@ const StaffPage = () => {
     direction: SortDirection;
   }>({ field: "name", direction: "asc" });
   const [newStaff, setNewStaff] = useState({
-    name: "",
+    first_name: "",
+    last_name: "",
+    middle_initial: "",
+    suffix: "",
     username: "",
     email: "",
     phone: "",
@@ -141,6 +144,24 @@ const StaffPage = () => {
   const [adminPage, setAdminPage] = useState(1);
   const [superAdminPage, setSuperAdminPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Helper function to format full name
+  const formatFullName = (user: { 
+    first_name: string; 
+    last_name: string; 
+    middle_initial?: string | null; 
+    suffix?: string | null; 
+  }) => {
+    const parts = [user.first_name];
+    if (user.middle_initial) {
+      parts.push(user.middle_initial + '.');
+    }
+    parts.push(user.last_name);
+    if (user.suffix) {
+      parts.push(user.suffix);
+    }
+    return parts.join(' ');
+  };
 
   // Sorting helper functions
   const handleSort = (
@@ -342,10 +363,10 @@ const StaffPage = () => {
     return staff.filter(
       (user) =>
         user.role === role &&
-        ((user.first_name + " " + user.last_name)
+        (formatFullName(user)
           .toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
-          user.email.toLowerCase().includes(searchTerm.toLowerCase()))
+          (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())))
     );
   };
 
@@ -353,10 +374,10 @@ const StaffPage = () => {
   const filterDoctors = () => {
     return doctorsList.filter(
       (doctor) =>
-        (doctor.first_name + " " + doctor.last_name)
+        formatFullName(doctor)
           .toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
-        doctor.email.toLowerCase().includes(searchTerm.toLowerCase())
+        (doctor.email && doctor.email.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   };
 
@@ -364,10 +385,10 @@ const StaffPage = () => {
   const filterReceptionists = () => {
     return receptionistsList.filter(
       (receptionist) =>
-        (receptionist.first_name + " " + receptionist.last_name)
+        formatFullName(receptionist)
           .toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
-        receptionist.email.toLowerCase().includes(searchTerm.toLowerCase())
+        (receptionist.email && receptionist.email.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   };
 
@@ -375,10 +396,10 @@ const StaffPage = () => {
   const filterAdmins = () => {
     return adminsList.filter(
       (admin) =>
-        (admin.first_name + " " + admin.last_name)
+        formatFullName(admin)
           .toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
-        admin.email.toLowerCase().includes(searchTerm.toLowerCase())
+        (admin.email && admin.email.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   };
 
@@ -386,7 +407,7 @@ const StaffPage = () => {
   const filteredDoctors = sortData(
     filterDoctors().map((doctor) => ({
       ...doctor,
-      name: `${doctor.first_name} ${doctor.last_name}`,
+      name: formatFullName(doctor),
     })),
     doctorSort
   );
@@ -394,7 +415,7 @@ const StaffPage = () => {
   const filteredReceptionists = sortData(
     filterReceptionists().map((receptionist) => ({
       ...receptionist,
-      name: `${receptionist.first_name} ${receptionist.last_name}`,
+      name: formatFullName(receptionist),
     })),
     receptionistSort
   );
@@ -402,7 +423,7 @@ const StaffPage = () => {
   const filteredAdmins = sortData(
     filterAdmins().map((admin) => ({
       ...admin,
-      name: `${admin.first_name} ${admin.last_name}`,
+      name: formatFullName(admin),
     })),
     adminSort
   );
@@ -412,14 +433,14 @@ const StaffPage = () => {
     superAdminsList
       .filter(
         (admin) =>
-          (admin.first_name + " " + admin.last_name)
+          formatFullName(admin)
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          admin.email?.toLowerCase().includes(searchTerm.toLowerCase())
+          (admin.email && admin.email.toLowerCase().includes(searchTerm.toLowerCase()))
       )
       .map((admin) => ({
         ...admin,
-        name: `${admin.first_name} ${admin.last_name}`,
+        name: formatFullName(admin),
       })),
     superAdminSort
   );
@@ -487,7 +508,10 @@ const StaffPage = () => {
     if (!open) {
       // Clear form and validation errors when dialog is closed
       setNewStaff({
-        name: "",
+        first_name: "",
+        last_name: "",
+        middle_initial: "",
+        suffix: "",
         username: "",
         email: "",
         phone: "",
@@ -519,16 +543,16 @@ const StaffPage = () => {
 
     // Check in all staff lists
     const existsInDoctors = doctorsList.some(
-      (doctor) => doctor.email.toLowerCase() === emailLower
+      (doctor) => doctor.email && doctor.email.toLowerCase() === emailLower
     );
     const existsInReceptionists = receptionistsList.some(
-      (receptionist) => receptionist.email.toLowerCase() === emailLower
+      (receptionist) => receptionist.email && receptionist.email.toLowerCase() === emailLower
     );
     const existsInAdmins = adminsList.some(
-      (admin) => admin.email.toLowerCase() === emailLower
+      (admin) => admin.email && admin.email.toLowerCase() === emailLower
     );
     const existsInSuperAdmins = superAdminsList.some(
-      (admin) => admin.email.toLowerCase() === emailLower
+      (admin) => admin.email && admin.email.toLowerCase() === emailLower
     );
 
     return (
@@ -597,8 +621,10 @@ const StaffPage = () => {
         email: newStaff.email,
         phone: newStaff.phone, // Include phone number
         password: tempPassword, // Use auto-generated password
-        first_name: newStaff.name.split(" ")[0], // Extract first name
-        last_name: newStaff.name.split(" ").slice(1).join(" "), // Extract last name
+        first_name: newStaff.first_name,
+        last_name: newStaff.last_name,
+        middle_initial: newStaff.middle_initial || null,
+        suffix: newStaff.suffix || null,
         role: newStaff.role,
         is_active: true, // Always set to active
         is_staff: newStaff.role !== "doctor", // Doctors are not Django staff by default
@@ -696,7 +722,7 @@ const StaffPage = () => {
       refreshStaffLists();
       toast({
         title: "Staff deleted",
-        description: `${staffToDelete.first_name} ${staffToDelete.last_name} has been successfully deleted.`,
+        description: `${formatFullName(staffToDelete)} has been successfully deleted.`,
       });
     } catch (error) {
       console.error("Error deleting staff:", error);
@@ -885,18 +911,62 @@ const StaffPage = () => {
               </DialogHeader>
 
               <form onSubmit={handleSubmit} className="space-y-4 py-4">
-                {/* Full Name */}
+                {/* First Name */}
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="name" className="text-right">
-                    Full Name
+                  <Label htmlFor="first_name" className="text-right">
+                    First Name
                   </Label>
                   <Input
-                    id="name"
-                    placeholder="e.g., John Doe"
+                    id="first_name"
+                    placeholder="e.g., John"
                     className="col-span-3"
-                    value={newStaff.name}
+                    value={newStaff.first_name}
                     onChange={handleInputChange}
                     required
+                  />
+                </div>
+
+                {/* Middle Initial */}
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="middle_initial" className="text-right">
+                    Middle Initial
+                  </Label>
+                  <Input
+                    id="middle_initial"
+                    placeholder="e.g., A"
+                    className="col-span-3"
+                    value={newStaff.middle_initial}
+                    onChange={handleInputChange}
+                    maxLength={1}
+                  />
+                </div>
+
+                {/* Last Name */}
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="last_name" className="text-right">
+                    Last Name
+                  </Label>
+                  <Input
+                    id="last_name"
+                    placeholder="e.g., Doe"
+                    className="col-span-3"
+                    value={newStaff.last_name}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+
+                {/* Suffix */}
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="suffix" className="text-right">
+                    Suffix
+                  </Label>
+                  <Input
+                    id="suffix"
+                    placeholder="e.g., Jr., Sr., III"
+                    className="col-span-3"
+                    value={newStaff.suffix}
+                    onChange={handleInputChange}
                   />
                 </div>
 
@@ -1172,14 +1242,14 @@ const StaffPage = () => {
                             <Avatar className="h-8 w-8">
                               <AvatarImage
                                 src={doctor.image}
-                                alt={`${doctor.first_name} ${doctor.last_name}`}
+                                alt={formatFullName(doctor)}
                               />
                               <AvatarFallback>
-                                {doctor.first_name.charAt(0)}
+                                {doctor.first_name?.charAt(0) || 'U'}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">{`${doctor.first_name} ${doctor.last_name}`}</div>
+                              <div className="font-medium">{formatFullName(doctor)}</div>
                             </div>
                           </div>
                         </TableCell>
@@ -1491,14 +1561,14 @@ const StaffPage = () => {
                             <Avatar className="h-8 w-8">
                               <AvatarImage
                                 src={receptionist.image}
-                                alt={`${receptionist.first_name} ${receptionist.last_name}`}
+                                alt={formatFullName(receptionist)}
                               />
                               <AvatarFallback>
-                                {receptionist.first_name.charAt(0)}
+                                {receptionist.first_name?.charAt(0) || 'U'}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">{`${receptionist.first_name} ${receptionist.last_name}`}</div>
+                              <div className="font-medium">{formatFullName(receptionist)}</div>
                             </div>
                           </div>
                         </TableCell>
@@ -1769,14 +1839,14 @@ const StaffPage = () => {
                             <Avatar className="h-8 w-8">
                               <AvatarImage
                                 src={admin.image}
-                                alt={`${admin.first_name} ${admin.last_name}`}
+                                alt={formatFullName(admin)}
                               />
                               <AvatarFallback>
-                                {admin.first_name.charAt(0)}
+                                {admin.first_name?.charAt(0) || 'U'}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">{`${admin.first_name} ${admin.last_name}`}</div>
+                              <div className="font-medium">{formatFullName(admin)}</div>
                             </div>
                           </div>
                         </TableCell>
@@ -1988,14 +2058,14 @@ const StaffPage = () => {
                             <Avatar className="h-8 w-8">
                               <AvatarImage
                                 src={superAdmin.image}
-                                alt={`${superAdmin.first_name} ${superAdmin.last_name}`}
+                                alt={formatFullName(superAdmin)}
                               />
                               <AvatarFallback>
-                                {superAdmin.first_name.charAt(0)}
+                                {superAdmin.first_name?.charAt(0) || 'U'}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">{`${superAdmin.first_name} ${superAdmin.last_name}`}</div>
+                              <div className="font-medium">{formatFullName(superAdmin)}</div>
                             </div>
                           </div>
                         </TableCell>

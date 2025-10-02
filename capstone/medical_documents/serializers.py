@@ -6,30 +6,181 @@ from .models import (
 )
 from patients.models import Patient
 from accounts.models import CustomUser
+from security_app.secure_serializers import SecureBaseSerializer, EncryptedJSONField
 
-class MedicalDocumentSerializer(serializers.ModelSerializer):
+def get_default_user():
+    """Helper function to get a default user for document creation"""
+    # Use the first available doctor user
+    user = CustomUser.objects.filter(role='doctor').first()
+    if not user:
+        # If no doctor exists, use any user
+        user = CustomUser.objects.first()
+    if not user:
+        raise ValueError("No users exist in the system")
+    return user
+
+class PDFFieldsMixin:
+    """Mixin to add PDF-related fields to medical document serializers"""
+    
+    def get_original_file_url(self, obj):
+        """Return the original file URL if available"""
+        if obj.document and obj.document.original_file:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.document.original_file.url)
+            return obj.document.original_file.url
+        return None
+        
+    def get_processed_file_url(self, obj):
+        """Return the processed file URL if available"""
+        if obj.document and obj.document.processed_file:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.document.processed_file.url)
+            return obj.document.processed_file.url
+        return None
+        
+    def get_has_pdf(self, obj):
+        """Return True if any PDF file is available"""
+        if obj.document:
+            return bool(obj.document.original_file or obj.document.processed_file)
+        return False
+        
+    def get_pdf_url(self, obj):
+        """Return the preferred PDF URL (processed first, then original)"""
+        if obj.document:
+            pdf_file = obj.document.processed_file or obj.document.original_file
+            if pdf_file:
+                request = self.context.get('request')
+                if request:
+                    return request.build_absolute_uri(pdf_file.url)
+                return pdf_file.url
+        return None
+        
+    def get_file_url(self, obj):
+        """Alternative method for file URL"""
+        return self.get_pdf_url(obj)
+
+class MedicalDocumentSerializer(SecureBaseSerializer):
     patient_name = serializers.CharField(source='patient.name', read_only=True)
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
     authorized_by_name = serializers.CharField(source='authorized_by.get_full_name', read_only=True)
+    
+    # Custom JSON fields for encrypted data
+    extracted_data = EncryptedJSONField()
+    structured_data = EncryptedJSONField()
+    metadata = EncryptedJSONField()
     
     class Meta:
         model = MedicalDocument
         fields = '__all__'
         read_only_fields = ('id', 'created_at', 'updated_at')
+    
+    def get_public_representation(self, data):
+        """Return only non-sensitive fields for unauthenticated users"""
+        return {
+            'id': data.get('id'),
+            'document_type': data.get('document_type'),
+            'status': data.get('status'),
+            'created_at': data.get('created_at'),
+            'document_date': data.get('document_date')
+        }
 
 class LabResultSerializer(serializers.ModelSerializer):
     document = MedicalDocumentSerializer(read_only=True)
     patient_name = serializers.CharField(source='document.patient.name', read_only=True)
     
+    # Custom JSON fields for encrypted data
+    test_results = EncryptedJSONField()
+    
+    # PDF file URLs
+    original_file_url = serializers.SerializerMethodField()
+    processed_file_url = serializers.SerializerMethodField()
+    has_pdf = serializers.SerializerMethodField()
+    pdf_url = serializers.SerializerMethodField()  # Common field name frontends look for
+    file_url = serializers.SerializerMethodField()  # Alternative field name
+    
     class Meta:
         model = LabResult
         fields = '__all__'
+        
+    def to_representation(self, instance):
+        """Override to ensure PDF fields are included in response"""
+        data = super().to_representation(instance)
+        
+        # Explicitly add PDF-related fields
+        data['has_pdf'] = self.get_has_pdf(instance)
+        data['original_file_url'] = self.get_original_file_url(instance)
+        data['processed_file_url'] = self.get_processed_file_url(instance)
+        data['pdf_url'] = self.get_pdf_url(instance)
+        data['file_url'] = self.get_file_url(instance)
+        
+        # Also add these to the document object if needed
+        if data.get('document') and instance.document:
+            document_data = data['document']
+            if instance.document.original_file:
+                request = self.context.get('request')
+                if request:
+                    document_data['original_file'] = request.build_absolute_uri(instance.document.original_file.url)
+                else:
+                    document_data['original_file'] = instance.document.original_file.url
+            
+            if instance.document.processed_file:
+                request = self.context.get('request')
+                if request:
+                    document_data['processed_file'] = request.build_absolute_uri(instance.document.processed_file.url)
+                else:
+                    document_data['processed_file'] = instance.document.processed_file.url
+        
+        return data
+        
+    def get_original_file_url(self, obj):
+        """Return the original file URL if available"""
+        if obj.document and obj.document.original_file:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.document.original_file.url)
+            return obj.document.original_file.url
+        return None
+        
+    def get_processed_file_url(self, obj):
+        """Return the processed file URL if available"""
+        if obj.document and obj.document.processed_file:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.document.processed_file.url)
+            return obj.document.processed_file.url
+        return None
+        
+    def get_has_pdf(self, obj):
+        """Return True if any PDF file is available"""
+        if obj.document:
+            return bool(obj.document.original_file or obj.document.processed_file)
+        return False
+        
+    def get_pdf_url(self, obj):
+        """Return the preferred PDF URL (processed first, then original)"""
+        if obj.document:
+            pdf_file = obj.document.processed_file or obj.document.original_file
+            if pdf_file:
+                request = self.context.get('request')
+                if request:
+                    return request.build_absolute_uri(pdf_file.url)
+                return pdf_file.url
+        return None
+        
+    def get_file_url(self, obj):
+        """Alternative method for file URL"""
+        return self.get_pdf_url(obj)
 
 class LabResultCreateSerializer(serializers.ModelSerializer):
     # For creating lab results with embedded document data
     patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), write_only=True)
     created_by = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False, write_only=True)
     authorized_by = serializers.CharField(required=False, allow_blank=True, allow_null=True, write_only=True)
+    
+    # Custom JSON fields for encrypted data
+    test_results = EncryptedJSONField()
     
     # Document fields (write_only since they don't exist on LabResult model)
     title = serializers.CharField(write_only=True)
@@ -53,9 +204,7 @@ class LabResultCreateSerializer(serializers.ModelSerializer):
             # LabResult fields
             'test_name', 'test_category', 'specimen_type', 'laboratory_name', 
             'laboratory_address', 'lab_reference_number', 'collection_date', 
-            'received_date', 'reported_date', 'test_results', 'critical_values', 
-            'abnormal_values', 'interpretation', 'clinical_significance', 
-            'recommendations', 'specimen_quality', 'processing_notes',
+            'received_date', 'reported_date', 'test_results',
             # Document creation fields (write_only)
             'patient', 'created_by', 'authorized_by', 'title', 'description', 
             'content', 'document_date', 'status', 'urgency',
@@ -66,33 +215,25 @@ class LabResultCreateSerializer(serializers.ModelSerializer):
         ]
     
     def create(self, validated_data):
-        # Debug logging to see what data we're receiving
-        print("=== DEBUG: LabResultCreateSerializer.create ===")
-        print(f"Received validated_data keys: {list(validated_data.keys())}")
-        print(f"Patient: {validated_data.get('patient')}")
-        print(f"Created by: {validated_data.get('created_by')}")
-        print(f"Title: {validated_data.get('title')}")
-        print(f"Has document file: {'document' in validated_data}")
-        print(f"Has processed_file: {'processed_file' in validated_data}")
-        print("=" * 50)
         
         # Extract file fields before creating document
         original_file = validated_data.pop('document', None)
         processed_file = validated_data.pop('processed_file', None)
         
-        # Get or create a default user for testing purposes
+        # Get or use existing user for testing purposes
         created_by = validated_data.pop('created_by', None)
         if not created_by:
-            # Create or get a default system user for testing
-            created_by, _ = CustomUser.objects.get_or_create(
-                email='system@demo.com',
-                defaults={
-                    'first_name': 'System',
-                    'last_name': 'User',
-                    'role': 'doctor',
-                    'is_active': True
-                }
-            )
+            # Use the first available doctor user
+            try:
+                created_by = CustomUser.objects.filter(role='doctor').first()
+                if not created_by:
+                    # If no doctor exists, use any user
+                    created_by = CustomUser.objects.first()
+                if not created_by:
+                    raise ValueError("No users available in the system")
+            except Exception as e:
+                print(f"Error finding user: {e}")
+                raise e
         
         # Handle authorized_by - can be a string name or None
         authorized_by_name = validated_data.pop('authorized_by', None)
@@ -169,34 +310,14 @@ class LabResultCreateSerializer(serializers.ModelSerializer):
         return LabResultSerializer(instance).data
     
     def validate(self, data):
-        print("=== DEBUG: LabResultCreateSerializer.validate ===")
-        print(f"Received data keys: {list(data.keys())}")
-        
-        # Check patient validation
-        patient = data.get('patient')
-        if patient:
-            print(f"Patient ID: {patient}")
-            try:
-                from patients.models import Patient
-                patient_obj = Patient.objects.get(id=patient)
-                print(f"Patient found: {patient_obj.name}")
-            except Patient.DoesNotExist:
-                print(f"ERROR: Patient with ID {patient} not found!")
-            except Exception as e:
-                print(f"ERROR checking patient: {e}")
-        
-        # Check test_results format
-        test_results = data.get('test_results', [])
-        print(f"Test results count: {len(test_results)}")
-        if test_results:
-            print(f"First test result: {test_results[0]}")
-        
-        print("=" * 50)
         return data
 
 class SOAPNoteSerializer(serializers.ModelSerializer):
     document = MedicalDocumentSerializer(read_only=True)
     patient_name = serializers.CharField(source='document.patient.name', read_only=True)
+    
+    # Custom JSON field for encrypted data
+    vital_signs = EncryptedJSONField()
     
     class Meta:
         model = SOAPNote
@@ -207,6 +328,9 @@ class SOAPNoteCreateSerializer(serializers.ModelSerializer):
     patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), write_only=True)
     created_by = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False, write_only=True)
     authorized_by = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False, write_only=True)
+    
+    # Custom JSON field for encrypted data
+    vital_signs = EncryptedJSONField()
     
     # Document fields (write-only for creation)
     title = serializers.CharField(write_only=True)
@@ -231,19 +355,10 @@ class SOAPNoteCreateSerializer(serializers.ModelSerializer):
         ]
     
     def create(self, validated_data):
-        # Get or create a default user for testing purposes
+        # Get or use existing user for document creation
         created_by = validated_data.pop('created_by', None)
         if not created_by:
-            # Create or get a default system user for testing
-            created_by, _ = CustomUser.objects.get_or_create(
-                email='system@demo.com',
-                defaults={
-                    'first_name': 'System',
-                    'last_name': 'User',
-                    'role': 'doctor',
-                    'is_active': True
-                }
-            )
+            created_by = get_default_user()
         
         # Extract document-related data
         document_data = {
@@ -271,6 +386,9 @@ class PrescriptionSerializer(serializers.ModelSerializer):
     patient_name = serializers.CharField(source='document.patient.name', read_only=True)
     document_uuid = serializers.UUIDField(source='document.id', read_only=True)
     
+    # Custom JSON field for encrypted data
+    medications = EncryptedJSONField()
+    
     class Meta:
         model = Prescription
         fields = [
@@ -291,6 +409,9 @@ class PrescriptionCreateSerializer(serializers.ModelSerializer):
     patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all(), write_only=True)
     created_by = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False, write_only=True)
     prescribing_physician = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.filter(role='doctor'), required=False)
+    
+    # Custom JSON field for encrypted data (medications field contains JSON)
+    medications = EncryptedJSONField()
     
     # Document fields (write-only for creation)
     title = serializers.CharField(write_only=True)
@@ -326,16 +447,9 @@ class PrescriptionCreateSerializer(serializers.ModelSerializer):
             if request and hasattr(request, 'user'):
                 created_by = request.user
             else:
-                created_by, _ = CustomUser.objects.get_or_create(
-                    email='system@demo.com',
-                    defaults={
-                        'first_name': 'System',
-                        'last_name': 'User',
-                        'role': 'doctor',
-                        'is_active': True
-                    }
-                )
+                created_by = get_default_user()
         # Extract document-related data
+        from django.utils import timezone
         document_data = {
             'document_type': 'prescription',
             'patient': validated_data.pop('patient'),
@@ -343,7 +457,7 @@ class PrescriptionCreateSerializer(serializers.ModelSerializer):
             'authorized_by': prescribing_physician or created_by,
             'title': validated_data.pop('title'),
             'description': validated_data.pop('description', ''),
-            'document_date': validated_data.pop('document_date', None),
+            'document_date': validated_data.pop('document_date', None) or timezone.now(),
             'status': validated_data.pop('status', 'approved'),
         }
         document = MedicalDocument.objects.create(**document_data)
@@ -373,9 +487,55 @@ class MedicalCertificateSerializer(serializers.ModelSerializer):
     document = MedicalDocumentSerializer(read_only=True)
     patient_name = serializers.CharField(source='document.patient.name', read_only=True)
     
+    # PDF file URLs
+    original_file_url = serializers.SerializerMethodField()
+    processed_file_url = serializers.SerializerMethodField()
+    has_pdf = serializers.SerializerMethodField()
+    pdf_url = serializers.SerializerMethodField()
+    file_url = serializers.SerializerMethodField()
+    
     class Meta:
         model = MedicalCertificate
         fields = '__all__'
+        
+    def get_original_file_url(self, obj):
+        """Return the original file URL if available"""
+        if obj.document and obj.document.original_file:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.document.original_file.url)
+            return obj.document.original_file.url
+        return None
+        
+    def get_processed_file_url(self, obj):
+        """Return the processed file URL if available"""
+        if obj.document and obj.document.processed_file:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.document.processed_file.url)
+            return obj.document.processed_file.url
+        return None
+        
+    def get_has_pdf(self, obj):
+        """Return True if any PDF file is available"""
+        if obj.document:
+            return bool(obj.document.original_file or obj.document.processed_file)
+        return False
+        
+    def get_pdf_url(self, obj):
+        """Return the preferred PDF URL (processed first, then original)"""
+        if obj.document:
+            pdf_file = obj.document.processed_file or obj.document.original_file
+            if pdf_file:
+                request = self.context.get('request')
+                if request:
+                    return request.build_absolute_uri(pdf_file.url)
+                return pdf_file.url
+        return None
+        
+    def get_file_url(self, obj):
+        """Alternative method for file URL"""
+        return self.get_pdf_url(obj)
 
 class MedicalCertificateCreateSerializer(serializers.ModelSerializer):
     # For creating medical certificates with embedded document data
@@ -389,23 +549,146 @@ class MedicalCertificateCreateSerializer(serializers.ModelSerializer):
     document_date = serializers.DateTimeField(required=False)
     status = serializers.CharField(required=False, default='approved')
     
+    # MedicalCertificate fields - explicitly define to handle validation
+    certificate_type = serializers.CharField(required=False, default='fitness')
+    purpose = serializers.CharField(required=False, allow_blank=True, default='General medical certificate')
+    medical_opinion = serializers.CharField(required=False, allow_blank=True, default='Medical examination completed')
+    valid_from = serializers.DateField(required=False)
+    valid_until = serializers.DateField(required=False, allow_null=True)
+    restrictions = serializers.CharField(required=False, allow_blank=True, default='')
+    examination_findings = serializers.CharField(required=False, allow_blank=True, default='')
+    
     class Meta:
         model = MedicalCertificate
         exclude = ('document',)
     
+    def to_representation(self, instance):
+        """Custom representation to handle patient field access"""
+        # Create a custom representation without calling super() first
+        # to avoid the AttributeError on patient field
+        data = {}
+        
+        # Handle MedicalCertificate fields directly
+        if hasattr(instance, 'certificate_type'):
+            data['certificate_type'] = instance.certificate_type
+        if hasattr(instance, 'purpose'):
+            data['purpose'] = instance.purpose
+        if hasattr(instance, 'medical_opinion'):
+            data['medical_opinion'] = instance.medical_opinion
+        if hasattr(instance, 'valid_from'):
+            data['valid_from'] = instance.valid_from
+        if hasattr(instance, 'valid_until'):
+            data['valid_until'] = instance.valid_until
+        if hasattr(instance, 'restrictions'):
+            data['restrictions'] = instance.restrictions
+        if hasattr(instance, 'examination_findings'):
+            data['examination_findings'] = instance.examination_findings
+        
+        # Add document-related fields from the related document
+        if hasattr(instance, 'document') and instance.document:
+            data['patient'] = instance.document.patient.id
+            data['created_by'] = instance.document.created_by.id
+            data['authorized_by'] = instance.document.authorized_by.id if instance.document.authorized_by else None
+            data['title'] = instance.document.title
+            data['description'] = instance.document.description
+            data['document_date'] = instance.document.document_date
+            data['status'] = instance.document.status
+            # Add the document ID for reference
+            data['document_id'] = instance.document.id
+        
+        # Add the medical certificate ID
+        if hasattr(instance, 'id'):
+            data['id'] = instance.id
+        
+        return data
+    
+    def validate_patient(self, value):
+        """Validate that the patient exists and is active"""
+        if not value:
+            raise serializers.ValidationError("Patient is required")
+        return value
+    
+    def validate_valid_from(self, value):
+        """Validate that valid_from date is not in the past"""
+        from django.utils import timezone
+        if value and value < timezone.now().date():
+            raise serializers.ValidationError("Valid from date cannot be in the past")
+        return value
+    
+    def validate_valid_until(self, value):
+        """Validate that valid_until is after valid_from"""
+        valid_from = self.initial_data.get('valid_from')
+        if value and valid_from:
+            from datetime import datetime
+            if isinstance(valid_from, str):
+                try:
+                    valid_from_date = datetime.strptime(valid_from, '%Y-%m-%d').date()
+                except ValueError:
+                    # If date parsing fails, let the field validation handle it
+                    return value
+            else:
+                valid_from_date = valid_from
+            
+            if isinstance(value, str):
+                try:
+                    valid_until_date = datetime.strptime(value, '%Y-%m-%d').date()
+                except ValueError:
+                    return value
+            else:
+                valid_until_date = value
+            
+            if valid_until_date <= valid_from_date:
+                raise serializers.ValidationError("Valid until date must be after valid from date")
+        return value
+    
+    def validate(self, data):
+        """Additional validation for the entire object"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        logger.info(f"=== SERIALIZER VALIDATION ===")
+        logger.info(f"Input data: {data}")
+        
+        # Apply default values for empty fields BEFORE validation
+        if not data.get('purpose', '').strip():
+            data['purpose'] = 'General medical certificate'
+            logger.info(f"Applied default purpose: {data['purpose']}")
+        
+        if not data.get('medical_opinion', '').strip():
+            data['medical_opinion'] = 'Medical examination completed'
+            logger.info(f"Applied default medical_opinion: {data['medical_opinion']}")
+        
+        if not data.get('certificate_type', '').strip():
+            data['certificate_type'] = 'fitness'
+            logger.info(f"Applied default certificate_type: {data['certificate_type']}")
+        
+        # Now check for truly required fields (only those without defaults)
+        required_fields = ['valid_from']  # Only fields that truly must be provided
+        missing_fields = []
+        
+        for field in required_fields:
+            if not data.get(field):
+                missing_fields.append(field)
+                logger.error(f"Missing required field: {field}")
+        
+        if missing_fields:
+            error_dict = {}
+            for field in missing_fields:
+                error_dict[field] = f"{field.replace('_', ' ').title()} is required"
+            
+            logger.error(f"Validation failed due to missing fields: {error_dict}")
+            raise serializers.ValidationError(error_dict)
+        
+        logger.info(f"Validation passed for data: {data}")
+        return data
+    
     def create(self, validated_data):
-        # Get or create a default user for testing purposes
+        # Get or use existing user for document creation
         created_by = validated_data.pop('created_by', None)
         if not created_by:
-            created_by, _ = CustomUser.objects.get_or_create(
-                email='system@demo.com',
-                defaults={
-                    'first_name': 'System',
-                    'last_name': 'User',
-                    'role': 'doctor',
-                    'is_active': True
-                }
-            )
+            created_by = get_default_user()
+        
+        # Defaults are already applied in validate() method, so no need to re-apply here
         
         # Extract document-related data
         document_data = {
@@ -415,10 +698,14 @@ class MedicalCertificateCreateSerializer(serializers.ModelSerializer):
             'authorized_by': validated_data.pop('authorized_by', None),
             'title': validated_data.pop('title'),
             'description': validated_data.pop('description', ''),
-            'document_date': validated_data.pop('document_date', None),
             'status': validated_data.pop('status', 'approved'),
             'content': f"Medical Certificate - {validated_data.get('certificate_type', '').replace('_', ' ').title()}\n\nPurpose: {validated_data.get('purpose', '')}\n\nMedical Opinion: {validated_data.get('medical_opinion', '')}",
         }
+        
+        # Only include document_date if it's provided, otherwise let the model use its default
+        document_date = validated_data.pop('document_date', None)
+        if document_date is not None:
+            document_data['document_date'] = document_date
         
         # Create the base document
         document = MedicalDocument.objects.create(**document_data)
@@ -432,9 +719,55 @@ class PhysicalExaminationSerializer(serializers.ModelSerializer):
     document = MedicalDocumentSerializer(read_only=True)
     patient_name = serializers.CharField(source='document.patient.name', read_only=True)
     
+    # PDF file URLs
+    original_file_url = serializers.SerializerMethodField()
+    processed_file_url = serializers.SerializerMethodField()
+    has_pdf = serializers.SerializerMethodField()
+    pdf_url = serializers.SerializerMethodField()
+    file_url = serializers.SerializerMethodField()
+    
     class Meta:
         model = PhysicalExamination
         fields = '__all__'
+        
+    def get_original_file_url(self, obj):
+        """Return the original file URL if available"""
+        if obj.document and obj.document.original_file:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.document.original_file.url)
+            return obj.document.original_file.url
+        return None
+        
+    def get_processed_file_url(self, obj):
+        """Return the processed file URL if available"""
+        if obj.document and obj.document.processed_file:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.document.processed_file.url)
+            return obj.document.processed_file.url
+        return None
+        
+    def get_has_pdf(self, obj):
+        """Return True if any PDF file is available"""
+        if obj.document:
+            return bool(obj.document.original_file or obj.document.processed_file)
+        return False
+        
+    def get_pdf_url(self, obj):
+        """Return the preferred PDF URL (processed first, then original)"""
+        if obj.document:
+            pdf_file = obj.document.processed_file or obj.document.original_file
+            if pdf_file:
+                request = self.context.get('request')
+                if request:
+                    return request.build_absolute_uri(pdf_file.url)
+                return pdf_file.url
+        return None
+        
+    def get_file_url(self, obj):
+        """Alternative method for file URL"""
+        return self.get_pdf_url(obj)
 
 class PhysicalExaminationCreateSerializer(serializers.ModelSerializer):
     # For creating physical examinations with embedded document data
@@ -453,18 +786,10 @@ class PhysicalExaminationCreateSerializer(serializers.ModelSerializer):
         exclude = ('document',)
     
     def create(self, validated_data):
-        # Get or create a default user for testing purposes
+        # Get or use existing user for document creation
         created_by = validated_data.pop('created_by', None)
         if not created_by:
-            created_by, _ = CustomUser.objects.get_or_create(
-                email='system@demo.com',
-                defaults={
-                    'first_name': 'System',
-                    'last_name': 'User',
-                    'role': 'doctor',
-                    'is_active': True
-                }
-            )
+            created_by = get_default_user()
         
         # Extract document-related data
         document_data = {
@@ -516,18 +841,10 @@ class ClinicalNoteCreateSerializer(serializers.ModelSerializer):
         ]
     
     def create(self, validated_data):
-        # Get or create a default user for testing purposes
+        # Get or use existing user for document creation
         created_by = validated_data.pop('created_by', None)
         if not created_by:
-            created_by, _ = CustomUser.objects.get_or_create(
-                email='system@demo.com',
-                defaults={
-                    'first_name': 'System',
-                    'last_name': 'User',
-                    'role': 'doctor',
-                    'is_active': True
-                }
-            )
+            created_by = get_default_user()
         
         # Extract document-related data
         document_data = {

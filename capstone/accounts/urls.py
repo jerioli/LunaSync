@@ -29,6 +29,7 @@ urlpatterns = [
     path('auth/current-user/', CurrentUserView.as_view(), name='current-user'),
     
     path('doctors/', DoctorListView.as_view(), name='doctor-list'),  # Matches /api/doctors/
+    path('doctors/current/', CurrentUserView.as_view(), name='current-doctor'),  # Matches /api/doctors/current/
     path('receptionists/', ReceptionistListView.as_view(), name='receptionist-list'),  # Matches /api/receptionists/
     path('admins/', AdminListView.as_view(), name='admin-list'),  # Matches /api/admins/
     
