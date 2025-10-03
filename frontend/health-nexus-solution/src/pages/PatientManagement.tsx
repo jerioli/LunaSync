@@ -46,6 +46,20 @@ import { Patient } from "@/lib/mock-data";
 import { axiosInstance } from "@/services/api";
 import { type LabResult as APILabResult } from "@/services/medicalDocumentsAPI";
 import { parseApiError } from "@/utils/errorHandler";
+import { 
+  HTMLToPDFConverter,
+  generatePrescriptionHTML,
+  generateSOAPNoteHTML,
+  generateClinicalNoteHTML
+} from "@/utils/htmlToPdf";
+import { 
+  pdfGenerator, 
+  type PrescriptionData,
+  type SOAPNoteData,
+  type DocumentHeaderInfo,
+  type PatientInfo 
+} from "@/utils/pdfGenerator";
+import { generatePrescriptionPDF, generateSOAPNotePDF } from "@/utils/patientPDFHelpers";
 import { format } from "date-fns";
 import {
   ArrowLeft,
@@ -1537,7 +1551,7 @@ const PatientManagement = () => {
         } else {
           // Fallback: Create a basic lab result layout if content is missing
           content += `
-            <div style="padding: 40px; max-width: 8.5in; margin: 0 auto; background: white; min-height: 11in; font-family: 'Times New Roman', serif;">
+            <div style="padding: 40px; max-width: 8.5in; margin: 0 auto; background: white; min-height: 11in; font-family: Arial, sans-serif;">
               <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px;">
                 <h1 style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">LABORATORY RESULT REPORT</h1>
                 <p style="font-size: 12px;">Generated: ${format(
@@ -3014,7 +3028,7 @@ const PatientManagement = () => {
         } else {
           // Fallback: Create a basic lab result layout if content is missing
           content += `
-            <div style="padding: 40px; max-width: 8.5in; margin: 0 auto; background: white; min-height: 11in; font-family: 'Times New Roman', serif;">
+            <div style="padding: 40px; max-width: 8.5in; margin: 0 auto; background: white; min-height: 11in; font-family: Arial, sans-serif;">
               <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px;">
                 <h1 style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">LABORATORY RESULT REPORT</h1>
                 <p style="font-size: 12px;">Generated: ${format(
@@ -3886,261 +3900,43 @@ const PatientManagement = () => {
                           variant="outline"
                           size="sm"
                           onClick={async () => {
-                            // Fetch current clinic settings
-                            let currentClinicSettings = clinicSettings;
-                            if (!currentClinicSettings) {
-                              try {
-                                currentClinicSettings =
-                                  await fetchClinicSettings();
-                              } catch (error) {
-                                console.error(
-                                  "Failed to fetch clinic settings:",
-                                  error
-                                );
-                                currentClinicSettings = {};
+                            try {
+                              // Fetch current clinic settings
+                              let currentClinicSettings = clinicSettings;
+                              if (!currentClinicSettings) {
+                                try {
+                                  currentClinicSettings = await fetchClinicSettings();
+                                } catch (error) {
+                                  console.error("Failed to fetch clinic settings:", error);
+                                  currentClinicSettings = {};
+                                }
                               }
-                            }
 
-                            // Helper function to get proper logo URL
-                            const getFullLogoUrl = (logo: string) => {
-                              if (!logo) return null;
-                              // If it's already a full URL, return as-is
-                              if (logo.startsWith("http")) return logo;
-                              // If it starts with /media/, add the base URL
-                              if (logo.startsWith("/media/"))
-                                return `http://127.0.0.1:8000${logo}`;
-                              // If it starts with branding/, add the full path
-                              if (logo.startsWith("branding/"))
-                                return `http://127.0.0.1:8000/media/${logo}`;
-                              // If it's just a filename, assume it's in branding folder
-                              if (!logo.includes("/"))
-                                return `http://127.0.0.1:8000/media/branding/${logo}`;
-                              // Otherwise, add base URL
-                              return `http://127.0.0.1:8000${
-                                logo.startsWith("/") ? logo : "/" + logo
-                              }`;
-                            };
+                              // Generate HTML content using template
+                              const htmlContent = generatePrescriptionHTML(
+                                prescription,
+                                patientData,
+                                currentClinicSettings,
+                                currentUser
+                              );
 
-                            const logoUrl = getFullLogoUrl(
-                              currentClinicSettings?.logo
-                            );
-                            const content = `
-                              <!DOCTYPE html>
-                              <html>
-                              <head>
-                                <title>E-Prescription</title>
-                                <style>
-                                  body { 
-                                    font-family: Arial, sans-serif; 
-                                    margin: 0;
-                                    padding: 20px;
-                                    background: white;
-                                  }
-                                  @media print {
-                                    body { margin: 0; padding: 0; }
-                                  }
-                                </style>
-                              </head>
-                              <body>
-                                <div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; font-family: Arial, sans-serif;">
-                                  <!-- Header with Logo and QR -->
-                                  <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
-                                    <div>
-                                      ${
-                                        currentClinicSettings?.logo
-                                          ? `<img src="${getFullLogoUrl(
-                                              currentClinicSettings.logo
-                                            )}" alt="Clinic Logo" style="height: 50px; width: auto; margin-bottom: 10px;">`
-                                          : `<div style="width: 50px; height: 50px; background: #f0f0f0; margin-bottom: 10px;"></div>`
-                                      }
-                                      <div style="font-size: 14px; color: #333;">${
-                                        currentClinicSettings?.clinic_name ||
-                                        "Medical Center"
-                                      }</div>
-                                    </div>
-                                    <div style="text-align: center;">
-                                      ${(() => {
-                                        // UUID v4 regex
-                                        const uuidRegex =
-                                          /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-                                        let id = prescription.document_uuid;
-                                        let debugInfo = "";
-                                        if (
-                                          (!id || !uuidRegex.test(id)) &&
-                                          prescription.prescription_number &&
-                                          uuidRegex.test(
-                                            prescription.prescription_number
-                                          )
-                                        ) {
-                                          id = prescription.prescription_number;
-                                          debugInfo += `<div style=\"font-size:10px;color:#888;\">Falling back to prescription_number: ${id}</div>`;
-                                        }
-                                        if (
-                                          (!id || !uuidRegex.test(id)) &&
-                                          prescription.backendId &&
-                                          uuidRegex.test(prescription.backendId)
-                                        ) {
-                                          id = prescription.backendId;
-                                          debugInfo += `<div style=\"font-size:10px;color:#888;\">Falling back to backendId: ${id}</div>`;
-                                        }
-                                        if (
-                                          (!id || !uuidRegex.test(id)) &&
-                                          prescription.id &&
-                                          uuidRegex.test(prescription.id)
-                                        ) {
-                                          id = prescription.id;
-                                          debugInfo += `<div style=\"font-size:10px;color:#888;\">Falling back to id: ${id}</div>`;
-                                        }
-                                        if (id && uuidRegex.test(id)) {
-                                          const qrId =
-                                            prescription.document_uuid ||
-                                            (prescription.document &&
-                                              prescription.document.id) ||
-                                            id;
-                                          return (
-                                            debugInfo +
-                                            `<img src=\"http://127.0.0.1:8000/api/prescriptions/${qrId}/qr/\" alt=\"QR Code\" style=\"width: 80px; height: 80px; border: 1px solid #ccc; background: #fff; display: block; margin: 0 auto;\" />`
-                                          );
-                                        } else {
-                                          debugInfo += `<div style=\"font-size:10px;color:#c00;\">prescription: ${JSON.stringify(
-                                            prescription
-                                          ).slice(0, 300)}...</div>`;
-                                          return (
-                                            debugInfo +
-                                            `<div style=\"width: 80px; height: 80px; border: 1px solid #ccc; background: #f8d7da; color: #721c24; display: flex; align-items: center; justify-content: center; font-size: 12px;\">QR code unavailable</div>`
-                                          );
-                                        }
-                                      })()}
-                                    </div>
-                                  </div>
+                              // View as PDF
+                              await HTMLToPDFConverter.viewPDFFromHTML(htmlContent);
 
-                                  <!-- Prescription ID -->
-                                  <div style="text-align: center; margin-bottom: 20px;">
-                                    <div style="font-weight: bold; font-size: 14px;">PRESCRIPTION ID: ${Date.now()
-                                      .toString()
-                                      .slice(-8)
-                                      .toUpperCase()}</div>
-                                  </div>
-
-                                  <!-- Location and Date -->
-                                  <div style="text-align: center; margin-bottom: 30px; font-size: 12px; color: #666;">
-                                    <div>${
-                                      currentClinicSettings?.address ||
-                                      "Clinic Address"
-                                    }</div>
-                                    <div style="margin-top: 10px;">
-                                      Prescribed on: ${format(
-                                        new Date(prescription.dateCreated),
-                                        "MMMM dd, yyyy"
-                                      )}
-                                    </div>
-                                    <div>${format(
-                                      new Date(prescription.dateCreated),
-                                      "hh:mm a"
-                                    )} PHT</div>
-                                  </div>
-
-                                  <!-- Patient Info -->
-                                  <div style="margin-bottom: 20px; font-size: 12px;">
-                                    <div><strong>Patient:</strong> ${
-                                      patientData?.name
-                                    }</div>
-                                    <div><strong>Age:</strong> ${
-                                      patientData?.date_of_birth
-                                        ? Math.floor(
-                                            (new Date().getTime() -
-                                              new Date(
-                                                patientData.date_of_birth
-                                              ).getTime()) /
-                                              (365.25 * 24 * 60 * 60 * 1000)
-                                          )
-                                        : "N/A"
-                                    } years old</div>
-                                    <div><strong>Gender:</strong> ${
-                                      patientData?.gender || "Not specified"
-                                    }</div>
-                                  </div>
-
-                                  <!-- Rx Symbol -->
-                                  <div style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">Rx</div>
-
-                                  <!-- Prescription Details -->
-                                  <div style="margin-bottom: 40px; font-size: 14px; line-height: 1.6;">
-                                    ${(() => {
-                                      // Always use prescription.data.medications if available, else fallback
-                                      let meds =
-                                        Array.isArray(
-                                          prescription.data?.medications
-                                        ) &&
-                                        prescription.data.medications.length > 0
-                                          ? prescription.data.medications
-                                          : Array.isArray(
-                                              prescription.medications
-                                            )
-                                          ? prescription.medications
-                                          : [];
-                                      if (!meds || meds.length === 0) {
-                                        return "<div>No medications listed.</div>";
-                                      }
-                                      return meds
-                                        .map(
-                                          (med, idx) => `
-                                        <div style=\"margin-bottom: 18px;\">
-                                          <div style=\"font-weight: bold; margin-bottom: 5px;\">${
-                                            idx + 1
-                                          }. ${med.name || ""}</div>
-                                          <div style=\"margin-bottom: 6px;\">${
-                                            med.dose || med.dosage || ""
-                                          } - ${med.quantity || ""} ${
-                                            med.frequency
-                                              ? `- ${med.frequency}`
-                                              : ""
-                                          }</div>
-                                          ${
-                                            med.notes
-                                              ? `<div style=\\\"margin-left: 20px; color: #555;\\\">${med.notes}</div>`
-                                              : ""
-                                          }
-                                          <div style=\"font-size: 12px; color: #888; margin-left: 20px;\">${
-                                            med.startDate
-                                              ? `Start: ${med.startDate}`
-                                              : ""
-                                          } ${
-                                            med.endDate
-                                              ? ` | End: ${med.endDate}`
-                                              : ""
-                                          }</div>
-                                        </div>
-                                      `
-                                        )
-                                        .join("");
-                                    })()}
-                                  </div>
-
-                                  <!-- Doctor Signature Area -->
-                                  <div style="text-align: right; margin-top: 60px;">
-                                    <div style="border-bottom: 1px solid #000; width: 200px; margin-left: auto; margin-bottom: 5px;"></div>
-                                    <div style="font-size: 12px;">Dr. ${
-                                      currentUser?.first_name ||
-                                      currentUser?.name
-                                    } ${currentUser?.last_name || ""}</div>
-                                  </div>
-
-                                  <!-- Footer -->
-                                  <div style="text-align: center; margin-top: 40px; font-size: 10px; color: #999;">
-                                    <div style="width: 30px; height: 30px; border-radius: 50%; background: #f0f0f0; margin: 0 auto;"></div>
-                                  </div>
-                                </div>
-                              </body>
-                              </html>
-                            `;
-                            const newWindow = window.open();
-                            if (newWindow) {
-                              newWindow.document.write(content);
-                              newWindow.document.close();
+                              toast({
+                                title: "Prescription Viewed",
+                                description: "Prescription opened as PDF",
+                              });
+                            } catch (error) {
+                              console.error("Error generating prescription PDF:", error);
+                              toast({
+                                title: "Error",
+                                description: "Failed to generate prescription PDF",
+                                variant: "destructive",
+                              });
                             }
                           }}
-                          title="View Prescription"
+                          title="View Prescription (PDF)"
                         >
                           <Eye className="h-3 w-3" />
                         </Button>
@@ -4238,157 +4034,40 @@ const PatientManagement = () => {
                           variant="outline"
                           size="sm"
                           onClick={async () => {
-                            // Fetch current clinic settings
-                            let currentClinicSettings = clinicSettings;
-                            if (!currentClinicSettings) {
-                              try {
-                                currentClinicSettings =
-                                  await fetchClinicSettings();
-                              } catch (error) {
-                                console.error(
-                                  "Failed to fetch clinic settings:",
-                                  error
-                                );
-                                currentClinicSettings = {};
+                            try {
+                              // Fetch current clinic settings
+                              let currentClinicSettings = clinicSettings;
+                              if (!currentClinicSettings) {
+                                try {
+                                  currentClinicSettings = await fetchClinicSettings();
+                                } catch (error) {
+                                  console.error("Failed to fetch clinic settings:", error);
+                                  currentClinicSettings = {};
+                                }
                               }
-                            }
 
-                            const noteId = `${Date.now()
-                              .toString()
-                              .slice(-8)
-                              .toUpperCase()}`;
-                            const clinicData = currentClinicSettings || {};
+                              // Generate HTML content using template
+                              const htmlContent = generateSOAPNoteHTML(
+                                note,
+                                patientData,
+                                currentClinicSettings,
+                                currentUser
+                              );
 
-                            const content = `
-                              <!DOCTYPE html>
-                              <html>
-                              <head>
-                                <title>SOAP Note - ${patientData?.name}</title>
-                                <meta charset="utf-8">
-                                <style>
-                                  body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-                                  @media print { body { margin: 0; } }
-                                </style>
-                              </head>
-                              <body>
-                                <div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; font-family: Arial, sans-serif;">
-                                  <!-- Header with Logo and QR -->
-                                  <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
-                                    <div>
-                                      ${
-                                        clinicData.logo
-                                          ? `<img src="${getLogoUrl(
-                                              clinicData.logo
-                                            )}" alt="Clinic Logo" style="height: 50px; width: auto; margin-bottom: 10px;">`
-                                          : `<div style="width: 50px; height: 50px; background: #f0f0f0; margin-bottom: 10px;"></div>`
-                                      }
-                                      <div style="font-size: 14px; color: #333;">${
-                                        clinicData.clinic_name ||
-                                        "Medical Center"
-                                      }</div>
-                                    </div>
-                                    <div style="text-align: center;">
-                                      <div style="width: 80px; height: 80px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666;">
-                                        QR CODE
-                                      </div>
-                                    </div>
-                                  </div>
+                              // View as PDF
+                              await HTMLToPDFConverter.viewPDFFromHTML(htmlContent);
 
-                                  <!-- Note ID -->
-                                  <div style="text-align: center; margin-bottom: 20px;">
-                                    <div style="font-weight: bold; font-size: 14px;">SOAP NOTE ID: ${noteId}</div>
-                                  </div>
-
-                                  <!-- Location and Date -->
-                                  <div style="text-align: center; margin-bottom: 30px; font-size: 12px; color: #666;">
-                                    <div>${
-                                      clinicData.address || "Clinic Address"
-                                    }</div>
-                                    <div style="margin-top: 10px;">
-                                      Created on: ${format(
-                                        new Date(note.dateCreated),
-                                        "MMMM dd, yyyy"
-                                      )}
-                                    </div>
-                                    <div>${format(
-                                      new Date(note.dateCreated),
-                                      "hh:mm a"
-                                    )} PHT</div>
-                                  </div>
-
-                                  <!-- Patient Info -->
-                                  <div style="margin-bottom: 20px; font-size: 12px;">
-                                    <div><strong>Patient:</strong> ${
-                                      patientData?.name
-                                    }</div>
-                                    <div><strong>Age:</strong> ${
-                                      patientData?.date_of_birth
-                                        ? Math.floor(
-                                            (new Date().getTime() -
-                                              new Date(
-                                                patientData.date_of_birth
-                                              ).getTime()) /
-                                              (365.25 * 24 * 60 * 60 * 1000)
-                                          )
-                                        : "N/A"
-                                    } years old</div>
-                                    <div><strong>Gender:</strong> ${
-                                      patientData?.gender || "Not specified"
-                                    }</div>
-                                  </div>
-
-                                  <!-- SOAP Symbol -->
-                                  <div style="font-size: 24px; font-weight: bold; margin-bottom: 15px; color: #059669;">SOAP</div>
-
-                                  <!-- SOAP Details -->
-                                  <div style="margin-bottom: 40px; font-size: 14px; line-height: 1.6;">
-                                    <div style="margin-bottom: 15px;">
-                                      <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">Subjective:</div>
-                                      <div style="margin-left: 20px; color: #333;">${
-                                        note.data?.subjective || "Not recorded"
-                                      }</div>
-                                    </div>
-                                    <div style="margin-bottom: 15px;">
-                                      <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">Objective:</div>
-                                      <div style="margin-left: 20px; color: #333;">${
-                                        note.data?.objective || "Not recorded"
-                                      }</div>
-                                    </div>
-                                    <div style="margin-bottom: 15px;">
-                                      <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">Assessment:</div>
-                                      <div style="margin-left: 20px; color: #333;">${
-                                        note.data?.assessment || "Not recorded"
-                                      }</div>
-                                    </div>
-                                    <div style="margin-bottom: 15px;">
-                                      <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">Plan:</div>
-                                      <div style="margin-left: 20px; color: #333;">${
-                                        note.data?.plan || "Not recorded"
-                                      }</div>
-                                    </div>
-                                  </div>
-
-                                  <!-- Doctor Signature Area -->
-                                  <div style="text-align: right; margin-top: 60px;">
-                                    <div style="border-bottom: 1px solid #000; width: 200px; margin-left: auto; margin-bottom: 5px;"></div>
-                                    <div style="font-size: 12px;">Dr. ${
-                                      currentUser?.first_name ||
-                                      currentUser?.name
-                                    } ${currentUser?.last_name || ""}</div>
-                                  </div>
-
-                                  <!-- Footer -->
-                                  <div style="text-align: center; margin-top: 40px; font-size: 10px; color: #999;">
-                                    <div style="width: 30px; height: 30px; border-radius: 50%; background: #f0f0f0; margin: 0 auto;"></div>
-                                  </div>
-                                </div>
-                              </body>
-                              </html>
-                            `;
-                            const newWindow = window.open("", "_blank");
-                            if (newWindow) {
-                              newWindow.document.write(content);
-                              newWindow.document.close();
+                              toast({
+                                title: "SOAP Note Viewed",
+                                description: "SOAP note opened as PDF",
+                              });
+                            } catch (error) {
+                              console.error("Error generating SOAP note PDF:", error);
+                              toast({
+                                title: "Error",
+                                description: "Failed to generate SOAP note PDF",
+                                variant: "destructive",
+                              });
                             }
                           }}
                           title="View SOAP Note"
@@ -4486,142 +4165,40 @@ const PatientManagement = () => {
                           variant="outline"
                           size="sm"
                           onClick={async () => {
-                            // Fetch current clinic settings
-                            let currentClinicSettings = clinicSettings;
-                            if (!currentClinicSettings) {
-                              try {
-                                currentClinicSettings =
-                                  await fetchClinicSettings();
-                              } catch (error) {
-                                console.error(
-                                  "Failed to fetch clinic settings:",
-                                  error
-                                );
-                                currentClinicSettings = {};
+                            try {
+                              // Fetch current clinic settings
+                              let currentClinicSettings = clinicSettings;
+                              if (!currentClinicSettings) {
+                                try {
+                                  currentClinicSettings = await fetchClinicSettings();
+                                } catch (error) {
+                                  console.error("Failed to fetch clinic settings:", error);
+                                  currentClinicSettings = {};
+                                }
                               }
-                            }
 
-                            const noteId = `${Date.now()
-                              .toString()
-                              .slice(-8)
-                              .toUpperCase()}`;
-                            const clinicData = currentClinicSettings || {};
+                              // Generate HTML content using template
+                              const htmlContent = generateClinicalNoteHTML(
+                                note,
+                                patientData,
+                                currentClinicSettings,
+                                currentUser
+                              );
 
-                            const content = `
-                              <!DOCTYPE html>
-                              <html>
-                              <head>
-                                <title>Clinical Note - ${
-                                  patientData?.name
-                                }</title>
-                                <meta charset="utf-8">
-                                <style>
-                                  body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-                                  @media print { body { margin: 0; } }
-                                </style>
-                              </head>
-                              <body>
-                                <div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; font-family: Arial, sans-serif;">
-                                  <!-- Header with Logo and QR -->
-                                  <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
-                                    <div>
-                                      ${
-                                        clinicData.logo
-                                          ? `<img src="${getLogoUrl(
-                                              clinicData.logo
-                                            )}" alt="Clinic Logo" style="height: 50px; width: auto; margin-bottom: 10px;">`
-                                          : `<div style="width: 50px; height: 50px; background: #f0f0f0; margin-bottom: 10px;"></div>`
-                                      }
-                                      <div style="font-size: 14px; color: #333;">${
-                                        clinicData.clinic_name ||
-                                        "Medical Center"
-                                      }</div>
-                                    </div>
-                                    <div style="text-align: center;">
-                                      <div style="width: 80px; height: 80px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666;">
-                                        QR CODE
-                                      </div>
-                                    </div>
-                                  </div>
+                              // View as PDF
+                              await HTMLToPDFConverter.viewPDFFromHTML(htmlContent);
 
-                                  <!-- Note ID -->
-                                  <div style="text-align: center; margin-bottom: 20px;">
-                                    <div style="font-weight: bold; font-size: 14px;">CLINICAL NOTE ID: ${noteId}</div>
-                                  </div>
-
-                                  <!-- Location and Date -->
-                                  <div style="text-align: center; margin-bottom: 30px; font-size: 12px; color: #666;">
-                                    <div>${
-                                      clinicData.address || "Clinic Address"
-                                    }</div>
-                                    <div style="margin-top: 10px;">
-                                      Created on: ${format(
-                                        new Date(note.dateCreated),
-                                        "MMMM dd, yyyy"
-                                      )}
-                                    </div>
-                                    <div>${format(
-                                      new Date(note.dateCreated),
-                                      "hh:mm a"
-                                    )} PHT</div>
-                                  </div>
-
-                                  <!-- Patient Info -->
-                                  <div style="margin-bottom: 20px; font-size: 12px;">
-                                    <div><strong>Patient:</strong> ${
-                                      patientData?.name
-                                    }</div>
-                                    <div><strong>Age:</strong> ${
-                                      patientData?.date_of_birth
-                                        ? Math.floor(
-                                            (new Date().getTime() -
-                                              new Date(
-                                                patientData.date_of_birth
-                                              ).getTime()) /
-                                              (365.25 * 24 * 60 * 60 * 1000)
-                                          )
-                                        : "N/A"
-                                    } years old</div>
-                                    <div><strong>Gender:</strong> ${
-                                      patientData?.gender || "Not specified"
-                                    }</div>
-                                  </div>
-
-                                  <!-- Note Symbol -->
-                                  <div style="font-size: 24px; font-weight: bold; margin-bottom: 15px; color: #2563eb;">Clinical Note</div>
-
-                                  <!-- Note Details -->
-                                  <div style="margin-bottom: 40px; font-size: 14px; line-height: 1.6;">
-                                    <div style="font-weight: bold; margin-bottom: 10px; color: #2563eb;">${
-                                      note.data?.title || "Clinical Note"
-                                    }</div>
-                                    <div style="margin-left: 20px; color: #333; white-space: pre-wrap;">${
-                                      note.data?.content ||
-                                      "No content recorded"
-                                    }</div>
-                                  </div>
-
-                                  <!-- Doctor Signature Area -->
-                                  <div style="text-align: right; margin-top: 60px;">
-                                    <div style="border-bottom: 1px solid #000; width: 200px; margin-left: auto; margin-bottom: 5px;"></div>
-                                    <div style="font-size: 12px;">Dr. ${
-                                      currentUser?.first_name ||
-                                      currentUser?.name
-                                    } ${currentUser?.last_name || ""}</div>
-                                  </div>
-
-                                  <!-- Footer -->
-                                  <div style="text-align: center; margin-top: 40px; font-size: 10px; color: #999;">
-                                    <div style="width: 30px; height: 30px; border-radius: 50%; background: #f0f0f0; margin: 0 auto;"></div>
-                                  </div>
-                                </div>
-                              </body>
-                              </html>
-                            `;
-                            const newWindow = window.open("", "_blank");
-                            if (newWindow) {
-                              newWindow.document.write(content);
-                              newWindow.document.close();
+                              toast({
+                                title: "Clinical Note Viewed",
+                                description: "Clinical note opened as PDF",
+                              });
+                            } catch (error) {
+                              console.error("Error generating clinical note PDF:", error);
+                              toast({
+                                title: "Error",
+                                description: "Failed to generate clinical note PDF",
+                                variant: "destructive",
+                              });
                             }
                           }}
                           title="View Note"
