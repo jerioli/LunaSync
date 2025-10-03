@@ -22,7 +22,7 @@ import {
   generateMedicalCertificateHTML,
   MedicalCertificateTemplateData,
 } from "@/utils/medicalCertificateTemplate";
-import axios from "axios";
+import { axiosInstance } from "@/services/api";
 import { format } from "date-fns";
 import {
   Download,
@@ -36,8 +36,7 @@ import {
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
-// Set axios base URL for API calls
-axios.defaults.baseURL = "http://127.0.0.1:8000/api/";
+// Note: Using axiosInstance for API calls with proper authentication
 
 interface MedicalCertificateData {
   hospitalName: string;
@@ -57,6 +56,7 @@ interface MedicalCertificateData {
   medicalRecommendations: string;
   restFromDate: string;
   restToDate: string;
+
   fitForWork: "fit" | "unfit" | "limited" | "fit_physical_activities";
   limitations: string;
   followUpDate: string;
@@ -169,7 +169,7 @@ const MedicalCertificateGenerator: React.FC<
     }); // Fetch clinic information
   const fetchClinicInfo = async () => {
     try {
-      const response = await axios.get("/clinic/");
+      const response = await axiosInstance.get("/clinic/");
       if (response.data) {
         setClinicInfo(response.data);
         // Update certificate data with clinic info
@@ -201,7 +201,7 @@ const MedicalCertificateGenerator: React.FC<
       console.log("Fetching doctor info for currentUser:", currentUser);
 
       if (currentUser && currentUser.role === "doctor") {
-        const response = await axios.get("/doctors/");
+        const response = await axiosInstance.get("/doctors/");
         console.log("Doctor API response:", response.data);
 
         if (response.data && Array.isArray(response.data)) {
@@ -273,6 +273,14 @@ const MedicalCertificateGenerator: React.FC<
     }
   }, [showForm, currentUser]);
 
+  // Load clinic and doctor info on component mount for viewing existing certificates
+  useEffect(() => {
+    if (currentUser) {
+      fetchClinicInfo();
+      fetchDoctorInfo();
+    }
+  }, [currentUser]);
+
   const handleInputChange = (
     field: keyof MedicalCertificateData,
     value: string
@@ -303,19 +311,85 @@ const MedicalCertificateGenerator: React.FC<
     setDeleteConfirmId(null);
   };
 
-  const generateCertificate = () => {
-    const certificate = {
-      id: Date.now(), // Simple ID generation
-      type: "Medical Certificate",
-      dateCreated: new Date().toISOString(),
-      patientId: patient.id,
-      data: certificateData,
-      content: generateCertificateHTML(),
-    };
+  const generateCertificate = async () => {
+    try {
+      setLoading(true);
 
-    onSaveCertificate(certificate);
-    setShowForm(false);
-    setShowPreview(false);
+      // Prepare the data for the API
+      const certificateType = (() => {
+        if (certificateData.fitForWork === "fit") return "fitness";
+        if (certificateData.fitForWork === "fit_physical_activities")
+          return "sports_clearance";
+        if (certificateData.fitForWork === "unfit") return "sick_leave";
+        if (certificateData.fitForWork === "limited") return "work_clearance";
+        return "fitness";
+      })();
+
+      const apiData = {
+        patient: patient.id,
+        title: `Medical Certificate - ${patient.name}`,
+        description: `${certificateType
+          .replace("_", " ")
+          .replace(/\b\w/g, (l) => l.toUpperCase())} certificate for ${
+          patient.name
+        }`,
+        certificate_type: certificateType,
+        purpose:
+          certificateData.fitForWork === "fit_physical_activities"
+            ? "Physical Activities Clearance"
+            : "Medical Assessment",
+        medical_opinion:
+          certificateData.diagnosis || "Medical assessment completed",
+        valid_from: certificateData.dateIssued,
+        valid_until: certificateData.restToDate || null,
+        restrictions: certificateData.limitations || "",
+        examination_findings: `
+Chief Complaint: ${certificateData.chiefComplaint || "N/A"}
+Diagnosis: ${certificateData.diagnosis || "N/A"}
+Recommendations: ${certificateData.medicalRecommendations || "N/A"}
+Fitness Status: ${certificateData.fitForWork}
+        `.trim(),
+        status: "approved",
+      };
+
+      // Save to database via API
+      const response = await axiosInstance.post(
+        "/medical-documents/medical-certificates/",
+        apiData
+      );
+
+      console.log("Certificate saved to database:", response.data);
+
+      // Also save to local state for immediate UI update
+      const certificate = {
+        id: response.data.id || Date.now(),
+        type: "Medical Certificate",
+        dateCreated: new Date().toISOString(),
+        patientId: patient.id,
+        data: certificateData,
+        content: generateCertificateHTML(),
+        dbRecord: response.data, // Store the database record
+      };
+
+      onSaveCertificate(certificate);
+      setShowForm(false);
+      setShowPreview(false);
+
+      const { toast } = await import("sonner");
+      toast.success("Medical certificate saved successfully!", {
+        description: `Certificate saved to database and available for ${patient.name}`,
+      });
+    } catch (error) {
+      console.error("Error saving certificate to database:", error);
+      const { toast } = await import("sonner");
+      toast.error("Failed to save certificate", {
+        description:
+          error.response?.data?.message ||
+          "Please try again or contact support.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const saveAndSendEmail = async () => {
@@ -338,17 +412,62 @@ const MedicalCertificateGenerator: React.FC<
 
       setLoading(true);
 
-      // Generate certificate first
+      // Prepare the data for the API
+      const certificateType = (() => {
+        if (certificateData.fitForWork === "fit") return "fitness";
+        if (certificateData.fitForWork === "fit_physical_activities")
+          return "sports_clearance";
+        if (certificateData.fitForWork === "unfit") return "sick_leave";
+        if (certificateData.fitForWork === "limited") return "work_clearance";
+        return "fitness";
+      })();
+
+      const apiData = {
+        patient: patient.id,
+        title: `Medical Certificate - ${patient.name}`,
+        description: `${certificateType
+          .replace("_", " ")
+          .replace(/\b\w/g, (l) => l.toUpperCase())} certificate for ${
+          patient.name
+        }`,
+        certificate_type: certificateType,
+        purpose:
+          certificateData.fitForWork === "fit_physical_activities"
+            ? "Physical Activities Clearance"
+            : "Medical Assessment",
+        medical_opinion:
+          certificateData.diagnosis || "Medical assessment completed",
+        valid_from: certificateData.dateIssued,
+        valid_until: certificateData.restToDate || null,
+        restrictions: certificateData.limitations || "",
+        examination_findings: `
+Chief Complaint: ${certificateData.chiefComplaint || "N/A"}
+Diagnosis: ${certificateData.diagnosis || "N/A"}
+Recommendations: ${certificateData.medicalRecommendations || "N/A"}
+Fitness Status: ${certificateData.fitForWork}
+        `.trim(),
+        status: "approved",
+      };
+
+      // Save to database via API first
+      const dbResponse = await axiosInstance.post(
+        "/medical-documents/medical-certificates/",
+        apiData
+      );
+      console.log("Certificate saved to database:", dbResponse.data);
+
+      // Generate certificate for local state and email
       const certificate = {
-        id: Date.now(),
+        id: dbResponse.data.id || Date.now(),
         type: "Medical Certificate",
         dateCreated: new Date().toISOString(),
         patientId: patient.id,
         data: certificateData,
         content: generateCertificateHTML(),
+        dbRecord: dbResponse.data, // Store the database record
       };
 
-      // Save the certificate
+      // Save the certificate to local state
       onSaveCertificate(certificate);
 
       // Send email with the certificate
@@ -361,6 +480,8 @@ const MedicalCertificateGenerator: React.FC<
             ? "Sick Leave Certificate"
             : certificateData.fitForWork === "limited"
             ? "Fitness Certificate (Limited)"
+            : certificateData.fitForWork === "fit_physical_activities"
+            ? "Physical Activities Certificate"
             : "Fitness Certificate",
         doctor_name: certificateData.doctorName,
         hospital_name: certificateData.hospitalName,
@@ -392,7 +513,7 @@ Best regards,
 ${certificateData.hospitalName}`,
       };
 
-      await axios.post("/send-medical-certificate-email/", emailData);
+      await axiosInstance.post("/send-medical-certificate-email/", emailData);
 
       setShowForm(false);
       setShowPreview(false);
@@ -756,10 +877,86 @@ ${certificateData.hospitalName}`,
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        if (certificate.content) {
+                        let content = certificate.content;
+
+                        // Generate content dynamically if it doesn't exist
+                        if (!content && certificate.data) {
+                          const logoUrl = clinicInfo?.logo
+                            ? getLogoUrl(clinicInfo.logo)
+                            : null;
+
+                          // Get doctor name with fallbacks
+                          const getDoctorName = () => {
+                            if (doctorInfo) {
+                              return `${doctorInfo.first_name} ${doctorInfo.last_name}`;
+                            }
+                            if (currentUser) {
+                              return `${currentUser.first_name} ${currentUser.last_name}`;
+                            }
+                            return "Dr. [Doctor Name]";
+                          };
+
+                          const templateData: MedicalCertificateTemplateData = {
+                            hospitalName:
+                              clinicInfo?.clinic_name ||
+                              "HealthNexus Medical Center",
+                            hospitalAddress: clinicInfo
+                              ? `${clinicInfo.address}, ${clinicInfo.city}, ${clinicInfo.state} ${clinicInfo.zip}`
+                              : "123 Medical Plaza, City, State 12345",
+                            hospitalContact:
+                              clinicInfo?.phone || "(123) 456-7890",
+                            hospitalLicense: "",
+                            hospitalLogo: logoUrl,
+                            doctorName: getDoctorName(),
+                            doctorLicense: doctorInfo?.license || "",
+                            doctorPRC: doctorInfo?.prc || "",
+                            doctorPTR: doctorInfo?.ptr || "",
+                            patientName:
+                              certificate.data.patientName ||
+                              `${patient.first_name} ${patient.last_name}`,
+                            patientAge:
+                              certificate.data.patientAge ||
+                              (patient.date_of_birth
+                                ? String(
+                                    new Date().getFullYear() -
+                                      new Date(
+                                        patient.date_of_birth
+                                      ).getFullYear()
+                                  )
+                                : ""),
+                            patientAddress:
+                              certificate.data.patientAddress ||
+                              patient.address ||
+                              "",
+                            patientSex:
+                              certificate.data.patientSex ||
+                              patient.gender ||
+                              "",
+                            chiefComplaint:
+                              certificate.data.chiefComplaint || "",
+                            diagnosis: certificate.data.diagnosis || "",
+                            medicalRecommendations:
+                              certificate.data.medicalRecommendations || "",
+                            restFromDate: certificate.data.restFromDate || "",
+                            restToDate: certificate.data.restToDate || "",
+                            fitForWork: certificate.data.fitForWork || "fit",
+                            limitations: certificate.data.limitations || "",
+                            followUpDate: certificate.data.followUpDate || "",
+                            dateIssued:
+                              certificate.data.dateIssued ||
+                              new Date().toISOString().split("T")[0],
+                            certificateType:
+                              certificate.data.certificateType || "general",
+                          };
+
+                          content =
+                            generateMedicalCertificateHTML(templateData);
+                        }
+
+                        if (content) {
                           const newWindow = window.open();
                           if (newWindow) {
-                            newWindow.document.write(certificate.content);
+                            newWindow.document.write(content);
                             newWindow.document.close();
                           }
                         } else {
@@ -774,8 +971,84 @@ ${certificateData.hospitalName}`,
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        if (certificate.content) {
-                          const blob = new Blob([certificate.content], {
+                        let content = certificate.content;
+
+                        // Generate content dynamically if it doesn't exist
+                        if (!content && certificate.data) {
+                          const logoUrl = clinicInfo?.logo
+                            ? getLogoUrl(clinicInfo.logo)
+                            : null;
+
+                          // Get doctor name with fallbacks
+                          const getDoctorName = () => {
+                            if (doctorInfo) {
+                              return `${doctorInfo.first_name} ${doctorInfo.last_name}`;
+                            }
+                            if (currentUser) {
+                              return `${currentUser.first_name} ${currentUser.last_name}`;
+                            }
+                            return "Dr. [Doctor Name]";
+                          };
+
+                          const templateData: MedicalCertificateTemplateData = {
+                            hospitalName:
+                              clinicInfo?.clinic_name ||
+                              "HealthNexus Medical Center",
+                            hospitalAddress: clinicInfo
+                              ? `${clinicInfo.address}, ${clinicInfo.city}, ${clinicInfo.state} ${clinicInfo.zip}`
+                              : "123 Medical Plaza, City, State 12345",
+                            hospitalContact:
+                              clinicInfo?.phone || "(123) 456-7890",
+                            hospitalLicense: "",
+                            hospitalLogo: logoUrl,
+                            doctorName: getDoctorName(),
+                            doctorLicense: doctorInfo?.license || "",
+                            doctorPRC: doctorInfo?.prc || "",
+                            doctorPTR: doctorInfo?.ptr || "",
+                            patientName:
+                              certificate.data.patientName ||
+                              `${patient.first_name} ${patient.last_name}`,
+                            patientAge:
+                              certificate.data.patientAge ||
+                              (patient.date_of_birth
+                                ? String(
+                                    new Date().getFullYear() -
+                                      new Date(
+                                        patient.date_of_birth
+                                      ).getFullYear()
+                                  )
+                                : ""),
+                            patientAddress:
+                              certificate.data.patientAddress ||
+                              patient.address ||
+                              "",
+                            patientSex:
+                              certificate.data.patientSex ||
+                              patient.gender ||
+                              "",
+                            chiefComplaint:
+                              certificate.data.chiefComplaint || "",
+                            diagnosis: certificate.data.diagnosis || "",
+                            medicalRecommendations:
+                              certificate.data.medicalRecommendations || "",
+                            restFromDate: certificate.data.restFromDate || "",
+                            restToDate: certificate.data.restToDate || "",
+                            fitForWork: certificate.data.fitForWork || "fit",
+                            limitations: certificate.data.limitations || "",
+                            followUpDate: certificate.data.followUpDate || "",
+                            dateIssued:
+                              certificate.data.dateIssued ||
+                              new Date().toISOString().split("T")[0],
+                            certificateType:
+                              certificate.data.certificateType || "general",
+                          };
+
+                          content =
+                            generateMedicalCertificateHTML(templateData);
+                        }
+
+                        if (content) {
+                          const blob = new Blob([content], {
                             type: "text/html",
                           });
                           const url = URL.createObjectURL(blob);

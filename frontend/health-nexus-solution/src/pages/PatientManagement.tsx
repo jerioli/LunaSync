@@ -202,6 +202,89 @@ const PatientManagement = () => {
     }));
   };
 
+  // Fetch certificates from database for this patient
+  const fetchCertificates = async () => {
+    if (!patientData?.id) return;
+
+    try {
+      const response = await axiosInstance.get(
+        `/medical-documents/medical-certificates/?patient_id=${patientData.id}`
+      );
+      console.log("Fetched certificates from database:", response.data);
+
+      // Convert database records to the expected format
+      const formattedCertificates = response.data.map((dbRecord: any) => {
+        // Determine certificate type display name
+        const getTypeDisplayName = (certType: string) => {
+          switch (certType) {
+            case "fitness":
+              return "Fitness for Work Certificate";
+            case "sports_clearance":
+              return "Sports Clearance Certificate";
+            case "sick_leave":
+              return "Sick Leave Certificate";
+            case "general":
+              return "General Medical Certificate";
+            default:
+              return "Medical Certificate";
+          }
+        };
+
+        return {
+          id: dbRecord.id,
+          type: getTypeDisplayName(dbRecord.certificate_type || "general"),
+          title:
+            dbRecord.document?.title ||
+            getTypeDisplayName(dbRecord.certificate_type || "general"),
+          dateCreated:
+            dbRecord.document?.created_at || new Date().toISOString(),
+          patientId: patientData.id,
+          data: {
+            // Convert database fields back to form format
+            patientName: `${patientData.first_name} ${patientData.last_name}`,
+            patientAge: patientData.date_of_birth
+              ? (
+                  new Date().getFullYear() -
+                  new Date(patientData.date_of_birth).getFullYear()
+                ).toString()
+              : "",
+            patientAddress: patientData.address || "",
+            patientSex: patientData.gender || "",
+            fitForWork:
+              dbRecord.certificate_type === "fitness"
+                ? "fit"
+                : dbRecord.certificate_type === "sports_clearance"
+                ? "fit_physical_activities"
+                : dbRecord.certificate_type === "sick_leave"
+                ? "unfit"
+                : "fit",
+            diagnosis: dbRecord.medical_opinion || "",
+            chiefComplaint: dbRecord.purpose || "",
+            medicalRecommendations: dbRecord.examination_findings || "",
+            limitations: dbRecord.restrictions || "",
+            certificateType: dbRecord.certificate_type || "general",
+            dateIssued: dbRecord.document?.document_date
+              ? new Date(dbRecord.document.document_date)
+                  .toISOString()
+                  .split("T")[0]
+              : new Date().toISOString().split("T")[0],
+            restFromDate:
+              dbRecord.valid_from || new Date().toISOString().split("T")[0],
+            restToDate: dbRecord.valid_until || "",
+            followUpDate: "",
+            // Extract other fields from examination_findings if available
+          },
+          content: null, // Will be generated when needed for viewing
+          dbRecord: dbRecord, // Store the original database record
+        };
+      });
+
+      setCertificates(formattedCertificates);
+    } catch (error) {
+      console.error("Error fetching certificates:", error);
+    }
+  };
+
   // Medical Documentation Templates handler functions
   const placeholders: Record<string, string> = {
     subjective:
@@ -504,6 +587,8 @@ const PatientManagement = () => {
           if (patient) {
             setPatientData(patient);
             setInitialLoadComplete(true);
+            // Fetch certificates for this patient
+            await fetchCertificates();
             return;
           }
         }
@@ -518,6 +603,8 @@ const PatientManagement = () => {
           if (patient) {
             setPatientData(patient);
             setInitialLoadComplete(true);
+            // Fetch certificates for this patient
+            await fetchCertificates();
             return;
           }
         }
@@ -533,6 +620,9 @@ const PatientManagement = () => {
 
           setPatientData(mappedPatient);
           setInitialLoadComplete(true);
+
+          // Fetch certificates for this patient
+          await fetchCertificates();
 
           // Update localStorage with the fetched data
           const stored = localStorage.getItem("patientsList");
@@ -573,6 +663,8 @@ const PatientManagement = () => {
   useEffect(() => {
     setInitialLoadComplete(false);
     setPatientData(null);
+    // Clear certificates when patient changes
+    setCertificates([]);
   }, [id]);
 
   // Initialize medical history when patient data is loaded
@@ -646,7 +738,27 @@ const PatientManagement = () => {
   // Certificate management functions
   const handleSaveCertificate = async (certificate: any) => {
     try {
-      // Prepare data for backend API
+      // Check if the certificate already has a database record (already saved)
+      if (certificate.dbRecord || certificate.backendId) {
+        console.log(
+          "Certificate already exists in database, just updating local state"
+        );
+        // Certificate already exists in database, just update local state
+        setCertificates((prev) => [
+          ...prev,
+          {
+            ...certificate,
+            id: certificate.dbRecord?.id || certificate.id,
+            backendId: certificate.dbRecord?.id || certificate.backendId,
+            documentId:
+              certificate.dbRecord?.document?.id || certificate.documentId,
+          },
+        ]);
+        return;
+      }
+
+      // If no database record exists, save to backend
+      console.log("No database record found, saving certificate to database");
       const certificateData = {
         patient: parseInt(id!),
         title: certificate.data?.title || "Medical Certificate",
