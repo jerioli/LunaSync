@@ -202,16 +202,32 @@ export const generateMedicalCertificateHTML = (data: MedicalCertificateTemplateD
 
           <!-- Main Certificate Content -->
           <div class="main-content">
-            This is to certify that <span class="underline">${data.patientName}</span>, age <span class="underline">${data.patientAge}</span>, gender <span class="underline">${data.patientSex || 'Not specified'}</span>, of <span class="underline">${data.patientAddress || 'Not specified'}</span> examined/confined on <span class="underline">${currentDate}</span> was <span class="underline">FIT FOR WORK</span> with chief complaint of <span class="underline">${data.chiefComplaint || ''}</span> with the diagnosis of <span class="underline">${data.diagnosis || ''}</span>.
+            This is to certify that <span class="underline">${data.patientName}</span>, age <span class="underline">${data.patientAge}</span>, gender <span class="underline">${data.patientSex || 'Not specified'}</span>, of <span class="underline">${data.patientAddress || 'Not specified'}</span> examined/confined on <span class="underline">${currentDate}</span> and the result revealed that he/she is <span class="underline">${(() => {
+              if (data.fitForWork === 'fit') return 'FIT FOR WORK';
+              if (data.fitForWork === 'unfit') return 'UNFIT FOR WORK';
+              if (data.fitForWork === 'limited') return 'FIT FOR WORK WITH LIMITATIONS';
+              if (data.fitForWork === 'fit_physical_activities') return 'FIT FOR PHYSICAL ACTIVITIES';
+              return 'FIT FOR WORK';
+            })()}</span>${(() => {
+              // Only show chief complaint and diagnosis if not fully fit for work
+              if (data.fitForWork === 'fit' || data.fitForWork === 'fit_physical_activities') {
+                return '.';
+              } else {
+                return ` with chief complaint of <span class="underline">${data.chiefComplaint || ''}</span> with the diagnosis of <span class="underline">${data.diagnosis || ''}</span>.`;
+              }
+            })()}
           </div>
 
-          <!-- Medical/Surgical Intervention -->
+          <!-- Medical/Surgical Intervention - Only show if not fully fit for work -->
+          ${data.fitForWork === 'fit' || data.fitForWork === 'fit_physical_activities' ? '' : `
           <div class="section-title">Medical/Surgical Intervention:</div>
           <div class="section-content">
             ${data.medicalRecommendations || ''}
           </div>
+          `}
 
-          <!-- Duration of Treatment -->
+          <!-- Duration of Treatment - Only show if not fully fit for work -->
+          ${data.fitForWork === 'fit' || data.fitForWork === 'fit_physical_activities' ? '' : `
           <div class="section-title">Duration of Treatment:</div>
           <div class="section-content">
             ${data.restFromDate && data.restToDate ? 
@@ -219,6 +235,7 @@ export const generateMedicalCertificateHTML = (data: MedicalCertificateTemplateD
               `${currentDate} to ${format(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), 'MMM dd, yyyy')}`
             }
           </div>
+          `}
 
           <!-- Remarks -->
           <div class="section-title">Remarks:</div>
@@ -249,7 +266,7 @@ export const generateMedicalCertificateHTML = (data: MedicalCertificateTemplateD
 
           <!-- Certificate Purpose -->
           <div class="certificate-purpose">
-            This certificate is issued upon the request of <span class="underline">${data.patientName}</span> for whatever legal purpose it may serve.
+            This certificate is issued upon the request of <span class="underline">${data.patientName}</span> for whatever purpose it may serve.
           </div>
 
           <!-- Signature Section -->

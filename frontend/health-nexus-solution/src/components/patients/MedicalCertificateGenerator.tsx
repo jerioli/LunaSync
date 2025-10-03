@@ -57,7 +57,7 @@ interface MedicalCertificateData {
   medicalRecommendations: string;
   restFromDate: string;
   restToDate: string;
-  fitForWork: "fit" | "unfit" | "limited";
+  fitForWork: "fit" | "unfit" | "limited" | "fit_physical_activities";
   limitations: string;
   followUpDate: string;
   dateIssued: string;
@@ -320,16 +320,18 @@ const MedicalCertificateGenerator: React.FC<
 
   const saveAndSendEmail = async () => {
     try {
-      // Validation - require the three main fields
+      // Validation - require medical fields only if not fit for work or physical activities
       if (
-        !certificateData.chiefComplaint ||
-        !certificateData.diagnosis ||
-        !certificateData.medicalRecommendations
+        certificateData.fitForWork !== "fit" &&
+        certificateData.fitForWork !== "fit_physical_activities" &&
+        (!certificateData.chiefComplaint ||
+          !certificateData.diagnosis ||
+          !certificateData.medicalRecommendations)
       ) {
         const { toast } = await import("sonner");
         toast.error("Validation Error", {
           description:
-            "Chief Complaint, Diagnosis, and Medical Recommendations are required fields.",
+            "Chief Complaint, Diagnosis, and Medical Recommendations are required fields when patient is not fully fit.",
         });
         return;
       }
@@ -558,80 +560,27 @@ ${certificateData.hospitalName}`,
               </p>
 
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="chiefComplaint">
-                    Chief Complaint <span className="text-red-500">*</span>
-                  </Label>
-                  <Textarea
-                    id="chiefComplaint"
-                    value={certificateData.chiefComplaint}
-                    onChange={(e) =>
-                      handleInputChange("chiefComplaint", e.target.value)
-                    }
-                    placeholder="Enter chief complaint"
-                    rows={2}
-                    className={
-                      !certificateData.chiefComplaint ? "border-red-300" : ""
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="diagnosis">
-                    Diagnosis <span className="text-red-500">*</span>
-                  </Label>
-                  <Textarea
-                    id="diagnosis"
-                    value={certificateData.diagnosis}
-                    onChange={(e) =>
-                      handleInputChange("diagnosis", e.target.value)
-                    }
-                    placeholder="Enter diagnosis"
-                    rows={2}
-                    className={
-                      !certificateData.diagnosis ? "border-red-300" : ""
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="medicalRecommendations">
-                    Medical Recommendations{" "}
-                    <span className="text-red-500">*</span>
-                  </Label>
-                  <Textarea
-                    id="medicalRecommendations"
-                    value={certificateData.medicalRecommendations}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "medicalRecommendations",
-                        e.target.value
-                      )
-                    }
-                    placeholder="Enter medical recommendations"
-                    rows={3}
-                    className={
-                      !certificateData.medicalRecommendations
-                        ? "border-red-300"
-                        : ""
-                    }
-                  />
-                </div>
-
-                {/* Fitness for Work Section */}
+                {/* Fitness for Work Section - Move to top */}
                 <div className="space-y-2">
                   <Label htmlFor="fitForWork">Fitness for Work</Label>
                   <Select
                     value={certificateData.fitForWork}
-                    onValueChange={(value: "fit" | "unfit" | "limited") =>
-                      handleSelectChange("fitForWork", value)
-                    }
+                    onValueChange={(
+                      value:
+                        | "fit"
+                        | "unfit"
+                        | "limited"
+                        | "fit_physical_activities"
+                    ) => handleSelectChange("fitForWork", value)}
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="fit">Fit for Work</SelectItem>
+                      <SelectItem value="fit_physical_activities">
+                        Fit for Physical Activities
+                      </SelectItem>
                       <SelectItem value="unfit">Unfit for Work</SelectItem>
                       <SelectItem value="limited">
                         Limited Work Capacity
@@ -639,6 +588,75 @@ ${certificateData.hospitalName}`,
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Medical fields - Only show if not fit for work or physical activities */}
+                {certificateData.fitForWork !== "fit" &&
+                  certificateData.fitForWork !== "fit_physical_activities" && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="chiefComplaint">
+                          Chief Complaint{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
+                        <Textarea
+                          id="chiefComplaint"
+                          value={certificateData.chiefComplaint}
+                          onChange={(e) =>
+                            handleInputChange("chiefComplaint", e.target.value)
+                          }
+                          placeholder="Enter chief complaint"
+                          rows={2}
+                          className={
+                            !certificateData.chiefComplaint
+                              ? "border-red-300"
+                              : ""
+                          }
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="diagnosis">
+                          Diagnosis <span className="text-red-500">*</span>
+                        </Label>
+                        <Textarea
+                          id="diagnosis"
+                          value={certificateData.diagnosis}
+                          onChange={(e) =>
+                            handleInputChange("diagnosis", e.target.value)
+                          }
+                          placeholder="Enter diagnosis"
+                          rows={2}
+                          className={
+                            !certificateData.diagnosis ? "border-red-300" : ""
+                          }
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="medicalRecommendations">
+                          Medical Recommendations{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
+                        <Textarea
+                          id="medicalRecommendations"
+                          value={certificateData.medicalRecommendations}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "medicalRecommendations",
+                              e.target.value
+                            )
+                          }
+                          placeholder="Enter medical recommendations"
+                          rows={3}
+                          className={
+                            !certificateData.medicalRecommendations
+                              ? "border-red-300"
+                              : ""
+                          }
+                        />
+                      </div>
+                    </>
+                  )}
 
                 {/* Rest Dates - Show when unfit for work */}
                 {certificateData.fitForWork === "unfit" && (
