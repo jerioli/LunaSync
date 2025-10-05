@@ -44,6 +44,92 @@ const Appointments = () => {
   // Consistent button class for all action buttons
   const buttonClass = "h-8 px-3 text-xs";
 
+  // Helper function to check if appointment is overdue (past scheduled date/time)
+  const isAppointmentOverdue = (
+    appointmentDate: string,
+    appointmentTime: string
+  ) => {
+    const appointmentDateTime = new Date(
+      `${appointmentDate}T${appointmentTime}`
+    );
+    const now = new Date();
+
+    // Add a grace period of 30 minutes before marking as no-show
+    const gracePeriodMs = 30 * 60 * 1000; // 30 minutes in milliseconds
+    const overdueTime = appointmentDateTime.getTime() + gracePeriodMs;
+
+    return now.getTime() > overdueTime;
+  };
+
+  // Helper function to automatically delete overdue appointments
+  const checkAndDeleteOverdueAppointments = async (appointmentsList) => {
+    const overdueAppointments = appointmentsList.filter((appointment) => {
+      const isOverdue = isAppointmentOverdue(
+        appointment.date,
+        appointment.time
+      );
+      const shouldDelete =
+        isOverdue &&
+        (appointment.status === "pending" ||
+          appointment.status === "scheduled" ||
+          appointment.status === "ongoing");
+
+      if (shouldDelete) {
+        console.log(
+          `Appointment ${appointment.id} is overdue and will be deleted`
+        );
+      }
+
+      return shouldDelete;
+    });
+
+    // Delete overdue appointments
+    for (const appointment of overdueAppointments) {
+      try {
+        console.log(`Auto-deleting overdue appointment ${appointment.id}`);
+        await axiosInstance.delete(`appointments/delete/${appointment.id}/`);
+
+        // Remove from local state immediately
+        setAppointments((prev) =>
+          prev.filter((appt) => appt.id !== appointment.id)
+        );
+
+        console.log(`Successfully deleted appointment ${appointment.id}`);
+      } catch (error) {
+        console.error(
+          `Failed to delete overdue appointment ${appointment.id}:`,
+          error
+        );
+        // If API doesn't have delete endpoint, just remove from local state
+        setAppointments((prev) =>
+          prev.filter((appt) => appt.id !== appointment.id)
+        );
+      }
+    }
+
+    return overdueAppointments.length;
+  };
+
+  // Helper function to check if appointment can be completed (must be today's date)
+  const canCompleteAppointment = (appointmentDate: string) => {
+    const appointmentDateObj = new Date(appointmentDate);
+    const today = new Date();
+
+    // Compare only the date part (ignore time)
+    const appointmentDateOnly = new Date(
+      appointmentDateObj.getFullYear(),
+      appointmentDateObj.getMonth(),
+      appointmentDateObj.getDate()
+    );
+    const todayDateOnly = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+
+    return appointmentDateOnly.getTime() === todayDateOnly.getTime();
+  };
+
   // Helper function to format time
   const formatTime = (timeString: string) => {
     try {
@@ -59,7 +145,7 @@ const Appointments = () => {
   };
 
   // Get status badge with consistent styling
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, appointment?: any) => {
     const variants = {
       scheduled: {
         className: "bg-blue-100 text-blue-800 hover:bg-blue-100",
@@ -87,7 +173,25 @@ const Appointments = () => {
       },
     };
 
-    const config = variants[status] || variants["scheduled"];
+    let config = variants[status] || variants["scheduled"];
+
+    // Check if appointment is overdue and add visual indicator
+    if (
+      appointment &&
+      (status === "pending" || status === "scheduled" || status === "ongoing")
+    ) {
+      const isOverdue = isAppointmentOverdue(
+        appointment.date,
+        appointment.time
+      );
+      if (isOverdue) {
+        config = {
+          className: "bg-red-200 text-red-900 hover:bg-red-200 animate-pulse",
+          label: `${config.label} (Overdue)`,
+        };
+      }
+    }
+
     return (
       <Badge variant="outline" className={config.className}>
         {config.label}
@@ -152,7 +256,26 @@ const Appointments = () => {
       console.log("Pending appointments found:", pendingAppointments.length);
       console.log("Pending appointments:", pendingAppointments);
 
-      setAppointments(mapAppointments(response.data));
+      const mappedAppointments = mapAppointments(response.data);
+      setAppointments(mappedAppointments);
+
+      // Check for overdue appointments and delete them automatically
+      // Only do this if user can manage appointments (receptionist/admin)
+      if (canManageAppointments) {
+        console.log("Checking for overdue appointments...");
+        const overdueCount = await checkAndDeleteOverdueAppointments(
+          mappedAppointments
+        );
+        if (overdueCount > 0) {
+          console.log(
+            `${overdueCount} overdue appointments were automatically deleted`
+          );
+          // Show a toast notification to inform the user
+          toast.info(
+            `${overdueCount} overdue appointment(s) were automatically deleted`
+          );
+        }
+      }
     } catch (error) {
       console.error("Error fetching appointments:", error);
     }
@@ -160,7 +283,28 @@ const Appointments = () => {
 
   useEffect(() => {
     fetchAppointments();
-  }, []);
+
+    // Set up periodic check for overdue appointments (every 5 minutes)
+    // Only for users who can manage appointments
+    if (canManageAppointments) {
+      const intervalId = setInterval(async () => {
+        console.log("Periodic check for overdue appointments...");
+        const overdueCount = await checkAndDeleteOverdueAppointments(
+          appointments
+        );
+        if (overdueCount > 0) {
+          console.log(
+            `Periodic check: ${overdueCount} overdue appointments deleted`
+          );
+          // Refresh appointments to get updated data
+          fetchAppointments();
+        }
+      }, 5 * 60 * 1000); // Check every 5 minutes
+
+      // Cleanup interval on component unmount
+      return () => clearInterval(intervalId);
+    }
+  }, [canManageAppointments]);
 
   // Fetch patients for local state
   useEffect(() => {
@@ -716,6 +860,8 @@ const Appointments = () => {
 
     if (activeTab === "ongoing") {
       if (isDoctor || isAdmin) {
+        const canComplete = canCompleteAppointment(appointment.date);
+
         return (
           <div className="flex gap-2">
             <Button
@@ -729,8 +875,22 @@ const Appointments = () => {
             <Button
               variant="default"
               size="sm"
-              className={`${buttonClass} bg-green-600 hover:bg-green-700`}
-              onClick={() => handleStatusUpdate(appointment.id, "completed")}
+              className={`${buttonClass} ${
+                canComplete
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-gray-400 hover:bg-gray-400 cursor-not-allowed opacity-60"
+              }`}
+              onClick={
+                canComplete
+                  ? () => handleStatusUpdate(appointment.id, "completed")
+                  : undefined
+              }
+              disabled={!canComplete}
+              title={
+                canComplete
+                  ? "Complete appointment"
+                  : "Can only complete appointments scheduled for today"
+              }
             >
               Complete
             </Button>
