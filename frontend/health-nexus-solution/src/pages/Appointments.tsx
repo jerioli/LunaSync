@@ -30,7 +30,7 @@ const Appointments = () => {
   const { currentUser, patients, users } = useClinic();
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
-  const [activeTab, setActiveTab] = useState("upcoming");
+  const [activeTab, setActiveTab] = useState("pending");
   const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false);
   const [localPatients, setLocalPatients] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -818,7 +818,7 @@ const Appointments = () => {
       <div className="grid grid-cols-1 md:grid-cols-1 gap-6 md:max-w-7xl mx-auto">
         <div>
           <Tabs
-            defaultValue="upcoming"
+            defaultValue="pending"
             value={activeTab}
             onValueChange={setActiveTab}
           >
@@ -827,10 +827,10 @@ const Appointments = () => {
                 canManageAppointments ? "grid-cols-6" : "grid-cols-4"
               }`}
             >
-              <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
               {canManageAppointments && (
                 <TabsTrigger value="pending">Pending</TabsTrigger>
               )}
+              <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
               <TabsTrigger value="ongoing">Ongoing</TabsTrigger>
               <TabsTrigger value="completed">Completed</TabsTrigger>
               {canManageAppointments && (
@@ -838,6 +838,92 @@ const Appointments = () => {
               )}
               <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
             </TabsList>
+
+            {canManageAppointments && (
+              <TabsContent value="pending" className="space-y-4">
+                {filteredAppointments.length === 0 ? (
+                  <Card>
+                    <CardContent className="pt-6 text-center">
+                      <p>No pending appointment requests.</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <CardContent className="p-0">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[200px]">
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4" />
+                                Patient
+                              </div>
+                            </TableHead>
+                            <TableHead>
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                Date
+                              </div>
+                            </TableHead>
+                            <TableHead>
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4" />
+                                Time
+                              </div>
+                            </TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Doctor</TableHead>
+                            <TableHead>Status</TableHead>
+                            {getDisplayNotes(
+                              paginatedAppointments[0]?.notes
+                            ) && <TableHead>Notes</TableHead>}
+                            <TableHead className="text-right">
+                              Actions
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {paginatedAppointments.map((appointment) => (
+                            <TableRow key={appointment.id}>
+                              <TableCell className="font-medium">
+                                {getPatientName(
+                                  appointment.patientId,
+                                  appointment
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {formatDate(appointment.date)}
+                              </TableCell>
+                              <TableCell>
+                                {formatTime(appointment.time)}
+                              </TableCell>
+                              <TableCell>{appointment.type}</TableCell>
+                              <TableCell>
+                                {getDoctorName(
+                                  appointment.doctorId,
+                                  appointment
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {getStatusBadge(appointment.status)}
+                              </TableCell>
+                              {getDisplayNotes(appointment.notes) && (
+                                <TableCell className="max-w-[200px] truncate">
+                                  {getDisplayNotes(appointment.notes)}
+                                </TableCell>
+                              )}
+                              <TableCell className="text-right">
+                                {renderActionButtons(appointment)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+            )}
 
             <TabsContent value="upcoming" className="space-y-4">
               {filteredAppointments.length === 0 ? (
@@ -959,92 +1045,6 @@ const Appointments = () => {
                 </>
               )}
             </TabsContent>
-
-            {canManageAppointments && (
-              <TabsContent value="pending" className="space-y-4">
-                {filteredAppointments.length === 0 ? (
-                  <Card>
-                    <CardContent className="pt-6 text-center">
-                      <p>No pending appointment requests.</p>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card>
-                    <CardContent className="p-0">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-[200px]">
-                              <div className="flex items-center gap-2">
-                                <User className="h-4 w-4" />
-                                Patient
-                              </div>
-                            </TableHead>
-                            <TableHead>
-                              <div className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4" />
-                                Date
-                              </div>
-                            </TableHead>
-                            <TableHead>
-                              <div className="flex items-center gap-2">
-                                <Clock className="h-4 w-4" />
-                                Time
-                              </div>
-                            </TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Doctor</TableHead>
-                            <TableHead>Status</TableHead>
-                            {getDisplayNotes(
-                              paginatedAppointments[0]?.notes
-                            ) && <TableHead>Notes</TableHead>}
-                            <TableHead className="text-right">
-                              Actions
-                            </TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {paginatedAppointments.map((appointment) => (
-                            <TableRow key={appointment.id}>
-                              <TableCell className="font-medium">
-                                {getPatientName(
-                                  appointment.patientId,
-                                  appointment
-                                )}
-                              </TableCell>
-                              <TableCell>
-                                {formatDate(appointment.date)}
-                              </TableCell>
-                              <TableCell>
-                                {formatTime(appointment.time)}
-                              </TableCell>
-                              <TableCell>{appointment.type}</TableCell>
-                              <TableCell>
-                                {getDoctorName(
-                                  appointment.doctorId,
-                                  appointment
-                                )}
-                              </TableCell>
-                              <TableCell>
-                                {getStatusBadge(appointment.status)}
-                              </TableCell>
-                              {getDisplayNotes(appointment.notes) && (
-                                <TableCell className="max-w-[200px] truncate">
-                                  {getDisplayNotes(appointment.notes)}
-                                </TableCell>
-                              )}
-                              <TableCell className="text-right">
-                                {renderActionButtons(appointment)}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-            )}
 
             <TabsContent value="ongoing" className="space-y-4">
               {filteredAppointments.length === 0 ? (
