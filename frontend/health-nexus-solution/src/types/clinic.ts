@@ -51,4 +51,10 @@ export interface ClinicContextType {
   addPayment: (payment: Payment) => void;
   updatePayment: (id: string, data: Partial<Payment>) => void;
   fetchPatients: () => Promise<void>;
+  fetchLabResults: (params?: {
+    patient_id?: string;
+    test_category?: string;
+    start_date?: string;
+    end_date?: string;
+  }) => Promise<LabResult[]>;
 }

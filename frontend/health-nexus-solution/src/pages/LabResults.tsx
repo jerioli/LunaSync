@@ -5,11 +5,13 @@ import OCRVisualizer from '@/components/OCRVisualizer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useClinic } from '@/contexts/ClinicContext';
 import { toast } from '@/hooks/use-toast';
+import { type LabResult } from '@/lib/mock-data';
 import { type LabTestResult } from '@/services/medicalDocumentsAPI';
-import { Edit, FileText, Image, Loader2, Search, Upload } from 'lucide-react';
+import { Edit, FileText, Image, Loader2, RefreshCw, Search, Upload, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -68,14 +70,22 @@ interface LocalCreateLabResultRequest {
 const LabResults = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { patients, labResults, users, addLabResult, fetchPatients, currentUser } = useClinic();
+  const { patients, labResults, users, addLabResult, fetchPatients, fetchLabResults, currentUser } = useClinic();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [sortField, setSortField] = useState<'date' | 'patient'>('date');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [resultsPerPage, setResultsPerPage] = useState(10);
+  
   const [ocrExtractedText, setOcrExtractedText] = useState<string | null>(null);
   const [matchedPatientId, setMatchedPatientId] = useState<string | undefined>(undefined);
   const [authorizedBy, setAuthorizedBy] = useState<string | undefined>(undefined);
   const [extractedTestResults, setExtractedTestResults] = useState<LabTestResult[]>([]);
   const [documentDetails, setDocumentDetails] = useState<any>(null);
+  const [isLoadingResults, setIsLoadingResults] = useState(false);
   
   // Textract specific states
   const [isProcessing, setIsProcessing] = useState(false);
@@ -87,18 +97,34 @@ const LabResults = () => {
   const [visualizationData, setVisualizationData] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Check backend connectivity
+  // Check backend connectivity and fetch data
   React.useEffect(() => {
-    if (fetchPatients) {
-      fetchPatients();
-    }
-    
-    // Check backend connectivity
-    checkBackendHealth().then((result) => {
-      setBackendConnected(result.connected);
-      setBackendType(result.backend);
-    });
-  }, [fetchPatients]);
+    const initializeData = async () => {
+      if (fetchPatients) {
+        await fetchPatients();
+      }
+      
+      // Fetch lab results
+      if (fetchLabResults) {
+        setIsLoadingResults(true);
+        try {
+          await fetchLabResults();
+        } catch (error) {
+          console.error('Error loading lab results:', error);
+        } finally {
+          setIsLoadingResults(false);
+        }
+      }
+      
+      // Check backend connectivity
+      checkBackendHealth().then((result) => {
+        setBackendConnected(result.connected);
+        setBackendType(result.backend);
+      });
+    };
+
+    initializeData();
+  }, [fetchPatients, fetchLabResults]);
 
   // Handle return from DocumentComparison page
   React.useEffect(() => {
@@ -511,13 +537,59 @@ const LabResults = () => {
     console.log('No patient match found after enhanced validation');
     return undefined;
   };
-  
+
+  // Function to handle viewing lab result - directly open PDF
+  const handleViewLabResult = (result: LabResult) => {
+    if (result.resultUrl) {
+      // Open PDF in new window/tab
+      window.open(result.resultUrl, '_blank');
+    } else {
+      // If no PDF URL, try to fetch it from the API
+      console.log('No PDF URL available for lab result:', result.id);
+      toast({
+        title: "PDF Not Available",
+        description: "The PDF file for this lab result is not currently available.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Function to handle sorting
+  const handleSort = (field: 'date' | 'patient') => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Function to get sort icon
+  const getSortIcon = (field: 'date' | 'patient') => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="h-4 w-4" />;
+    }
+    return sortDirection === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />;
+  };
+
   const filteredResults = labResults.filter(result => {
-    const patient = patients.find(p => p.id === result.patientId);
-    const matchesSearch = 
-      patient?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      result.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (result.authorizedBy && result.authorizedBy.toLowerCase().includes(searchTerm.toLowerCase()));
+    // Enhanced search functionality across multiple fields
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch = !searchTerm || 
+      (result.patientName && result.patientName.toLowerCase().includes(searchLower)) ||
+      result.type.toLowerCase().includes(searchLower) ||
+      (result.authorizedBy && result.authorizedBy.toLowerCase().includes(searchLower)) ||
+      (result.notes && result.notes.toLowerCase().includes(searchLower)) ||
+      ((result as any).laboratoryName && (result as any).laboratoryName.toLowerCase().includes(searchLower)) ||
+      ((result as any).specimenType && (result as any).specimenType.toLowerCase().includes(searchLower)) ||
+      new Date(result.date).toLocaleDateString().toLowerCase().includes(searchLower) ||
+      // Search within structured test data
+      (result.structuredData && result.structuredData.some(test => 
+        test.test_name.toLowerCase().includes(searchLower) ||
+        test.result_value.toLowerCase().includes(searchLower) ||
+        (test.unit && test.unit.toLowerCase().includes(searchLower)) ||
+        (test.reference_range && test.reference_range.toLowerCase().includes(searchLower))
+      ));
     
     if (activeTab === 'all') {
       return matchesSearch;
@@ -527,13 +599,77 @@ const LabResults = () => {
     }
     
     return false;
+  }).sort((a, b) => {
+    // Apply sorting
+    let aValue: string | number;
+    let bValue: string | number;
+    
+    switch (sortField) {
+      case 'date':
+        aValue = new Date(a.date).getTime();
+        bValue = new Date(b.date).getTime();
+        break;
+      case 'patient':
+        aValue = (a.patientName || 'Unknown Patient').toLowerCase();
+        bValue = (b.patientName || 'Unknown Patient').toLowerCase();
+        break;
+      default:
+        aValue = 0;
+        bValue = 0;
+    }
+    
+    if (sortDirection === 'asc') {
+      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+    } else {
+      return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+    }
   });
 
-  const getPatientInitials = (patientId: string): string => {
-    const patient = patients.find(p => p.id === patientId);
-    return patient ? patient.name.charAt(0) : '?';
+  // Pagination calculations
+  const filteredCount = filteredResults.length;
+  const totalPages = Math.ceil(filteredCount / resultsPerPage);
+  const startIndex = (currentPage - 1) * resultsPerPage;
+  const endIndex = startIndex + resultsPerPage;
+  const paginatedResults = filteredResults.slice(startIndex, endIndex);
+
+  // Reset current page when search term changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, activeTab]);
+
+  // Pagination handlers
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
-  
+
+  const handleResultsPerPageChange = (value: string) => {
+    setResultsPerPage(parseInt(value));
+    setCurrentPage(1);
+  };
+
+  // Helper function to refresh lab results
+  const handleRefreshResults = async () => {
+    if (fetchLabResults) {
+      setIsLoadingResults(true);
+      try {
+        await fetchLabResults();
+        toast({
+          title: "Results Updated",
+          description: "Lab results have been refreshed successfully.",
+        });
+      } catch (error) {
+        console.error('Error refreshing lab results:', error);
+        toast({
+          title: "Refresh Failed",
+          description: "Failed to refresh lab results. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingResults(false);
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -561,10 +697,47 @@ const LabResults = () => {
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSort('date')}
+                      className="flex items-center gap-1"
+                    >
+                      Date {getSortIcon('date')}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSort('patient')}
+                      className="flex items-center gap-1"
+                    >
+                      Patient {getSortIcon('patient')}
+                    </Button>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="default"
+                    onClick={handleRefreshResults}
+                    disabled={isLoadingResults}
+                    className="flex items-center gap-2"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isLoadingResults ? 'animate-spin' : ''}`} />
+                    Refresh
+                  </Button>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
+              <div className="mb-4 flex items-center justify-between text-sm text-muted-foreground">
+                <div>
+                  Showing {startIndex + 1}-{Math.min(endIndex, filteredCount)} of {filteredCount} results {searchTerm && `for "${searchTerm}"`}
+                  {searchTerm && ` for "${searchTerm}"`}
+                </div>
+                <div>
+                  Sorted by {sortField} ({sortDirection === 'asc' ? 'ascending' : 'descending'})
+                </div>
+              </div>
               <Tabs defaultValue="all" onValueChange={(value) => setActiveTab(value)}>
                 <TabsList className="mb-4">
                   <TabsTrigger value="all">All Results</TabsTrigger>
@@ -572,57 +745,131 @@ const LabResults = () => {
                 </TabsList>
                 <TabsContent value="all" className="m-0">
                   <div className="space-y-4">
-                    {filteredResults.length > 0 ? (
-                      filteredResults.map((result) => {
-                        const patient = patients.find(p => p.id === result.patientId);
+                    {isLoadingResults ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                        <span className="ml-2 text-muted-foreground">Loading lab results...</span>
+                      </div>
+                    ) : paginatedResults.length > 0 ? (
+                      paginatedResults.map((result) => {
+                        const hasAbnormal = result.summary && (result.summary.abnormalCount > 0 || result.summary.criticalCount > 0);
+                        const hasCritical = result.summary && result.summary.criticalCount > 0;
+                        
                         return (
-                          <div key={result.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div key={result.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
                             <div className="flex items-center gap-3">
-                              
-                              <div>
-                                <div className="font-medium">{patient?.name}</div>
-                                <div className="text-sm text-muted-foreground flex items-center gap-2">
-                                  <span>{result.type}</span>
-                                  {result.authorizedBy && (
-                                    <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full">
-                                      {result.authorizedBy}
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <div className="font-medium">{result.patientName || 'Unknown Patient'}</div>
+                                  {hasCritical && (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                                      Critical
+                                    </span>
+                                  )}
+                                  {hasAbnormal && !hasCritical && (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                                      Abnormal
                                     </span>
                                   )}
                                 </div>
+                                <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
+                                  <span className="font-medium">{result.type}</span>
+                                  {(result as any).laboratoryName && (
+                                    <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full">
+                                      {(result as any).laboratoryName}
+                                    </span>
+                                  )}
+                                  {result.authorizedBy && (
+                                    <span className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full">
+                                      Dr. {result.authorizedBy}
+                                    </span>
+                                  )}
+                                  {result.summary && (
+                                    <span className="text-xs text-muted-foreground">
+                                      {result.summary.totalTests} test{result.summary.totalTests !== 1 ? 's' : ''}
+                                    </span>
+                                  )}
+                                </div>
+                                {result.notes && (
+                                  <div className="text-xs text-muted-foreground mt-1 truncate max-w-md">
+                                    {result.notes}
+                                  </div>
+                                )}
                               </div>
                             </div>
                             <div className="flex items-center gap-4">
                               <div className="text-right">
-                                <div className="text-sm">{new Date(result.date).toLocaleDateString()}</div>
+                                <div className="text-sm font-medium">{new Date(result.date).toLocaleDateString()}</div>
+                                {(result as any).reportedDate && (result as any).reportedDate !== result.date && (
+                                  <div className="text-xs text-muted-foreground">
+                                    Reported: {new Date((result as any).reportedDate).toLocaleDateString()}
+                                  </div>
+                                )}
                               </div>
-                              <Button size="sm" variant="outline">View</Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => handleViewLabResult(result)}
+                              >
+                                View
+                              </Button>
                             </div>
                           </div>
                         );
                       })
+                    ) : filteredCount > 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        No results on this page. Try a different page or adjust your search.
+                      </div>
                     ) : (
                       <div className="text-center py-8 text-muted-foreground">
-                        No lab results found. Add new results or adjust your search.
+                        {searchTerm ? 
+                          `No lab results found matching "${searchTerm}". Try adjusting your search terms.` :
+                          'No lab results found. Upload new results or check your connection.'
+                        }
                       </div>
                     )}
                   </div>
                 </TabsContent>
                 <TabsContent value="recent" className="m-0">
                   <div className="space-y-4">
-                    {filteredResults.length > 0 ? (
-                      filteredResults.map((result) => {
-                        const patient = patients.find(p => p.id === result.patientId);
+                    {isLoadingResults ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                        <span className="ml-2 text-muted-foreground">Loading recent results...</span>
+                      </div>
+                    ) : paginatedResults.length > 0 ? (
+                      paginatedResults.map((result) => {
+                        const hasAbnormal = result.summary && (result.summary.abnormalCount > 0 || result.summary.criticalCount > 0);
+                        const hasCritical = result.summary && result.summary.criticalCount > 0;
+                        
                         return (
-                          <div key={result.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div key={result.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
                             <div className="flex items-center gap-3">
-                             
-                              <div>
-                                <div className="font-medium">{patient?.name}</div>
-                                <div className="text-sm text-muted-foreground flex items-center gap-2">
-                                  <span>{result.type}</span>
-                                  {result.authorizedBy && (
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <div className="font-medium">{result.patientName || 'Unknown Patient'}</div>
+                                  {hasCritical && (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                                      Critical
+                                    </span>
+                                  )}
+                                  {hasAbnormal && !hasCritical && (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                                      Abnormal
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
+                                  <span className="font-medium">{result.type}</span>
+                                  {(result as any).laboratoryName && (
                                     <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full">
-                                      {result.authorizedBy}
+                                      {(result as any).laboratoryName}
+                                    </span>
+                                  )}
+                                  {result.authorizedBy && (
+                                    <span className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full">
+                                      Dr. {result.authorizedBy}
                                     </span>
                                   )}
                                 </div>
@@ -630,21 +877,79 @@ const LabResults = () => {
                             </div>
                             <div className="flex items-center gap-4">
                               <div className="text-right">
-                                <div className="text-sm">{new Date(result.date).toLocaleDateString()}</div>
+                                <div className="text-sm font-medium">{new Date(result.date).toLocaleDateString()}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {Math.floor((Date.now() - new Date(result.date).getTime()) / (1000 * 60 * 60 * 24))} days ago
+                                </div>
                               </div>
-                              <Button size="sm" variant="outline">View</Button>
+                              <Button size="sm" variant="outline" onClick={() => handleViewLabResult(result)}>View</Button>
                             </div>
                           </div>
                         );
                       })
+                    ) : filteredCount > 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        No results on this page. Try a different page.
+                      </div>
                     ) : (
                       <div className="text-center py-8 text-muted-foreground">
-                        No recent lab results found.
+                        No recent lab results found from the last 7 days.
                       </div>
                     )}
                   </div>
                 </TabsContent>
               </Tabs>
+              
+              {/* Pagination Controls */}
+              {filteredCount > 0 && (
+                <div className="flex items-center justify-between px-2 py-4 border-t">
+                  <div className="flex items-center space-x-2">
+                    <p className="text-sm text-muted-foreground">
+                      Show
+                    </p>
+                    <Select value={resultsPerPage.toString()} onValueChange={handleResultsPerPageChange}>
+                      <SelectTrigger className="h-8 w-16">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="5">5</SelectItem>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground">
+                      entries
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-center space-x-6 lg:space-x-8">
+                    <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                      Page {currentPage} of {totalPages}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage <= 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Previous
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage >= totalPages}
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

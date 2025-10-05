@@ -94,6 +94,7 @@ export type Prescription = {
 export type LabResult = {
   id: string;
   patientId: string;
+  patientName?: string; // Patient name from API
   date: string;
   type: string;
   resultUrl: string | null;
