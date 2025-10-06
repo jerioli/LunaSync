@@ -1,6 +1,6 @@
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
-import React, { useEffect, useRef, useState } from 'react';
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import React, { useEffect, useRef, useState } from "react";
 
 interface OTPInputProps {
   length?: number;
@@ -12,16 +12,16 @@ interface OTPInputProps {
   clearOnError?: boolean; // Add prop to clear OTP on error
 }
 
-export const OTPInput: React.FC<OTPInputProps> = ({ 
-  length = 6, 
-  onComplete, 
+export const OTPInput: React.FC<OTPInputProps> = ({
+  length = 6,
+  onComplete,
   onOtpChange,
   className,
   disabled = false,
   error = false,
-  clearOnError = false
+  clearOnError = false,
 }) => {
-  const [otp, setOtp] = useState<string[]>(new Array(length).fill(''));
+  const [otp, setOtp] = useState<string[]>(new Array(length).fill(""));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export const OTPInput: React.FC<OTPInputProps> = ({
   // Clear OTP when error occurs (if clearOnError is true)
   useEffect(() => {
     if (error && clearOnError) {
-      setOtp(new Array(length).fill(''));
+      setOtp(new Array(length).fill(""));
       if (inputRefs.current[0]) {
         inputRefs.current[0].focus();
       }
@@ -42,23 +42,23 @@ export const OTPInput: React.FC<OTPInputProps> = ({
 
   const handleChange = (index: number, value: string) => {
     if (disabled) return;
-    
+
     // Only allow digits
-    const sanitizedValue = value.replace(/[^0-9]/g, '');
-    
+    const sanitizedValue = value.replace(/[^0-9]/g, "");
+
     if (sanitizedValue.length <= 1) {
       const newOtp = [...otp];
       newOtp[index] = sanitizedValue;
       setOtp(newOtp);
-      
-      const otpString = newOtp.join('');
+
+      const otpString = newOtp.join("");
       onOtpChange?.(otpString);
-      
+
       // Auto-focus next input
       if (sanitizedValue && index < length - 1) {
         inputRefs.current[index + 1]?.focus();
       }
-      
+
       // Call onComplete when all fields are filled
       if (otpString.length === length) {
         onComplete(otpString);
@@ -66,47 +66,50 @@ export const OTPInput: React.FC<OTPInputProps> = ({
     }
   };
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
     if (disabled) return;
-    
-    if (e.key === 'Backspace') {
+
+    if (e.key === "Backspace") {
       if (!otp[index] && index > 0) {
         // If current input is empty, focus previous input
         inputRefs.current[index - 1]?.focus();
       } else {
         // Clear current input
         const newOtp = [...otp];
-        newOtp[index] = '';
+        newOtp[index] = "";
         setOtp(newOtp);
-        onOtpChange?.(newOtp.join(''));
+        onOtpChange?.(newOtp.join(""));
       }
-    } else if (e.key === 'ArrowLeft' && index > 0) {
+    } else if (e.key === "ArrowLeft" && index > 0) {
       inputRefs.current[index - 1]?.focus();
-    } else if (e.key === 'ArrowRight' && index < length - 1) {
+    } else if (e.key === "ArrowRight" && index < length - 1) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
     if (disabled) return;
-    
+
     e.preventDefault();
-    const pastedText = e.clipboardData.getData('text').replace(/[^0-9]/g, '');
-    
+    const pastedText = e.clipboardData.getData("text").replace(/[^0-9]/g, "");
+
     if (pastedText.length <= length) {
       const newOtp = [...otp];
       for (let i = 0; i < pastedText.length; i++) {
         newOtp[i] = pastedText[i];
       }
       setOtp(newOtp);
-      
-      const otpString = newOtp.join('');
+
+      const otpString = newOtp.join("");
       onOtpChange?.(otpString);
-      
+
       // Focus the next empty input or the last one
       const nextIndex = Math.min(pastedText.length, length - 1);
       inputRefs.current[nextIndex]?.focus();
-      
+
       if (otpString.length === length) {
         onComplete(otpString);
       }

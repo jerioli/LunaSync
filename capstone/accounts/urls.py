@@ -6,7 +6,7 @@ from accounts.views import (
     StaffDetailView, StaffPermissionsView, UserListView, SendOTPView, VerifyOTPView,
     ResetPasswordOTPView, login_view, DebugUserView, TestView,  # Import the debug and test views
     AuditLogsView, UsageReportsView, IntegrationsView, SecurityTestingView,  # New superadmin views
-    CurrentUserView  # Add current user view
+    CurrentUserView, AccountActivationView  # Add account activation view
 )
 from accounts.bulk_patient_staff_views import (
     BulkPatientUploadView, BulkStaffUploadView, BulkImportTemplateView,
@@ -44,6 +44,9 @@ urlpatterns = [
     path('auth/complete-login/', CompleteLoginView.as_view(), name='complete-login'),
     path('password-reset/', PasswordResetRequestView.as_view(), name='password-reset'),
     path('password-reset-confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
+    
+    # Account activation endpoints
+    path('activate/<uidb64>/<token>/', AccountActivationView.as_view(), name='account-activation'),
     
     # User settings endpoints
     path('auth/change-password/', PasswordChangeView.as_view(), name='change-password'),

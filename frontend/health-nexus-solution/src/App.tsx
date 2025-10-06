@@ -6,6 +6,7 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
 import { AppLayout } from "./components/layout/AppLayout";
+import AccountActivation from "./components/AccountActivation";
 import AddPatient from "./components/patients/AddPatient_clean";
 import Appointments from "./pages/Appointments";
 import AppointmentScheduling from "./pages/AppointmentScheduling";
@@ -172,6 +173,16 @@ const App = () => {
                       <StaffRoute>
                         <Login />
                       </StaffRoute>
+                    }
+                  />
+
+                  {/* Account activation */}
+                  <Route
+                    path="/account/activate/:uid/:token"
+                    element={
+                      <PublicRoute>
+                        <AccountActivation />
+                      </PublicRoute>
                     }
                   />
 

@@ -83,9 +83,8 @@ class StaffCreateView(APIView):
             # Debug: Verify user creation with force_password_change
             print(f"[DEBUG] StaffCreateView - Created user {user.username} with force_password_change: {user.force_password_change}")
             
-            # Send email with credentials if requested
+            # Send account activation email if requested
             if request.data.get('send_email', False):
-                temp_password = request.data.get('temp_password', request.data.get('password'))
                 try:
                     # Get clinic settings for email branding
                     try:
@@ -96,24 +95,33 @@ class StaffCreateView(APIView):
                         clinic_name = "Health Nexus"
                         clinic_settings = None
                     
+                    # Generate secure activation token
+                    token = PasswordResetTokenGenerator().make_token(user)
+                    uid = urlsafe_base64_encode(force_bytes(user.pk))
+                    activation_link = f"http://localhost:8080/account/activate/{uid}/{token}/"
+                    
                     # Use the clinic email sender function
                     from appointments.email_utils import send_notification_email_with_clinic_sender
                     
-                    # Create email content
-                    subject = f'Your Account Credentials - {clinic_name}'
+                    # Create secure email content without password
+                    subject = f'Account Activation - {clinic_name}'
                     message = f'''
 Hello {user.get_full_name()},
 
 Your account has been created successfully!
 
-Login Credentials:
+Account Details:
 Email: {user.email}
 Username: {user.username}
-Temporary Password: {temp_password}
+Role: {user.role.title()}
 
-Please log in and change your password immediately for security.
+To complete your account setup and create your password, please click the link below:
 
-Login URL: http://localhost:3000/login
+{activation_link}
+
+This activation link will expire in 24 hours for security reasons.
+
+If you have any questions, please contact your administrator.
 
 Best regards,
 {clinic_name} Team
@@ -129,7 +137,10 @@ Best regards,
                             .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
                             .header {{ background-color: #2563eb; color: white; padding: 20px; text-align: center; }}
                             .content {{ padding: 20px; background-color: #f9fafb; }}
-                            .credentials {{ background-color: #e0f2fe; padding: 15px; border-radius: 8px; margin: 20px 0; }}
+                            .account-info {{ background-color: #e0f2fe; padding: 15px; border-radius: 8px; margin: 20px 0; }}
+                            .activation-section {{ background-color: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; border: 2px solid #10b981; }}
+                            .button {{ background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 20px 0; font-weight: bold; }}
+                            .security-notice {{ background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #f59e0b; }}
                             .footer {{ padding: 20px; text-align: center; color: #666; font-size: 12px; }}
                         </style>
                     </head>
@@ -139,22 +150,38 @@ Best regards,
                                 <h1>{clinic_name}</h1>
                             </div>
                             <div class="content">
-                                <h2>Account Created Successfully</h2>
+                                <h2>🎉 Account Created Successfully</h2>
                                 <p>Hello {user.get_full_name()},</p>
-                                <p>Your account has been created successfully!</p>
+                                <p>Your account has been created successfully! Please complete your account setup by creating your password.</p>
                                 
-                                <div class="credentials">
-                                    <h3>Login Credentials:</h3>
+                                <div class="account-info">
+                                    <h3>📋 Account Details:</h3>
                                     <p><strong>Email:</strong> {user.email}</p>
                                     <p><strong>Username:</strong> {user.username}</p>
-                                    <p><strong>Temporary Password:</strong> {temp_password}</p>
+                                    <p><strong>Role:</strong> {user.role.title()}</p>
                                 </div>
                                 
-                                <p>Please log in and change your password immediately for security.</p>
-                                <p><strong>Login URL:</strong> <a href="http://localhost:3000/login">http://localhost:3000/login</a></p>
+                                <div class="activation-section">
+                                    <h3>🔐 Complete Your Account Setup</h3>
+                                    <p>Click the button below to create your password and activate your account:</p>
+                                    <a href="{activation_link}" class="button">Activate Account & Set Password</a>
+                                </div>
+                                
+                                <div class="security-notice">
+                                    <h4>🔒 Security Notice:</h4>
+                                    <ul style="margin: 10px 0; padding-left: 20px;">
+                                        <li>This activation link will expire in 24 hours</li>
+                                        <li>Only use this link from a secure device</li>
+                                        <li>Do not share this link with anyone</li>
+                                        <li>If you didn't expect this email, please contact your administrator</li>
+                                    </ul>
+                                </div>
+                                
+                                <p>If you have any questions about your account, please contact your administrator.</p>
                             </div>
                             <div class="footer">
                                 <p>Best regards,<br>{clinic_name} Team</p>
+                                <p>This is an automated message. Please do not reply to this email.</p>
                             </div>
                         </div>
                     </body>
@@ -170,10 +197,10 @@ Best regards,
                     )
                     
                     if not success:
-                        print(f"Failed to send email: {error_msg}")
+                        print(f"Failed to send activation email: {error_msg}")
                         
                 except Exception as e:
-                    print(f"Failed to send email: {e}")
+                    print(f"Failed to send activation email: {e}")
             
             return Response({'message': 'Staff member created successfully!'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -617,6 +644,126 @@ def login_view(request):
         'success': False,
         'error': 'Invalid credentials'
     }, status=status.HTTP_401_UNAUTHORIZED)
+
+class AccountActivationView(APIView):
+    permission_classes = [AllowAny]  # Allow unauthenticated users to activate accounts
+    
+    def get(self, request, uidb64, token):
+        """Check if activation link is valid"""
+        User = get_user_model()
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+            
+            if PasswordResetTokenGenerator().check_token(user, token):
+                # Check if user still needs activation (force_password_change is True)
+                if user.force_password_change:
+                    return Response({
+                        'success': True,
+                        'message': 'Activation link is valid',
+                        'user_id': user.id,
+                        'username': user.username,
+                        'email': user.email
+                    })
+                else:
+                    return Response({
+                        'success': False,
+                        'message': 'Account has already been activated'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({
+                    'success': False,
+                    'message': 'Invalid or expired activation link'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        except (User.DoesNotExist, ValueError, TypeError):
+            return Response({
+                'success': False,
+                'message': 'Invalid activation link'
+            }, status=status.HTTP_400_BAD_REQUEST)
+    
+    def post(self, request, uidb64, token):
+        """Complete account activation with password setup"""
+        User = get_user_model()
+        new_password = request.data.get('new_password')
+        confirm_password = request.data.get('confirm_password')
+        
+        if not new_password or not confirm_password:
+            return Response({
+                'error': 'Both new_password and confirm_password are required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        if new_password != confirm_password:
+            return Response({
+                'error': 'Passwords do not match'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Comprehensive password validation
+        import re
+        password_errors = []
+        
+        # Length requirement
+        if len(new_password) < 8:
+            password_errors.append('At least 8 characters')
+            
+        # Uppercase requirement
+        if not re.search(r'[A-Z]', new_password):
+            password_errors.append('One uppercase letter')
+            
+        # Lowercase requirement
+        if not re.search(r'[a-z]', new_password):
+            password_errors.append('One lowercase letter')
+            
+        # Number requirement
+        if not re.search(r'\d', new_password):
+            password_errors.append('One number')
+            
+        # Special character requirement
+        if not re.search(r'[!@#$%^&*()_+\-=\[\]{};\':"\\|,.<>\/?]', new_password):
+            password_errors.append('One special character')
+        
+        if password_errors:
+            return Response({
+                'error': f'Password must have: {", ".join(password_errors)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+            
+            if PasswordResetTokenGenerator().check_token(user, token):
+                # Set new password and activate account
+                user.set_password(new_password)
+                user.force_password_change = False  # Account is now activated
+                user.save()
+                
+                # Log account activation
+                AuditLogger.log_auth_action(
+                    user=user,
+                    action='ACCOUNT_ACTIVATED',
+                    description=f"Account activated and password set for {user.role}",
+                    details={
+                        'user_role': user.role,
+                        'activated_at': str(datetime.now()),
+                        'activation_method': 'email_link'
+                    },
+                    request=request
+                )
+                
+                return Response({
+                    'success': True,
+                    'message': 'Account activated successfully! You can now log in with your new password.'
+                })
+            else:
+                return Response({
+                    'success': False,
+                    'error': 'Invalid or expired activation link'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        except (User.DoesNotExist, ValueError, TypeError):
+            return Response({
+                'success': False,
+                'error': 'Invalid activation link'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
 
 class PasswordResetRequestView(APIView):
     permission_classes = [AllowAny]  # Allow unauthenticated users to request password reset

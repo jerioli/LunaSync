@@ -197,13 +197,18 @@ const Login = () => {
           setTimeout(() => navigate("/"), 100);
         }
       } else {
-        toast.error(result.error || "Invalid OTP. Please check your code and try again.");
+        toast.error(
+          result.error || "Invalid OTP. Please check your code and try again."
+        );
         // Don't redirect back to login, let user try again
       }
     } catch (error: any) {
       console.error("OTP verification error:", error);
       // Check if it's a session expired error
-      if (error.response?.status === 401 || error.response?.data?.error?.includes('session')) {
+      if (
+        error.response?.status === 401 ||
+        error.response?.data?.error?.includes("session")
+      ) {
         toast.error("Login session expired. Please login again.");
         setIsOtpMode(false); // Only redirect on session expiry
       } else {
