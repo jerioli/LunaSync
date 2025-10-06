@@ -9,6 +9,7 @@ interface OTPInputProps {
   className?: string;
   disabled?: boolean;
   error?: boolean;
+  clearOnError?: boolean; // Add prop to clear OTP on error
 }
 
 export const OTPInput: React.FC<OTPInputProps> = ({ 
@@ -17,7 +18,8 @@ export const OTPInput: React.FC<OTPInputProps> = ({
   onOtpChange,
   className,
   disabled = false,
-  error = false
+  error = false,
+  clearOnError = false
 }) => {
   const [otp, setOtp] = useState<string[]>(new Array(length).fill(''));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -27,6 +29,16 @@ export const OTPInput: React.FC<OTPInputProps> = ({
       inputRefs.current[0].focus();
     }
   }, []);
+
+  // Clear OTP when error occurs (if clearOnError is true)
+  useEffect(() => {
+    if (error && clearOnError) {
+      setOtp(new Array(length).fill(''));
+      if (inputRefs.current[0]) {
+        inputRefs.current[0].focus();
+      }
+    }
+  }, [error, clearOnError, length]);
 
   const handleChange = (index: number, value: string) => {
     if (disabled) return;

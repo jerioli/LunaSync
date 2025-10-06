@@ -231,6 +231,7 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
                 onOtpChange={handleOtpChange}
                 disabled={isVerifying}
                 error={!!error}
+                clearOnError={true}
                 className="mb-4"
               />
 

@@ -31,6 +31,7 @@ export type ClinicCustomization = {
 export interface ClinicContextType {
   currentUser: User | null;
   setCurrentUser: (user: User | null) => void;
+  isAuthLoading: boolean;
   users: User[];
   patients: Patient[];
   appointments: Appointment[];

@@ -44,6 +44,7 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [currentUser, setCurrentUserState] = useState<User | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [patientsList, setPatientsList] = useState<Patient[]>([]);
   const [appointmentsList, setAppointmentsList] =
     useState<Appointment[]>(appointments);
@@ -65,10 +66,22 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setCurrentUserState(JSON.parse(storedUser));
-    }
+    const initializeAuth = async () => {
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          setCurrentUserState(user);
+        }
+      } catch (error) {
+        console.error("Error loading stored user:", error);
+        localStorage.removeItem("user");
+      } finally {
+        setIsAuthLoading(false);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
   const addPatient = async (patient: NewPatient) => {
@@ -313,6 +326,7 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({
       value={{
         currentUser,
         setCurrentUser,
+        isAuthLoading,
         users,
 
         patients: patientsList,

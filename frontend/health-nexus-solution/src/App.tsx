@@ -59,7 +59,16 @@ const PermissionGuard = ({
 
 // Auth route guard component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { currentUser } = useClinic();
+  const { currentUser, isAuthLoading } = useClinic();
+
+  // Show loading while checking authentication
+  if (isAuthLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   if (!currentUser) {
     return <Navigate to="/login" replace />;
@@ -75,7 +84,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 // Password change route (for users who need to change password after login)
 const PasswordChangeRoute = ({ children }: { children: React.ReactNode }) => {
-  const { currentUser } = useClinic();
+  const { currentUser, isAuthLoading } = useClinic();
+
+  // Show loading while checking authentication
+  if (isAuthLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   // Allow access if user is authenticated (even if they need password change)
   if (!currentUser) {
@@ -92,12 +110,23 @@ const PasswordChangeRoute = ({ children }: { children: React.ReactNode }) => {
 
 // Redirect staff to proper dashboard
 const StaffRoute = ({ children }: { children: React.ReactNode }) => {
-  const { currentUser } = useClinic();
+  const { currentUser, isAuthLoading } = useClinic();
 
+  // Show loading while checking authentication
+  if (isAuthLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  // If user is authenticated, redirect to dashboard
   if (currentUser) {
     return <Navigate to="/" replace />;
   }
 
+  // Otherwise, show the login page
   return <>{children}</>;
 };
 
