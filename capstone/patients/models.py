@@ -3,6 +3,20 @@ from security_app.fields import EncryptedCharField, EncryptedTextField
 import uuid
 import string
 import random
+from django.utils import timezone
+
+class PatientManager(models.Manager):
+    def get_queryset(self):
+        """Return only non-deleted patients by default"""
+        return super().get_queryset().filter(is_deleted=False)
+    
+    def all_including_deleted(self):
+        """Return all patients including deleted ones"""
+        return super().get_queryset()
+    
+    def deleted_only(self):
+        """Return only deleted patients"""
+        return super().get_queryset().filter(is_deleted=True)
 
 class Patient(models.Model):
     # Unique Patient ID field - temporarily allow null for migration
@@ -25,9 +39,26 @@ class Patient(models.Model):
     medical_info = EncryptedTextField(blank=True, null=True)  # Store medical info as encrypted JSON string
     physical_examination = EncryptedTextField(blank=True, null=True)  # Store physical examination data as encrypted JSON string
     registration_date = models.DateField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)  # Soft delete field
+    deleted_at = models.DateTimeField(null=True, blank=True)  # When the patient was deleted
+
+    # Custom manager
+    objects = PatientManager()
 
     class Meta:
         db_table = 'patients'
+
+    def soft_delete(self):
+        """Soft delete the patient"""
+        self.is_deleted = True
+        self.deleted_at = timezone.now()
+        self.save()
+    
+    def restore(self):
+        """Restore a soft-deleted patient"""
+        self.is_deleted = False
+        self.deleted_at = None
+        self.save()
 
     def save(self, *args, **kwargs):
         # Generate patient ID if not set

@@ -8,6 +8,7 @@ from django.http import Http404
 from systemlogs.audit_logger import AuditLogger
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.utils import timezone
 from capstone.settings import CsrfExemptSessionAuthentication
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -110,8 +111,10 @@ class PatientListView(APIView):
 class PatientDetailView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [IsAuthenticated]
+    
     def get_object(self, pk):
         try:
+            # Use the custom manager to exclude deleted patients
             return Patient.objects.get(pk=pk)
         except Patient.DoesNotExist:
             raise Http404
@@ -212,18 +215,24 @@ class PatientDetailView(APIView):
         patient = self.get_object(pk)
         patient_name = patient.name
         
-        # Log patient deletion
+        # Perform soft delete instead of hard delete
+        patient.soft_delete()
+        
+        # Log patient soft deletion
         AuditLogger.log_patient_action(
             user=request.user if request.user.is_authenticated else None,
-            action='DELETE',
+            action='SOFT_DELETE',
             patient_id=patient.id,
             patient_name=patient_name,
-            description=f"Deleted patient: {patient_name}",
+            description=f"Soft deleted patient: {patient_name}",
+            details={'deleted_at': patient.deleted_at.isoformat() if patient.deleted_at else None},
             request=request
         )
         
-        patient.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({
+            'success': True,
+            'message': f'Patient {patient_name} has been deleted successfully'
+        }, status=status.HTTP_200_OK)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -334,3 +343,91 @@ class CheckPatientByPatientIdView(APIView):
                 'exists': False,
                 'patient': None
             }, status=status.HTTP_200_OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class DeletedPatientsView(APIView):
+    """View for administrators to see and restore deleted patients"""
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        # Only allow admin/superadmin to view deleted patients
+        if not request.user.is_authenticated:
+            return Response({
+                'error': 'Authentication required',
+                'message': 'You must be logged in to view deleted patients'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        if not (request.user.role in ['admin', 'superadmin']):
+            return Response({
+                'error': 'Permission denied',
+                'message': 'Only administrators can view deleted patients'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        # Get all deleted patients
+        deleted_patients = Patient.objects.deleted_only()
+        serializer = PatientSerializer(deleted_patients, many=True, context={'request': request})
+        
+        # Log the action
+        AuditLogger.log_action(
+            user=request.user,
+            action='READ',
+            resource_type='PATIENT',
+            description='Viewed deleted patients list',
+            details={'count': len(deleted_patients)},
+            request=request
+        )
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch') 
+class RestorePatientView(APIView):
+    """View to restore a soft-deleted patient"""
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, pk):
+        # Only allow admin/superadmin to restore patients
+        if not request.user.is_authenticated:
+            return Response({
+                'error': 'Authentication required',
+                'message': 'You must be logged in to restore patients'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        if not (request.user.role in ['admin', 'superadmin']):
+            return Response({
+                'error': 'Permission denied',
+                'message': 'Only administrators can restore patients'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            # Get the deleted patient using the all_including_deleted manager
+            patient = Patient.objects.all_including_deleted().get(pk=pk, is_deleted=True)
+        except Patient.DoesNotExist:
+            return Response({
+                'error': 'Patient not found',
+                'message': 'Deleted patient with this ID does not exist'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Restore the patient
+        patient.restore()
+        
+        # Log the restoration
+        AuditLogger.log_patient_action(
+            user=request.user,
+            action='RESTORE',
+            patient_id=patient.id,
+            patient_name=patient.name,
+            description=f"Restored patient: {patient.name}",
+            details={'restored_at': timezone.now().isoformat()},
+            request=request
+        )
+        
+        serializer = PatientSerializer(patient, context={'request': request})
+        return Response({
+            'success': True,
+            'message': f'Patient {patient.name} has been restored successfully',
+            'patient': serializer.data
+        }, status=status.HTTP_200_OK)

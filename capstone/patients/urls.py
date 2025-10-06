@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import PatientListCreateView, PatientListView, PatientDetailView, CheckPatientByEmailView, CheckPatientByPatientIdView
+from .views import PatientListCreateView, PatientListView, PatientDetailView, CheckPatientByEmailView, CheckPatientByPatientIdView, DeletedPatientsView, RestorePatientView
 
 urlpatterns = [
     path('patients/', PatientListCreateView.as_view(), name='patient-list-create'),  # GET/POST
@@ -7,4 +7,6 @@ urlpatterns = [
     path('patients/list/', PatientListView.as_view(), name='patient-list'),          # Custom GET
     path('patients/check-email/', CheckPatientByEmailView.as_view(), name='patient-check-email'),  # Check if patient exists by email
     path('patients/check-patient-id/', CheckPatientByPatientIdView.as_view(), name='patient-check-patient-id'),  # Check if patient exists by Patient ID
+    path('patients/deleted/', DeletedPatientsView.as_view(), name='deleted-patients'),  # View deleted patients (admin only)
+    path('patients/<int:pk>/restore/', RestorePatientView.as_view(), name='restore-patient'),  # Restore deleted patient (admin only)
 ]
