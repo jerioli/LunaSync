@@ -6,6 +6,7 @@ from .models import CustomUser
 from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth import authenticate, login
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.views.decorators.csrf import csrf_exempt
@@ -207,67 +208,67 @@ Best regards,
     
 @method_decorator(csrf_exempt, name='dispatch')
 class StaffDetailView(APIView):
-    permission_classes = []  # No permissions
-    authentication_classes = []  # No authentication for debugging
-    
-    def dispatch(self, request, *args, **kwargs):
-        print(f"[DEBUG] StaffDetailView.dispatch called with {request.method} {request.path}")
-        print(f"[DEBUG] Args: {args}, Kwargs: {kwargs}")
-        return super().dispatch(request, *args, **kwargs)
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]  # Require authentication for all staff operations
     
     def get(self, request, user_id):
-        print(f"[DEBUG] GET request to StaffDetailView for user_id: {user_id}")
         user = get_object_or_404(CustomUser, id=user_id)
         serializer = CustomUserSerializer(user, context={'request': request})
         return Response(serializer.data)
     
     def patch(self, request, user_id):
-        # Debug logging
-        print(f"[DEBUG] ========== PATCH REQUEST RECEIVED ==========")
-        print(f"[DEBUG] PATCH request - User: {request.user}")
-        print(f"[DEBUG] User authenticated: {request.user.is_authenticated}")
-        if hasattr(request.user, 'username') and request.user.is_authenticated:
-            print(f"[DEBUG] Username: {request.user.username}, Role: {getattr(request.user, 'role', 'No role')}")
-            print(f"[DEBUG] can_manage_staff: {getattr(request.user, 'can_manage_staff', False)}")
-            print(f"[DEBUG] Trying to edit user_id: {user_id}, current user_id: {request.user.id}")
-        else:
-            print(f"[DEBUG] User is anonymous or not authenticated")
-        print(f"[DEBUG] Request data: {request.data}")
-        print(f"[DEBUG] Session data: {dict(request.session)}")
-        print(f"[DEBUG] Cookies: {request.COOKIES}")
-        print(f"[DEBUG] ================================================")
+        # Check if user has permission to update staff (similar to patient update pattern)
+        if not request.user.is_authenticated:
+            return Response({
+                'error': 'Authentication required',
+                'message': 'You must be logged in to update staff'
+            }, status=status.HTTP_401_UNAUTHORIZED)
         
-        # Temporarily allow all updates for testing
+        # Debug logging for permission troubleshooting
+        print(f"[DEBUG] StaffDetailView.patch - User ID: {request.user.id}, Target ID: {user_id}")
+        print(f"[DEBUG] StaffDetailView.patch - User role: {getattr(request.user, 'role', 'No role')}")
+        print(f"[DEBUG] StaffDetailView.patch - can_manage_staff: {getattr(request.user, 'can_manage_staff', 'No permission')}")
+        
+        # Allow staff management for users with manage_staff permission or admin/superadmin roles, or editing own profile
+        is_own_profile = str(request.user.id) == str(user_id)
+        has_manage_permission = request.user.can_manage_staff if hasattr(request.user, 'can_manage_staff') else False
+        has_admin_role = request.user.role in ['admin', 'superadmin'] if hasattr(request.user, 'role') else False
+        
+        if not (has_manage_permission or has_admin_role or is_own_profile):
+            return Response({
+                'error': 'Permission denied',
+                'message': 'You do not have permission to update this staff member'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
         user = get_object_or_404(CustomUser, id=user_id)
         serializer = CustomUserSerializer(user, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             updated_user = serializer.save()
+            
+            # Log staff update for audit trail
+            AuditLogger.log_staff_action(
+                user=request.user,
+                action='UPDATE',
+                staff_id=user.id,
+                staff_name=f"{user.get_full_name()} ({user.username})",
+                description=f"Updated staff member: {user.get_full_name()}",
+                details={
+                    'staff_role': user.role,
+                    'updated_by': request.user.email if request.user.is_authenticated else 'Unknown',
+                    'changes': request.data
+                },
+                request=request
+            )
+            
             # Return updated data with context for proper decryption
             response_serializer = CustomUserSerializer(updated_user, context={'request': request})
-            print(f"[DEBUG] User updated successfully")
             return Response({
                 'success': True,
                 'message': 'Staff member updated successfully',
                 'data': response_serializer.data
             })
         else:
-            print(f"[DEBUG] Serializer errors: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    def delete(self, request, user_id):
-        # Check if user has permission to manage staff or is an admin
-        if not (request.user.can_manage_staff or request.user.role == 'admin'):
-            return Response({
-                'error': 'Permission denied',
-                'message': 'You do not have permission to delete staff members'
-            }, status=status.HTTP_403_FORBIDDEN)
-            
-        user = get_object_or_404(CustomUser, id=user_id)
-        user.delete()
-        return Response({
-            'success': True,
-            'message': 'Staff member deleted successfully'
-        })
 
 @method_decorator(csrf_exempt, name='dispatch')
 class StaffPermissionsView(APIView):

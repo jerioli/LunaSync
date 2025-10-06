@@ -170,27 +170,18 @@ export const api = {
     getAll: async (): Promise<Doctor[]> => {
       const response = await axiosInstance.get('/doctors/');
       return response.data;
-    },
-    delete: async (id: number): Promise<void> => {
-      await axiosInstance.delete(`/staff/${id}/`);
     }
   },
   receptionists: {
     getAll: async (): Promise<Receptionist[]> => {
       const response = await axiosInstance.get('/receptionists/');
       return response.data;
-    },
-    delete: async (id: number): Promise<void> => {
-      await axiosInstance.delete(`/staff/${id}/`);
     }
   },
   admins: {
     getAll: async (): Promise<Admin[]> => {
       const response = await axiosInstance.get('/admins/');
       return response.data;
-    },
-    delete: async (id: number): Promise<void> => {
-      await axiosInstance.delete(`/staff/${id}/`);
     }
   },
   staff: {
@@ -218,9 +209,6 @@ export const api = {
         }
       });
       return response.data.data;
-    },
-    delete: async (userId: number): Promise<void> => {
-      await axiosInstance.delete(`/staff/${userId}/`);
     }
   },
   appointments: {

@@ -10,6 +10,7 @@ import json
 from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from systemlogs.audit_logger import AuditLogger
 
 # For CSV/Excel processing - handle import errors gracefully
 try:
@@ -493,8 +494,7 @@ class BulkStaffDeleteView(APIView):
     """
     Bulk delete staff with select all functionality
     """
-    # Remove authentication requirement to match normal staff deletion
-    permission_classes = []
+    permission_classes = [IsAuthenticated]
     
     def post(self, request):
         """
@@ -503,10 +503,23 @@ class BulkStaffDeleteView(APIView):
         """
         print(f"DEBUG: Bulk staff delete request received")
         print(f"DEBUG: Request data: {request.data}")
+        print(f"DEBUG: User: {request.user}")
+        print(f"DEBUG: User role: {getattr(request.user, 'role', 'NO_ROLE_ATTRIBUTE')}")
+        print(f"DEBUG: User can_manage_staff: {getattr(request.user, 'can_manage_staff', 'NO_CAN_MANAGE_STAFF_ATTRIBUTE')}")
         
-        # Simplified permission check - remove user role check since normal delete doesn't have it
-        # if not request.user.role == 'admin':
-        #     return Response({'error': 'Permission denied. Only admins can delete staff.'}, status=status.HTTP_403_FORBIDDEN)
+        # Check if user has permission to manage staff or is an admin/superadmin
+        has_manage_permission = hasattr(request.user, 'can_manage_staff') and request.user.can_manage_staff
+        has_admin_role = hasattr(request.user, 'role') and request.user.role in ['admin', 'superadmin']
+        
+        print(f"DEBUG: has_manage_permission: {has_manage_permission}")
+        print(f"DEBUG: has_admin_role: {has_admin_role}")
+        
+        if not has_manage_permission and not has_admin_role:
+            print(f"DEBUG: Permission denied in bulk delete")
+            return Response({
+                'error': 'Permission denied',
+                'message': 'You do not have permission to delete staff members'
+            }, status=status.HTTP_403_FORBIDDEN)
         
         try:
             staff_ids = []
@@ -514,8 +527,8 @@ class BulkStaffDeleteView(APIView):
             # Handle select all
             if request.data.get('select_all'):
                 print("DEBUG: Select all staff for deletion")
-                # Get all staff IDs without excluding current user or admins (like normal delete)
-                staff_ids = list(CustomUser.objects.values_list('id', flat=True))
+                # Get all staff IDs except current user (safety measure)
+                staff_ids = list(CustomUser.objects.exclude(id=request.user.id).values_list('id', flat=True))
                 print(f"DEBUG: Found {len(staff_ids)} staff members to delete")
             
             # Handle specific staff IDs
@@ -523,18 +536,11 @@ class BulkStaffDeleteView(APIView):
                 staff_ids = request.data['staff_ids']
                 print(f"DEBUG: Specific staff IDs for deletion: {staff_ids}")
                 
-                # Remove safety checks to match normal delete behavior
-                # Safety check: don't allow deletion of current user or other admins
-                # if request.user.id in staff_ids:
-                #     return Response({
-                #         'error': 'Cannot delete your own account'
-                #     }, status=status.HTTP_400_BAD_REQUEST)
-                
-                # admin_ids = list(CustomUser.objects.filter(id__in=staff_ids, role='admin').values_list('id', flat=True))
-                # if admin_ids:
-                #     return Response({
-                #         'error': f'Cannot delete admin accounts: {admin_ids}'
-                #     }, status=status.HTTP_400_BAD_REQUEST)
+                # Safety check: don't allow deletion of current user
+                if request.user.id in staff_ids:
+                    return Response({
+                        'error': 'Cannot delete your own account'
+                    }, status=status.HTTP_400_BAD_REQUEST)
             
             else:
                 return Response({
@@ -561,6 +567,23 @@ class BulkStaffDeleteView(APIView):
             
             # Perform bulk deletion
             with transaction.atomic():
+                # Log bulk deletion for audit trail
+                for staff_member in existing_staff:
+                    AuditLogger.log_staff_action(
+                        user=request.user,
+                        action='DELETE',
+                        staff_id=staff_member.id,
+                        staff_name=f"{staff_member.get_full_name()} ({staff_member.username})",
+                        description=f"Bulk deleted staff member: {staff_member.get_full_name()} with role {staff_member.role}",
+                        details={
+                            'staff_role': staff_member.role,
+                            'staff_email': staff_member.email,
+                            'deleted_by': request.user.email if request.user.is_authenticated else 'Unknown',
+                            'bulk_operation': True
+                        },
+                        request=request
+                    )
+                
                 deleted_count, deletion_details = CustomUser.objects.filter(id__in=staff_ids).delete()
                 
                 print(f"DEBUG: Deleted {deleted_count} staff members")
