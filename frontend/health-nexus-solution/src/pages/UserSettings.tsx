@@ -47,14 +47,13 @@ const UserSettings = () => {
 
   const [loading, setLoading] = useState(false);
 
-  // Parse the name field to get first and last names
+  // Parse the name field to get first and last names, but prefer existing separate fields
   useEffect(() => {
-    if (currentUser?.name) {
-      const nameParts = currentUser.name.split(' ');
+    if (currentUser) {
       setProfileData(prev => ({
         ...prev,
-        firstName: nameParts[0] || '',
-        lastName: nameParts.slice(1).join(' ') || '',
+        firstName: currentUser.first_name || (currentUser.name ? currentUser.name.split(' ')[0] : '') || '',
+        lastName: currentUser.last_name || (currentUser.name ? currentUser.name.split(' ').slice(1).join(' ') : '') || '',
         email: currentUser.email || '',
         phone: currentUser.phone || '',
       }));
@@ -65,18 +64,22 @@ const UserSettings = () => {
 
     setLoading(true);
     try {
-      const fullName = `${profileData.firstName} ${profileData.lastName}`.trim();
-      
       const response = await axios.patch(`/users/${currentUser.id}/`, {
-        name: fullName,
+        first_name: profileData.firstName,
+        last_name: profileData.lastName,
         email: profileData.email,
         phone: profileData.phone,
       });
+
+      // Construct the full name for display
+      const fullName = `${profileData.firstName} ${profileData.lastName}`.trim();
 
       // Update current user in context
       setCurrentUser({
         ...currentUser,
         name: fullName,
+        first_name: profileData.firstName,
+        last_name: profileData.lastName,
         email: profileData.email,
         phone: profileData.phone,
       });

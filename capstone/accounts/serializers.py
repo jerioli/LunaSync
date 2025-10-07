@@ -3,10 +3,12 @@ from .models import CustomUser
 from security_app.secure_serializers import SecureBaseSerializer
 
 class CustomUserSerializer(SecureBaseSerializer):
+    name = serializers.SerializerMethodField()
+    
     class Meta:
         model = CustomUser
         fields = [
-            'id', 'username', 'first_name', 'last_name', 'email', 'phone',
+            'id', 'username', 'first_name', 'last_name', 'name', 'email', 'phone',
             'password', 'role', 'is_active', 'is_staff', 'is_superuser', 'force_password_change',
             'can_manage_appointments', 'can_manage_patients', 'can_manage_staff', 
             'can_view_reports', 'can_manage_clinic_settings',
@@ -16,6 +18,10 @@ class CustomUserSerializer(SecureBaseSerializer):
         extra_kwargs = {
             'password': {'write_only': True},  # Ensure password is write-only
         }
+    
+    def get_name(self, obj):
+        """Return the full name constructed from first_name and last_name"""
+        return f"{obj.first_name} {obj.last_name}".strip()
     
     def to_representation(self, instance):
         """Override to ensure admins and superadmins can see encrypted fields"""
@@ -38,6 +44,7 @@ class CustomUserSerializer(SecureBaseSerializer):
             'username': data.get('username'),
             'first_name': data.get('first_name'),
             'last_name': data.get('last_name'),
+            'name': data.get('name'),
             'role': data.get('role'),
             'is_active': data.get('is_active')
         }
@@ -49,6 +56,7 @@ class CustomUserSerializer(SecureBaseSerializer):
             'username': data.get('username'),
             'first_name': data.get('first_name'),
             'last_name': data.get('last_name'),
+            'name': data.get('name'),
             'role': data.get('role'),
             'is_active': data.get('is_active')
         }

@@ -529,6 +529,83 @@ class PasswordChangeView(APIView):
 class UserProfileUpdateView(APIView):
     permission_classes = [IsAuthenticated]
     
+    def get(self, request, user_id):
+        """Get user profile data"""
+        user = get_object_or_404(CustomUser, id=user_id)
+        
+        # Allow users to view their own profile or if they have staff management permissions
+        is_own_profile = str(request.user.id) == str(user_id)
+        has_manage_permission = request.user.can_manage_staff if hasattr(request.user, 'can_manage_staff') else False
+        has_admin_role = request.user.role in ['admin', 'superadmin'] if hasattr(request.user, 'role') else False
+        
+        if not (has_manage_permission or has_admin_role or is_own_profile):
+            return Response({
+                'error': 'Permission denied',
+                'message': 'You do not have permission to view this profile'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        serializer = CustomUserSerializer(user, context={'request': request})
+        return Response(serializer.data)
+    
+    def patch(self, request, user_id):
+        """Update user profile"""
+        print(f"=== UserProfileUpdateView PATCH DEBUG ===")
+        print(f"User: {request.user}")
+        print(f"User ID: {getattr(request.user, 'id', 'No ID')}")
+        print(f"Target user_id: {user_id}")
+        print(f"User role: {getattr(request.user, 'role', 'No role')}")
+        print(f"can_manage_staff: {getattr(request.user, 'can_manage_staff', 'No attribute')}")
+        print(f"Request data: {request.data}")
+        print("=== END PATCH DEBUG ===")
+        
+        # Check if user has permission to update this profile
+        if not request.user.is_authenticated:
+            return Response({
+                'error': 'Authentication required',
+                'message': 'You must be logged in to update profile'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # Allow users to update their own profile or if they have staff management permissions
+        is_own_profile = str(request.user.id) == str(user_id)
+        has_manage_permission = request.user.can_manage_staff if hasattr(request.user, 'can_manage_staff') else False
+        has_admin_role = request.user.role in ['admin', 'superadmin'] if hasattr(request.user, 'role') else False
+        
+        if not (has_manage_permission or has_admin_role or is_own_profile):
+            return Response({
+                'error': 'Permission denied',
+                'message': 'You do not have permission to update this profile'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        user = get_object_or_404(CustomUser, id=user_id)
+        serializer = CustomUserSerializer(user, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            updated_user = serializer.save()
+            
+            # Log user profile update for audit trail
+            AuditLogger.log_staff_action(
+                user=request.user,
+                action='UPDATE_PROFILE',
+                staff_id=user.id,
+                staff_name=f"{user.get_full_name()} ({user.username})",
+                description=f"Updated user profile: {user.get_full_name()}",
+                details={
+                    'updated_by': request.user.email if request.user.is_authenticated else 'Unknown',
+                    'changes': request.data,
+                    'is_own_profile': is_own_profile
+                },
+                request=request
+            )
+            
+            # Return updated data with context for proper decryption
+            response_serializer = CustomUserSerializer(updated_user, context={'request': request})
+            return Response({
+                'success': True,
+                'message': 'Profile updated successfully',
+                'data': response_serializer.data
+            })
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
     def post(self, request):
         print("=== StaffCreateView POST DEBUG ===")
         print(f"User: {request.user}")
