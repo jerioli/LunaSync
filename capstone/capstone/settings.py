@@ -93,6 +93,7 @@ INSTALLED_APPS = [
     'medical_requests.apps.MedicalRequestsConfig',
     'security_app',  # Security management
     'systemlogs',  # Audit logging system
+    'inventory',  # Medication inventory management
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -104,6 +105,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # React dev server alternative port
     "http://localhost:5173",  # Vite dev server default port
     "http://localhost:4173",  # Vite preview port
+    "http://127.0.0.1:8080",  # React dev server (IP form)
+    "http://127.0.0.1:8081",  # React dev server alternative port (IP form)
 ]
 
 # CSRF Trusted Origins for development
@@ -113,6 +116,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",  # React dev server alternative port
     "http://localhost:5173",  # Vite dev server default port
     "http://localhost:4173",  # Vite preview port
+    "http://127.0.0.1:8080",  # React dev server (IP form)
+    "http://127.0.0.1:8081",  # React dev server alternative port (IP form)
 ]
 
 

@@ -65,13 +65,161 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  // Function to refresh user data from backend
+  const refreshUserData = async () => {
+    try {
+      console.log("[DEBUG] ClinicContext - Refreshing user data...");
+      const userResponse = await fetch("/api/auth/current-user/", {
+        credentials: "include",
+      });
+      const userData = await userResponse.json();
+      console.log(
+        "[DEBUG] ClinicContext - Fresh user data from backend:",
+        userData
+      );
+
+      if (userData.success) {
+        const updatedUser = {
+          id: String(userData.user.id),
+          name: userData.user.name,
+          username: userData.user.username,
+          email: userData.user.email,
+          role: userData.user.role,
+          force_password_change: userData.user.force_password_change,
+          can_manage_appointments: userData.user.can_manage_appointments,
+          can_manage_patients: userData.user.can_manage_patients,
+          can_manage_staff: userData.user.can_manage_staff,
+          can_view_reports: userData.user.can_view_reports,
+          can_manage_clinic_settings: userData.user.can_manage_clinic_settings,
+          can_manage_permissions: userData.user.can_manage_permissions,
+          can_access_integrations: userData.user.can_access_integrations,
+          can_view_audit_logs: userData.user.can_view_audit_logs,
+          can_view_usage_reports: userData.user.can_view_usage_reports,
+          can_access_security_testing:
+            userData.user.can_access_security_testing,
+          can_manage_inventory: userData.user.can_manage_inventory,
+        };
+
+        console.log(
+          "[DEBUG] ClinicContext - Updated user with fresh data:",
+          updatedUser
+        );
+        console.log(
+          "[DEBUG] ClinicContext - can_manage_inventory from backend:",
+          userData.user.can_manage_inventory
+        );
+        console.log(
+          "[DEBUG] ClinicContext - can_manage_staff from backend:",
+          userData.user.can_manage_staff
+        );
+        console.log("[DEBUG] ClinicContext - All permissions from backend:", {
+          can_manage_appointments: userData.user.can_manage_appointments,
+          can_manage_patients: userData.user.can_manage_patients,
+          can_manage_staff: userData.user.can_manage_staff,
+          can_manage_inventory: userData.user.can_manage_inventory,
+          can_manage_clinic_settings: userData.user.can_manage_clinic_settings,
+        });
+        setCurrentUserState(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        return updatedUser;
+      }
+    } catch (error) {
+      console.log("Unable to refresh user data:", error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     const initializeAuth = async () => {
       try {
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
           const user = JSON.parse(storedUser);
-          setCurrentUserState(user);
+          console.log(
+            "[DEBUG] ClinicContext - Loaded user from localStorage:",
+            user
+          );
+          console.log(
+            "[DEBUG] ClinicContext - can_manage_inventory from localStorage:",
+            user.can_manage_inventory
+          );
+
+          // Automatically refresh user data to get complete permissions
+          try {
+            console.log("[DEBUG] ClinicContext - Auto-refreshing user data...");
+            const userResponse = await fetch("/api/auth/current-user/", {
+              credentials: "include",
+            });
+            const userData = await userResponse.json();
+            console.log(
+              "[DEBUG] ClinicContext - Fresh user data from backend:",
+              userData
+            );
+
+            if (userData.success) {
+              const updatedUser = {
+                id: String(userData.user.id),
+                name: userData.user.name,
+                username: userData.user.username,
+                email: userData.user.email,
+                role: userData.user.role,
+                force_password_change: userData.user.force_password_change,
+                can_manage_appointments: userData.user.can_manage_appointments,
+                can_manage_patients: userData.user.can_manage_patients,
+                can_manage_staff: userData.user.can_manage_staff,
+                can_view_reports: userData.user.can_view_reports,
+                can_manage_clinic_settings:
+                  userData.user.can_manage_clinic_settings,
+                can_manage_permissions: userData.user.can_manage_permissions,
+                can_access_integrations: userData.user.can_access_integrations,
+                can_view_audit_logs: userData.user.can_view_audit_logs,
+                can_view_usage_reports: userData.user.can_view_usage_reports,
+                can_access_security_testing:
+                  userData.user.can_access_security_testing,
+                can_manage_inventory: userData.user.can_manage_inventory,
+              };
+
+              console.log(
+                "[DEBUG] ClinicContext - Updated user with fresh data:",
+                updatedUser
+              );
+              console.log(
+                "[DEBUG] ClinicContext - can_manage_inventory from backend:",
+                userData.user.can_manage_inventory
+              );
+              console.log(
+                "[DEBUG] ClinicContext - can_manage_staff from backend:",
+                userData.user.can_manage_staff
+              );
+              console.log(
+                "[DEBUG] ClinicContext - All permissions from backend:",
+                {
+                  can_manage_appointments:
+                    userData.user.can_manage_appointments,
+                  can_manage_patients: userData.user.can_manage_patients,
+                  can_manage_staff: userData.user.can_manage_staff,
+                  can_manage_inventory: userData.user.can_manage_inventory,
+                  can_manage_clinic_settings:
+                    userData.user.can_manage_clinic_settings,
+                }
+              );
+              setCurrentUserState(updatedUser);
+              localStorage.setItem("user", JSON.stringify(updatedUser));
+            } else {
+              // If backend refresh fails but we have cached data, use it
+              console.log(
+                "[DEBUG] ClinicContext - Backend refresh failed, using cached data"
+              );
+              setCurrentUserState(user);
+            }
+          } catch (error) {
+            console.log(
+              "Unable to refresh user data, using cached data:",
+              error
+            );
+            // Continue with cached user data if refresh fails
+            setCurrentUserState(user);
+          }
         }
       } catch (error) {
         console.error("Error loading stored user:", error);
@@ -82,6 +230,28 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({
     };
 
     initializeAuth();
+  }, []);
+
+  // Watch for localStorage changes to auto-refresh when user logs in
+  useEffect(() => {
+    const handleStorageChange = async (e: StorageEvent) => {
+      if (e.key === "user" && e.newValue) {
+        console.log(
+          "[DEBUG] ClinicContext - Detected login, auto-refreshing..."
+        );
+        // Small delay to ensure backend session is ready
+        setTimeout(async () => {
+          try {
+            await refreshUserData();
+          } catch (error) {
+            console.log("Auto-refresh failed:", error);
+          }
+        }, 100);
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   const addPatient = async (patient: NewPatient) => {
@@ -351,6 +521,7 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({
         updatePayment,
         fetchPatients,
         fetchLabResults,
+        refreshUserData,
       }}
     >
       {children}

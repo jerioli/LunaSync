@@ -21,8 +21,8 @@ import {
   FileText,
   Home,
   Image,
+  Package,
   Plug,
-  RefreshCw,
   Settings,
   Shield,
   Users,
@@ -53,7 +53,7 @@ export const AppSidebar = () => {
   if (!currentUser) return null;
 
   // Create a key based on user permissions to force re-render when permissions change
-  const permissionKey = `${currentUser.can_manage_permissions}-${currentUser.can_manage_staff}-${currentUser.can_manage_patients}-${currentUser.can_manage_appointments}`;
+  const permissionKey = `${currentUser.can_manage_permissions}-${currentUser.can_manage_staff}-${currentUser.can_manage_patients}-${currentUser.can_manage_appointments}-${currentUser.can_manage_inventory}`;
 
   const getMenuItems = (): MenuItem[] => {
     // Base items available to all users
@@ -86,6 +86,13 @@ export const AppSidebar = () => {
       // Lab Results - Only for doctors and admins (not superadmin, not receptionist)
       ["doctor", "admin"].includes(currentUser.role)
         ? { title: "Lab Results", icon: Image, path: "/lab-results" }
+        : null,
+
+      // Inventory Management - default for doctors/admin, permission-based for others
+      currentUser.role === "doctor" ||
+      currentUser.role === "admin" ||
+      currentUser.can_manage_inventory
+        ? { title: "Inventory", icon: Package, path: "/inventory" }
         : null,
 
       // Document Management - only for receptionist, doctor, and admin (not superadmin as per requirements)
@@ -175,54 +182,6 @@ export const AppSidebar = () => {
             </div>
           </div>
         </Link>
-        {/* Manual refresh button for permissions */}
-        <button
-          onClick={async () => {
-            try {
-              // Manually refresh current user permissions
-              const userResponse = await fetch("/api/auth/current-user/", {
-                credentials: "include",
-              });
-              const userData = await userResponse.json();
-
-              // Update the React context with the new data
-              if (userData.success) {
-                const updatedUser = {
-                  id: String(userData.user.id),
-                  name: userData.user.name,
-                  username: userData.user.username,
-                  email: userData.user.email,
-                  role: userData.user.role,
-                  force_password_change: userData.user.force_password_change,
-                  can_manage_appointments:
-                    userData.user.can_manage_appointments,
-                  can_manage_patients: userData.user.can_manage_patients,
-                  can_manage_staff: userData.user.can_manage_staff,
-                  can_view_reports: userData.user.can_view_reports,
-                  can_manage_clinic_settings:
-                    userData.user.can_manage_clinic_settings,
-                  can_manage_permissions: userData.user.can_manage_permissions,
-                  can_access_integrations:
-                    userData.user.can_access_integrations,
-                  can_view_audit_logs: userData.user.can_view_audit_logs,
-                  can_view_usage_reports: userData.user.can_view_usage_reports,
-                  can_access_security_testing:
-                    userData.user.can_access_security_testing,
-                };
-
-                setCurrentUser(updatedUser);
-                localStorage.setItem("user", JSON.stringify(updatedUser));
-              }
-            } catch (error) {
-              console.error("Manual refresh error:", error);
-            }
-          }}
-          className="flex items-center gap-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded transition-colors"
-          title="Refresh my permissions"
-        >
-          <RefreshCw className="h-3 w-3" />
-          Refresh
-        </button>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

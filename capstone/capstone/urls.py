@@ -54,6 +54,7 @@ urlpatterns = [
     
     path('', include('security_app.urls')),  # Security API endpoints
     path('api/', include('systemlogs.urls')),  # Audit logging system
+    path('api/inventory/', include('inventory.urls')),  # Medication inventory management
 ]
 
 if settings.DEBUG:

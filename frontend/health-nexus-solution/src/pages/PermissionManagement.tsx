@@ -37,6 +37,7 @@ interface UserPermissions {
     can_manage_staff: boolean;
     can_view_reports: boolean;
     can_manage_clinic_settings: boolean;
+    can_manage_inventory: boolean;
     can_manage_permissions: boolean;
     can_access_integrations: boolean;
     can_view_audit_logs: boolean;
@@ -181,6 +182,7 @@ const PermissionManagement = () => {
     can_manage_staff: "Manage Staff",
     can_view_reports: "View Reports",
     can_manage_clinic_settings: "Manage Clinic Settings",
+    can_manage_inventory: "Manage Inventory",
     can_manage_permissions: "Manage Permissions",
     can_access_integrations: "Access Integrations",
     can_view_audit_logs: "View Audit Logs",

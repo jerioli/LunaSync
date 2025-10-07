@@ -311,6 +311,7 @@ class StaffPermissionsView(APIView):
                 'can_manage_staff': user.can_manage_staff,
                 'can_view_reports': user.can_view_reports,
                 'can_manage_clinic_settings': user.can_manage_clinic_settings,
+                'can_manage_inventory': user.can_manage_inventory,
                 'can_manage_permissions': user.can_manage_permissions,
                 'can_access_integrations': user.can_access_integrations,
                 'can_view_audit_logs': user.can_view_audit_logs,
@@ -340,6 +341,7 @@ class StaffPermissionsView(APIView):
                         'can_manage_staff': user.can_manage_staff,
                         'can_view_reports': user.can_view_reports,
                         'can_manage_clinic_settings': user.can_manage_clinic_settings,
+                        'can_manage_inventory': user.can_manage_inventory,
                         'can_manage_permissions': user.can_manage_permissions,
                         'can_access_integrations': user.can_access_integrations,
                         'can_view_audit_logs': user.can_view_audit_logs,
@@ -391,6 +393,7 @@ class StaffPermissionsView(APIView):
             'can_manage_staff': user.can_manage_staff,
             'can_view_reports': user.can_view_reports,
             'can_manage_clinic_settings': user.can_manage_clinic_settings,
+            'can_manage_inventory': user.can_manage_inventory,
             'can_manage_permissions': user.can_manage_permissions,
             'can_access_integrations': user.can_access_integrations,
             'can_view_audit_logs': user.can_view_audit_logs,
@@ -405,6 +408,7 @@ class StaffPermissionsView(APIView):
         user.can_manage_staff = permissions.get('can_manage_staff', user.can_manage_staff)
         user.can_view_reports = permissions.get('can_view_reports', user.can_view_reports)
         user.can_manage_clinic_settings = permissions.get('can_manage_clinic_settings', user.can_manage_clinic_settings)
+        user.can_manage_inventory = permissions.get('can_manage_inventory', user.can_manage_inventory)
         
         # Only allow superadmins to modify these exclusive permissions
         if request.user.role == 'superadmin':
@@ -423,6 +427,7 @@ class StaffPermissionsView(APIView):
             'can_manage_staff': user.can_manage_staff,
             'can_view_reports': user.can_view_reports,
             'can_manage_clinic_settings': user.can_manage_clinic_settings,
+            'can_manage_inventory': user.can_manage_inventory,
             'can_manage_permissions': user.can_manage_permissions,
             'can_access_integrations': user.can_access_integrations,
             'can_view_audit_logs': user.can_view_audit_logs,
@@ -1040,6 +1045,7 @@ class SessionLoginView(APIView):
             print(f"  can_view_audit_logs: {user.can_view_audit_logs}")
             print(f"  can_view_usage_reports: {user.can_view_usage_reports}")
             print(f"  can_access_security_testing: {user.can_access_security_testing}")
+            print(f"  can_manage_inventory: {user.can_manage_inventory}")
             
             # Return user data with all permissions
             response_data = {
@@ -1057,6 +1063,7 @@ class SessionLoginView(APIView):
                     'can_manage_staff': user.can_manage_staff,
                     'can_view_reports': user.can_view_reports,
                     'can_manage_clinic_settings': user.can_manage_clinic_settings,
+                    'can_manage_inventory': user.can_manage_inventory,
                     'can_manage_permissions': user.can_manage_permissions,
                     'can_access_integrations': user.can_access_integrations,
                     'can_view_audit_logs': user.can_view_audit_logs,
@@ -1117,6 +1124,7 @@ class CurrentUserView(APIView):
             'can_manage_staff': request.user.can_manage_staff,
             'can_view_reports': request.user.can_view_reports,
             'can_manage_clinic_settings': request.user.can_manage_clinic_settings,
+            'can_manage_inventory': request.user.can_manage_inventory,
             'can_manage_permissions': request.user.can_manage_permissions,
             'can_access_integrations': request.user.can_access_integrations,
             'can_view_audit_logs': request.user.can_view_audit_logs,
@@ -1198,9 +1206,22 @@ class CompleteLoginView(APIView):
                 'message': 'Login successful',
                 'user': {
                     'id': user.id,
+                    'username': user.username,
+                    'name': user.get_full_name() or user.username,
                     'email': user.email,
-                    'name': user.name,
-                    'role': user.role
+                    'role': user.role,
+                    # Include all permission fields
+                    'can_manage_appointments': user.can_manage_appointments,
+                    'can_manage_patients': user.can_manage_patients,
+                    'can_manage_staff': user.can_manage_staff,
+                    'can_view_reports': user.can_view_reports,
+                    'can_manage_clinic_settings': user.can_manage_clinic_settings,
+                    'can_manage_inventory': user.can_manage_inventory,
+                    'can_manage_permissions': user.can_manage_permissions,
+                    'can_access_integrations': user.can_access_integrations,
+                    'can_view_audit_logs': user.can_view_audit_logs,
+                    'can_view_usage_reports': user.can_view_usage_reports,
+                    'can_access_security_testing': user.can_access_security_testing,
                 },
                 'force_password_change': user.force_password_change
             }
@@ -1411,6 +1432,7 @@ class VerifyOTPView(APIView):
                 'can_manage_staff': getattr(user, 'can_manage_staff', False),
                 'can_view_reports': getattr(user, 'can_view_reports', False),
                 'can_manage_clinic_settings': getattr(user, 'can_manage_clinic_settings', False),
+                'can_manage_inventory': getattr(user, 'can_manage_inventory', False),
                 'can_manage_permissions': getattr(user, 'can_manage_permissions', False),
                 'can_access_integrations': getattr(user, 'can_access_integrations', False),
                 'can_view_audit_logs': getattr(user, 'can_view_audit_logs', False),

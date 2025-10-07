@@ -32,6 +32,7 @@ class CustomUser(AbstractUser):
     can_manage_staff = models.BooleanField(default=False)
     can_view_reports = models.BooleanField(default=False)
     can_manage_clinic_settings = models.BooleanField(default=False)
+    can_manage_inventory = models.BooleanField(default=False)  # New permission for inventory management
     
     # Superadmin exclusive permissions
     can_manage_permissions = models.BooleanField(default=False)
@@ -57,6 +58,7 @@ class CustomUser(AbstractUser):
                 self.can_manage_staff = True
                 self.can_view_reports = True
                 self.can_manage_clinic_settings = True
+                self.can_manage_inventory = True
                 self.can_manage_permissions = True
                 self.can_access_integrations = True
                 self.can_view_audit_logs = True
@@ -68,6 +70,7 @@ class CustomUser(AbstractUser):
                 self.can_manage_staff = True
                 self.can_view_reports = True
                 self.can_manage_clinic_settings = True
+                self.can_manage_inventory = True
                 self.can_manage_permissions = False
                 self.can_access_integrations = False
                 self.can_view_audit_logs = False
@@ -79,6 +82,7 @@ class CustomUser(AbstractUser):
                 self.can_manage_staff = False
                 self.can_view_reports = False
                 self.can_manage_clinic_settings = False
+                self.can_manage_inventory = True
                 self.can_manage_permissions = False
                 self.can_access_integrations = False
                 self.can_view_audit_logs = False
@@ -90,6 +94,7 @@ class CustomUser(AbstractUser):
                 self.can_manage_staff = False
                 self.can_view_reports = True
                 self.can_manage_clinic_settings = False
+                self.can_manage_inventory = True
                 self.can_manage_permissions = False
                 self.can_access_integrations = False
                 self.can_view_audit_logs = False

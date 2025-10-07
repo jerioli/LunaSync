@@ -17,6 +17,7 @@ import DocumentComparison from "./pages/DocumentComparison";
 import ForgotPassword from "./pages/ForgotPassword";
 import Index from "./pages/Index";
 import Integrations from "./pages/Integrations";
+import Inventory from "./pages/Inventory";
 import LabResults from "./pages/LabResults";
 import Login from "./pages/Login";
 import MedicalCertificateGeneration from "./pages/MedicalCertificateGeneration";
@@ -46,8 +47,18 @@ const PermissionGuard = ({
   permission: string;
   children: React.ReactNode;
 }) => {
-  const { currentUser } = useClinic();
-  if (!currentUser?.[permission]) {
+  const { currentUser, isAuthLoading } = useClinic();
+  
+  // Show loading while authentication is still loading
+  if (isAuthLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+  
+  if (!currentUser) {
     return (
       <div className="flex items-center justify-center h-full">
         <h2 className="text-xl font-bold">403 Forbidden</h2>
@@ -55,6 +66,34 @@ const PermissionGuard = ({
       </div>
     );
   }
+
+  // Special handling for inventory permission - allow doctors and admins by default
+  if (permission === "can_manage_inventory") {
+    const hasAccess = 
+      currentUser.role === "doctor" || 
+      currentUser.role === "admin" || 
+      currentUser[permission];
+    
+    if (!hasAccess) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <h2 className="text-xl font-bold">403 Forbidden</h2>
+          <p>You do not have access to this page.</p>
+        </div>
+      );
+    }
+  } else {
+    // For other permissions, use the standard check
+    if (!currentUser[permission]) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <h2 className="text-xl font-bold">403 Forbidden</h2>
+          <p>You do not have access to this page.</p>
+        </div>
+      );
+    }
+  }
+  
   return <>{children}</>;
 };
 
@@ -449,6 +488,20 @@ const App = () => {
                       <ProtectedRoute>
                         <AppLayout>
                           <LabResults />
+                        </AppLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Inventory route */}
+                  <Route
+                    path="/inventory"
+                    element={
+                      <ProtectedRoute>
+                        <AppLayout>
+                          <PermissionGuard permission="can_manage_inventory">
+                            <Inventory />
+                          </PermissionGuard>
                         </AppLayout>
                       </ProtectedRoute>
                     }

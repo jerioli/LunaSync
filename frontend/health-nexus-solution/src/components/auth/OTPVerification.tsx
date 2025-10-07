@@ -68,11 +68,14 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
     setError("");
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/verify-otp/`, {
-        identifier,
-        identifier_type: identifierType,
-        otp: otpValue,
-      });
+      const response = await axios.post(
+        `${API_BASE_URL}/auth/session-verify-otp/`,
+        {
+          identifier,
+          identifier_type: identifierType,
+          otp: otpValue,
+        }
+      );
 
       if (response.data.success) {
         console.log("=== OTP API Response ===");
@@ -96,6 +99,20 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
           accessToken: response.data.user.accessToken,
           refreshToken: response.data.user.refreshToken,
           force_password_change: response.data.force_password_change,
+          // Include all permission fields
+          can_manage_appointments: response.data.user.can_manage_appointments,
+          can_manage_patients: response.data.user.can_manage_patients,
+          can_manage_staff: response.data.user.can_manage_staff,
+          can_view_reports: response.data.user.can_view_reports,
+          can_manage_clinic_settings:
+            response.data.user.can_manage_clinic_settings,
+          can_manage_inventory: response.data.user.can_manage_inventory,
+          can_manage_permissions: response.data.user.can_manage_permissions,
+          can_access_integrations: response.data.user.can_access_integrations,
+          can_view_audit_logs: response.data.user.can_view_audit_logs,
+          can_view_usage_reports: response.data.user.can_view_usage_reports,
+          can_access_security_testing:
+            response.data.user.can_access_security_testing,
         };
 
         console.log("=== UserData Created ===");

@@ -23,6 +23,7 @@ export type User = {
   can_manage_patients?: boolean;
   can_view_reports?: boolean;
   can_manage_clinic_settings?: boolean;
+  can_manage_inventory?: boolean;
 };
 
 export type Patient = {

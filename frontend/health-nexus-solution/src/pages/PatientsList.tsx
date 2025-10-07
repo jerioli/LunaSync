@@ -1,40 +1,69 @@
-import BulkImportModal from '@/components/bulk/BulkImportModal';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useClinic } from '@/contexts/ClinicContext';
-import { useToast } from '@/hooks/use-toast';
-import axios from 'axios';
-import { format } from 'date-fns';
-import { ArrowUpDown, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, FileText, Search, UserPlus } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import BulkImportModal from "@/components/bulk/BulkImportModal";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useClinic } from "@/contexts/ClinicContext";
+import { useToast } from "@/hooks/use-toast";
+import axios from "axios";
+// Import sessionManager to ensure global axios configuration is applied
+import "@/utils/sessionManager";
+import { format } from "date-fns";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  FileText,
+  Search,
+  UserPlus,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-axios.defaults.baseURL = 'http://127.0.0.1:8000/api/';
-
-type SortField = 'name' | 'gender' | 'date_of_birth' | 'email' | 'phone' | 'marital_status';
-type SortDirection = 'asc' | 'desc';
+type SortField =
+  | "name"
+  | "gender"
+  | "date_of_birth"
+  | "email"
+  | "phone"
+  | "marital_status";
+type SortDirection = "asc" | "desc";
 
 const PatientsList = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const { patients, fetchPatients, currentUser } = useClinic();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortField, setSortField] = useState<SortField>('name');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
-  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortField, setSortField] = useState<SortField>("name");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Role-based access control - admin, receptionist, and doctor can use bulk import
-  const canUseBulkImport = currentUser?.role === 'admin' || 
-                          currentUser?.role === 'receptionist' || 
-                          currentUser?.role === 'doctor';
+  const canUseBulkImport =
+    currentUser?.role === "admin" ||
+    currentUser?.role === "receptionist" ||
+    currentUser?.role === "doctor";
 
   // Fetch patients when component mounts
   useEffect(() => {
@@ -44,10 +73,10 @@ const PatientsList = () => {
   // Handle sorting
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortDirection('asc');
+      setSortDirection("asc");
     }
   };
 
@@ -57,15 +86,15 @@ const PatientsList = () => {
     let bValue: any = b[sortField];
 
     // Handle different data types
-    if (sortField === 'date_of_birth') {
+    if (sortField === "date_of_birth") {
       aValue = aValue ? new Date(aValue).getTime() : 0;
       bValue = bValue ? new Date(bValue).getTime() : 0;
-    } else if (typeof aValue === 'string') {
+    } else if (typeof aValue === "string") {
       aValue = aValue.toLowerCase();
-      bValue = bValue ? bValue.toLowerCase() : '';
+      bValue = bValue ? bValue.toLowerCase() : "";
     }
 
-    if (sortDirection === 'asc') {
+    if (sortDirection === "asc") {
       return aValue > bValue ? 1 : -1;
     } else {
       return aValue < bValue ? 1 : -1;
@@ -73,11 +102,15 @@ const PatientsList = () => {
   });
 
   // Filter patients based on search query
-  const filteredPatients = sortedPatients.filter(patient => 
-    patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (patient.email && patient.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (patient.phone && patient.phone.includes(searchQuery)) ||
-    (patient.marital_status || '').toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredPatients = sortedPatients.filter(
+    (patient) =>
+      patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (patient.email &&
+        patient.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (patient.phone && patient.phone.includes(searchQuery)) ||
+      (patient.marital_status || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
   );
 
   // Pagination logic
@@ -106,12 +139,12 @@ const PatientsList = () => {
     if (sortField !== field) {
       return <ArrowUpDown className="ml-2 h-4 w-4" />;
     }
-    return sortDirection === 'asc' ? 
-      <ChevronUp className="ml-2 h-4 w-4" /> : 
-      <ChevronDown className="ml-2 h-4 w-4" />;
+    return sortDirection === "asc" ? (
+      <ChevronUp className="ml-2 h-4 w-4" />
+    ) : (
+      <ChevronDown className="ml-2 h-4 w-4" />
+    );
   };
-
-
 
   return (
     <div className="space-y-6">
@@ -119,14 +152,14 @@ const PatientsList = () => {
         <h1 className="text-3xl font-bold">Patients</h1>
         <div className="flex gap-2">
           {canUseBulkImport && (
-            <BulkImportModal 
-              type="patients" 
+            <BulkImportModal
+              type="patients"
               onUploadComplete={() => {
                 fetchPatients(); // Refresh the patient list after successful upload
               }}
             />
           )}
-          <Button onClick={() => navigate('/patients/add')}>
+          <Button onClick={() => navigate("/patients/add")}>
             <UserPlus className="mr-2 h-4 w-4" />
             Add New Patient
           </Button>
@@ -139,10 +172,12 @@ const PatientsList = () => {
             <div>
               <CardTitle>Patient Records</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} patients
+                Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{" "}
+                {totalItems} patients
                 {sortField && (
                   <span className="ml-2">
-                    • Sorted by {sortField.replace('_', ' ')} ({sortDirection === 'asc' ? 'A-Z' : 'Z-A'})
+                    • Sorted by {sortField.replace("_", " ")} (
+                    {sortDirection === "asc" ? "A-Z" : "Z-A"})
                   </span>
                 )}
               </p>
@@ -157,14 +192,16 @@ const PatientsList = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              {(searchQuery || sortField !== 'name' || sortDirection !== 'asc') && (
-                <Button 
-                  variant="outline" 
+              {(searchQuery ||
+                sortField !== "name" ||
+                sortDirection !== "asc") && (
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => {
-                    setSearchQuery('');
-                    setSortField('name');
-                    setSortDirection('asc');
+                    setSearchQuery("");
+                    setSortField("name");
+                    setSortDirection("asc");
                   }}
                 >
                   Reset
@@ -178,53 +215,53 @@ const PatientsList = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className="h-auto p-0 font-semibold hover:bg-transparent"
-                    onClick={() => handleSort('name')}
+                    onClick={() => handleSort("name")}
                   >
                     Patient
-                    {renderSortIcon('name')}
+                    {renderSortIcon("name")}
                   </Button>
                 </TableHead>
                 <TableHead>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className="h-auto p-0 font-semibold hover:bg-transparent"
-                    onClick={() => handleSort('gender')}
+                    onClick={() => handleSort("gender")}
                   >
                     Gender
-                    {renderSortIcon('gender')}
+                    {renderSortIcon("gender")}
                   </Button>
                 </TableHead>
                 <TableHead>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className="h-auto p-0 font-semibold hover:bg-transparent"
-                    onClick={() => handleSort('date_of_birth')}
+                    onClick={() => handleSort("date_of_birth")}
                   >
                     Date of Birth
-                    {renderSortIcon('date_of_birth')}
+                    {renderSortIcon("date_of_birth")}
                   </Button>
                 </TableHead>
                 <TableHead>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className="h-auto p-0 font-semibold hover:bg-transparent"
-                    onClick={() => handleSort('email')}
+                    onClick={() => handleSort("email")}
                   >
                     Contact
-                    {renderSortIcon('email')}
+                    {renderSortIcon("email")}
                   </Button>
                 </TableHead>
                 <TableHead>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className="h-auto p-0 font-semibold hover:bg-transparent"
-                    onClick={() => handleSort('marital_status')}
+                    onClick={() => handleSort("marital_status")}
                   >
                     Civil Status
-                    {renderSortIcon('marital_status')}
+                    {renderSortIcon("marital_status")}
                   </Button>
                 </TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -237,24 +274,36 @@ const PatientsList = () => {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar>
-                          <AvatarFallback>{patient.name.charAt(0)}</AvatarFallback>
+                          <AvatarFallback>
+                            {patient.name.charAt(0)}
+                          </AvatarFallback>
                         </Avatar>
                         <div>
                           <div className="font-medium">{patient.name}</div>
-                          <div className="text-sm text-muted-foreground">ID: {patient.id}</div>
+                          <div className="text-sm text-muted-foreground">
+                            ID: {patient.id}
+                          </div>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="capitalize">{patient.gender}</TableCell>
+                    <TableCell className="capitalize">
+                      {patient.gender}
+                    </TableCell>
                     <TableCell>
-                      {patient.date_of_birth ? format(new Date(patient.date_of_birth), 'MMM d, yyyy') : 'N/A'}
+                      {patient.date_of_birth
+                        ? format(new Date(patient.date_of_birth), "MMM d, yyyy")
+                        : "N/A"}
                     </TableCell>
                     <TableCell>
                       <div>{patient.email}</div>
-                      <div className="text-sm text-muted-foreground">{patient.phone}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {patient.phone}
+                      </div>
                     </TableCell>
-                    <TableCell className="capitalize">{patient.marital_status || 'N/A'}</TableCell>
-                    
+                    <TableCell className="capitalize">
+                      {patient.marital_status || "N/A"}
+                    </TableCell>
+
                     <TableCell className="text-right">
                       <Button
                         variant="outline"
@@ -273,13 +322,21 @@ const PatientsList = () => {
                     <div className="text-muted-foreground">
                       {searchQuery ? (
                         <>
-                          <p className="text-lg font-medium">No patients found</p>
-                          <p className="text-sm">Try adjusting your search term "{searchQuery}"</p>
+                          <p className="text-lg font-medium">
+                            No patients found
+                          </p>
+                          <p className="text-sm">
+                            Try adjusting your search term "{searchQuery}"
+                          </p>
                         </>
                       ) : (
                         <>
-                          <p className="text-lg font-medium">No patients registered yet</p>
-                          <p className="text-sm">Click "Add New Patient" to get started</p>
+                          <p className="text-lg font-medium">
+                            No patients registered yet
+                          </p>
+                          <p className="text-sm">
+                            Click "Add New Patient" to get started
+                          </p>
                         </>
                       )}
                     </div>
@@ -288,15 +345,16 @@ const PatientsList = () => {
               )}
             </TableBody>
           </Table>
-          
+
           {/* Pagination Controls */}
           {totalItems > 0 && (
             <div className="flex items-center justify-between px-2 py-4">
               <div className="flex items-center space-x-2">
-                <p className="text-sm text-muted-foreground">
-                  Show
-                </p>
-                <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+                <p className="text-sm text-muted-foreground">Show</p>
+                <Select
+                  value={itemsPerPage.toString()}
+                  onValueChange={handleItemsPerPageChange}
+                >
                   <SelectTrigger className="h-8 w-16">
                     <SelectValue />
                   </SelectTrigger>
@@ -307,11 +365,9 @@ const PatientsList = () => {
                     <SelectItem value="50">50</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-sm text-muted-foreground">
-                  entries
-                </p>
+                <p className="text-sm text-muted-foreground">entries</p>
               </div>
-              
+
               <div className="flex items-center space-x-6 lg:space-x-8">
                 <div className="flex w-[100px] items-center justify-center text-sm font-medium">
                   Page {currentPage} of {totalPages}
@@ -341,8 +397,6 @@ const PatientsList = () => {
           )}
         </CardContent>
       </Card>
-
-
     </div>
   );
 };

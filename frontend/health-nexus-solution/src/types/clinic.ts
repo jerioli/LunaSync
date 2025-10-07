@@ -58,4 +58,5 @@ export interface ClinicContextType {
     start_date?: string;
     end_date?: string;
   }) => Promise<LabResult[]>;
+  refreshUserData: () => Promise<any>;
 }

@@ -26,9 +26,8 @@ import { ArrowLeft, Eye, FileText, Mail, Save } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-
-// Configure axios
-axios.defaults.baseURL = "http://127.0.0.1:8000/api/";
+// Import sessionManager to ensure global axios configuration is applied
+import "@/utils/sessionManager";
 
 interface CertificateFormData {
   // Patient information

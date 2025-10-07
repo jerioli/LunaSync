@@ -87,9 +87,39 @@ const Login = () => {
         setIdentifierType(result.identifier_type);
         setIsOtpMode(true);
       } else if (result.success) {
-        // (Should not happen in 2FA mode, but fallback)
-        toast.success("Login successful!");
-        setTimeout(() => navigate("/"), 100);
+        // Direct login without 2FA - set user data properly
+        const userData = {
+          id: String(result.user.id),
+          name: result.user.name || result.user.username,
+          username: result.user.username,
+          email: result.user.email,
+          phone: result.user.phone,
+          role: result.user.role || "doctor",
+          force_password_change: result.force_password_change,
+          // Include all permission fields
+          can_manage_appointments: result.user.can_manage_appointments,
+          can_manage_patients: result.user.can_manage_patients,
+          can_manage_staff: result.user.can_manage_staff,
+          can_view_reports: result.user.can_view_reports,
+          can_manage_clinic_settings: result.user.can_manage_clinic_settings,
+          can_manage_inventory: result.user.can_manage_inventory,
+          can_manage_permissions: result.user.can_manage_permissions,
+          can_access_integrations: result.user.can_access_integrations,
+          can_view_audit_logs: result.user.can_view_audit_logs,
+          can_view_usage_reports: result.user.can_view_usage_reports,
+          can_access_security_testing: result.user.can_access_security_testing,
+        };
+
+        localStorage.setItem("user", JSON.stringify(userData));
+        setCurrentUser(userData);
+
+        if (result.force_password_change) {
+          toast.success("Welcome! Please change your password to continue.");
+          setTimeout(() => navigate("/change-password"), 100);
+        } else {
+          toast.success("Login successful!");
+          setTimeout(() => navigate("/"), 100);
+        }
       } else {
         setLoginError(result.error || "Invalid username or password");
         setHasLoginError(true);
@@ -115,7 +145,8 @@ const Login = () => {
         userData.sessionId || userData.session_id
       );
     }
-    setCurrentUser(user);
+    // ClinicContext will automatically detect the localStorage change and refresh
+
     if (userData.force_password_change) {
       toast.success("Welcome! Please change your password to continue.");
       setTimeout(() => {
