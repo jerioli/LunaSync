@@ -262,32 +262,4 @@ export const prescriptions: Prescription[] = [
 ];
 
 // Mock Lab Results
-export const labResults: LabResult[] = [
-  {
-    id: "1",
-    patientId: "1",
-    date: "2023-06-01",
-    type: "Blood Test",
-    resultUrl: "/placeholder.svg",
-    notes: "Cholesterol slightly elevated.",
-    authorizedBy: "Dr. Sarah Johnson"
-  },
-  {
-    id: "2",
-    patientId: "2",
-    date: "2023-05-20",
-    type: "Lung Function Test",
-    resultUrl: "/placeholder.svg",
-    notes: "Lung function improved since last visit.",
-    authorizedBy: "Dr. Michael Chen"
-  },
-  {
-    id: "3",
-    patientId: "3",
-    date: "2023-06-05",
-    type: "HbA1c Test",
-    resultUrl: "/placeholder.svg",
-    notes: "HbA1c levels within target range.",
-    authorizedBy: "Dr. Sarah Johnson"
-  },
-];
+export const labResults: LabResult[] = [];

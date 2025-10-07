@@ -4,7 +4,6 @@ import {
   appointments,
   Inventory,
   LabResult,
-  labResults,
   NewPatient,
   Patient,
   Payment,
@@ -50,7 +49,7 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({
     useState<Appointment[]>(appointments);
   const [prescriptionsList, setPrescriptionsList] =
     useState<Prescription[]>(prescriptions);
-  const [labResultsList, setLabResultsList] = useState<LabResult[]>(labResults);
+  const [labResultsList, setLabResultsList] = useState<LabResult[]>([]);
   const [clinicCustomization, setClinicCustomization] =
     useState<ClinicCustomization>(defaultClinicCustomization);
   const [inventory, setInventory] = useState<Inventory[]>([]);
