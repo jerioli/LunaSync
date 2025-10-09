@@ -431,3 +431,92 @@ class RestorePatientView(APIView):
             'message': f'Patient {patient.name} has been restored successfully',
             'patient': serializer.data
         }, status=status.HTTP_200_OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class PatientLookupView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [AllowAny]  # Allow anonymous access for patient lookup
+    
+    def post(self, request):
+        try:
+            from difflib import SequenceMatcher
+            from django.db import models
+            
+            full_name = request.data.get('full_name', '').strip()
+            date_of_birth = request.data.get('date_of_birth', '').strip()
+            email = request.data.get('email', '').strip()
+            phone = request.data.get('phone', '').strip()
+            
+            # Validate required fields
+            if not all([full_name, date_of_birth, email, phone]):
+                return Response({
+                    'status': 'error',
+                    'message': 'All fields are required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Try to construct the full name from separate fields if needed
+            # Split the full name for more flexible matching
+            name_parts = full_name.lower().split()
+            
+            # Exact match search first
+            exact_matches = Patient.objects.filter(
+                date_of_birth=date_of_birth,
+                email__iexact=email,
+                phone=phone
+            )
+            
+            # Filter by name parts
+            for match in exact_matches:
+                patient_name = f"{match.first_name} {match.middle_initial or ''} {match.last_name} {match.suffix or ''}".strip()
+                if patient_name.lower().replace('  ', ' ') == full_name.lower():
+                    return Response({
+                        'status': 'match',
+                        'patient_id': match.patient_id,
+                        'message': 'Patient found successfully'
+                    })
+            
+            # Partial match search - try different combinations
+            partial_matches = Patient.objects.filter(
+                date_of_birth=date_of_birth
+            ).filter(
+                models.Q(email__iexact=email) | 
+                models.Q(phone=phone) |
+                models.Q(first_name__icontains=name_parts[0] if name_parts else '') |
+                models.Q(last_name__icontains=name_parts[-1] if len(name_parts) > 1 else name_parts[0] if name_parts else '')
+            ).distinct()
+            
+            if partial_matches.count() == 1:
+                patient = partial_matches.first()
+                patient_full_name = f"{patient.first_name} {patient.middle_initial or ''} {patient.last_name} {patient.suffix or ''}".strip().replace('  ', ' ')
+                
+                # Calculate similarity
+                similarity = SequenceMatcher(None, full_name.lower(), patient_full_name.lower()).ratio()
+                
+                if similarity > 0.7:  # 70% similarity threshold
+                    suggestion = f"Name: {patient_full_name}, Email: {patient.email}"
+                    return Response({
+                        'status': 'partial_match',
+                        'patient_id': patient.patient_id,
+                        'suggestion': suggestion,
+                        'message': 'Similar patient found'
+                    })
+            
+            # Multiple matches found
+            if partial_matches.count() > 1:
+                return Response({
+                    'status': 'multiple_match',
+                    'message': 'Multiple patients found with similar details'
+                })
+            
+            # No matches found
+            return Response({
+                'status': 'no_match',
+                'message': 'No patient found with the provided details'
+            })
+            
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': f'An error occurred during lookup: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
