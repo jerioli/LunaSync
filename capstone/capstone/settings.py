@@ -83,6 +83,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
+    'captcha',  # Django simple captcha
     'api',  
     'accounts',
     'patients',

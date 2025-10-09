@@ -24,6 +24,10 @@ from datetime import datetime, timedelta
 from systemlogs.audit_logger import AuditLogger
 import pyotp
 from capstone.settings import CsrfExemptSessionAuthentication
+from captcha.models import CaptchaStore
+from captcha.helpers import captcha_image_url
+from django.http import HttpResponse
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -1975,3 +1979,72 @@ class SecurityTestingView(APIView):
             'message': f'Security test "{test_type}" initiated successfully',
             'test_id': 'test_' + str(secrets.randbelow(9000) + 1000)
         })
+
+
+class CaptchaGenerateView(APIView):
+    """Generate a new captcha for account activation"""
+    permission_classes = [AllowAny]
+    
+    def get(self, request):
+        """Generate and return captcha key and image URL"""
+        try:
+            # Generate new captcha
+            captcha_key = CaptchaStore.generate_key()
+            captcha_image = captcha_image_url(captcha_key)
+            
+            return Response({
+                'success': True,
+                'captcha_key': captcha_key,
+                'captcha_image_url': f'http://localhost:8000{captcha_image}',
+            })
+        except Exception as e:
+            logger.error(f"Error generating captcha: {str(e)}")
+            return Response({
+                'success': False,
+                'error': 'Failed to generate captcha'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class CaptchaVerifyView(APIView):
+    """Verify captcha response"""
+    permission_classes = [AllowAny]
+    
+    def post(self, request):
+        """Verify captcha key and response"""
+        try:
+            captcha_key = request.data.get('captcha_key')
+            captcha_response = request.data.get('captcha_response', '').lower()
+            
+            if not captcha_key or not captcha_response:
+                return Response({
+                    'success': False,
+                    'error': 'Captcha key and response are required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Verify captcha
+            try:
+                captcha_store = CaptchaStore.objects.get(hashkey=captcha_key)
+                if captcha_store.response.lower() == captcha_response:
+                    # Delete the used captcha
+                    captcha_store.delete()
+                    return Response({
+                        'success': True,
+                        'message': 'Captcha verified successfully'
+                    })
+                else:
+                    return Response({
+                        'success': False,
+                        'error': 'Invalid captcha response'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+            except CaptchaStore.DoesNotExist:
+                return Response({
+                    'success': False,
+                    'error': 'Invalid or expired captcha'
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
+        except Exception as e:
+            logger.error(f"Error verifying captcha: {str(e)}")
+            return Response({
+                'success': False,
+                'error': 'Failed to verify captcha'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

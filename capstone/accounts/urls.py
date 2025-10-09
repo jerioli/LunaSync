@@ -6,7 +6,8 @@ from accounts.views import (
     StaffDetailView, StaffPermissionsView, UserListView, SendOTPView, VerifyOTPView,
     ResetPasswordOTPView, login_view, DebugUserView, TestView,  # Import the debug and test views
     AuditLogsView, UsageReportsView, IntegrationsView, SecurityTestingView,  # New superadmin views
-    CurrentUserView, AccountActivationView  # Add account activation view
+    CurrentUserView, AccountActivationView,  # Add account activation view
+    CaptchaGenerateView, CaptchaVerifyView  # Add captcha views
 )
 from accounts.bulk_patient_staff_views import (
     BulkPatientUploadView, BulkStaffUploadView, BulkImportTemplateView,
@@ -47,6 +48,10 @@ urlpatterns = [
     
     # Account activation endpoints
     path('activate/<uidb64>/<token>/', AccountActivationView.as_view(), name='account-activation'),
+    
+    # Captcha endpoints
+    path('captcha/generate/', CaptchaGenerateView.as_view(), name='captcha-generate'),
+    path('captcha/verify/', CaptchaVerifyView.as_view(), name='captcha-verify'),
     
     # User settings endpoints
     path('auth/change-password/', PasswordChangeView.as_view(), name='change-password'),

@@ -52,6 +52,7 @@ urlpatterns = [
     path('api/medical-certificates/', medical_certificates_endpoint, name='medical_certificates_direct'),
     path('api/medical-certificates/<int:request_id>/approve/', approve_medical_certificate_endpoint, name='approve_medical_certificate_direct'),
     
+    path('captcha/', include('captcha.urls')),  # Captcha URLs
     path('', include('security_app.urls')),  # Security API endpoints
     path('api/', include('systemlogs.urls')),  # Audit logging system
     path('api/inventory/', include('inventory.urls')),  # Medication inventory management

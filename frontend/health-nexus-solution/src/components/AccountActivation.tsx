@@ -62,6 +62,14 @@ const AccountActivation: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // Captcha states
+  const [showCaptcha, setShowCaptcha] = useState(true);
+  const [captchaKey, setCaptchaKey] = useState("");
+  const [captchaImageUrl, setCaptchaImageUrl] = useState("");
+  const [userCaptchaResponse, setUserCaptchaResponse] = useState("");
+  const [captchaVerified, setCaptchaVerified] = useState(false);
+  const [captchaLoading, setCaptchaLoading] = useState(false);
 
   const passwordRequirements = [
     { regex: /.{8,}/, text: "At least 8 characters" },
@@ -74,7 +82,34 @@ const AccountActivation: React.FC = () => {
     },
   ];
 
+  // Generate visual captcha from backend
+  const generateCaptcha = async () => {
+    setCaptchaLoading(true);
+    try {
+      const response = await fetch('http://localhost:8000/api/captcha/generate/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setCaptchaKey(data.captcha_key);
+        setCaptchaImageUrl(data.captcha_image_url);
+      } else {
+        toast.error('Failed to generate captcha');
+      }
+    } catch (error) {
+      console.error('Error generating captcha:', error);
+      toast.error('Error generating captcha');
+    } finally {
+      setCaptchaLoading(false);
+    }
+  };
+
   useEffect(() => {
+    generateCaptcha(); // Generate captcha first
     if (uid && token) {
       validateActivationLink();
     }
@@ -111,6 +146,52 @@ const AccountActivation: React.FC = () => {
     } finally {
       setIsValidating(false);
     }
+  };
+
+  const handleCaptchaVerification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!userCaptchaResponse.trim()) {
+      toast.error("Please enter the captcha text");
+      return;
+    }
+
+    setCaptchaLoading(true);
+    try {
+      const response = await fetch('http://localhost:8000/api/captcha/verify/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          captcha_key: captchaKey,
+          captcha_response: userCaptchaResponse.trim()
+        }),
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setCaptchaVerified(true);
+        setShowCaptcha(false);
+        toast.success("Captcha verified successfully!");
+      } else {
+        toast.error(data.error || "Invalid captcha response");
+        await generateCaptcha(); // Generate new captcha
+        setUserCaptchaResponse(""); // Clear user input
+      }
+    } catch (error) {
+      console.error('Error verifying captcha:', error);
+      toast.error('Error verifying captcha');
+      await generateCaptcha(); // Generate new captcha on error
+      setUserCaptchaResponse("");
+    } finally {
+      setCaptchaLoading(false);
+    }
+  };
+
+  const refreshCaptcha = async () => {
+    await generateCaptcha();
+    setUserCaptchaResponse("");
   };
 
   const handleActivation = async (e: React.FormEvent) => {
@@ -235,6 +316,118 @@ const AccountActivation: React.FC = () => {
                 Go to Login
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show captcha verification before activation form
+  if (isValid && showCaptcha && !captchaVerified) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="text-center">
+            <h2 className="text-3xl font-extrabold text-gray-900">
+              Security Verification
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Please complete the captcha to proceed with account activation
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <form onSubmit={handleCaptchaVerification} className="space-y-6">
+              <div className="text-center">
+                <div className="bg-gray-100 p-4 rounded-lg border-2 border-dashed border-gray-300">
+                  {captchaLoading ? (
+                    <div className="flex items-center justify-center h-20">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      <span className="ml-2 text-gray-600">Loading captcha...</span>
+                    </div>
+                  ) : captchaImageUrl ? (
+                    <img 
+                      src={captchaImageUrl} 
+                      alt="Captcha" 
+                      className="mx-auto border rounded"
+                      style={{ maxWidth: '200px', height: 'auto' }}
+                    />
+                  ) : (
+                    <div className="text-gray-600 h-20 flex items-center justify-center">
+                      Captcha not loaded
+                    </div>
+                  )}
+                  <div className="text-sm text-gray-600 mt-2">
+                    Enter the text shown in the image above
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="captchaResponse"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Captcha Text
+                </label>
+                <div className="mt-1 flex">
+                  <input
+                    id="captchaResponse"
+                    name="captchaResponse"
+                    type="text"
+                    required
+                    value={userCaptchaResponse}
+                    onChange={(e) => setUserCaptchaResponse(e.target.value)}
+                    className="flex-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-l-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="Enter the captcha text"
+                    disabled={captchaLoading}
+                  />
+                  <button
+                    type="button"
+                    onClick={refreshCaptcha}
+                    disabled={captchaLoading}
+                    className="px-3 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+                    title="Refresh captcha"
+                  >
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <button
+                  type="submit"
+                  disabled={!userCaptchaResponse || captchaLoading}
+                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {captchaLoading ? "Verifying..." : "Verify & Continue"}
+                </button>
+              </div>
+
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => navigate("/login")}
+                  className="text-sm text-blue-600 hover:text-blue-500"
+                >
+                  Back to Login
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
