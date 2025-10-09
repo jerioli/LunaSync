@@ -594,7 +594,7 @@ def login_view(request):
     
     if user:
         # Actually log the user in to create a session
-        login(request, user)
+        login(request, user, backend='accounts.backends.EmailOrUsernameBackend')
         
         # Generate tokens (for now using dummy tokens, you can implement JWT later)
         access_token = f"access_token_for_user_{user.id}"
@@ -872,7 +872,7 @@ class SessionLoginView(APIView):
             print(f"[DEBUG] SessionLoginView - Session before login: {request.session.session_key}")
             
             # Create session
-            login(request, user)
+            login(request, user, backend='accounts.backends.EmailOrUsernameBackend')
             
             print(f"[DEBUG] SessionLoginView - Session after login: {request.session.session_key}")
             print(f"[DEBUG] SessionLoginView - User authenticated: {user.is_authenticated}")
@@ -1026,7 +1026,7 @@ class CompleteLoginView(APIView):
         if verification_success:
             # Complete the login
             from django.contrib.auth import login
-            login(request, user)
+            login(request, user, backend='accounts.backends.EmailOrUsernameBackend')
             
             # Clear session data and cache
             request.session.pop('pending_user_id', None)
@@ -1235,7 +1235,8 @@ class VerifyOTPView(APIView):
         # Create a Django session for the user (like session-based login)
         from django.contrib.auth import login
         request.user = user
-        login(request, user)
+        # Specify backend when logging in with multiple authentication backends
+        login(request, user, backend='accounts.backends.EmailOrUsernameBackend')
         request.session['user_id'] = user.id
         request.session['username'] = user.username
         request.session['role'] = getattr(user, 'role', 'doctor')

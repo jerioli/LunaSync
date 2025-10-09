@@ -208,7 +208,7 @@ class SessionOTPVerifyView(APIView):
             # Log in the user AFTER session is stable
             from django.contrib.auth import login
             # Set backend for multi-backend compatibility
-            user.backend = 'django.contrib.auth.backends.ModelBackend'
+            user.backend = 'accounts.backends.EmailOrUsernameBackend'
             login(request, user)
             
             # Set additional session data AFTER login

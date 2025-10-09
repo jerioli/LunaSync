@@ -502,18 +502,22 @@ Best regards,
         logger.error(f"Failed to send reminder email: {str(email_error)}")
         return False
 
-def send_otp_email(to_email, otp_code, identifier_type='email'):
+def send_otp_email(to_email, otp_code, clinic_settings=None):
     """
     Send OTP verification email to user
     
     Args:
         to_email: Recipient email address
         otp_code: The OTP code to send
-        identifier_type: Type of identifier ('email' or 'phone')
+        clinic_settings: Clinic settings object (optional)
     """
     try:
-        # Fetch clinic info from the database
-        clinic = ClinicSettings.objects.first()
+        # Use provided clinic settings or fetch from database
+        if clinic_settings:
+            clinic = clinic_settings
+        else:
+            clinic = ClinicSettings.objects.first()
+            
         clinic_name = clinic.clinic_name if clinic else 'HealthNexus Medical Center'
         clinic_address = clinic.address if clinic else '123 Health Avenue, Medical District'
         clinic_phone = clinic.phone if clinic else '(123) 456-7890'
@@ -648,15 +652,17 @@ Best regards,
             
             email.send()
             logger.info(f"OTP email sent successfully to {to_email}")
-            return True
+            return True, "OTP email sent successfully"
             
         except Exception as send_error:
-            logger.error(f"Failed to send OTP email: {send_error}")
-            return False
+            error_msg = f"Failed to send OTP email: {send_error}"
+            logger.error(error_msg)
+            return False, error_msg
         
     except Exception as email_error:
-        logger.error(f"Failed to create OTP email: {str(email_error)}")
-        return False
+        error_msg = f"Failed to create OTP email: {email_error}"
+        logger.error(error_msg)
+        return False, error_msg
 
 
 def send_notification_email_with_clinic_sender(to_email, subject, plain_content, html_content, clinic_settings):

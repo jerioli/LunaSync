@@ -166,7 +166,7 @@ const ResetPassword = () => {
               {/* New Password */}
               <div className="space-y-2">
                 <Label htmlFor="newPassword">New Password</Label>
-                <div className="relative">
+                <div className="relative overflow-hidden">
                   <Input 
                     id="newPassword" 
                     type={showNewPassword ? 'text' : 'password'}
@@ -174,14 +174,15 @@ const ResetPassword = () => {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
-                    className="focus-visible:ring-[#79c942] focus-visible:ring-2 focus-visible:ring-offset-2"
+                    className="focus-visible:ring-[#79c942] focus-visible:ring-2 focus-visible:ring-offset-2 pr-12"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent z-10"
                     onClick={() => setShowNewPassword(!showNewPassword)}
+                    tabIndex={-1}
                   >
                     {showNewPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -198,7 +199,7 @@ const ResetPassword = () => {
               {/* Confirm Password */}
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                <div className="relative">
+                <div className="relative overflow-hidden">
                   <Input 
                     id="confirmPassword" 
                     type={showConfirmPassword ? 'text' : 'password'}
@@ -206,14 +207,15 @@ const ResetPassword = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="focus-visible:ring-[#79c942] focus-visible:ring-2 focus-visible:ring-offset-2"
+                    className="focus-visible:ring-[#79c942] focus-visible:ring-2 focus-visible:ring-offset-2 pr-12"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent z-10"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    tabIndex={-1}
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -226,8 +228,11 @@ const ResetPassword = () => {
 
               <Button 
                 type="submit" 
-                className="w-full bg-[#79c942] hover:bg-[#68ab38] text-white transition-colors" 
-                disabled={isLoading}
+                className="w-full bg-[#79c942] hover:bg-[#68ab38] text-white transition-colors relative z-20" 
+                disabled={isLoading || !newPassword || !confirmPassword}
+                onClick={(e) => {
+                  console.log('Reset button clicked', { isLoading, newPassword: !!newPassword, confirmPassword: !!confirmPassword });
+                }}
               >
                 {isLoading ? 'Resetting...' : 'Reset Password'}
               </Button>
