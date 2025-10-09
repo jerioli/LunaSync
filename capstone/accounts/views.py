@@ -754,7 +754,8 @@ class AccountActivationView(APIView):
                         'message': 'Activation link is valid',
                         'user_id': user.id,
                         'username': user.username,
-                        'email': user.email
+                        'email': user.email,
+                        'role': user.role
                     })
                 else:
                     return Response({
@@ -777,6 +778,7 @@ class AccountActivationView(APIView):
         User = get_user_model()
         new_password = request.data.get('new_password')
         confirm_password = request.data.get('confirm_password')
+        license_number = request.data.get('license_number')
         
         if not new_password or not confirm_password:
             return Response({
@@ -821,11 +823,23 @@ class AccountActivationView(APIView):
             uid = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
             
+            # Validate license number for doctors
+            if user.role == 'doctor':
+                if not license_number or license_number.strip() == '':
+                    return Response({
+                        'error': 'License number is required for doctor accounts'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+            
             from accounts.backends import account_activation_token
             if account_activation_token.check_token(user, token):
                 # Set new password and activate account
                 user.set_password(new_password)
                 user.force_password_change = False  # Account is now activated
+                
+                # Set license number for doctors
+                if user.role == 'doctor' and license_number:
+                    user.license_number = license_number.strip()
+                
                 user.save()
                 
                 # Log account activation

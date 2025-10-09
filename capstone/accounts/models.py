@@ -17,6 +17,7 @@ class CustomUserManager(UserManager):
 class CustomUser(AbstractUser):
     email = EncryptedCharField(max_length=600, unique=True)
     phone = EncryptedCharField(max_length=100, blank=True, null=True)
+    license_number = EncryptedCharField(max_length=100, blank=True, null=True)  # For doctor's license
     ROLE_CHOICES = (
         ('superadmin', 'Super Admin'),
         ('admin', 'Admin'),

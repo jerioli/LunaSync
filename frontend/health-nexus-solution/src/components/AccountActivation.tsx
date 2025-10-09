@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 interface ActivationParams extends Record<string, string | undefined> {
@@ -58,6 +58,7 @@ const AccountActivation: React.FC = () => {
   const [userInfo, setUserInfo] = useState<any>(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [licenseNo, setLicenseNo] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -120,6 +121,12 @@ const AccountActivation: React.FC = () => {
       return;
     }
 
+    // Validate license number for doctors
+    if (userInfo && userInfo.role === 'doctor' && !licenseNo.trim()) {
+      toast.error("Medical license number is required for doctor accounts");
+      return;
+    }
+
     // Check password requirements
     const unmetRequirements = passwordRequirements.filter(
       (req) => !req.regex.test(password)
@@ -135,7 +142,17 @@ const AccountActivation: React.FC = () => {
 
     setIsSubmitting(true);
 
-    try {
+      try {
+      const requestBody: any = {
+        new_password: password,
+        confirm_password: confirmPassword,
+      };
+
+      // Add license number for doctors
+      if (userInfo && userInfo.role === 'doctor') {
+        requestBody.license_number = licenseNo;
+      }
+
       const response = await fetch(
         `http://localhost:8000/api/activate/${uid}/${token}/`,
         {
@@ -143,10 +160,7 @@ const AccountActivation: React.FC = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            new_password: password,
-            confirm_password: confirmPassword,
-          }),
+          body: JSON.stringify(requestBody),
         }
       );
 
@@ -254,6 +268,11 @@ const AccountActivation: React.FC = () => {
                 <p>
                   <strong>Email:</strong> {userInfo.email}
                 </p>
+                {userInfo.role && (
+                  <p>
+                    <strong>Role:</strong> {userInfo.role.charAt(0).toUpperCase() + userInfo.role.slice(1)}
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -384,6 +403,33 @@ const AccountActivation: React.FC = () => {
                 </button>
               </div>
             </div>
+
+            {/* License Number field - only for doctors */}
+            {userInfo && userInfo.role === 'doctor' && (
+              <div>
+                <label
+                  htmlFor="licenseNo"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Medical License Number
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="licenseNo"
+                    name="licenseNo"
+                    type="text"
+                    required
+                    value={licenseNo}
+                    onChange={(e) => setLicenseNo(e.target.value)}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="Enter your medical license number"
+                  />
+                </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  Your medical license number is required for doctor account activation
+                </p>
+              </div>
+            )}
 
             {/* Password Requirements */}
             <div className="bg-gray-50 p-4 rounded-md">
