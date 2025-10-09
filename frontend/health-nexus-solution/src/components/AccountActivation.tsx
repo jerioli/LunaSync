@@ -81,8 +81,9 @@ const AccountActivation: React.FC = () => {
 
   const validateActivationLink = async () => {
     try {
+      console.log('Validating activation link:', { uid, token });
       const response = await fetch(
-        `http://localhost:8000/api/accounts/activate/${uid}/${token}/`,
+        `http://localhost:8000/api/activate/${uid}/${token}/`,
         {
           method: "GET",
           headers: {
@@ -92,12 +93,14 @@ const AccountActivation: React.FC = () => {
       );
 
       const data = await response.json();
+      console.log('Activation validation response:', { status: response.status, data });
 
       if (data.success) {
         setIsValid(true);
         setUserInfo(data);
       } else {
         setIsValid(false);
+        console.error('Activation validation failed:', data.message);
         toast.error(data.message || "Invalid or expired activation link");
       }
     } catch (error) {
@@ -134,7 +137,7 @@ const AccountActivation: React.FC = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/api/accounts/activate/${uid}/${token}/`,
+        `http://localhost:8000/api/activate/${uid}/${token}/`,
         {
           method: "POST",
           headers: {

@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useClinic } from '@/contexts/ClinicContext';
+import { useBranding } from '@/contexts/BrandingContext';
 import { logoutSession } from '@/utils/sessionManager';
 import axios from 'axios';
 import { Bell, Calendar, Clock, LogOut, MessageSquare, Settings } from 'lucide-react';
@@ -20,6 +21,7 @@ import { useNavigate } from 'react-router-dom';
 
 export const TopBar: React.FC = () => {
   const { currentUser, setCurrentUser } = useClinic();
+  const { colors } = useBranding(); // Import branding context
   const navigate = useNavigate();
   const [pendingCount, setPendingCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -163,24 +165,37 @@ export const TopBar: React.FC = () => {
       <div className="flex items-center justify-between">
         {/* Left side - Only Sidebar trigger */}
         <div className="flex items-center">
-          {/* SidebarTrigger with green hover */}
-          <SidebarTrigger className="text-[#79c942] hover:bg-[#79c942]/10" />
+          {/* SidebarTrigger with dynamic primary color */}
+          <SidebarTrigger 
+            className="hover:bg-opacity-10" 
+            style={{ 
+              color: colors.primaryColor,
+              '--hover-bg': `${colors.primaryColor}1a` // 10% opacity
+            } as any}
+          />
         </div>
 
         {/* Right side - Actions */}
         <div className="flex items-center gap-2 sm:gap-4">
           <div className="relative notification-dropdown">
-            {/* Notification button with dynamic title based on pending count */}
+            {/* Notification button with dynamic primary color */}
             <Button 
               variant="ghost" 
               size="icon" 
-              className="relative text-[#79c942] hover:bg-[#79c942]/10"
+              className="relative hover:bg-opacity-10"
               onClick={handleNotificationClick}
               title={`${pendingCount > 0 ? `${pendingCount} pending appointment request${pendingCount > 1 ? 's' : ''}` : 'No pending requests'}`}
+              style={{ 
+                color: colors.primaryColor,
+                '--hover-bg': `${colors.primaryColor}1a`
+              } as any}
             >
               <Bell className="h-5 w-5" />
               {pendingCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#79c942] text-white text-xs rounded-full h-4 w-4 flex items-center justify-center animate-pulse">
+                <span 
+                  className="absolute -top-1 -right-1 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center animate-pulse"
+                  style={{ backgroundColor: colors.primaryColor }}
+                >
                   {pendingCount}
                 </span>
               )}
@@ -292,18 +307,23 @@ export const TopBar: React.FC = () => {
               </div>
             )}
           </div>
-          {/* 3. Change message icon button color to solid #79c942 */}
-          <Button variant="ghost" size="icon" className="text-[#79c942] hover:bg-[#79c942]/10">
-            <MessageSquare className="h-5 w-5" />
-          </Button>
           
           {/* User Profile Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full hover:bg-[#79c942]/10">
+              <Button 
+                variant="ghost" 
+                className="relative h-8 w-8 rounded-full hover:bg-opacity-10"
+                style={{ 
+                  '--hover-bg': `${colors.primaryColor}1a`
+                } as any}
+              >
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={currentUser.image} alt={currentUser.name} />
-                  <AvatarFallback>
+                  <AvatarFallback 
+                    className="text-white font-medium"
+                    style={{ backgroundColor: colors.primaryColor }}
+                  >
                     {currentUser.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
@@ -322,13 +342,26 @@ export const TopBar: React.FC = () => {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSettings} className="cursor-pointer focus:bg-[#79c942]/10 focus:text-[#79c942]">
-                <Settings className="mr-2 h-4 w-4 text-[#79c942]" />
+              <DropdownMenuItem 
+                onClick={handleSettings} 
+                className="cursor-pointer hover:bg-opacity-10"
+                style={{ 
+                  '--hover-bg': `${colors.primaryColor}1a`,
+                  '--focus-color': colors.primaryColor
+                } as any}
+              >
+                <Settings className="mr-2 h-4 w-4" style={{ color: colors.primaryColor }} />
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               {/* Logout button with green hover but red text */}
-              <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 hover:bg-[#79c942]/10 focus:bg-[#79c942]/10 focus:text-red-600 hover:text-red-600">
+              <DropdownMenuItem 
+                onClick={handleLogout} 
+                className="cursor-pointer text-red-600 hover:bg-opacity-10 focus:text-red-600 hover:text-red-600"
+                style={{ 
+                  '--hover-bg': `${colors.primaryColor}1a`
+                } as React.CSSProperties & Record<string, any>}
+              >
                 <LogOut className="mr-2 h-4 w-4 text-red-600" />
                 <span>Log out</span>
               </DropdownMenuItem>

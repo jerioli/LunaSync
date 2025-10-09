@@ -97,7 +97,8 @@ class StaffCreateView(APIView):
                         clinic_settings = None
                     
                     # Generate secure activation token
-                    token = PasswordResetTokenGenerator().make_token(user)
+                    from accounts.backends import account_activation_token
+                    token = account_activation_token.make_token(user)
                     uid = urlsafe_base64_encode(force_bytes(user.pk))
                     activation_link = f"http://localhost:8080/account/activate/{uid}/{token}/"
                     
@@ -735,10 +736,17 @@ class AccountActivationView(APIView):
         """Check if activation link is valid"""
         User = get_user_model()
         try:
+            print(f"[DEBUG] Activation attempt - uidb64: {uidb64}, token: {token}")
             uid = force_str(urlsafe_base64_decode(uidb64))
+            print(f"[DEBUG] Decoded uid: {uid}")
             user = User.objects.get(pk=uid)
+            print(f"[DEBUG] Found user: {user.username}, force_password_change: {user.force_password_change}")
             
-            if PasswordResetTokenGenerator().check_token(user, token):
+            from accounts.backends import account_activation_token
+            token_valid = account_activation_token.check_token(user, token)
+            print(f"[DEBUG] Token valid: {token_valid}")
+            
+            if token_valid:
                 # Check if user still needs activation (force_password_change is True)
                 if user.force_password_change:
                     return Response({
@@ -813,7 +821,8 @@ class AccountActivationView(APIView):
             uid = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
             
-            if PasswordResetTokenGenerator().check_token(user, token):
+            from accounts.backends import account_activation_token
+            if account_activation_token.check_token(user, token):
                 # Set new password and activate account
                 user.set_password(new_password)
                 user.force_password_change = False  # Account is now activated

@@ -25,11 +25,6 @@ class AppointmentSerializer(serializers.ModelSerializer):
     patient_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     
     def __init__(self, *args, **kwargs):
-        print(f"=== SERIALIZER INIT ===")
-        print(f"Args: {args}")
-        print(f"Kwargs: {kwargs}")
-        if args and hasattr(args[0], 'data') if len(args) > 0 else False:
-            print(f"Request data: {getattr(args[0], 'data', 'No data attr')}")
         super().__init__(*args, **kwargs)
     patient_email = serializers.EmailField(required=True)
     patient_phone = serializers.CharField(required=True)
@@ -165,32 +160,24 @@ class AppointmentSerializer(serializers.ModelSerializer):
             has_last_name = data.get('lastName') and data.get('lastName').strip()
             has_patient_name = data.get('patient_name') and data.get('patient_name').strip()
             
-            print(f"Validation checks:")
-            print(f"  has_patient: {has_patient}")
-            print(f"  has_patient_id: {has_patient_id}")
-            print(f"  has_email: {has_email}")
-            print(f"  has_phone: {has_phone}")
-            print(f"  has_first_name: {has_first_name}")
-            print(f"  has_last_name: {has_last_name}")
-            print(f"  has_patient_name: {has_patient_name}")
+
             
             logger.info(f"Validation checks: has_patient={has_patient}, has_patient_id={has_patient_id}, has_email={has_email}, has_phone={has_phone}, has_first_name={has_first_name}, has_last_name={has_last_name}, has_patient_name={has_patient_name}")
             
             # We need either a patient object OR patient_id OR (email + phone + some form of name)
             if not has_patient and not has_patient_id and not (has_email and has_phone and (has_first_name or has_last_name or has_patient_name)):
-                print(f"Validation FAILED: Missing required fields")
                 logger.error(f"Validation failed: Missing required fields")
                 raise serializers.ValidationError(
                     "Either provide a patient object, patient ID for returning patients, or complete patient details (email, phone, and name)"
                 )
             
-            print(f"Validation PASSED - continuing with other validations")
             logger.info(f"Validation passed basic checks")
 
             # Validate appointment date
             appointment_date = data.get('date')
             if appointment_date:
-                if appointment_date < timezone.now().date():
+                current_date = timezone.now().date()
+                if appointment_date < current_date:
                     raise serializers.ValidationError(
                         "Appointment date cannot be in the past"
                     )
@@ -295,7 +282,6 @@ class AppointmentSerializer(serializers.ModelSerializer):
             patient_id = validated_data.pop('patient_id', None)  # Remove from validated_data since it's not stored in DB
             existing_patient = None
             
-            logger.info(f"=== SERIALIZER CREATE DEBUG ===")
             logger.info(f"Patient ID received: {patient_id}")
             logger.info(f"Status: {status}")
             logger.info(f"Patient email: {validated_data.get('patient_email')}")
@@ -304,6 +290,9 @@ class AppointmentSerializer(serializers.ModelSerializer):
                 try:
                     existing_patient = Patient.objects.get(patient_id=patient_id.strip())
                     logger.info(f"Found existing patient with ID {patient_id}: {existing_patient.name}")
+                    logger.info(f"Existing patient date_of_birth: {existing_patient.date_of_birth} (type: {type(existing_patient.date_of_birth)})")
+                    logger.info(f"Existing patient gender: {existing_patient.gender}")
+                    logger.info(f"Existing patient phone: {existing_patient.phone}")
                 except Patient.DoesNotExist:
                     logger.warning(f"Patient with ID {patient_id} not found, will try by email")
             
@@ -326,18 +315,21 @@ class AppointmentSerializer(serializers.ModelSerializer):
             
             full_name = ' '.join(name_parts) if name_parts else validated_data.get('patient_name', '')
             
-            # If we have an existing patient, use their data and update if necessary
+            # If we have an existing patient, use validated_data (from request) only
             if existing_patient:
-                # Use existing patient data but allow updating with new information if provided
-                patient_email = validated_data.get('patient_email') or existing_patient.email
-                patient_phone = validated_data.get('patient_phone') or existing_patient.phone
-                date_of_birth = validated_data.get('date_of_birth') or existing_patient.date_of_birth
-                # Convert date object to string for encrypted storage
-                if hasattr(date_of_birth, 'strftime'):
-                    date_of_birth = date_of_birth.strftime('%Y-%m-%d')
-                gender = validated_data.get('gender') or existing_patient.gender
-                address = validated_data.get('address') or existing_patient.address
-                marital_status = validated_data.get('marital_status') or existing_patient.marital_status
+                # Always use the data from the request (validated_data) to avoid encryption issues
+                patient_email = validated_data.get('patient_email', '')
+                patient_phone = validated_data.get('patient_phone', '')
+                date_of_birth_raw = validated_data.get('date_of_birth')
+                # Convert date object to string for encrypted storage in appointment
+                if hasattr(date_of_birth_raw, 'strftime'):
+                    date_of_birth = date_of_birth_raw.strftime('%Y-%m-%d')
+                else:
+                    # If it's already a string, use as is
+                    date_of_birth = str(date_of_birth_raw) if date_of_birth_raw else None
+                gender = validated_data.get('gender', '')
+                address = validated_data.get('address', '')
+                marital_status = validated_data.get('marital_status', '')
                 
                 # Use existing patient's name if no new name provided
                 if not full_name or not full_name.strip():
@@ -356,15 +348,20 @@ class AppointmentSerializer(serializers.ModelSerializer):
                         existing_patient_by_email = Patient.objects.get(email=patient_email)
                         logger.info(f"Found existing patient by email {patient_email}: {existing_patient_by_email.name}")
                         
-                        # Use existing patient data but allow updating with new information if provided
-                        patient_phone = validated_data.get('patient_phone') or existing_patient_by_email.phone
-                        date_of_birth = validated_data.get('date_of_birth') or existing_patient_by_email.date_of_birth
-                        # Convert date object to string for encrypted storage
-                        if hasattr(date_of_birth, 'strftime'):
-                            date_of_birth = date_of_birth.strftime('%Y-%m-%d')
-                        gender = validated_data.get('gender') or existing_patient_by_email.gender
-                        address = validated_data.get('address') or existing_patient_by_email.address
-                        marital_status = validated_data.get('marital_status') or existing_patient_by_email.marital_status
+                        # Always use the data from the request (validated_data) to avoid encryption issues
+                        patient_phone = validated_data.get('patient_phone', '')
+                        date_of_birth_raw = validated_data.get('date_of_birth')
+                        
+                        # Convert date object to string for encrypted storage in appointment
+                        if hasattr(date_of_birth_raw, 'strftime'):
+                            date_of_birth = date_of_birth_raw.strftime('%Y-%m-%d')
+                        else:
+                            # If it's already a string, use as is
+                            date_of_birth = str(date_of_birth_raw) if date_of_birth_raw else None
+                        
+                        gender = validated_data.get('gender', '')
+                        address = validated_data.get('address', '')
+                        marital_status = validated_data.get('marital_status', '')
                         
                         # Use existing patient's name if no new name provided
                         if not full_name or not full_name.strip():
@@ -382,10 +379,13 @@ class AppointmentSerializer(serializers.ModelSerializer):
                         
                         # Extract patient data for new patient creation
                         patient_phone = validated_data.get('patient_phone')
-                        date_of_birth = validated_data.get('date_of_birth')
-                        # Convert date object to string for encrypted storage
-                        if hasattr(date_of_birth, 'strftime'):
-                            date_of_birth = date_of_birth.strftime('%Y-%m-%d')
+                        date_of_birth_raw = validated_data.get('date_of_birth')
+                        # Convert date object to string for encrypted storage in appointment
+                        if hasattr(date_of_birth_raw, 'strftime'):
+                            date_of_birth = date_of_birth_raw.strftime('%Y-%m-%d')
+                        else:
+                            # If it's already a string, use as is
+                            date_of_birth = str(date_of_birth_raw) if date_of_birth_raw else None
                         gender = validated_data.get('gender')
                         address = validated_data.get('address')
                         marital_status = validated_data.get('marital_status')
@@ -408,10 +408,13 @@ class AppointmentSerializer(serializers.ModelSerializer):
                     patient = None
                     # Still extract the data for appointment fields
                     patient_phone = validated_data.get('patient_phone')
-                    date_of_birth = validated_data.get('date_of_birth')
-                    # Convert date object to string for encrypted storage
-                    if hasattr(date_of_birth, 'strftime'):
-                        date_of_birth = date_of_birth.strftime('%Y-%m-%d')
+                    date_of_birth_raw = validated_data.get('date_of_birth')
+                    # Convert date object to string for encrypted storage in appointment
+                    if hasattr(date_of_birth_raw, 'strftime'):
+                        date_of_birth = date_of_birth_raw.strftime('%Y-%m-%d')
+                    else:
+                        # If it's already a string, use as is
+                        date_of_birth = str(date_of_birth_raw) if date_of_birth_raw else None
                     gender = validated_data.get('gender')
                     address = validated_data.get('address')
                     marital_status = validated_data.get('marital_status')
@@ -426,18 +429,22 @@ class AppointmentSerializer(serializers.ModelSerializer):
             except CustomUser.DoesNotExist:
                 raise serializers.ValidationError(f"Doctor with ID {doctor_id} not found")
 
-            # Create the appointment
+            # Get the appointment date and time
+            appointment_date = validated_data.get('date')
+            appointment_time = validated_data.get('time')
+            
+            # Create the appointment with all fields
             appointment = Appointment.objects.create(
                 patient=patient,  # Will be null for pending appointments or existing patient for returning patients
                 doctor=doctor,
-                date=validated_data.get('date'),
-                time=validated_data.get('time'),
+                date=appointment_date,
+                time=appointment_time,
                 appointment_type=validated_data.get('appointment_type'),
                 status=status,
-                # Store patient details directly in appointment fields
+                # Store patient details directly in appointment fields (encrypted)
                 patient_name=full_name,
-                patient_email=patient_email,
-                patient_phone=patient_phone,
+                patient_email=patient_email or '',
+                patient_phone=patient_phone or '',
                 date_of_birth=date_of_birth,
                 gender=gender,
                 address=address,

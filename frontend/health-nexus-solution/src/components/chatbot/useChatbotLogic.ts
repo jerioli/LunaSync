@@ -243,8 +243,7 @@ export const useChatbotLogic = () => {
     if (showChat) {
       setTimeout(() => {
         addBotMessage("Hello there! 👋 I'm Luna, your friendly healthcare assistant. I'm here to help make your healthcare experience as smooth as possible. Ready to get started?", [
-          { label: "Hi Luna! 😊", value: "hi" },
-          { label: "Let's get started", value: "hi" }
+          { label: "Let's get started!", value: "hi" }
         ]);
       }, 500);
     }
@@ -1284,14 +1283,14 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
 
     // Handle initial "Hi" button
     if (value === 'hi') {
-      addMessage('user', 'Hi Luna! 😊');
+      addMessage('user', 'Lets Get Started!');
       setChatStep(1);
       setIsInputDisabled(false); // Ensure input is enabled after greeting
       setTimeout(() => {
-        addBotMessage("Great to meet you! 🌟 I'm here to help you with your healthcare needs. What would you like to do today?", [
+        addBotMessage("Nice to meet you! 🌟 I'm here to help you with your healthcare needs. What would you like to do today?", [
           { label: '📅 Book an Appointment', value: 'appointment' },
           { label: '📋 Get Medical Certificate', value: 'medicalRecord' },
-          { label: '💊 Request Prescription', value: 'prescription' },
+          { label: '💊 Request Prescription Refill', value: 'prescription' },
           { label: '❓ Ask Questions (FAQ)', value: 'faq' },
         ]);
       }, 500);
@@ -1347,7 +1346,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     }
     if (value === 'appointment') {
       setChatMode('appointment');
-      addMessage('user', 'I would like to book an appointment');
+      addMessage('user', 'I would like to book an appointment.');
       setIsInputDisabled(false); // Ensure input is enabled for new service
       setTimeout(() => {
         addBotMessage('Perfect! I would be happy to help you schedule an appointment. 📅 To make this easier for you, how would you prefer to start?', [
