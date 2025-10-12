@@ -20,25 +20,31 @@ account_activation_token = AccountActivationTokenGenerator()
 
 class EmailOrUsernameBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, email=None, **kwargs):
+        user = None
+        
         # Try email first (prioritize email)
         if email:
-            try:
-                user = CustomUser.objects.get(email=email)
-            except CustomUser.DoesNotExist:
-                return None
+            # Since email is encrypted, we need to check all users
+            for u in CustomUser.objects.all():
+                if str(u.email) == email:  # EncryptedCharField automatically decrypts
+                    user = u
+                    break
         elif username:
-            try:
-                # Try email first
-                user = CustomUser.objects.get(email=username)
-            except CustomUser.DoesNotExist:
+            # First try to find by email (username could be an email)
+            for u in CustomUser.objects.all():
+                if str(u.email) == username:  # EncryptedCharField automatically decrypts
+                    user = u
+                    break
+            
+            # If not found by email, try by username
+            if not user:
                 try:
-                    # Fallback to username
                     user = CustomUser.objects.get(username=username)
                 except CustomUser.DoesNotExist:
                     return None
         else:
             return None
 
-        if user.check_password(password) and self.user_can_authenticate(user):
+        if user and user.check_password(password) and self.user_can_authenticate(user):
             return user
         return None

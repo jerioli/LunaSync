@@ -696,18 +696,20 @@ def login_view(request):
     username = request.data.get('username')
     password = request.data.get('password')
     
-    # If email is provided, find user by email and use their username for authentication
-    if email and not username:
-        try:
-            user_obj = CustomUser.objects.get(email=email)
-            username = user_obj.username
-        except CustomUser.DoesNotExist:
-            return Response({
-                'success': False,
-                'error': 'Invalid credentials'
-            }, status=status.HTTP_401_UNAUTHORIZED)
-    
-    user = authenticate(username=username, password=password)
+    user = None
+    if email:
+        # Check if the email field actually contains a valid email format
+        import re
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if re.match(email_pattern, email):
+            # Use email parameter for proper email authentication
+            user = authenticate(request, email=email, password=password)
+        else:
+            # If email field doesn't contain valid email, treat it as username
+            user = authenticate(request, username=email, password=password)
+    elif username:
+        # Use username parameter which can handle both username and email
+        user = authenticate(request, username=username, password=password)
     
     if user:
         # Actually log the user in to create a session
@@ -988,8 +990,15 @@ class StaffLoginView(APIView):
                     'error': 'Please provide both email/username and password'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Use username parameter to trigger EmailOrUsernameBackend
-            user = authenticate(request, username=email, password=password)
+            # Check if the email field actually contains a valid email format
+            import re
+            email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            if re.match(email_pattern, email):
+                # Use email parameter for proper email authentication
+                user = authenticate(request, email=email, password=password)
+            else:
+                # If email field doesn't contain valid email, treat it as username
+                user = authenticate(request, username=email, password=password)
 
             if user is not None:
                 # Store user info in session for OTP verification
@@ -1120,8 +1129,15 @@ class SessionLoginView(APIView):
                 'error': 'Please provide both email and password'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Use username parameter to trigger EmailOrUsernameBackend
-        user = authenticate(request, username=email, password=password)
+        # Check if the email field actually contains a valid email format
+        import re
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if re.match(email_pattern, email):
+            # Use email parameter for proper email authentication
+            user = authenticate(request, email=email, password=password)
+        else:
+            # If email field doesn't contain valid email, treat it as username
+            user = authenticate(request, username=email, password=password)
 
         if user is not None:
             # Debug: Check user's force_password_change status

@@ -36,7 +36,7 @@ def generate_otp():
 
 
 # --- 2FA Session Login View ---
-class SessionLoginView(APIView):
+class   SessionLoginView(APIView):
     """
     Step 1: Authenticate credentials, send OTP, require OTP verification before login
     """
@@ -52,8 +52,17 @@ class SessionLoginView(APIView):
 
             user = None
             if email:
-                user = authenticate(request, username=email, password=password)
+                # Check if the email field actually contains a valid email format
+                import re
+                email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+                if re.match(email_pattern, email):
+                    # Use email parameter for proper email authentication
+                    user = authenticate(request, email=email, password=password)
+                else:
+                    # If email field doesn't contain valid email, treat it as username
+                    user = authenticate(request, username=email, password=password)
             elif username:
+                # Use username parameter which can handle both username and email
                 user = authenticate(request, username=username, password=password)
 
             if user and user.is_active:
