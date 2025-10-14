@@ -37,28 +37,6 @@ def get_logo_attachment():
         print(f"Error getting logo attachment: {e}")
     return None
 
-def get_logo_attachment():
-    """
-    Get the clinic logo as an email attachment
-    """
-    try:
-        clinic_settings = ClinicSettings.objects.first()
-        if clinic_settings and clinic_settings.logo:
-            logo_path = clinic_settings.logo.path
-            if os.path.exists(logo_path):
-                with open(logo_path, 'rb') as image_file:
-                    image_data = image_file.read()
-                    
-                    # Create MIMEImage attachment
-                    logo_attachment = MIMEImage(image_data)
-                    logo_attachment.add_header('Content-ID', '<clinic_logo>')
-                    logo_attachment.add_header('Content-Disposition', 'inline', filename='clinic_logo.jpg')
-                    
-                    return logo_attachment
-    except Exception as e:
-        print(f"Error getting logo attachment: {e}")
-    return None
-
 def get_logo_url():
     """
     Get the URL for clinic logo for email embedding
@@ -501,3 +479,177 @@ Best regards,
     except Exception as email_error:
         logger.error(f"Failed to send prescription email: {str(email_error)}")
         return False
+
+
+def send_prescription_email_with_pdf_template(patient_email, prescription_data, patient_data, clinic_settings, doctor_data):
+    """
+    Send prescription email using the professional htmlToPdf template (without PDF for now due to library issues)
+    """
+    try:
+        logger.info(f"Sending prescription email to {patient_email} using professional template")
+        
+        # Get clinic settings
+        clinic_name = clinic_settings.get('clinic_name', 'Health Nexus Medical Center')
+        clinic_address = clinic_settings.get('address', 'Medical Center Address')
+        clinic_phone = getattr(settings, 'CLINIC_PHONE', '(555) 123-4567')
+        clinic_email = getattr(settings, 'FROM_EMAIL', 'noreply@healthnexus.com')
+        clinic_website = getattr(settings, 'CLINIC_WEBSITE', 'www.healthnexus.com')
+        
+        # Create subject
+        patient_name = patient_data.get('name', 'Patient')
+        doctor_name = f"Dr. {doctor_data.get('first_name', '')} {doctor_data.get('last_name', '')}".strip()
+        if not doctor_name or doctor_name == "Dr.":
+            doctor_name = doctor_data.get('name', 'Your Doctor')
+        
+        subject = f"Your E-Prescription from {clinic_name}"
+        
+        # Create HTML email content
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Your E-Prescription</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ text-align: center; margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; }}
+                .content {{ margin-bottom: 30px; }}
+                .footer {{ text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px; font-size: 12px; color: #666; }}
+                .prescription-info {{ background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 20px 0; }}
+                .important {{ background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 20px 0; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1 style="color: #2c5aa0; margin: 0;">Electronic Prescription</h1>
+                    <p style="margin: 10px 0 0 0;">From {clinic_name}</p>
+                </div>
+                
+                <div class="content">
+                    <p>Dear {patient_name},</p>
+                    
+                    <p>Your electronic prescription has been prepared and is attached as a PDF document. This is an official prescription that can be presented to any licensed pharmacy.</p>
+                    
+                    <div class="prescription-info">
+                        <h3 style="margin-top: 0; color: #2c5aa0;">Prescription Details:</h3>
+                        <p><strong>Prescribed by:</strong> {doctor_name}</p>
+                        <p><strong>Prescription ID:</strong> {prescription_data.get('prescription_number', 'N/A')}</p>
+                        <p><strong>Date Issued:</strong> {datetime.now().strftime('%B %d, %Y')}</p>
+                    </div>
+                    
+                    <div class="important">
+                        <h4 style="margin-top: 0;">Important Instructions:</h4>
+                        <ul style="margin-bottom: 0;">
+                            <li>Present the attached PDF prescription to your pharmacy</li>
+                            <li>This prescription is valid for dispensing</li>
+                            <li>Keep a copy for your medical records</li>
+                            <li>Contact us if you have any questions about your medication</li>
+                        </ul>
+                    </div>
+                    
+                    <p>If you need assistance or have questions about your prescription, please don't hesitate to contact our clinic.</p>
+                    
+                    <p>Best regards,<br>
+                    {doctor_name}<br>
+                    {clinic_name}</p>
+                </div>
+                
+                <div class="footer">
+                    <p><strong>{clinic_name}</strong></p>
+                    <p>{clinic_address}</p>
+                    <p>Phone: {clinic_phone} | Email: {clinic_email}</p>
+                    {f'<p>Website: {clinic_website}</p>' if clinic_website else ''}
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        # Create plain text version
+        plain_text_message = f"""
+Dear {patient_name},
+
+Your electronic prescription has been prepared and is attached as a PDF document.
+
+Prescription Details:
+- Prescribed by: {doctor_name}
+- Prescription ID: {prescription_data.get('prescription_number', 'N/A')}
+- Date Issued: {datetime.now().strftime('%B %d, %Y')}
+
+Important Instructions:
+- Present the attached PDF prescription to your pharmacy
+- This prescription is valid for dispensing
+- Keep a copy for your medical records
+- Contact us if you have any questions about your medication
+
+For questions or assistance, contact:
+{clinic_name}
+Phone: {clinic_phone}
+Email: {clinic_email}
+{f'Website: {clinic_website}' if clinic_website else ''}
+
+Best regards,
+{doctor_name}
+{clinic_name}
+        """
+        
+        # Generate PDF using the professional template
+        pdf_data = None
+        pdf_filename = None
+        try:
+            from .pdf_utils import create_prescription_pdf_from_template
+            
+            patient_name = patient_data.get('name', 'Patient')
+            
+            # Create PDF filename
+            pdf_filename = f"prescription_{patient_name.replace(' ', '_')}_{prescription_data.get('prescription_number', 'N/A')}.pdf"
+            
+            # Generate PDF directly using the template function
+            logger.info(f"Generating PDF for prescription {prescription_data.get('prescription_number', 'N/A')}")
+            pdf_data = create_prescription_pdf_from_template(
+                prescription_data, patient_data, clinic_settings, doctor_data
+            )
+            
+            if pdf_data:
+                logger.info(f"PDF generated successfully for email: {len(pdf_data)} bytes")
+                
+                return send_email_with_embedded_logo(
+                    to_email=patient_email,
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=plain_text_message,
+                    from_email=clinic_email,
+                    from_name=clinic_name,
+                    pdf_attachment=pdf_data,
+                    pdf_filename=pdf_filename
+                )
+            else:
+                logger.warning("PDF generation failed, sending email without PDF")
+                
+        except Exception as pdf_error:
+            logger.error(f"Error generating PDF for email: {str(pdf_error)}")
+            import traceback
+            logger.error(f"PDF generation error: {traceback.format_exc()}")
+            pdf_data = None
+        
+        # Send email without PDF if generation failed
+        return send_email_with_embedded_logo(
+            to_email=patient_email,
+            subject=subject,
+            html_content=html_content,
+            text_content=plain_text_message,
+            from_email=clinic_email,
+            from_name=clinic_name,
+            pdf_attachment=None,
+            pdf_filename=None
+        )
+        
+    except Exception as email_error:
+        logger.error(f"Failed to send prescription email with template: {str(email_error)}")
+        import traceback
+        logger.error(f"Email error traceback: {traceback.format_exc()}")
+        return False
+
+

@@ -27,6 +27,7 @@ from medical_documents.views import (
     prescription_requests_endpoint, medical_certificates_endpoint,
     approve_prescription_endpoint, approve_medical_certificate_endpoint
 )
+from medical_requests.views import get_latest_prescription
 
 urlpatterns = [
     # Remove admin URL since we're using custom frontend
@@ -49,6 +50,7 @@ urlpatterns = [
     # Add the prescription and medical certificate endpoints directly
     path('api/prescription-requests/', prescription_requests_endpoint, name='prescription_requests'),
     path('api/prescription-requests/<int:request_id>/approve/', approve_prescription_endpoint, name='approve_prescription'),
+    path('api/prescription-requests/latest/<str:patient_name>/', get_latest_prescription, name='get_latest_prescription'),
     path('api/medical-certificates/', medical_certificates_endpoint, name='medical_certificates_direct'),
     path('api/medical-certificates/<int:request_id>/approve/', approve_medical_certificate_endpoint, name='approve_medical_certificate_direct'),
     

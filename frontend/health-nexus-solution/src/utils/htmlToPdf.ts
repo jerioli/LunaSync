@@ -1,5 +1,5 @@
-import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 // Template generators for different document types
 export const generatePrescriptionHTML = (prescription: any, patientData: any, clinicSettings: any, currentUser: any) => {
@@ -159,8 +159,8 @@ export const generatePrescriptionHTML = (prescription: any, patientData: any, cl
         <!-- Rx Symbol -->
         <div style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">Rx</div>
 
-        <!-- Prescription Details -->
-        <div style="margin-bottom: 40px; font-size: 14px; line-height: 1.6;">
+        <!-- Prescription Details as Table -->
+        <div style="margin-bottom: 40px;">
           ${(() => {
             // Always use prescription.data.medications if available, else fallback
             let meds =
@@ -177,38 +177,71 @@ export const generatePrescriptionHTML = (prescription: any, patientData: any, cl
             if (!meds || meds.length === 0) {
               return "<div>No medications listed.</div>";
             }
-            return meds
-              .map(
-                (med, idx) => `
-              <div style=\"margin-bottom: 18px;\">
-                <div style=\"font-weight: bold; margin-bottom: 5px;\">${
-                  idx + 1
-                }. ${med.name || ""}</div>
-                <div style=\"margin-bottom: 6px;\">${
-                  med.dose || med.dosage || ""
-                } - ${med.quantity || ""} ${
-                  med.frequency
-                    ? `- ${med.frequency}`
-                    : ""
-                }</div>
-                ${
-                  med.notes
-                    ? `<div style=\\\"margin-left: 20px; color: #555;\\\">${med.notes}</div>`
-                    : ""
-                }
-                <div style=\"font-size: 12px; color: #888; margin-left: 20px;\">${
-                  med.startDate
-                    ? `Start: ${med.startDate}`
-                    : ""
-                } ${
-                  med.endDate
-                    ? ` | End: ${med.endDate}`
-                    : ""
-                }</div>
-              </div>
-            `
-              )
-              .join("");
+            
+            return `
+              <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px;">
+                <thead>
+                  <tr style="border-bottom: 2px solid #000;">
+                    <th style="text-align: left; padding: 8px 4px; font-weight: bold; border-bottom: 1px solid #000;">Medicine Name</th>
+                    <th style="text-align: left; padding: 8px 4px; font-weight: bold; border-bottom: 1px solid #000;">Dosage</th>
+                    <th style="text-align: left; padding: 8px 4px; font-weight: bold; border-bottom: 1px solid #000;">Duration</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${meds
+                    .map(
+                      (med, idx) => {
+                        // Calculate duration text
+                        let durationText = "";
+                        if (med.startDate && med.endDate) {
+                          durationText = `${med.startDate} to ${med.endDate}`;
+                        } else if (med.duration) {
+                          durationText = med.duration;
+                        } else if (med.startDate) {
+                          durationText = `Start: ${med.startDate}`;
+                        } else {
+                          durationText = "As prescribed";
+                        }
+                        
+                        // Format frequency and quantity
+                        let dosageInfo = med.dose || med.dosage || "";
+                        if (med.frequency) {
+                          dosageInfo += dosageInfo ? `, ${med.frequency}` : med.frequency;
+                        }
+                        if (med.quantity) {
+                          dosageInfo += dosageInfo ? ` (Qty: ${med.quantity})` : `Qty: ${med.quantity}`;
+                        }
+                        
+                        return `
+                          <tr style="border-bottom: 1px solid #ccc;">
+                            <td style="padding: 8px 4px; vertical-align: top;">
+                              <div style="font-weight: bold;">${idx + 1}) ${med.name || "Not specified"}</div>
+                              ${med.notes ? `<div style="font-size: 11px; color: #666; margin-top: 2px;">(${med.notes})</div>` : ""}
+                            </td>
+                            <td style="padding: 8px 4px; vertical-align: top;">
+                              ${dosageInfo || "As prescribed"}
+                            </td>
+                            <td style="padding: 8px 4px; vertical-align: top;">
+                              ${durationText}
+                            </td>
+                          </tr>
+                        `;
+                      }
+                    )
+                    .join("")}
+                </tbody>
+              </table>
+              
+              <!-- Advice Given Section -->
+              ${prescription.generalInstructions || prescription.doctorNotes || prescription.data?.generalInstructions ? `
+                <div style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9;">
+                  <div style="font-weight: bold; margin-bottom: 8px;">Advice Given:</div>
+                  <div style="font-size: 12px; line-height: 1.4;">
+                    ${prescription.generalInstructions || prescription.doctorNotes || prescription.data?.generalInstructions || "Follow medication instructions as prescribed."}
+                  </div>
+                </div>
+              ` : ""}
+            `;
           })()}
         </div>
 

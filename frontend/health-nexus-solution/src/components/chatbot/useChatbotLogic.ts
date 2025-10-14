@@ -127,6 +127,7 @@ export const useChatbotLogic = () => {
 
   // Form state for prescription requests
   const [prescriptionForm, setPrescriptionForm] = useState<PrescriptionRequestForm>({
+    prescriptionType: '', // 'new' or 'refill'
     patientId: '',
     medicationName: '',
     dosage: '',
@@ -1256,40 +1257,37 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       // Back ID upload is handled by handleFileUpload - this step waits for file upload
       return;
     } else if (chatMode === 'prescription' && chatStep === 4) {
-      addMessage('user', input);
-      setPrescriptionForm(prev => ({ ...prev, medicationName: input }));
-      setInput('');
-      
-      setTimeout(() => {
-        addBotMessage('Please enter the dosage (e.g., 500mg):');
-        setChatStep(5);
-      }, 500);
+      // Skip this step for refills - shouldn't reach here
+      setChatStep(7);
     } else if (chatStep === 5) {
-      addMessage('user', input);
-      setPrescriptionForm(prev => ({ ...prev, dosage: input }));
-      setInput('');
-      
-      setTimeout(() => {
-        addBotMessage('How often should the medication be taken? (e.g., twice daily):');
-        setChatStep(6);
-      }, 500);
+      // Skip this step for refills - shouldn't reach here
+      setChatStep(7);
     } else if (chatStep === 6) {
-      addMessage('user', input);
-      setPrescriptionForm(prev => ({ ...prev, frequency: input }));
-      setInput('');
-      
-      setTimeout(() => {
-        addBotMessage('How long should the medication be taken? (e.g., 7 days):');
-        setChatStep(7);
-      }, 500);
+      // Skip this step for refills - shouldn't reach here
+      setChatStep(7);
     } else if (chatMode === 'prescription' && chatStep === 7) {
       addMessage('user', input);
-      setPrescriptionForm(prev => ({ ...prev, duration: input }));
+      
+      // For refills, this is additional notes
+      setPrescriptionForm(prev => ({ ...prev, additionalNotes: input }));
       setInput('');
       
       setTimeout(() => {
-        addBotMessage('Any additional notes about your prescription request? (Optional)');
-        setChatStep(8);
+        addMessage('bot', 'Thank you! Here is a summary of your prescription refill request:');
+        
+        setTimeout(() => {
+          const summary = `
+            Patient ID: ${prescriptionForm.patientId}
+            Request Type: Prescription Refill
+            Additional Notes: ${input || 'None'}
+          `;
+          
+          addBotMessage(summary, [
+            { label: '✓ Submit Refill Request', value: 'confirm-prescription-refill' },
+            { label: '✗ Cancel Request', value: 'cancel-prescription-request' }
+          ]);
+          setChatStep(9);
+        }, 1000);
       }, 500);
     } else if (chatStep === 8) {
       addMessage('user', input || 'No additional notes');
@@ -1410,8 +1408,8 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           
           addMessage('user', `✅ Back ID uploaded: ${file.name}`);
           setTimeout(() => {
-            addBotMessage('Perfect! Both sides of your ID have been uploaded. Please enter the name of the medication you need:');
-            setChatStep(4);
+            addBotMessage('Perfect! Both sides of your ID have been uploaded. For prescription refills, I will request a refill of your most recent prescription. Please provide any additional notes for the doctor (optional):');
+            setChatStep(7); // Go directly to notes for refills
           }, 500);
         } else if (chatStep === 10) {
           setPrescriptionForm(prev => ({ ...prev, idVerification: file }));
@@ -1703,10 +1701,11 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       }, 500);
     } else if (value === 'prescription') {
       setChatMode('prescription');
-      addMessage('user', 'I need a prescription');
+      addMessage('user', 'I need a prescription refill');
+      setPrescriptionForm(prev => ({ ...prev, prescriptionType: 'refill' }));
       setIsInputDisabled(false); // Ensure input is enabled for new service
       setTimeout(() => {
-        addBotMessage('I would be happy to help you request a prescription! 💊 For your safety and security, I will need your Patient ID to get started.', [
+        addBotMessage('I will help you request a prescription refill! � This will request a refill of your most recent prescription. I will need your Patient ID to get started.', [
           { label: 'Forgot Patient ID?', value: 'forgot-patient-id' }
         ]);
         addBotMessage('💡 Your Patient ID follows this format: P-YYYYMMDD-XXXX (like P-20250822-1234). You can find it in your previous appointment emails or medical records.');
@@ -2107,6 +2106,17 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           await submitPrescriptionRequest();
         } catch (error) {
           console.error('=== PRESCRIPTION SUBMISSION FAILED ===');
+          console.error('Submission error:', error);
+        }
+        
+        // Note: Service menu is handled inside submitPrescriptionRequest() on success
+      } else if (value === 'confirm-prescription-refill') {
+        addMessage('user', 'Submit prescription refill request');
+        
+        try {
+          await submitPrescriptionRequest(); // Use same submission function but data will indicate it's a refill
+        } catch (error) {
+          console.error('=== PRESCRIPTION REFILL SUBMISSION FAILED ===');
           console.error('Submission error:', error);
         }
         
@@ -3041,11 +3051,17 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     try {
       const formData = new FormData();
       formData.append('patient_id', prescriptionForm.patientId);
-      formData.append('medication_name', prescriptionForm.medicationName);
-      formData.append('dosage', prescriptionForm.dosage);
-      formData.append('frequency', prescriptionForm.frequency);
-      formData.append('duration', prescriptionForm.duration);
-      formData.append('additional_notes', prescriptionForm.additionalNotes);
+      
+      // For refills, indicate it's a refill request
+      formData.append('request_type', 'refill');
+      
+      // Include empty medication details to satisfy backend requirements
+      formData.append('medication_name', 'Prescription Refill Request');
+      formData.append('dosage', 'As per previous prescription');
+      formData.append('frequency', 'As per previous prescription');
+      formData.append('duration', 'As per previous prescription');
+      
+      formData.append('additional_notes', prescriptionForm.additionalNotes || 'Prescription refill request');
       
       // Add patient name (construct full name from components)
       const fullName = constructFullName(prescriptionForm);
@@ -3086,12 +3102,12 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       const response = await axiosInstance.post(`/prescription-requests/`, formData, { headers });
 
       if (response.status === 200 || response.status === 201) {
-        addBotMessage('Your prescription request has been submitted successfully! Our team will review your request and contact you within 2-3 business days.');
+        addBotMessage('Your prescription refill request has been submitted successfully! Our team will review your request and contact you within 2-3 business days.');
         
         setTimeout(() => {
           addBotMessage('Is there anything else I can help you with?', [
             { label: 'Schedule an Appointment', value: 'appointment' },
-            { label: 'Request Another Prescription', value: 'prescription' },
+            { label: 'Request Prescription Refill', value: 'prescription' },
             { label: 'Request Medical Certificate', value: 'medicalRecord' },
             { label: 'No, Thank You', value: 'end' }
           ]);
@@ -3508,6 +3524,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       additionalInfo: ''
     });
     setPrescriptionForm({
+      prescriptionType: '', // 'new' or 'refill'
       patientId: '',
       medicationName: '',
       dosage: '',

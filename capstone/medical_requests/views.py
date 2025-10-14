@@ -4,6 +4,8 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.conf import settings
+from django.db.models import Q
+from datetime import timedelta
 import json
 import logging
 from .models import MedicalCertificateRequest, PrescriptionRequest
@@ -11,6 +13,155 @@ from .models import MedicalCertificateRequest, PrescriptionRequest
 # from .email_utils import send_medical_certificate_email, send_prescription_email
 
 logger = logging.getLogger(__name__)
+
+def format_prescription_as_table(prescription_content, patient_name, doctor_notes=""):
+    """
+    Format prescription content as an HTML table for email
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    logger.info(f"format_prescription_as_table called with content: {prescription_content}")
+    
+    if not prescription_content:
+        return "<p>No prescription content available</p>"
+    
+    # Parse the prescription content to extract medications
+    medications = []
+    lines = prescription_content.split('\n')
+    current_med = {}
+    
+    logger.info(f"Parsing {len(lines)} lines of prescription content")
+    
+    for i, line in enumerate(lines):
+        line = line.strip()
+        logger.info(f"Line {i}: '{line}'")
+        
+        # Check for numbered medication (1., 2., etc.) or simple medication names
+        if line.startswith(('1.', '2.', '3.', '4.', '5.')) or (not any(keyword in line for keyword in ['Dose:', 'Quantity:', 'Frequency:', 'Duration:', 'Notes:']) and line and not current_med.get('name')):
+            # Save previous medication if exists
+            if current_med.get('name'):
+                medications.append(current_med)
+                logger.info(f"Added medication: {current_med}")
+            # Start new medication
+            if line.startswith(('1.', '2.', '3.', '4.', '5.')):
+                med_name = line.split('.', 1)[1].strip()
+            else:
+                med_name = line.strip()
+            
+            current_med = {
+                'name': med_name,
+                'dose': '',
+                'quantity': '',
+                'frequency': '',
+                'duration': '',
+                'notes': ''
+            }
+            logger.info(f"Started new medication: {current_med['name']}")
+        elif line.startswith('Dose:'):
+            if current_med:
+                current_med['dose'] = line.replace('Dose:', '').strip()
+                logger.info(f"Set dose: {current_med['dose']}")
+        elif line.startswith('Quantity:'):
+            if current_med:
+                current_med['quantity'] = line.replace('Quantity:', '').strip()
+                logger.info(f"Set quantity: {current_med['quantity']}")
+        elif line.startswith('Frequency:'):
+            if current_med:
+                current_med['frequency'] = line.replace('Frequency:', '').strip()
+                logger.info(f"Set frequency: {current_med['frequency']}")
+        elif line.startswith('Duration:'):
+            if current_med:
+                current_med['duration'] = line.replace('Duration:', '').strip()
+                logger.info(f"Set duration: {current_med['duration']}")
+        elif line.startswith('Notes:'):
+            if current_med:
+                current_med['notes'] = line.replace('Notes:', '').strip()
+                logger.info(f"Set notes: {current_med['notes']}")
+    
+    # Add the last medication
+    if current_med.get('name'):
+        medications.append(current_med)
+        logger.info(f"Added final medication: {current_med}")
+    
+    logger.info(f"Total medications parsed: {len(medications)}")
+    logger.info(f"Final medications list: {medications}")
+    
+    # If no medications were parsed, try to create from the raw content
+    if not medications:
+        logger.warning("No medications parsed from structured format, trying fallback parsing")
+        # Fallback: treat the entire content as a single medication
+        medications = [{
+            'name': prescription_content.replace('\n', ' ').strip(),
+            'dose': 'As prescribed',
+            'quantity': 'As prescribed', 
+            'frequency': 'As prescribed',
+            'duration': 'As prescribed',
+            'notes': ''
+        }]
+    
+    # Generate HTML table
+    from django.utils import timezone
+    
+    html = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; background-color: #f9f9f9; padding: 20px;">
+        <div style="background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h2 style="color: #2c3e50; text-align: center; margin-bottom: 30px; font-size: 24px;">E-Prescription</h2>
+            <div style="margin-bottom: 25px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                <h3 style="color: #34495e; margin: 0; font-size: 18px;">Patient: {patient_name}</h3>
+                <p style="color: #7f8c8d; margin: 5px 0 0 0; font-size: 14px;">Prescription Date: {timezone.now().strftime('%B %d, %Y')}</p>
+            </div>
+            
+            <h4 style="color: #34495e; margin-bottom: 15px; font-size: 16px;">Prescribed Medications</h4>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 1px solid #ddd; background-color: white;">
+                <thead>
+                    <tr style="background-color: #3498db; color: white;">
+                        <th style="border: 1px solid #2980b9; padding: 12px; text-align: left; font-weight: bold; font-size: 14px;">Medication</th>
+                        <th style="border: 1px solid #2980b9; padding: 12px; text-align: left; font-weight: bold; font-size: 14px;">Dose</th>
+                        <th style="border: 1px solid #2980b9; padding: 12px; text-align: left; font-weight: bold; font-size: 14px;">Qty</th>
+                        <th style="border: 1px solid #2980b9; padding: 12px; text-align: left; font-weight: bold; font-size: 14px;">Frequency</th>
+                        <th style="border: 1px solid #2980b9; padding: 12px; text-align: left; font-weight: bold; font-size: 14px;">Duration</th>
+                        <th style="border: 1px solid #2980b9; padding: 12px; text-align: left; font-weight: bold; font-size: 14px;">Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+    """
+    
+    for i, med in enumerate(medications):
+        row_bg = "#f8f9fa" if i % 2 == 0 else "white"
+        html += f"""
+                    <tr style="background-color: {row_bg};">
+                        <td style="border: 1px solid #ddd; padding: 12px; font-weight: 500; color: #2c3e50;">{med['name']}</td>
+                        <td style="border: 1px solid #ddd; padding: 12px; color: #34495e;">{med['dose'] or '-'}</td>
+                        <td style="border: 1px solid #ddd; padding: 12px; color: #34495e;">{med['quantity'] or '-'}</td>
+                        <td style="border: 1px solid #ddd; padding: 12px; color: #34495e;">{med['frequency'] or '-'}</td>
+                        <td style="border: 1px solid #ddd; padding: 12px; color: #34495e;">{med['duration'] or '-'}</td>
+                        <td style="border: 1px solid #ddd; padding: 12px; color: #34495e;">{med['notes'] or '-'}</td>
+                    </tr>
+        """
+    
+    html += """
+                </tbody>
+            </table>
+        """
+    
+    if doctor_notes:
+        html += f"""
+            <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #3498db;">
+                <h4 style="margin: 0 0 10px 0; color: #34495e;">Doctor's Notes:</h4>
+                <p style="margin: 0; color: #555;">{doctor_notes}</p>
+            </div>
+        """
+    
+    html += """
+            <div style="margin-top: 30px; text-align: center; color: #7f8c8d; font-size: 12px;">
+                <p>This is an official electronic prescription. Please present this to your pharmacy.</p>
+            </div>
+        </div>
+    </div>
+    """
+    
+    return html
 
 def get_email_functions():
     """Lazy import of email functions to avoid circular import"""
@@ -257,23 +408,175 @@ def approve_prescription(request, request_id):
             prescription_request.receptionist_approved_at = timezone.now()
             
         elif action == 'doctor_approve':
+            logger.info(f"Starting doctor approval for prescription request {request_id}")
             prescription_request.status = 'doctor_approved'
             prescription_request.doctor_approved_at = timezone.now()
             prescription_request.prescription_content = data.get('prescription_content', '')
             prescription_request.doctor_notes = data.get('doctor_notes', '')
             
+            logger.info(f"Prescription content: {prescription_request.prescription_content}")
+            logger.info(f"Patient name to search: {prescription_request.patient_name}")
+            
+            # Create E-Prescription in medical documents system
+            try:
+                from medical_documents.models import MedicalDocument, Prescription
+                from patients.models import Patient
+                from accounts.models import CustomUser
+                import uuid
+                import json as json_module
+                
+                logger.info("Starting E-Prescription creation process")
+                
+                # Find the patient by name
+                patient = Patient.objects.filter(
+                    first_name__iexact=prescription_request.patient_name.split()[0],
+                    last_name__iexact=' '.join(prescription_request.patient_name.split()[1:])
+                ).first()
+                
+                logger.info(f"Patient search by first/last name: {patient}")
+                
+                if not patient:
+                    # Try alternative name matching
+                    patient = Patient.objects.filter(
+                        Q(name__iexact=prescription_request.patient_name) |
+                        Q(full_name__iexact=prescription_request.patient_name)
+                    ).first()
+                    logger.info(f"Patient search by name/full_name: {patient}")
+                
+                if patient:
+                    logger.info(f"Found patient: {patient.name if hasattr(patient, 'name') else f'{patient.first_name} {patient.last_name}'}")
+                    
+                    # Get the current user (doctor) or default doctor
+                    doctor = request.user if hasattr(request, 'user') and request.user.is_authenticated else None
+                    logger.info(f"Request user: {doctor}")
+                    
+                    if not doctor or not hasattr(doctor, 'role') or doctor.role != 'doctor':
+                        doctor = CustomUser.objects.filter(role='doctor').first()
+                        logger.info(f"Default doctor found: {doctor}")
+                    
+                    if doctor:
+                        logger.info(f"Using doctor: {doctor.username} for prescription creation")
+                        
+                        # Create the base medical document
+                        medical_doc = MedicalDocument.objects.create(
+                            document_type='prescription',
+                            patient=patient,
+                            created_by=doctor,
+                            authorized_by=doctor,
+                            title=f"E-Prescription for {prescription_request.patient_name}",
+                            description=f"Electronic prescription issued on {timezone.now().strftime('%Y-%m-%d')}",
+                            status='approved',
+                            urgency='routine',
+                            document_date=timezone.now(),
+                            authorized_at=timezone.now(),
+                            content=prescription_request.prescription_content
+                        )
+                        
+                        logger.info(f"Created medical document: {medical_doc.id}")
+                        
+                        # Parse medications from prescription content
+                        medications_data = []
+                        if prescription_request.prescription_content:
+                            # Try to parse structured medication data
+                            lines = prescription_request.prescription_content.split('\n')
+                            current_med = {}
+                            
+                            for line in lines:
+                                line = line.strip()
+                                if line.startswith(('1.', '2.', '3.', '4.', '5.')):
+                                    # Save previous medication if exists
+                                    if current_med.get('name'):
+                                        medications_data.append(current_med)
+                                    # Start new medication
+                                    current_med = {
+                                        'name': line.split('.', 1)[1].strip(),
+                                        'dose': '',
+                                        'quantity': '',
+                                        'frequency': '',
+                                        'notes': ''
+                                    }
+                                elif line.startswith('Dose:'):
+                                    current_med['dose'] = line.replace('Dose:', '').strip()
+                                elif line.startswith('Quantity:'):
+                                    current_med['quantity'] = line.replace('Quantity:', '').strip()
+                                elif line.startswith('Frequency:'):
+                                    current_med['frequency'] = line.replace('Frequency:', '').strip()
+                                elif line.startswith('Notes:'):
+                                    current_med['notes'] = line.replace('Notes:', '').strip()
+                            
+                            # Add the last medication
+                            if current_med.get('name'):
+                                medications_data.append(current_med)
+                        
+                        # If no structured data found, create from basic request data
+                        if not medications_data:
+                            medications_data = [{
+                                'name': prescription_request.medication_name or 'Prescribed Medication',
+                                'dose': prescription_request.dosage or '',
+                                'quantity': '',
+                                'frequency': prescription_request.frequency or '',
+                                'duration': prescription_request.duration or '',
+                                'notes': prescription_request.additional_notes or ''
+                            }]
+                        
+                        logger.info(f"Parsed medications data: {medications_data}")
+                        
+                        # Create the prescription detail record
+                        prescription_number = f"RX-{timezone.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
+                        
+                        prescription_detail = Prescription.objects.create(
+                            document=medical_doc,
+                            prescription_number=prescription_number,
+                            prescribing_physician=doctor,
+                            medications=json_module.dumps(medications_data),
+                            general_instructions=prescription_request.doctor_notes or '',
+                            pharmacy_notes='',
+                            valid_until=timezone.now().date() + timedelta(days=90),  # Valid for 3 months
+                            refills_allowed=0,
+                            refills_remaining=0
+                        )
+                        
+                        logger.info(f"Created E-Prescription {prescription_number} for patient {patient.name if hasattr(patient, 'name') else f'{patient.first_name} {patient.last_name}'}")
+                    else:
+                        logger.error("No doctor found to create prescription")
+                else:
+                    logger.error(f"Patient not found for name: {prescription_request.patient_name}")
+                    # Let's also try to list all patients to see what names exist
+                    all_patients = Patient.objects.all()[:10]  # Get first 10 patients
+                    patient_names = [f"{p.first_name} {p.last_name}" if hasattr(p, 'first_name') else str(p) for p in all_patients]
+                    logger.error(f"Available patient names: {patient_names}")
+                    
+            except Exception as e:
+                logger.error(f"Error creating E-Prescription: {str(e)}")
+                import traceback
+                logger.error(f"Full traceback: {traceback.format_exc()}")
+                # Continue with email sending even if E-Prescription creation fails
+            
             # Send email to patient using lazy import to avoid circular import
             try:
+                logger.info("Starting email sending process")
                 send_medical_certificate_email, send_prescription_email = get_email_functions()
+                logger.info(f"Email functions loaded: send_prescription_email={send_prescription_email is not None}")
+                
                 if send_prescription_email is None:
                     logger.error("Email functions not available")
                     email_result = False
                 else:
-                    # Get HTML content if provided, otherwise use plain text
-                    html_content = data.get('prescription_html', prescription_request.prescription_content)
+                    # Get HTML content if provided, otherwise format as table
+                    html_content = data.get('prescription_html')
+                    logger.info(f"HTML content provided: {html_content is not None}")
+                    
+                    if not html_content:
+                        # Format prescription content as HTML table
+                        logger.info("Formatting prescription content as HTML table")
+                        html_content = format_prescription_as_table(prescription_request.prescription_content, 
+                                                                   prescription_request.patient_name,
+                                                                   prescription_request.doctor_notes)
+                        logger.info(f"Generated HTML content length: {len(html_content) if html_content else 0}")
                     
                     # Get doctor name
                     doctor_name = data.get('doctor_name', 'Health Nexus Medical Team')
+                    logger.info(f"Sending email to: {prescription_request.email}, Patient: {prescription_request.patient_name}, Doctor: {doctor_name}")
                     
                     # Send the prescription email with complete prescription data
                     email_result = send_prescription_email(
@@ -284,15 +587,19 @@ def approve_prescription(request, request_id):
                         patient_dob=prescription_request.date_of_birth,
                         prescription_request=prescription_request
                     )
+                    
+                    logger.info(f"Email sending result: {email_result}")
                 
                 if email_result:
                     prescription_request.status = 'completed'
                     prescription_request.completed_at = timezone.now()
-                    logger.info(f"Prescription email sent to {prescription_request.email}")
+                    logger.info(f"Prescription email sent successfully to {prescription_request.email}")
                 else:
                     logger.error(f"Failed to send prescription email to {prescription_request.email}")
             except Exception as e:
                 logger.error(f"Error sending prescription email: {str(e)}")
+                import traceback
+                logger.error(f"Email error traceback: {traceback.format_exc()}")
             
         elif action == 'reject':
             prescription_request.status = 'rejected'
@@ -366,6 +673,87 @@ def send_medical_certificate_email_endpoint(request):
         logger.error(f"Error sending medical certificate email: {str(e)}")
         return JsonResponse({'error': f'Failed to send email: {str(e)}'}, status=500)
 
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def get_latest_prescription(request, patient_name):
+    """
+    Get the latest prescription for a patient by name from the medical documents system
+    """
+    try:
+        # Import the medical documents models
+        from medical_documents.models import MedicalDocument, Prescription
+        from patients.models import Patient
+        
+        # First, find the patient by name
+        try:
+            patient = Patient.objects.get(name=patient_name)
+        except Patient.DoesNotExist:
+            return JsonResponse({'error': 'Patient not found'}, status=404)
+        
+        # Find the latest prescription document for this patient
+        latest_prescription_doc = MedicalDocument.objects.filter(
+            patient=patient,
+            document_type='prescription'
+        ).order_by('-document_date').first()
+        
+        if not latest_prescription_doc:
+            return JsonResponse({'error': 'No prescription found for this patient'}, status=404)
+        
+        # Get the prescription details
+        try:
+            prescription_detail = latest_prescription_doc.prescription_detail
+        except:
+            return JsonResponse({'error': 'Prescription details not found'}, status=404)
+        
+        # Extract medications from the prescription
+        medications_data = []
+        if prescription_detail.medications:
+            try:
+                import json
+                if isinstance(prescription_detail.medications, str):
+                    medications = json.loads(prescription_detail.medications)
+                else:
+                    medications = prescription_detail.medications
+                
+                for med in medications:
+                    medications_data.append({
+                        'name': med.get('name', 'Not specified'),
+                        'dose': med.get('dose') or med.get('dosage', ''),
+                        'quantity': med.get('quantity', ''),
+                        'frequency': med.get('frequency', ''),
+                        'notes': med.get('notes', ''),
+                        'startDate': med.get('startDate', ''),
+                        'endDate': med.get('endDate', ''),
+                    })
+            except:
+                # Fallback for old format
+                medications_data = [{
+                    'name': prescription_detail.medication_name or 'Not specified',
+                    'dose': prescription_detail.dosage or '',
+                    'quantity': '',
+                    'frequency': prescription_detail.frequency or '',
+                    'notes': '',
+                    'startDate': '',
+                    'endDate': '',
+                }]
+        
+        data = {
+            'id': latest_prescription_doc.id,
+            'prescription_number': prescription_detail.prescription_number,
+            'medications': medications_data,
+            'prescription_content': prescription_detail.instructions,
+            'doctor_notes': prescription_detail.instructions,
+            'doctor_name': prescription_detail.prescribing_physician.get_full_name() if prescription_detail.prescribing_physician else None,
+            'created_at': latest_prescription_doc.document_date.isoformat() if latest_prescription_doc.document_date else None,
+            'notes': prescription_detail.instructions,
+        }
+        
+        return JsonResponse(data)
+        
+    except Exception as e:
+        logger.error(f"Error fetching latest prescription for {patient_name}: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
 
 @csrf_exempt
 @require_http_methods(["GET", "POST"])

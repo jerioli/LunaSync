@@ -75,6 +75,11 @@ class MedicalDocumentViewSet(viewsets.ModelViewSet):
         document_type = self.request.query_params.get('document_type')
         if document_type:
             queryset = queryset.filter(document_type=document_type)
+            
+        # Exclude archived documents by default (unless explicitly requested)
+        include_archived = self.request.query_params.get('include_archived')
+        if not include_archived or include_archived.lower() != 'true':
+            queryset = queryset.exclude(status='archived')
         
         # Filter by date range
         start_date = self.request.query_params.get('start_date')
@@ -93,7 +98,13 @@ class MedicalDocumentViewSet(viewsets.ModelViewSet):
                 Q(description__icontains=search)
             )
         
-        return queryset.order_by('-document_date', '-created_at')
+        queryset = queryset.order_by('-document_date', '-created_at')
+        
+        # For prescription documents, limit to recent ones to improve performance
+        if document_type == 'prescription':
+            queryset = queryset[:10]  # Only return 10 most recent prescriptions
+            
+        return queryset
     
     def perform_create(self, serializer):
         # Always use authenticated user for medical document creation
@@ -220,6 +231,11 @@ class LabResultViewSet(viewsets.ModelViewSet):
         if end_date:
             queryset = queryset.filter(document__document_date__lte=end_date)
         
+        # Exclude archived documents by default
+        include_archived = self.request.query_params.get('include_archived')
+        if not include_archived or include_archived.lower() != 'true':
+            queryset = queryset.exclude(document__status='archived')
+        
         return queryset.order_by('-document__document_date')
     
     @action(detail=False, methods=['get'])
@@ -300,6 +316,11 @@ class SOAPNoteViewSet(viewsets.ModelViewSet):
         if patient_id:
             queryset = queryset.filter(document__patient_id=patient_id)
         
+        # Exclude archived documents by default
+        include_archived = self.request.query_params.get('include_archived')
+        if not include_archived or include_archived.lower() != 'true':
+            queryset = queryset.exclude(document__status='archived')
+        
         return queryset.order_by('-document__document_date')
 
 class PrescriptionViewSet(viewsets.ModelViewSet):
@@ -329,7 +350,19 @@ class PrescriptionViewSet(viewsets.ModelViewSet):
         if valid_only and valid_only.lower() == 'true':
             queryset = queryset.filter(valid_until__gte=timezone.now().date())
         
-        return queryset.order_by('-document__document_date')
+        # Exclude archived prescriptions by default (unless explicitly requested)
+        include_archived = self.request.query_params.get('include_archived')
+        if not include_archived or include_archived.lower() != 'true':
+            queryset = queryset.exclude(document__status='archived')
+        
+        queryset = queryset.order_by('-document__document_date')
+        
+        # Limit to recent prescriptions for better performance
+        # If patient_id is specified, limit to 5 most recent
+        if patient_id:
+            queryset = queryset[:5]
+            
+        return queryset
     
     @action(detail=True, methods=['post'])
     def dispense(self, request, pk=None):
@@ -368,6 +401,11 @@ class ClinicalNoteViewSet(viewsets.ModelViewSet):
         if note_type:
             queryset = queryset.filter(note_type=note_type)
         
+        # Exclude archived documents by default
+        include_archived = self.request.query_params.get('include_archived')
+        if not include_archived or include_archived.lower() != 'true':
+            queryset = queryset.exclude(document__status='archived')
+        
         return queryset.order_by('-document__document_date')
 
 class MedicalCertificateViewSet(viewsets.ModelViewSet):
@@ -392,6 +430,11 @@ class MedicalCertificateViewSet(viewsets.ModelViewSet):
         if certificate_type:
             queryset = queryset.filter(certificate_type=certificate_type)
         
+        # Exclude archived documents by default
+        include_archived = self.request.query_params.get('include_archived')
+        if not include_archived or include_archived.lower() != 'true':
+            queryset = queryset.exclude(document__status='archived')
+        
         return queryset.order_by('-document__document_date')
 
 class PhysicalExaminationViewSet(viewsets.ModelViewSet):
@@ -410,6 +453,11 @@ class PhysicalExaminationViewSet(viewsets.ModelViewSet):
         patient_id = self.request.query_params.get('patient_id')
         if patient_id:
             queryset = queryset.filter(document__patient_id=patient_id)
+        
+        # Exclude archived documents by default
+        include_archived = self.request.query_params.get('include_archived')
+        if not include_archived or include_archived.lower() != 'true':
+            queryset = queryset.exclude(document__status='archived')
         
         return queryset.order_by('-document__document_date')
 
@@ -788,15 +836,31 @@ def medical_certificates_endpoint(request):
 def approve_prescription_endpoint(request, request_id):
     """
     Handle prescription approval - using actual medical_requests models
+    Enhanced to create E-Prescription and send email
     """
     from medical_requests.models import PrescriptionRequest
     from django.utils import timezone
+    from datetime import timedelta
+    from django.db.models import Q
     import json
+    import uuid
+    import logging
+    
+    logger = logging.getLogger(__name__)
     
     if request.method == 'POST':
         try:
+            logger.info(f"=== APPROVE PRESCRIPTION ENDPOINT CALLED ===")
+            logger.info(f"Request ID: {request_id}")
+            logger.info(f"Request method: {request.method}")
+            logger.info(f"Request user: {request.user}")
+            logger.info(f"Request content type: {request.content_type}")
+            logger.info(f"Request body: {request.body.decode('utf-8') if request.body else 'No body'}")
+            
             # Get the prescription request
             prescription_request = PrescriptionRequest.objects.get(id=request_id)
+            logger.info(f"Processing prescription approval for request {request_id}")
+            logger.info(f"Prescription request found: {prescription_request}")
             
             # Parse request data
             if request.content_type == 'application/json':
@@ -804,7 +868,9 @@ def approve_prescription_endpoint(request, request_id):
             else:
                 data = request.POST
             
+            logger.info(f"Parsed data: {data}")
             action = data.get('action')
+            logger.info(f"Action: {action}")
             
             if action == 'receptionist_approve':
                 prescription_request.status = 'receptionist_approved'
@@ -813,12 +879,244 @@ def approve_prescription_endpoint(request, request_id):
                     prescription_request.receptionist_approved_by = request.user
                     
             elif action == 'doctor_approve':
+                logger.info(f"Starting doctor approval for prescription request {request_id}")
                 prescription_request.status = 'doctor_approved'
                 prescription_request.doctor_approved_at = timezone.now()
                 if request.user.is_authenticated:
                     prescription_request.doctor_approved_by = request.user
                 prescription_request.prescription_content = data.get('prescription_content', '')
                 prescription_request.doctor_notes = data.get('doctor_notes', '')
+                
+                logger.info(f"Prescription content: {prescription_request.prescription_content}")
+                logger.info(f"Patient name to search: {prescription_request.patient_name}")
+                
+                # Create E-Prescription in medical documents system
+                try:
+                    from .models import MedicalDocument, Prescription
+                    from patients.models import Patient
+                    from accounts.models import CustomUser
+                    
+                    logger.info("Starting E-Prescription creation process")
+                    
+                    # Find the patient by name - try multiple approaches
+                    patient = None
+                    
+                    # Method 1: Try exact match with name field
+                    patient = Patient.objects.filter(name__iexact=prescription_request.patient_name).first()
+                    logger.info(f"Patient search by name field: {patient}")
+                    
+                    # Method 2: Try first_name/last_name split
+                    if not patient:
+                        name_parts = prescription_request.patient_name.split()
+                        if len(name_parts) >= 2:
+                            first_name = name_parts[0]
+                            last_name = ' '.join(name_parts[1:])
+                            patient = Patient.objects.filter(
+                                first_name__iexact=first_name,
+                                last_name__iexact=last_name
+                            ).first()
+                            logger.info(f"Patient search by first/last name ({first_name}, {last_name}): {patient}")
+                    
+                    # Method 3: Try combined first_name + last_name
+                    if not patient:
+                        all_patients = Patient.objects.all()
+                        for p in all_patients:
+                            full_name = f"{p.first_name} {p.last_name}".strip()
+                            if full_name.lower() == prescription_request.patient_name.lower():
+                                patient = p
+                                logger.info(f"Patient found by combined name: {patient}")
+                                break
+                    
+                    if patient:
+                        logger.info(f"Found patient: {patient.name if hasattr(patient, 'name') else f'{patient.first_name} {patient.last_name}'}")
+                        
+                        # Get the current user (doctor) or default doctor
+                        doctor = request.user if hasattr(request, 'user') and request.user.is_authenticated else None
+                        logger.info(f"Request user: {doctor}")
+                        
+                        if not doctor or not hasattr(doctor, 'role') or doctor.role != 'doctor':
+                            doctor = CustomUser.objects.filter(role='doctor').first()
+                            logger.info(f"Default doctor found: {doctor}")
+                        
+                        if doctor:
+                            logger.info(f"Using doctor: {doctor.username} for prescription creation")
+                            
+                            # Create the base medical document
+                            medical_doc = MedicalDocument.objects.create(
+                                document_type='prescription',
+                                patient=patient,
+                                created_by=doctor,
+                                authorized_by=doctor,
+                                title=f"E-Prescription for {prescription_request.patient_name}",
+                                description=f"Electronic prescription issued on {timezone.now().strftime('%Y-%m-%d')}",
+                                status='approved',
+                                urgency='routine',
+                                document_date=timezone.now(),
+                                authorized_at=timezone.now(),
+                                content=prescription_request.prescription_content
+                            )
+                            
+                            logger.info(f"Created medical document: {medical_doc.id}")
+                            
+                            # Parse medications from NEW form data first (from the doctor's approval form)
+                            medications_data = []
+                            
+                            # Try to get medications from the new form data
+                            new_medications = data.get('medications', [])
+                            if new_medications and isinstance(new_medications, list):
+                                logger.info(f"Using NEW medications data from approval form: {new_medications}")
+                                medications_data = new_medications
+                            
+                            # If no new medications, try to parse from prescription_content field
+                            elif data.get('prescription_content'):
+                                logger.info("Parsing medications from prescription_content field")
+                                prescription_content = data.get('prescription_content', '')
+                                lines = prescription_content.split('\n')
+                                current_med = {}
+                                
+                                for line in lines:
+                                    line = line.strip()
+                                    if line.startswith(('1.', '2.', '3.', '4.', '5.')):
+                                        # Save previous medication if exists
+                                        if current_med.get('name'):
+                                            medications_data.append(current_med)
+                                        # Start new medication
+                                        current_med = {
+                                            'name': line.split('.', 1)[1].strip(),
+                                            'dose': '',
+                                            'quantity': '',
+                                            'frequency': '',
+                                            'notes': ''
+                                        }
+                                    elif line.startswith('Dose:'):
+                                        current_med['dose'] = line.replace('Dose:', '').strip()
+                                    elif line.startswith('Quantity:'):
+                                        current_med['quantity'] = line.replace('Quantity:', '').strip()
+                                    elif line.startswith('Frequency:'):
+                                        current_med['frequency'] = line.replace('Frequency:', '').strip()
+                                    elif line.startswith('Notes:'):
+                                        current_med['notes'] = line.replace('Notes:', '').strip()
+                                
+                                # Add the last medication
+                                if current_med.get('name'):
+                                    medications_data.append(current_med)
+                            
+                            # If still no medications, fallback to old prescription request data
+                            if not medications_data:
+                                logger.info("Using fallback data from original prescription request")
+                                medications_data = [{
+                                    'name': prescription_request.medication_name or 'Prescribed Medication',
+                                    'dose': prescription_request.dosage or '',
+                                    'quantity': '',
+                                    'frequency': prescription_request.frequency or '',
+                                    'duration': prescription_request.duration or '',
+                                    'notes': prescription_request.additional_notes or ''
+                                }]
+                            
+                            logger.info(f"Parsed medications data: {medications_data}")
+                            
+                            # Create the prescription detail record
+                            prescription_number = f"RX-{timezone.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
+                            
+                            prescription_detail = Prescription.objects.create(
+                                document=medical_doc,
+                                prescription_number=prescription_number,
+                                prescribing_physician=doctor,
+                                medications=json.dumps(medications_data),
+                                general_instructions=prescription_request.doctor_notes or '',
+                                pharmacy_notes='',
+                                valid_until=timezone.now().date() + timedelta(days=90),  # Valid for 3 months
+                                refills_allowed=0,
+                                refills_remaining=0
+                            )
+                            
+                            logger.info(f"Created E-Prescription {prescription_number} for patient {patient.name if hasattr(patient, 'name') else f'{patient.first_name} {patient.last_name}'}")
+                            
+                            # Send email to patient using the professional template
+                            try:
+                                logger.info("Starting email sending process with professional template")
+                                from medical_requests.email_utils import send_prescription_email_with_pdf_template
+                                
+                                # Get patient email
+                                patient_email = patient.email if hasattr(patient, 'email') and patient.email else prescription_request.email
+                                if patient_email:
+                                    patient_name = patient.name if hasattr(patient, 'name') else f'{patient.first_name} {patient.last_name}'
+                                    
+                                    # Create prescription data for the template
+                                    prescription_data = {
+                                        'id': prescription_detail.id,
+                                        'prescription_number': prescription_number,
+                                        'document_uuid': str(medical_doc.id),
+                                        'dateCreated': timezone.now().isoformat(),
+                                        'data': {
+                                            'medications': medications_data,
+                                            'generalInstructions': prescription_request.doctor_notes or ''
+                                        },
+                                        'medications': medications_data,
+                                        'generalInstructions': prescription_request.doctor_notes or '',
+                                        'doctorNotes': prescription_request.doctor_notes or '',
+                                        'doctor_notes': prescription_request.doctor_notes or ''
+                                    }
+                                    
+                                    # Get clinic settings
+                                    clinic_settings = {
+                                        'clinic_name': 'Health Nexus Medical Center',
+                                        'address': 'Medical Center Address',
+                                        'logo': None
+                                    }
+                                    
+                                    # Create patient data
+                                    patient_data = {
+                                        'name': patient_name,
+                                        'date_of_birth': patient.date_of_birth.strftime('%Y-%m-%d') if hasattr(patient, 'date_of_birth') and patient.date_of_birth else prescription_request.date_of_birth,
+                                        'gender': patient.gender if hasattr(patient, 'gender') else None
+                                    }
+                                    
+                                    # Create doctor data with PTR and License numbers
+                                    doctor_data = {
+                                        'first_name': doctor.first_name,
+                                        'last_name': doctor.last_name,
+                                        'name': f"{doctor.first_name} {doctor.last_name}",
+                                        'ptr_number': 'PTR-1234567',  # TODO: Get from doctor's profile
+                                        'license_number': '1223131231'  # TODO: Get from doctor's profile
+                                    }
+                                    
+                                    # Send the prescription email using the professional template
+                                    email_result = send_prescription_email_with_pdf_template(
+                                        patient_email=patient_email,
+                                        prescription_data=prescription_data,
+                                        patient_data=patient_data,
+                                        clinic_settings=clinic_settings,
+                                        doctor_data=doctor_data
+                                    )
+                                    
+                                    if email_result:
+                                        prescription_request.status = 'completed'
+                                        prescription_request.completed_at = timezone.now()
+                                        logger.info(f"Professional prescription email sent successfully to {patient_email}")
+                                    else:
+                                        logger.error(f"Failed to send prescription email to {patient_email}")
+                                else:
+                                    logger.warning(f"No email found for patient {patient.id if patient else 'Unknown'}")
+                                    
+                            except Exception as e:
+                                logger.error(f"Error sending prescription email: {str(e)}")
+                                import traceback
+                                logger.error(f"Email error traceback: {traceback.format_exc()}")
+                        else:
+                            logger.error("No doctor found to create prescription")
+                    else:
+                        logger.error(f"Patient not found for name: {prescription_request.patient_name}")
+                        # Let's also try to list all patients to see what names exist
+                        all_patients = Patient.objects.all()[:10]  # Get first 10 patients
+                        patient_names = [f"{p.first_name} {p.last_name}" if hasattr(p, 'first_name') else str(p) for p in all_patients]
+                        logger.error(f"Available patient names: {patient_names}")
+                        
+                except Exception as e:
+                    logger.error(f"Error creating E-Prescription: {str(e)}")
+                    import traceback
+                    logger.error(f"Full traceback: {traceback.format_exc()}")
+                    # Continue with processing even if E-Prescription creation fails
                 
             elif action == 'reject':
                 prescription_request.status = 'rejected'
@@ -834,6 +1132,9 @@ def approve_prescription_endpoint(request, request_id):
         except PrescriptionRequest.DoesNotExist:
             return JsonResponse({'error': 'Prescription request not found'}, status=404)
         except Exception as e:
+            logger.error(f"Error in approve_prescription_endpoint: {str(e)}")
+            import traceback
+            logger.error(f"Full traceback: {traceback.format_exc()}")
             return JsonResponse({'error': f'Failed to process approval: {str(e)}'}, status=400)
     
     return JsonResponse({'error': 'Method not allowed'}, status=405)
@@ -890,5 +1191,170 @@ def approve_medical_certificate_endpoint(request, request_id):
             return JsonResponse({'error': 'Medical certificate request not found'}, status=404)
         except Exception as e:
             return JsonResponse({'error': f'Failed to process approval: {str(e)}'}, status=400)
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+def create_prescription_endpoint(request):
+    """
+    Create a new E-Prescription and save it to the medical documents system
+    """
+    if request.method == 'POST':
+        try:
+            # Parse request data
+            if request.content_type == 'application/json':
+                import json
+                data = json.loads(request.body)
+            else:
+                data = request.POST
+            
+            # Get required data
+            patient_id = data.get('patient_id')
+            medications = data.get('medications', [])
+            prescription_content = data.get('prescription_content', '')
+            doctor_notes = data.get('doctor_notes', '')
+            general_instructions = data.get('general_instructions', '')
+            
+            if not patient_id or not medications:
+                return JsonResponse({'error': 'Patient ID and medications are required'}, status=400)
+            
+            # Get the patient
+            from patients.models import Patient
+            try:
+                patient = Patient.objects.get(id=patient_id)
+            except Patient.DoesNotExist:
+                return JsonResponse({'error': 'Patient not found'}, status=404)
+            
+            # Get the current doctor user
+            from accounts.models import CustomUser
+            doctor = request.user if hasattr(request, 'user') and request.user.is_authenticated else None
+            
+            if not doctor or not hasattr(doctor, 'role') or doctor.role != 'doctor':
+                doctor = CustomUser.objects.filter(role='doctor').first()
+                
+            if not doctor:
+                return JsonResponse({'error': 'No doctor found to create prescription'}, status=400)
+            
+            # Create the base medical document
+            from django.utils import timezone
+            import uuid
+            
+            medical_doc = MedicalDocument.objects.create(
+                document_type='prescription',
+                patient=patient,
+                created_by=doctor,
+                authorized_by=doctor,
+                title=f"E-Prescription for {patient.name if hasattr(patient, 'name') else f'{patient.first_name} {patient.last_name}'}",
+                description=f"Electronic prescription issued on {timezone.now().strftime('%Y-%m-%d')}",
+                status='approved',
+                urgency='routine',
+                document_date=timezone.now(),
+                authorized_at=timezone.now(),
+                content=prescription_content
+            )
+            
+            logger.info(f"Created medical document: {medical_doc.id}")
+            
+            # Create the prescription detail record
+            from datetime import timedelta
+            prescription_number = f"RX-{timezone.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
+            
+            # Convert medications array to JSON format
+            medications_json = json.dumps(medications) if isinstance(medications, list) else medications
+            
+            prescription_detail = Prescription.objects.create(
+                document=medical_doc,
+                prescription_number=prescription_number,
+                prescribing_physician=doctor,
+                medications=medications_json,
+                general_instructions=general_instructions,
+                pharmacy_notes='',
+                valid_until=timezone.now().date() + timedelta(days=90),  # Valid for 3 months
+                refills_allowed=0,
+                refills_remaining=0
+            )
+            
+            logger.info(f"Created E-Prescription {prescription_number} for patient {patient.name if hasattr(patient, 'name') else f'{patient.first_name} {patient.last_name}'}")
+            
+            # Send email to patient using the professional htmlToPdf template
+            try:
+                from medical_requests.email_utils import send_prescription_email_with_pdf_template
+                
+                # Get patient email
+                patient_email = patient.email if hasattr(patient, 'email') else None
+                if not patient_email:
+                    logger.warning(f"No email found for patient {patient.id}")
+                else:
+                    patient_name = patient.name if hasattr(patient, 'name') else f'{patient.first_name} {patient.last_name}'
+                    
+                    # Create prescription data in the format expected by generatePrescriptionHTML
+                    prescription_data = {
+                        'id': prescription_detail.id,
+                        'prescription_number': prescription_number,
+                        'document_uuid': str(medical_doc.id),
+                        'dateCreated': timezone.now().isoformat(),
+                        'data': {
+                            'medications': medications,
+                            'generalInstructions': general_instructions
+                        },
+                        'medications': medications,
+                        'generalInstructions': general_instructions,
+                        'doctorNotes': doctor_notes
+                    }
+                    
+                    # Get clinic settings
+                    clinic_settings = {
+                        'clinic_name': 'Health Nexus Medical Center',
+                        'address': 'Medical Center Address',
+                        'logo': None  # Add clinic logo if available
+                    }
+                    
+                    # Create patient data
+                    patient_data = {
+                        'name': patient_name,
+                        'date_of_birth': patient.date_of_birth if hasattr(patient, 'date_of_birth') else None,
+                        'gender': patient.gender if hasattr(patient, 'gender') else None
+                    }
+                    
+                    # Create current user data
+                    current_user_data = {
+                        'first_name': doctor.first_name,
+                        'last_name': doctor.last_name,
+                        'name': f"{doctor.first_name} {doctor.last_name}"
+                    }
+                    
+                    # Send the prescription email using the professional template
+                    email_result = send_prescription_email_with_pdf_template(
+                        patient_email=patient_email,
+                        prescription_data=prescription_data,
+                        patient_data=patient_data,
+                        clinic_settings=clinic_settings,
+                        doctor_data=current_user_data
+                    )
+                    
+                    if email_result:
+                        logger.info(f"Professional prescription email sent successfully to {patient_email}")
+                    else:
+                        logger.error(f"Failed to send prescription email to {patient_email}")
+                        
+            except Exception as e:
+                logger.error(f"Error sending prescription email: {str(e)}")
+                import traceback
+                logger.error(f"Email error traceback: {traceback.format_exc()}")
+                # Don't fail the prescription creation if email fails
+                
+            return JsonResponse({
+                'message': 'E-Prescription created successfully',
+                'prescription_id': prescription_detail.id,
+                'prescription_number': prescription_number,
+                'medical_document_id': medical_doc.id
+            }, status=201)
+            
+        except Exception as e:
+            logger.error(f"Error creating E-Prescription: {str(e)}")
+            import traceback
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            return JsonResponse({'error': f'Failed to create prescription: {str(e)}'}, status=400)
     
     return JsonResponse({'error': 'Method not allowed'}, status=405)

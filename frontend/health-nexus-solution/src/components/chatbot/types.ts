@@ -78,6 +78,7 @@ export type MedicalRecordRequestForm = {
 };
 
 export type PrescriptionRequestForm = {
+  prescriptionType: string; // 'new' or 'refill'
   patientId: string;
   medicationName: string;
   dosage: string;
