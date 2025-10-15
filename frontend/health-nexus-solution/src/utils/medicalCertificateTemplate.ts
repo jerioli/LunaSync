@@ -202,7 +202,7 @@ export const generateMedicalCertificateHTML = (data: MedicalCertificateTemplateD
 
           <!-- Main Certificate Content -->
           <div class="main-content">
-            This is to certify that <span class="underline">${data.patientName}</span>, age <span class="underline">${data.patientAge}</span>, gender <span class="underline">${data.patientSex || 'Not specified'}</span>, of <span class="underline">${data.patientAddress || 'Not specified'}</span> examined/confined on <span class="underline">${currentDate}</span> and the result revealed that he/she is <span class="underline">${(() => {
+            This is to certify that <span class="underline">${data.patientName}</span>, age <span class="underline">${data.patientAge}</span>, gender <span class="underline">${data.patientSex || 'Not specified'}</span>, of <span class="underline">${data.patientAddress || 'Not specified'}</span> examined on <span class="underline">${currentDate}</span> and the result revealed that he/she is <span class="underline">${(() => {
               if (data.fitForWork === 'fit') return 'FIT FOR WORK';
               if (data.fitForWork === 'unfit') return 'UNFIT FOR WORK';
               if (data.fitForWork === 'limited') return 'FIT FOR WORK WITH LIMITATIONS';
