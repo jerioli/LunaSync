@@ -44,6 +44,7 @@ urlpatterns = [
     path('api/ocr/', include('api.urls_ocr')),  # OCR API endpoints
     # path('api/textract/', include('api.textract_urls')),  # DISABLED - Conflicts with api.urls textract endpoint
     path('api/medical-documents/', include('medical_documents.urls')),  # Medical documents API
+    path('api/medical-requests/', include('medical_requests.urls')),  # Medical requests test endpoints
     # path('api/', include('medical_requests.urls_test')),  # Test URLs to debug circular import
     # Note: medical_requests app email functionality is now available through medical_documents API endpoints
     

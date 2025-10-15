@@ -14,9 +14,58 @@ from reportlab.lib.units import inch
 from reportlab.lib.utils import ImageReader
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from clinic.models import ClinicSettings
+import qrcode
+from PIL import Image as PILImage
 import logging
 
 logger = logging.getLogger(__name__)
+
+def generate_prescription_qr_code(prescription_data):
+    """
+    Generate QR code for prescription verification
+    """
+    try:
+        # Create verification URL or prescription ID
+        prescription_id = prescription_data.get('prescription_number', prescription_data.get('id', 'UNKNOWN'))
+        document_uuid = prescription_data.get('document_uuid', '')
+        
+        # Create QR data - this could be a verification URL or prescription details
+        verification_url = f"{getattr(settings, 'DOMAIN_URL', 'http://localhost:8000')}/api/prescriptions/{prescription_id}/verify"
+        
+        qr_data = {
+            'prescription_id': prescription_id,
+            'document_id': document_uuid,
+            'patient_name': prescription_data.get('patient_name', ''),
+            'date': datetime.now().strftime('%Y-%m-%d'),
+            'verification_url': verification_url
+        }
+        
+        # Convert to string for QR code - more compact format
+        qr_text = f"ID:{prescription_id}\nDoc:{document_uuid}\nVerify:{verification_url}"
+        
+        # Generate QR code
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=6,
+            border=2,
+        )
+        qr.add_data(qr_text)
+        qr.make(fit=True)
+        
+        # Create QR code image
+        qr_img = qr.make_image(fill_color="black", back_color="white")
+        
+        # Save to BytesIO buffer
+        qr_buffer = io.BytesIO()
+        qr_img.save(qr_buffer, format='PNG')
+        qr_buffer.seek(0)
+        
+        return qr_buffer
+        
+    except Exception as e:
+        logger.error(f"Error generating QR code: {e}")
+        return None
 
 def get_clinic_logo_for_pdf():
     """Get clinic logo for PDF embedding"""
@@ -286,22 +335,19 @@ def create_prescription_pdf(prescription_data):
         clinic_phone = clinic_settings.phone if clinic_settings else 'Phone not available'
         clinic_email = clinic_settings.email if clinic_settings else 'Email not available'
         
-        # Add logo if available
+        # Add logo if available - centered
         logo_path = get_clinic_logo_for_pdf()
         if logo_path:
             try:
-                logo = Image(logo_path, width=2*inch, height=1*inch)
+                # Use controlled dimensions with reduced height to prevent stretching
+                logo = Image(logo_path, width=2*inch, height=0.6*inch)
                 logo.hAlign = 'CENTER'
                 story.append(logo)
-                story.append(Spacer(1, 0.2*inch))
+                story.append(Spacer(1, 0.1*inch))
             except Exception as e:
                 logger.error(f"Error adding logo to PDF: {e}")
         
-        # Add clinic header
-        clinic_header = Paragraph(clinic_name, header_style)
-        story.append(clinic_header)
-        
-        # Add clinic contact info
+        # Add clinic contact info (without clinic name)
         contact_info = f"""
         <para align="center">
         {clinic_address}<br/>
@@ -316,21 +362,64 @@ def create_prescription_pdf(prescription_data):
         story.append(title)
         story.append(Spacer(1, 0.3*inch))
         
-        # Add patient information
+        # Add patient information with QR code on the right
         patient_dob = prescription_data.get('patient_dob', 'Date not provided')
         issue_date = prescription_data.get('issue_date', 'Date not provided')
         
-        patient_info = f"""
-        <para>
+        patient_info_text = f"""
         <b>Patient Name:</b> {prescription_data.get('patient_name', 'N/A')}<br/>
         <b>Date of Birth:</b> {patient_dob}<br/>
         <b>Prescription Date:</b> {issue_date}<br/>
-        </para>
         """
-        story.append(Paragraph(patient_info, normal_style))
+        
+        # Create patient info and QR code layout
+        try:
+            logger.info("Creating patient info and QR code layout for documents prescription")
+            
+            # Generate QR code for the right side
+            qr_img_element = None
+            try:
+                qr_buffer = generate_prescription_qr_code(prescription_data)
+                if qr_buffer:
+                    qr_buffer.seek(0)
+                    qr_img_element = Image(qr_buffer, width=1.2*inch, height=1.2*inch)
+                    logger.info("QR code generated successfully for documents prescription")
+            except Exception as qr_error:
+                logger.error(f"Error generating QR code for documents prescription: {qr_error}")
+            
+            # Create table with patient info and QR code
+            if qr_img_element:
+                # Patient info paragraph
+                patient_paragraph = Paragraph(patient_info_text, normal_style)
+                
+                # Create table with patient info and QR code
+                patient_qr_data = [[patient_paragraph, qr_img_element]]
+                patient_qr_table = Table(patient_qr_data, colWidths=[4*inch, 2.4*inch])
+                patient_qr_table.setStyle(TableStyle([
+                    ('ALIGN', (0, 0), (0, 0), 'LEFT'),    # Patient info left aligned
+                    ('ALIGN', (1, 0), (1, 0), 'RIGHT'),   # QR code right aligned
+                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),  # Both top aligned
+                    ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+                    ('TOPPADDING', (0, 0), (-1, -1), 0),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+                ]))
+                
+                story.append(patient_qr_table)
+            else:
+                # Fallback: Just add patient info if QR code fails
+                story.append(Paragraph(patient_info_text, normal_style))
+                
+        except Exception as e:
+            logger.error(f"Error creating patient info and QR layout for documents: {e}")
+            # Fallback: Just add patient info
+            story.append(Paragraph(patient_info_text, normal_style))
         story.append(Spacer(1, 0.2*inch))
         
-        # Add prescription details
+        # Add prescription details with Rx symbol
+        story.append(Paragraph("<b><font size='24'>Rx</font></b>", normal_style))
+        story.append(Spacer(1, 0.25*inch))
+        
         prescription_details = f"""
         <para>
         <b>Medication:</b> {prescription_data.get('medication_name', 'N/A')}<br/>
@@ -476,8 +565,7 @@ def create_prescription_pdf_from_template(prescription_data, patient_data, clini
             clinic_phone = getattr(settings, 'CLINIC_PHONE', '(555) 123-4567')
             clinic_email = getattr(settings, 'FROM_EMAIL', 'info@healthnexus.com')
         
-        # Header Section with Logo
-        # Add logo if available - use controlled dimensions with reduced height
+        # Header Section with Logo centered
         logo_path = get_clinic_logo_for_pdf()
         if logo_path:
             try:
@@ -552,7 +640,50 @@ def create_prescription_pdf_from_template(prescription_data, patient_data, clini
         <b>Age:</b> {age} years old<br/>
         <b>Gender:</b> {patient_gender}
         """
-        story.append(Paragraph(patient_info, normal_style))
+        
+        # Create patient info and QR code layout
+        try:
+            logger.info("Creating patient info and QR code layout")
+            
+            # Generate QR code for the right side
+            qr_img_element = None
+            try:
+                qr_buffer = generate_prescription_qr_code(prescription_data)
+                if qr_buffer:
+                    qr_buffer.seek(0)
+                    qr_img_element = Image(qr_buffer, width=1.2*inch, height=1.2*inch)
+                    logger.info("QR code generated successfully for patient section")
+            except Exception as qr_error:
+                logger.error(f"Error generating QR code for patient section: {qr_error}")
+            
+            # Create table with patient info on left and QR code on right
+            if qr_img_element:
+                # Patient info paragraph
+                patient_paragraph = Paragraph(patient_info, normal_style)
+                
+                # Create table with patient info and QR code
+                patient_qr_data = [[patient_paragraph, qr_img_element]]
+                patient_qr_table = Table(patient_qr_data, colWidths=[4*inch, 2.4*inch])
+                patient_qr_table.setStyle(TableStyle([
+                    ('ALIGN', (0, 0), (0, 0), 'LEFT'),    # Patient info left aligned
+                    ('ALIGN', (1, 0), (1, 0), 'RIGHT'),   # QR code right aligned
+                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),  # Both top aligned
+                    ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+                    ('TOPPADDING', (0, 0), (-1, -1), 0),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+                ]))
+                
+                story.append(patient_qr_table)
+            else:
+                # Fallback: Just add patient info if QR code fails
+                story.append(Paragraph(patient_info, normal_style))
+                
+        except Exception as e:
+            logger.error(f"Error creating patient info and QR layout: {e}")
+            # Fallback: Just add patient info
+            story.append(Paragraph(patient_info, normal_style))
+        
         story.append(Spacer(1, 0.25*inch))  # Increased spacing before Rx symbol
         
         # Rx Symbol
@@ -842,8 +973,25 @@ def generate_pdf_with_reportlab_fallback(html_content, pdf_path):
         story.append(Paragraph("Health Nexus Medical Center", header_style))
         story.append(Spacer(1, 10))
         
-        # QR Code placeholder (can be enhanced later)
-        story.append(Paragraph("[QR CODE PLACEHOLDER]", subheader_style))
+        # QR Code for prescription verification
+        try:
+            # Create prescription data for QR code
+            qr_prescription_data = {
+                'prescription_number': prescription_id,
+                'patient_name': patient_name,
+                'id': prescription_id
+            }
+            qr_buffer = generate_prescription_qr_code(qr_prescription_data)
+            if qr_buffer:
+                qr_img = Image(ImageReader(qr_buffer), width=0.8*inch, height=0.8*inch)
+                qr_img.hAlign = 'CENTER'
+                story.append(qr_img)
+            else:
+                story.append(Paragraph("[QR CODE UNAVAILABLE]", subheader_style))
+        except Exception as qr_error:
+            logger.error(f"Error adding QR code: {qr_error}")
+            story.append(Paragraph("[QR CODE ERROR]", subheader_style))
+        
         story.append(Spacer(1, 20))
         
         # Prescription ID

@@ -44,19 +44,55 @@ export const generatePrescriptionHTML = (prescription: any, patientData: any, cl
     </head>
     <body>
       <div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; font-family: Arial, sans-serif;">
-        <!-- Header with Logo and QR -->
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+        <!-- Header with Centered Logo -->
+        <div style="text-align: center; margin-bottom: 15px;">
+          ${
+            clinicSettings?.logo
+              ? `<img src="${getFullLogoUrl(
+                  clinicSettings.logo
+                )}" alt="Clinic Logo" style="height: 50px; width: auto; margin: 0 auto 10px; display: block;">`
+              : `<div style="width: 50px; height: 50px; background: #f0f0f0; margin: 0 auto 10px;"></div>`
+          }
+        </div>
+
+        <!-- Clinic Address and Contact Info -->
+        <div style="text-align: center; margin-bottom: 20px; font-size: 12px; color: #333;">
+          <div>${clinicSettings?.address || "Clinic Address"}</div>
+          <div style="margin-top: 5px;">
+            Phone: ${clinicSettings?.phone || "(000) 000-0000"} | Email: ${clinicSettings?.email || "info@clinic.com"}
+          </div>
+        </div>
+
+        <!-- Prescription ID -->
+        <div style="text-align: center; margin-bottom: 20px;">
+          <div style="font-weight: bold; font-size: 14px;">PRESCRIPTION ID: ${prescription.prescription_number || 'RX-' + Date.now().toString().slice(-8).toUpperCase()}</div>
+        </div>
+
+        <!-- Date -->
+        <div style="text-align: center; margin-bottom: 30px; font-size: 12px; color: #666;">
           <div>
-            ${
-              clinicSettings?.logo
-                ? `<img src="${getFullLogoUrl(
-                    clinicSettings.logo
-                  )}" alt="Clinic Logo" style="height: 50px; width: auto; margin-bottom: 10px;">`
-                : `<div style="width: 50px; height: 50px; background: #f0f0f0; margin-bottom: 10px;"></div>`
-            }
-            <div style="font-size: 14px; color: #333;">${
-              clinicSettings?.clinic_name ||
-              "Medical Center"
+            Prescribed on: ${new Date(prescription.dateCreated).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+          </div>
+          <div>${new Date(prescription.dateCreated).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} PHT</div>
+        </div>
+
+        <!-- Patient Info with QR Code on Right -->
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+          <div style="font-size: 12px;">
+            <div><strong>Patient:</strong> ${patientData?.name}</div>
+            <div><strong>Age:</strong> ${
+              patientData?.date_of_birth
+                ? Math.floor(
+                    (new Date().getTime() -
+                      new Date(
+                        patientData.date_of_birth
+                      ).getTime()) /
+                      (365.25 * 24 * 60 * 60 * 1000)
+                  )
+                : "N/A"
+            } years old</div>
+            <div><strong>Gender:</strong> ${
+              patientData?.gender || "Not specified"
             }</div>
           </div>
           <div style="text-align: center;">
@@ -115,47 +151,6 @@ export const generatePrescriptionHTML = (prescription: any, patientData: any, cl
           </div>
         </div>
 
-        <!-- Prescription ID -->
-        <div style="text-align: center; margin-bottom: 20px;">
-          <div style="font-weight: bold; font-size: 14px;">PRESCRIPTION ID: ${Date.now()
-            .toString()
-            .slice(-8)
-            .toUpperCase()}</div>
-        </div>
-
-        <!-- Location and Date -->
-        <div style="text-align: center; margin-bottom: 30px; font-size: 12px; color: #666;">
-          <div>${
-            clinicSettings?.address ||
-            "Clinic Address"
-          }</div>
-          <div style="margin-top: 10px;">
-            Prescribed on: ${new Date(prescription.dateCreated).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-          </div>
-          <div>${new Date(prescription.dateCreated).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} PHT</div>
-        </div>
-
-        <!-- Patient Info -->
-        <div style="margin-bottom: 20px; font-size: 12px;">
-          <div><strong>Patient:</strong> ${
-            patientData?.name
-          }</div>
-          <div><strong>Age:</strong> ${
-            patientData?.date_of_birth
-              ? Math.floor(
-                  (new Date().getTime() -
-                    new Date(
-                      patientData.date_of_birth
-                    ).getTime()) /
-                    (365.25 * 24 * 60 * 60 * 1000)
-                )
-              : "N/A"
-          } years old</div>
-          <div><strong>Gender:</strong> ${
-            patientData?.gender || "Not specified"
-          }</div>
-        </div>
-
         <!-- Rx Symbol -->
         <div style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">Rx</div>
 
@@ -184,7 +179,10 @@ export const generatePrescriptionHTML = (prescription: any, patientData: any, cl
                   <tr style="border-bottom: 2px solid #000;">
                     <th style="text-align: left; padding: 8px 4px; font-weight: bold; border-bottom: 1px solid #000;">Medicine Name</th>
                     <th style="text-align: left; padding: 8px 4px; font-weight: bold; border-bottom: 1px solid #000;">Dosage</th>
+                    <th style="text-align: left; padding: 8px 4px; font-weight: bold; border-bottom: 1px solid #000;">Qty</th>
+                    <th style="text-align: left; padding: 8px 4px; font-weight: bold; border-bottom: 1px solid #000;">Frequency</th>
                     <th style="text-align: left; padding: 8px 4px; font-weight: bold; border-bottom: 1px solid #000;">Duration</th>
+                    <th style="text-align: left; padding: 8px 4px; font-weight: bold; border-bottom: 1px solid #000;">Notes</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -203,26 +201,25 @@ export const generatePrescriptionHTML = (prescription: any, patientData: any, cl
                           durationText = "As prescribed";
                         }
                         
-                        // Format frequency and quantity
-                        let dosageInfo = med.dose || med.dosage || "";
-                        if (med.frequency) {
-                          dosageInfo += dosageInfo ? `, ${med.frequency}` : med.frequency;
-                        }
-                        if (med.quantity) {
-                          dosageInfo += dosageInfo ? ` (Qty: ${med.quantity})` : `Qty: ${med.quantity}`;
-                        }
-                        
                         return `
                           <tr style="border-bottom: 1px solid #ccc;">
                             <td style="padding: 8px 4px; vertical-align: top;">
-                              <div style="font-weight: bold;">${idx + 1}) ${med.name || "Not specified"}</div>
-                              ${med.notes ? `<div style="font-size: 11px; color: #666; margin-top: 2px;">(${med.notes})</div>` : ""}
+                              ${idx + 1}) ${med.name || "Not specified"}
                             </td>
                             <td style="padding: 8px 4px; vertical-align: top;">
-                              ${dosageInfo || "As prescribed"}
+                              ${med.dose || med.dosage || "-"}
+                            </td>
+                            <td style="padding: 8px 4px; vertical-align: top;">
+                              ${med.quantity || "-"}
+                            </td>
+                            <td style="padding: 8px 4px; vertical-align: top;">
+                              ${med.frequency || "-"}
                             </td>
                             <td style="padding: 8px 4px; vertical-align: top;">
                               ${durationText}
+                            </td>
+                            <td style="padding: 8px 4px; vertical-align: top;">
+                              ${med.notes || med.instructions || "-"}
                             </td>
                           </tr>
                         `;
@@ -248,10 +245,12 @@ export const generatePrescriptionHTML = (prescription: any, patientData: any, cl
         <!-- Doctor Signature Area -->
         <div style="text-align: right; margin-top: 60px;">
           <div style="border-bottom: 1px solid #000; width: 200px; margin-left: auto; margin-bottom: 5px;"></div>
-          <div style="font-size: 12px;">Dr. ${
+          <div style="font-size: 12px;"><strong>Dr. ${
             currentUser?.first_name ||
             currentUser?.name
-          } ${currentUser?.last_name || ""}</div>
+          } ${currentUser?.last_name || ""}</strong></div>
+          <div style="font-size: 11px;">PTR No.: _____________</div>
+          <div style="font-size: 11px;">License No.: 1223131231</div>
         </div>
 
         <!-- Footer -->
