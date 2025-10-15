@@ -2,27 +2,27 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { axiosInstance } from "@/services/api";
 import {
-  ArrowLeft,
-  Mail,
-  Plus,
-  XCircle
+    ArrowLeft,
+    Mail,
+    Plus,
+    XCircle
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
@@ -97,6 +97,7 @@ const PrescriptionApproval: React.FC<PrescriptionApprovalProps> = ({
   const [generalNotes, setGeneralNotes] = useState("");
   const [doctorNotes, setDoctorNotes] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchLatestPrescriptions();
@@ -227,45 +228,69 @@ const PrescriptionApproval: React.FC<PrescriptionApprovalProps> = ({
     }
   };
 
-  const handleApproveClick = (action: string) => {
-    let prescriptionData: any = {};
+  const handleApproveClick = async (action: string) => {
+    setIsSubmitting(true);
+    
+    try {
+      let prescriptionData: any = {};
 
-    if (action === "doctor_approve") {
-      // Convert medications array to structured prescription content
-      let prescriptionContentText = "";
-      if (medications.length > 0) {
-        prescriptionContentText = medications.map((med, index) => 
-          `${index + 1}. ${med.name}
+      if (action === "doctor_approve") {
+        // Convert medications array to structured prescription content
+        let prescriptionContentText = "";
+        if (medications.length > 0) {
+          prescriptionContentText = medications.map((med, index) => 
+            `${index + 1}. ${med.name}
    Dose: ${med.dose}
    Quantity: ${med.quantity}
    Frequency: ${med.frequency}
    Duration: ${med.startDate}${med.endDate ? ` to ${med.endDate}` : ''}
    ${med.notes ? `Notes: ${med.notes}` : ''}`
-        ).join('\n\n');
+          ).join('\n\n');
+        }
+        
+        if (generalNotes) {
+          prescriptionContentText += `\n\nGeneral Instructions:\n${generalNotes}`;
+        }
+        
+        prescriptionData = {
+          prescription_content: prescriptionContentText,
+          doctor_notes: doctorNotes,
+          medications: medications, // Send the NEW medications array
+        };
+      } else if (action === "reject") {
+        prescriptionData = {
+          rejection_reason: rejectionReason,
+        };
       }
-      
-      if (generalNotes) {
-        prescriptionContentText += `\n\nGeneral Instructions:\n${generalNotes}`;
-      }
-      
-      prescriptionData = {
-        prescription_content: prescriptionContentText,
-        doctor_notes: doctorNotes,
-        medications: medications, // Send the NEW medications array
-      };
-    } else if (action === "reject") {
-      prescriptionData = {
-        rejection_reason: rejectionReason,
-      };
-    }
 
-    onApprove(request.id, action, prescriptionData);
-    onClose();
+      await onApprove(request.id, action, prescriptionData);
+      
+      // Small delay to show success state
+      setTimeout(() => {
+        setIsSubmitting(false);
+        onClose();
+      }, 1500);
+      
+    } catch (error) {
+      console.error("Error submitting prescription:", error);
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
+        {/* Loading Overlay */}
+        {isSubmitting && (
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Processing Prescription</h3>
+              <p className="text-sm text-gray-600">Sending email and saving prescription...</p>
+            </div>
+          </div>
+        )}
+        
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
@@ -342,6 +367,7 @@ const PrescriptionApproval: React.FC<PrescriptionApprovalProps> = ({
                                     <th className="text-left p-2 font-medium">Dose</th>
                                     <th className="text-left p-2 font-medium">Qty</th>
                                     <th className="text-left p-2 font-medium">Frequency</th>
+                                    <th className="text-left p-2 font-medium">Duration</th>
                                     <th className="text-left p-2 font-medium">Notes</th>
                                   </tr>
                                 </thead>
@@ -405,6 +431,16 @@ const PrescriptionApproval: React.FC<PrescriptionApprovalProps> = ({
                                         <td className="p-2">{med.dose || med.dosage || '-'}</td>
                                         <td className="p-2">{med.quantity || med.qty || '-'}</td>
                                         <td className="p-2">{med.frequency || '-'}</td>
+                                        <td className="p-2">
+                                          {(med.startDate || med.start_date) ? (
+                                            <div className="text-xs">
+                                              {med.startDate || med.start_date}
+                                              {(med.endDate || med.end_date) && (
+                                                <> to {med.endDate || med.end_date}</>
+                                              )}
+                                            </div>
+                                          ) : (med.duration || '-')}
+                                        </td>
                                         <td className="p-2">{med.notes || med.instructions || '-'}</td>
                                       </tr>
                                     ));
@@ -417,6 +453,16 @@ const PrescriptionApproval: React.FC<PrescriptionApprovalProps> = ({
                           {prescription.prescribing_physician && (
                             <div className="text-sm">
                               <strong>Doctor:</strong> {prescription.prescribing_physician.first_name} {prescription.prescribing_physician.last_name}
+                            </div>
+                          )}
+                          {!prescription.prescribing_physician && (prescription.doctor_name || prescription.doctor) && (
+                            <div className="text-sm">
+                              <strong>Doctor:</strong> {prescription.doctor_name || (prescription.doctor && (prescription.doctor.first_name ? `${prescription.doctor.first_name} ${prescription.doctor.last_name}` : prescription.doctor))}
+                            </div>
+                          )}
+                          {!prescription.prescribing_physician && !prescription.doctor_name && !prescription.doctor && prescription.created_by && (
+                            <div className="text-sm">
+                              <strong>Doctor:</strong> {prescription.created_by.first_name ? `${prescription.created_by.first_name} ${prescription.created_by.last_name}` : prescription.created_by.username || prescription.created_by}
                             </div>
                           )}
                           {prescription.general_instructions && (
@@ -621,16 +667,26 @@ const PrescriptionApproval: React.FC<PrescriptionApprovalProps> = ({
             <div className="flex gap-3">
               <Button
                 onClick={() => handleApproveClick("doctor_approve")}
-                disabled={medications.length === 0}
+                disabled={medications.length === 0 || isSubmitting}
                 className="bg-green-600 hover:bg-green-700 flex-1"
               >
-                <Mail className="h-4 w-4 mr-1" />
-                Send & Save
+                {isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="h-4 w-4 mr-1" />
+                    Send & Save
+                  </>
+                )}
               </Button>
               <Button
                 variant="outline"
                 onClick={onClose}
                 className="flex-1"
+                disabled={isSubmitting}
               >
                 Cancel
               </Button>

@@ -488,11 +488,32 @@ def send_prescription_email_with_pdf_template(patient_email, prescription_data, 
     try:
         logger.info(f"Sending prescription email to {patient_email} using professional template")
         
-        # Get clinic settings
-        clinic_name = clinic_settings.get('clinic_name', 'Health Nexus Medical Center')
-        clinic_address = clinic_settings.get('address', 'Medical Center Address')
-        clinic_phone = getattr(settings, 'CLINIC_PHONE', '(555) 123-4567')
-        clinic_email = getattr(settings, 'FROM_EMAIL', 'noreply@healthnexus.com')
+        # Get clinic settings - fetch from database to match PDF logic
+        from clinic.models import ClinicSettings
+        try:
+            clinic_db_settings = ClinicSettings.objects.first()
+            if clinic_db_settings:
+                # Don't use clinic name from database - use provided clinic_name
+                clinic_name = clinic_settings.get('clinic_name', 'Health Nexus Medical Center')
+                # Fetch address, city, and state from database
+                clinic_address = clinic_db_settings.address
+                clinic_city = clinic_db_settings.city
+                clinic_state = clinic_db_settings.state
+                clinic_phone = clinic_db_settings.phone
+                clinic_email = clinic_db_settings.email
+                # Build full address with city and state
+                full_address = f"{clinic_address}, {clinic_city}, {clinic_state}"
+            else:
+                clinic_name = clinic_settings.get('clinic_name', 'Health Nexus Medical Center')
+                full_address = clinic_settings.get('address', 'Medical Center Address')
+                clinic_phone = getattr(settings, 'CLINIC_PHONE', '(555) 123-4567')
+                clinic_email = getattr(settings, 'FROM_EMAIL', 'noreply@healthnexus.com')
+        except Exception as e:
+            logger.error(f"Error fetching clinic settings: {e}")
+            clinic_name = clinic_settings.get('clinic_name', 'Health Nexus Medical Center')
+            full_address = clinic_settings.get('address', 'Medical Center Address')
+            clinic_phone = getattr(settings, 'CLINIC_PHONE', '(555) 123-4567')
+            clinic_email = getattr(settings, 'FROM_EMAIL', 'noreply@healthnexus.com')
         clinic_website = getattr(settings, 'CLINIC_WEBSITE', 'www.healthnexus.com')
         
         # Create subject
@@ -523,8 +544,8 @@ def send_prescription_email_with_pdf_template(patient_email, prescription_data, 
         <body>
             <div class="container">
                 <div class="header">
+                    <img src="cid:clinic_logo" alt="Clinic Logo" style="max-height: 60px; max-width: 200px; height: auto; display: block; margin: 0 auto 10px auto;">
                     <h1 style="color: #2c5aa0; margin: 0;">Electronic Prescription</h1>
-                    <p style="margin: 10px 0 0 0;">From {clinic_name}</p>
                 </div>
                 
                 <div class="content">
@@ -552,13 +573,11 @@ def send_prescription_email_with_pdf_template(patient_email, prescription_data, 
                     <p>If you need assistance or have questions about your prescription, please don't hesitate to contact our clinic.</p>
                     
                     <p>Best regards,<br>
-                    {doctor_name}<br>
-                    {clinic_name}</p>
+                    {doctor_name}</p>
                 </div>
                 
                 <div class="footer">
-                    <p><strong>{clinic_name}</strong></p>
-                    <p>{clinic_address}</p>
+                    <p>{full_address}</p>
                     <p>Phone: {clinic_phone} | Email: {clinic_email}</p>
                     {f'<p>Website: {clinic_website}</p>' if clinic_website else ''}
                 </div>
@@ -585,14 +604,13 @@ Important Instructions:
 - Contact us if you have any questions about your medication
 
 For questions or assistance, contact:
-{clinic_name}
+{full_address}
 Phone: {clinic_phone}
 Email: {clinic_email}
 {f'Website: {clinic_website}' if clinic_website else ''}
 
 Best regards,
 {doctor_name}
-{clinic_name}
         """
         
         # Generate PDF using the professional template

@@ -419,13 +419,13 @@ def create_prescription_pdf_from_template(prescription_data, patient_data, clini
         # Create the PDF document
         doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=0.5*inch, bottomMargin=0.5*inch)
         
-        # Define styles
+        # Define styles with reduced font sizes
         styles = getSampleStyleSheet()
         title_style = ParagraphStyle(
             'PrescriptionTitle',
             parent=styles['Heading1'],
-            fontSize=18,
-            spaceAfter=20,
+            fontSize=14,  # Reduced from 18
+            spaceAfter=15,  # Reduced spacing
             alignment=1,  # Center alignment
             textColor=colors.black
         )
@@ -433,41 +433,66 @@ def create_prescription_pdf_from_template(prescription_data, patient_data, clini
         header_style = ParagraphStyle(
             'HeaderStyle',
             parent=styles['Normal'],
-            fontSize=12,
-            spaceAfter=10,
+            fontSize=10,  # Reduced from 12
+            spaceAfter=8,  # Reduced spacing
             alignment=1  # Center alignment
         )
         
         normal_style = ParagraphStyle(
             'NormalStyle',
             parent=styles['Normal'],
-            fontSize=10,
-            spaceAfter=6,
+            fontSize=9,  # Reduced from 10
+            spaceAfter=5,  # Reduced spacing
             leftIndent=0
         )
         
         # Build the story
         story = []
         
-        # Header Section with Logo
-        clinic_name = clinic_settings.get('clinic_name', 'Health Nexus Medical Center')
-        clinic_address = clinic_settings.get('address', 'Medical Center Address')
+        # Fetch clinic information from database (don't use clinic name from DB)
+        from clinic.models import ClinicSettings
+        try:
+            clinic_db_settings = ClinicSettings.objects.first()
+            if clinic_db_settings:
+                # Don't fetch clinic name from database - use provided clinic_name
+                clinic_name = clinic_settings.get('clinic_name', 'Health Nexus Medical Center')
+                # Fetch address, city, and state from database
+                clinic_address = clinic_db_settings.address
+                clinic_city = clinic_db_settings.city
+                clinic_state = clinic_db_settings.state
+                clinic_phone = clinic_db_settings.phone
+                clinic_email = clinic_db_settings.email
+                # Build full address with city and state
+                full_address = f"{clinic_address}, {clinic_city}, {clinic_state}"
+            else:
+                clinic_name = clinic_settings.get('clinic_name', 'Health Nexus Medical Center')
+                full_address = clinic_settings.get('address', 'Medical Center Address')
+                clinic_phone = getattr(settings, 'CLINIC_PHONE', '(555) 123-4567')
+                clinic_email = getattr(settings, 'FROM_EMAIL', 'info@healthnexus.com')
+        except Exception as e:
+            logger.error(f"Error fetching clinic settings: {e}")
+            clinic_name = clinic_settings.get('clinic_name', 'Health Nexus Medical Center')
+            full_address = clinic_settings.get('address', 'Medical Center Address')
+            clinic_phone = getattr(settings, 'CLINIC_PHONE', '(555) 123-4567')
+            clinic_email = getattr(settings, 'FROM_EMAIL', 'info@healthnexus.com')
         
-        # Add logo if available
+        # Header Section with Logo
+        # Add logo if available - use controlled dimensions with reduced height
         logo_path = get_clinic_logo_for_pdf()
         if logo_path:
             try:
-                logo = Image(logo_path, width=2*inch, height=1*inch)
+                # Use controlled dimensions with reduced height to prevent stretching
+                logo = Image(logo_path, width=2*inch, height=0.6*inch)
                 logo.hAlign = 'CENTER'
                 story.append(logo)
-                story.append(Spacer(1, 0.2*inch))
+                story.append(Spacer(1, 0.1*inch))  # Reduced spacing after logo
             except Exception as e:
                 logger.error(f"Error adding logo to prescription PDF: {e}")
         
-        # Clinic info and header
-        story.append(Paragraph(f"<b>{clinic_name}</b>", header_style))
-        story.append(Paragraph(clinic_address, header_style))
-        story.append(Spacer(1, 0.2*inch))
+        # Clinic info and header with reduced font sizes - removed clinic name
+        story.append(Paragraph(full_address, header_style))
+        story.append(Paragraph(f"Phone: {clinic_phone} | Email: {clinic_email}", header_style))
+        story.append(Spacer(1, 0.2*inch))  # Reduced spacing
         
         # Prescription ID
         prescription_id = prescription_data.get('prescription_number', 'RX-' + str(prescription_data.get('id', '000000')))
@@ -481,7 +506,7 @@ def create_prescription_pdf_from_template(prescription_data, patient_data, clini
         
         date_info = f"Prescribed on: {current_date}<br/>{current_time} PHT"
         story.append(Paragraph(date_info, header_style))
-        story.append(Spacer(1, 0.2*inch))
+        story.append(Spacer(1, 0.3*inch))  # Increased spacing
         
         # Patient Information
         patient_name = patient_data.get('name', 'Patient Name')
@@ -528,11 +553,11 @@ def create_prescription_pdf_from_template(prescription_data, patient_data, clini
         <b>Gender:</b> {patient_gender}
         """
         story.append(Paragraph(patient_info, normal_style))
-        story.append(Spacer(1, 0.15*inch))
+        story.append(Spacer(1, 0.25*inch))  # Increased spacing before Rx symbol
         
         # Rx Symbol
         story.append(Paragraph("<b><font size='24'>Rx</font></b>", normal_style))
-        story.append(Spacer(1, 0.05*inch))
+        story.append(Spacer(1, 0.25*inch))  # Increased spacing to prevent collision with table
         
         # Medications Table
         medications = prescription_data.get('data', {}).get('medications', [])
@@ -548,28 +573,20 @@ def create_prescription_pdf_from_template(prescription_data, patient_data, clini
                 logger.warning("Failed to parse medications JSON string")
                 medications = []
             
-        # Create table data
-        table_data = [['Medicine Name', 'Dosage', 'Duration']]  # Header
+        # Create table data with proper headers matching your design
+        table_data = [['Medicine Name', 'Dosage', 'Qty', 'Frequency', 'Duration', 'Notes']]  # Header
         
         if medications and len(medications) > 0:
             for idx, med in enumerate(medications):
-                # Medicine name with numbering
+                # Medicine name with numbering only - no notes under the name
                 med_name = f"{idx + 1}) {med.get('name', 'Not specified')}"
-                if med.get('notes'):
-                    med_name += f"\n({med.get('notes')})"
                 
-                # Dosage info (combine dose, frequency, quantity)
-                dosage_parts = []
-                if med.get('dose') or med.get('dosage'):
-                    dosage_parts.append(med.get('dose') or med.get('dosage'))
-                if med.get('frequency'):
-                    dosage_parts.append(med.get('frequency'))
-                if med.get('quantity'):
-                    dosage_parts.append(f"Qty: {med.get('quantity')}")
+                # Individual components
+                dosage = med.get('dose') or med.get('dosage') or '-'
+                quantity = med.get('quantity') or med.get('qty') or '-'
+                frequency = med.get('frequency') or '-'
                 
-                dosage_info = ', '.join(dosage_parts) if dosage_parts else 'As prescribed'
-                
-                # Duration
+                # Duration - show start to end date format with proper spacing
                 duration = ""
                 if med.get('startDate') and med.get('endDate'):
                     duration = f"{med.get('startDate')} to {med.get('endDate')}"
@@ -580,7 +597,10 @@ def create_prescription_pdf_from_template(prescription_data, patient_data, clini
                 else:
                     duration = "As prescribed"
                 
-                table_data.append([med_name, dosage_info, duration])
+                # Notes - handle long text properly
+                notes = med.get('notes') or med.get('instructions') or '-'
+                
+                table_data.append([med_name, dosage, quantity, frequency, duration, notes])
         else:
             # Fallback: try to extract from prescription_content or other fields
             logger.info("No structured medications found, trying fallback extraction")
@@ -590,27 +610,29 @@ def create_prescription_pdf_from_template(prescription_data, patient_data, clini
             dosage = prescription_data.get('dosage', 'As prescribed')
             duration = prescription_data.get('duration', 'As directed')
             
-            table_data.append([f"1) {med_name}", dosage, duration])
+            table_data.append([f"1) {med_name}", dosage, '-', '-', duration, '-'])
         
-        # Create and add the medication table
-        table = Table(table_data, colWidths=[2.5*inch, 2*inch, 1.5*inch])
+        # Create and add the medication table with improved column widths for better spacing
+        table = Table(table_data, colWidths=[1.6*inch, 0.8*inch, 0.4*inch, 0.9*inch, 1.4*inch, 1.3*inch])
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('FONTSIZE', (0, 0), (-1, 0), 8),  # Reduced header font size
             ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 1), (-1, -1), 9),
+            ('FONTSIZE', (0, 1), (-1, -1), 7),  # Reduced body font size
             ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
             ('TOPPADDING', (0, 1), (-1, -1), 6),
             ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+            ('LEFTPADDING', (0, 0), (-1, -1), 4),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 4),
             ('GRID', (0, 0), (-1, -1), 1, colors.black),
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ]))
         
         story.append(table)
-        story.append(Spacer(1, 0.15*inch))
+        story.append(Spacer(1, 0.3*inch))  # Increased spacing after table
         
         # Advice Given Section - Use doctor's notes from prescription approval
         # Priority: doctor_notes (from approval form) > generalInstructions > fallback
@@ -645,12 +667,13 @@ def create_prescription_pdf_from_template(prescription_data, patient_data, clini
             doctor_name = doctor_data.get('name', 'Medical Officer')
         
         # Get PTR and License numbers from doctor data or clinic settings
-        ptr_no = doctor_data.get('ptr_number') or doctor_data.get('ptr_no') or 'PTR-XXXXXXX'
+        # Leave PTR No. blank as requested
+        ptr_no = "_____________"  # Blank line for PTR number
         license_no = doctor_data.get('license_number') or doctor_data.get('license_no') or 'LIC-XXXXXXX'
         
         signature_content = f"""
         <para align="right">
-        <br/><br/>
+        <br/><br/><br/>
         _________________________________<br/>
         <b>{doctor_name}</b><br/>
         PTR No.: {ptr_no}<br/>
