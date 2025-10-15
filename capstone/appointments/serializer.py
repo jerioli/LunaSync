@@ -278,7 +278,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
         try:
             status = validated_data.get('status', 'pending')
             
-            # Check if this is a returning patient with Patient ID
+            # Check if this is a returning patient with Patient ID or database ID
             patient_id = validated_data.pop('patient_id', None)  # Remove from validated_data since it's not stored in DB
             existing_patient = None
             
@@ -288,8 +288,20 @@ class AppointmentSerializer(serializers.ModelSerializer):
             
             if patient_id and patient_id.strip():
                 try:
-                    existing_patient = Patient.objects.get(patient_id=patient_id.strip())
-                    logger.info(f"Found existing patient with ID {patient_id}: {existing_patient.name}")
+                    # First try to find by patient_id (formatted like "P-20241016-1234")
+                    if patient_id.startswith('P-'):
+                        existing_patient = Patient.objects.get(patient_id=patient_id.strip())
+                        logger.info(f"Found existing patient with patient_id {patient_id}: {existing_patient.name}")
+                    else:
+                        # If it's a numeric ID, try to find by database id
+                        try:
+                            existing_patient = Patient.objects.get(id=int(patient_id.strip()))
+                            logger.info(f"Found existing patient with database id {patient_id}: {existing_patient.name}")
+                        except (ValueError, Patient.DoesNotExist):
+                            # If it's not numeric or not found by ID, try by patient_id field
+                            existing_patient = Patient.objects.get(patient_id=patient_id.strip())
+                            logger.info(f"Found existing patient with patient_id {patient_id}: {existing_patient.name}")
+                    
                     logger.info(f"Existing patient date_of_birth: {existing_patient.date_of_birth} (type: {type(existing_patient.date_of_birth)})")
                     logger.info(f"Existing patient gender: {existing_patient.gender}")
                     logger.info(f"Existing patient phone: {existing_patient.phone}")
@@ -317,6 +329,9 @@ class AppointmentSerializer(serializers.ModelSerializer):
             
             # If we have an existing patient, use validated_data (from request) only
             if existing_patient:
+                logger.info(f"=== USING EXISTING PATIENT (NOT CREATING NEW) ===")
+                logger.info(f"Existing patient: {existing_patient.name} (ID: {existing_patient.patient_id})")
+                
                 # Always use the data from the request (validated_data) to avoid encryption issues
                 patient_email = validated_data.get('patient_email', '')
                 patient_phone = validated_data.get('patient_phone', '')
@@ -338,6 +353,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
                 # Use the existing patient - do not create a new one
                 patient = existing_patient
                 logger.info(f"Using existing patient: {existing_patient.name} (ID: {existing_patient.patient_id})")
+                logger.info(f"Will NOT create any new patient record")
             else:
                 # No existing patient found, check if we need to create a new one or find by email
                 patient_email = validated_data.get('patient_email')

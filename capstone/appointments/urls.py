@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import AppointmentCreateView, AppointmentListView, AppointmentApproveView, AppointmentUpdateStatusView
+from .views import AppointmentCreateView, AppointmentListView, AppointmentApproveView, AppointmentUpdateStatusView, AvailableTimeSlotsView
 
 urlpatterns = [
     path('create/', AppointmentCreateView.as_view(), name='appointment-create'),
@@ -10,4 +10,5 @@ urlpatterns = [
     path('pending/', AppointmentListView.as_view(), {'status': 'pending'}, name='appointment-pending'),
     path('approve/<int:appointment_id>/', AppointmentApproveView.as_view(), name='appointment-approve'),
     path('update-status/<int:appointment_id>/', AppointmentUpdateStatusView.as_view(), name='appointment-update-status'),
+    path('available-slots/', AvailableTimeSlotsView.as_view(), name='available-time-slots'),
 ]

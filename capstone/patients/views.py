@@ -36,7 +36,71 @@ class PatientListCreateView(APIView):
                 'message': 'You do not have permission to view patients'
             }, status=status.HTTP_403_FORBIDDEN)
         
+        # Get query parameters
+        search_term = request.GET.get('search', '').strip()
+        ordering = request.GET.get('ordering', 'name')
+        limit = request.GET.get('limit')
+        
+        # Start with all patients
         patients = Patient.objects.all()
+        
+        # Apply search filter if search term provided
+        if search_term:
+            from django.db.models import Q
+            
+            # Get all patients first (for encrypted field searching)
+            all_patients = Patient.objects.all()
+            matching_ids = []
+            
+            # Search term splitting for multi-word searches
+            search_terms = [term.lower().strip() for term in search_term.split()]
+            
+            for patient in all_patients:
+                # Get decrypted values
+                name = (patient.name or '').lower()
+                first_name = (patient.first_name or '').lower()
+                last_name = (patient.last_name or '').lower()
+                email = (patient.email or '').lower()
+                phone = (patient.phone or '').lower()
+                
+                # Check if all search terms match in any field
+                matches_all = True
+                for term in search_terms:
+                    term_matches = (
+                        term in name or 
+                        term in first_name or 
+                        term in last_name or 
+                        term in email or 
+                        term in phone
+                    )
+                    if not term_matches:
+                        matches_all = False
+                        break
+                
+                if matches_all:
+                    matching_ids.append(patient.id)
+            
+            # Filter patients by matching IDs
+            patients = patients.filter(id__in=matching_ids)
+        
+        # Apply ordering
+        if ordering == 'name':
+            patients = patients.order_by('name')
+        elif ordering == '-name':
+            patients = patients.order_by('-name')
+        elif ordering == 'email':
+            patients = patients.order_by('email')
+        else:
+            patients = patients.order_by('name')  # Default to name ordering
+        
+        # Apply limit if provided
+        if limit:
+            try:
+                limit_int = int(limit)
+                patients = patients[:limit_int]
+            except (ValueError, TypeError):
+                pass  # Ignore invalid limit values
+        
         serializer = PatientSerializer(patients, many=True, context={'request': request})
         
         # Log read action
@@ -103,7 +167,71 @@ class PatientListView(APIView):
                 'message': 'You do not have permission to view patients'
             }, status=status.HTTP_403_FORBIDDEN)
         
+        # Get query parameters
+        search_term = request.GET.get('search', '').strip()
+        ordering = request.GET.get('ordering', 'name')
+        limit = request.GET.get('limit')
+        
+        # Start with all patients
         patients = Patient.objects.all()
+        
+        # Apply search filter if search term provided
+        if search_term:
+            from django.db.models import Q
+            
+            # Get all patients first (for encrypted field searching)
+            all_patients = Patient.objects.all()
+            matching_ids = []
+            
+            # Search term splitting for multi-word searches
+            search_terms = [term.lower().strip() for term in search_term.split()]
+            
+            for patient in all_patients:
+                # Get decrypted values
+                name = (patient.name or '').lower()
+                first_name = (patient.first_name or '').lower()
+                last_name = (patient.last_name or '').lower()
+                email = (patient.email or '').lower()
+                phone = (patient.phone or '').lower()
+                
+                # Check if all search terms match in any field
+                matches_all = True
+                for term in search_terms:
+                    term_matches = (
+                        term in name or 
+                        term in first_name or 
+                        term in last_name or 
+                        term in email or 
+                        term in phone
+                    )
+                    if not term_matches:
+                        matches_all = False
+                        break
+                
+                if matches_all:
+                    matching_ids.append(patient.id)
+            
+            # Filter patients by matching IDs
+            patients = patients.filter(id__in=matching_ids)
+        
+        # Apply ordering
+        if ordering == 'name':
+            patients = patients.order_by('name')
+        elif ordering == '-name':
+            patients = patients.order_by('-name')
+        elif ordering == 'email':
+            patients = patients.order_by('email')
+        else:
+            patients = patients.order_by('name')  # Default to name ordering
+        
+        # Apply limit if provided
+        if limit:
+            try:
+                limit_int = int(limit)
+                patients = patients[:limit_int]
+            except (ValueError, TypeError):
+                pass  # Ignore invalid limit values
+        
         serializer = PatientSerializer(patients, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 

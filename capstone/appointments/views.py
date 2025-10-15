@@ -576,3 +576,102 @@ class AppointmentUpdateStatusView(APIView):
             logger.error(f"Error handling appointment confirmation: {str(e)}")
             logger.error(traceback.format_exc())
             return False
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AvailableTimeSlotsView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """
+        Get available time slots for a specific doctor on a specific date
+        Query parameters:
+        - doctor_id: ID of the doctor
+        - date: Date in YYYY-MM-DD format
+        """
+        try:
+            doctor_id = request.GET.get('doctor_id')
+            date_str = request.GET.get('date')
+            
+            if not doctor_id or not date_str:
+                return Response({
+                    'error': 'doctor_id and date parameters are required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Parse the date
+            try:
+                from datetime import datetime
+                appointment_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            except ValueError:
+                return Response({
+                    'error': 'Date must be in YYYY-MM-DD format'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Check if doctor exists
+            from accounts.models import CustomUser
+            try:
+                doctor = CustomUser.objects.get(id=doctor_id, role='doctor')
+            except CustomUser.DoesNotExist:
+                return Response({
+                    'error': 'Doctor not found'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            # Get doctor availability for the date
+            from doctor_availability.models import DoctorAvailability, TimeSlot
+            try:
+                doctor_availability = DoctorAvailability.objects.get(
+                    doctor=doctor,
+                    date=appointment_date,
+                    is_available=True
+                )
+            except DoctorAvailability.DoesNotExist:
+                return Response({
+                    'available_slots': [],
+                    'message': f'Doctor is not available on {date_str}'
+                }, status=status.HTTP_200_OK)
+            
+            # Get predefined time slots for this doctor's availability
+            time_slots = TimeSlot.objects.filter(
+                availability=doctor_availability,
+                is_booked=False
+            ).order_by('start_time')
+            
+            # Check for existing appointments at those times
+            existing_appointments = Appointment.objects.filter(
+                doctor=doctor,
+                date=appointment_date,
+                status__in=['scheduled', 'ongoing', 'pending']
+            ).values_list('time', flat=True)
+            
+            # Format available slots
+            available_slots = []
+            for slot in time_slots:
+                # Convert time to the same format for comparison
+                slot_time = slot.start_time
+                
+                # Check if this time slot is already booked by an appointment
+                if slot_time not in existing_appointments:
+                    # Format time for display (12-hour format)
+                    start_time_12h = slot.start_time.strftime('%I:%M %p')
+                    end_time_12h = slot.end_time.strftime('%I:%M %p')
+                    
+                    available_slots.append({
+                        'label': f"{start_time_12h} - {end_time_12h}",
+                        'value': slot.start_time.strftime('%H:%M:%S'),  # 24-hour format for form submission
+                        'start_time': slot.start_time.strftime('%H:%M:%S'),
+                        'end_time': slot.end_time.strftime('%H:%M:%S')
+                    })
+            
+            return Response({
+                'available_slots': available_slots,
+                'doctor_name': f"Dr. {doctor.first_name} {doctor.last_name}",
+                'date': date_str,
+                'total_slots': len(available_slots)
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error getting available time slots: {str(e)}")
+            logger.error(traceback.format_exc())
+            return Response({
+                'error': 'Internal server error'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

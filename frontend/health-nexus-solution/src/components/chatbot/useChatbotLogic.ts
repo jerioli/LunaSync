@@ -3625,10 +3625,10 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
 
   const getAvailableDates = async () => {
     try {
-      // First get all doctors
-      const allDoctors = await fetchDoctors();
+      // First get doctors with availability only
+      const allDoctors = await fetchDoctorsWithAvailability();
       if (!allDoctors || allDoctors.length === 0) {
-        console.error('No doctors found');
+        console.error('No doctors with availability found');
         return [];
       }
 
@@ -3779,11 +3779,11 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       const dateString = `${year}-${month}-${day}`;
       
       
-      // First, get all doctors
-      const allDoctors = await fetchDoctors();
+      // First, get doctors with availability only
+      const allDoctors = await fetchDoctorsWithAvailability();
       
       if (!allDoctors || allDoctors.length === 0) {
-        console.error('No doctors found in the response');
+        console.error('No doctors with availability found in the response');
         return [];
       }
 
