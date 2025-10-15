@@ -65,7 +65,9 @@ export const generatePrescriptionHTML = (prescription: any, patientData: any, cl
 
         <!-- Prescription ID -->
         <div style="text-align: center; margin-bottom: 20px;">
-          <div style="font-weight: bold; font-size: 14px;">PRESCRIPTION ID: ${prescription.prescription_number || 'RX-' + Date.now().toString().slice(-8).toUpperCase()}</div>
+          <div style="font-weight: bold; font-size: 14px;">PRESCRIPTION ID: ${
+            prescription.prescription_number || 'RX-UNKNOWN'
+          }</div>
         </div>
 
         <!-- Date -->

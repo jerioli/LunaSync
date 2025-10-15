@@ -3289,6 +3289,7 @@ const PatientManagement = () => {
         (prescription: any) => ({
           id: prescription.id,
           type: "prescription",
+          prescription_number: prescription.prescription_number, // Add this line
           patientId: prescription.document?.patient,
           patientName: patientData?.name,
           dateCreated:
