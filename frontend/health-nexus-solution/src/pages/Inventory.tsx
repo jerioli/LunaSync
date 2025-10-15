@@ -51,42 +51,29 @@ import "@/utils/sessionManager";
 // Ensure withCredentials is set for this component
 axios.defaults.withCredentials = true;
 
-interface InventoryItem {
+interface MedicineRecord {
   id: number;
   name: string;
+  dosage: string;
   description: string;
   category: string;
-  quantity: number;
-  unit: string;
-  minimum_stock: number;
-  unit_price: number;
-  total_value: number;
-  status: string;
-  batch_number?: string;
-  expiry_date?: string;
-  supplier?: string;
-  supplier_contact?: string;
   created_at: string;
   updated_at: string;
 }
 
-interface InventoryTransaction {
+interface MedicineTransaction {
   id: number;
-  inventory_item: number;
-  transaction_type: "in" | "out" | "adjustment";
-  quantity: number;
+  medicine_record: number;
+  transaction_type: "added" | "updated" | "discontinued";
   reason?: string;
-  reference_number?: string;
   performed_by: number;
   created_at: string;
 }
 
 type SortField =
   | "name"
+  | "dosage"
   | "category"
-  | "current_quantity"
-  | "status"
-  | "expiry_date"
   | "created_at";
 type SortDirection = "asc" | "desc";
 
@@ -95,54 +82,40 @@ const Inventory = () => {
   const { toast } = useToast();
 
   // State management
-  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
-  const [transactions, setTransactions] = useState<InventoryTransaction[]>([]);
+  const [medicineRecords, setMedicineRecords] = useState<MedicineRecord[]>([]);
+  const [transactions, setTransactions] = useState<MedicineTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterCategory, setFilterCategory] = useState<string>("all");
 
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<MedicineRecord | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form states
   const [formData, setFormData] = useState({
     name: "",
+    dosage: "",
     description: "",
-    category: "medication", // Default to medication for clinic
-    quantity: 0, // Actual count of individual medicines
-    minimum_stock: 0, // Minimum individual units to keep in stock
-    unit: "tablets", // Default unit for medicines (tablets, capsules, ml, etc.)
-    unit_price: "", // Price per individual unit
-    expiry_date: "",
-    batch_number: "",
-  });
-
-  const [transactionData, setTransactionData] = useState({
-    transaction_type: "in" as "in" | "out" | "adjustment",
-    quantity: 0,
-    reason: "",
-    reference_number: "",
+    category: "tablet", // Default category for medicines
   });
 
   // Check permissions - allow doctors and admins by default, others need permission
-  const canManageInventory =
+  const canManageMedicines =
     currentUser?.role === "doctor" ||
     currentUser?.role === "admin" ||
     currentUser?.can_manage_inventory;
 
   // Debug logging
-  console.log("[INVENTORY FRONTEND] Current user:", currentUser);
-  console.log("[INVENTORY FRONTEND] Can manage inventory:", canManageInventory);
-  console.log("[INVENTORY FRONTEND] Axios defaults:", {
+  console.log("[MEDICINE RECORDS FRONTEND] Current user:", currentUser);
+  console.log("[MEDICINE RECORDS FRONTEND] Can manage medicines:", canManageMedicines);
+  console.log("[MEDICINE RECORDS FRONTEND] Axios defaults:", {
     baseURL: axios.defaults.baseURL,
     withCredentials: axios.defaults.withCredentials,
   });
@@ -150,41 +123,41 @@ const Inventory = () => {
   // Check if user is authenticated
   useEffect(() => {
     if (!currentUser) {
-      console.log("[INVENTORY FRONTEND] No current user, might need to login");
+      console.log("[MEDICINE RECORDS FRONTEND] No current user, might need to login");
       return;
     }
-    if (!canManageInventory) {
+    if (!canManageMedicines) {
       console.log(
-        "[INVENTORY FRONTEND] User doesn't have inventory permissions"
+        "[MEDICINE RECORDS FRONTEND] User doesn't have medicine management permissions"
       );
       return;
     }
-    console.log("[INVENTORY FRONTEND] User authenticated, fetching data");
-    fetchInventoryItems();
+    console.log("[MEDICINE RECORDS FRONTEND] User authenticated, fetching data");
+    fetchMedicineRecords();
     fetchTransactions();
-  }, [currentUser, canManageInventory]);
-  const fetchInventoryItems = async () => {
+  }, [currentUser, canManageMedicines]);
+  const fetchMedicineRecords = async () => {
     // Don't fetch if user doesn't have permission
-    if (!canManageInventory) {
+    if (!canManageMedicines) {
       console.log(
-        "[INVENTORY FRONTEND] No permission to fetch inventory items"
+        "[MEDICINE RECORDS FRONTEND] No permission to fetch medicine records"
       );
       return;
     }
 
-    console.log("[INVENTORY FRONTEND] Fetching inventory items...");
+    console.log("[MEDICINE RECORDS FRONTEND] Fetching medicine records...");
     try {
-      const response = await axios.get("/inventory/", {
+      const response = await axios.get("/inventory/medicines/", {
         withCredentials: true,
       });
       if (response.data.success) {
-        setInventoryItems(response.data.data);
+        setMedicineRecords(response.data.data);
       }
     } catch (error) {
-      console.error("Error fetching inventory:", error);
+      console.error("Error fetching medicine records:", error);
       toast({
         title: "Error",
-        description: "Failed to fetch inventory items",
+        description: "Failed to fetch medicine records",
         variant: "destructive",
       });
     } finally {
@@ -195,13 +168,13 @@ const Inventory = () => {
   // Fetch transactions
   const fetchTransactions = async () => {
     // Don't fetch if user doesn't have permission
-    if (!canManageInventory) {
-      console.log("[INVENTORY FRONTEND] No permission to fetch transactions");
+    if (!canManageMedicines) {
+      console.log("[MEDICINE RECORDS FRONTEND] No permission to fetch transactions");
       return;
     }
 
     try {
-      const response = await axios.get("/inventory/transactions/", {
+      const response = await axios.get("/inventory/medicine-transactions/", {
         withCredentials: true,
       });
       if (response.data.success) {
@@ -213,29 +186,23 @@ const Inventory = () => {
   };
 
   useEffect(() => {
-    if (canManageInventory) {
-      fetchInventoryItems();
+    if (canManageMedicines) {
+      fetchMedicineRecords();
       fetchTransactions();
     }
-  }, [canManageInventory]);
+  }, [canManageMedicines]);
 
   // Form validation
   const validateForm = () => {
     const errors: string[] = [];
-    const validCategories = ["medication", "supplies", "equipment", "other"];
+    const validCategories = ["tablet", "capsule", "syrup", "injection", "cream", "drops", "other"];
 
-    if (!formData.name.trim()) errors.push("Name is required");
+    if (!formData.name.trim()) errors.push("Medicine name is required");
+    if (!formData.dosage.trim()) errors.push("Dosage is required");
     if (!formData.category.trim()) {
       errors.push("Category is required");
     } else if (!validCategories.includes(formData.category)) {
       errors.push("Please select a valid category");
-    }
-    if (!formData.unit.trim()) errors.push("Unit is required");
-    if (formData.quantity < 0) errors.push("Quantity cannot be negative");
-    if (formData.minimum_stock < 0)
-      errors.push("Minimum stock cannot be negative");
-    if (!formData.unit_price || parseFloat(formData.unit_price) <= 0) {
-      errors.push("Unit price must be greater than 0");
     }
 
     return errors;
@@ -259,8 +226,8 @@ const Inventory = () => {
     try {
       setIsSubmitting(true);
       const url = selectedItem
-        ? `/inventory/${selectedItem.id}/`
-        : "/inventory/";
+        ? `/inventory/medicines/${selectedItem.id}/`
+        : "/inventory/medicines/";
       const method = selectedItem ? "put" : "post";
 
       const response = await axios[method](url, formData, {
@@ -273,10 +240,10 @@ const Inventory = () => {
           description:
             response.data.message ||
             (selectedItem
-              ? "Item updated successfully"
-              : "Item added successfully"),
+              ? "Medicine updated successfully"
+              : "Medicine added successfully"),
         });
-        fetchInventoryItems();
+        fetchMedicineRecords();
         setIsAddModalOpen(false);
         setIsEditModalOpen(false);
         resetForm();
@@ -305,57 +272,21 @@ const Inventory = () => {
     }
   };
 
-  // Handle transaction submission
-  const handleTransactionSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const response = await axios.post(
-        `/inventory/${selectedItem?.id}/transactions/`,
-        transactionData,
-        {
-          withCredentials: true,
-        }
-      );
-
-      if (response.data.success) {
-        toast({
-          title: "Success",
-          description: "Transaction recorded successfully",
-        });
-        fetchInventoryItems();
-        fetchTransactions();
-        setIsTransactionModalOpen(false);
-        setTransactionData({
-          transaction_type: "in",
-          quantity: 0,
-          reason: "",
-          reference_number: "",
-        });
-      }
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.response?.data?.error || "Transaction failed",
-        variant: "destructive",
-      });
-    }
-  };
-
   // Handle delete
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this item?")) return;
+    if (!confirm("Are you sure you want to delete this medicine record?")) return;
 
     try {
-      const response = await axios.delete(`/inventory/${id}/`, {
+      const response = await axios.delete(`/inventory/medicines/${id}/`, {
         withCredentials: true,
       });
 
       if (response.data.success) {
         toast({
           title: "Success",
-          description: "Item deleted successfully",
+          description: "Medicine record deleted successfully",
         });
-        fetchInventoryItems();
+        fetchMedicineRecords();
       }
     } catch (error: any) {
       toast({
@@ -370,14 +301,9 @@ const Inventory = () => {
   const resetForm = () => {
     setFormData({
       name: "",
+      dosage: "",
       description: "",
-      category: "medication",
-      quantity: 0,
-      minimum_stock: 0,
-      unit: "tablets",
-      unit_price: "",
-      expiry_date: "",
-      batch_number: "",
+      category: "tablet",
     });
     setSelectedItem(null);
     setIsSubmitting(false);
@@ -394,48 +320,36 @@ const Inventory = () => {
   };
 
   // Handle edit
-  const handleEdit = (item: InventoryItem) => {
+  const handleEdit = (item: MedicineRecord) => {
     setSelectedItem(item);
     setFormData({
       name: item.name,
+      dosage: item.dosage,
       description: item.description || "",
       category: item.category,
-      quantity: item.quantity,
-      minimum_stock: item.minimum_stock,
-      unit: item.unit,
-      unit_price: item.unit_price.toString(),
-      expiry_date: item.expiry_date || "",
-      batch_number: item.batch_number || "",
     });
     setIsEditModalOpen(true);
   };
 
-  // Handle transaction
-  const handleTransaction = (item: InventoryItem) => {
-    setSelectedItem(item);
-    setIsTransactionModalOpen(true);
-  };
-
   // Filter and sort data
-  const filteredItems = inventoryItems
+  const filteredItems = medicineRecords
     .filter((item) => {
       const matchesSearch =
         item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.dosage.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (item.description || "")
           .toLowerCase()
           .includes(searchQuery.toLowerCase());
-      const matchesStatus =
-        filterStatus === "all" || item.status === filterStatus;
       const matchesCategory =
         filterCategory === "all" || item.category === filterCategory;
-      return matchesSearch && matchesStatus && matchesCategory;
+      return matchesSearch && matchesCategory;
     })
     .sort((a, b) => {
       let aValue: any = a[sortField];
       let bValue: any = b[sortField];
 
-      if (sortField === "expiry_date" || sortField === "created_at") {
+      if (sortField === "created_at") {
         aValue = aValue ? new Date(aValue).getTime() : 0;
         bValue = bValue ? new Date(bValue).getTime() : 0;
       } else if (typeof aValue === "string") {
@@ -458,28 +372,14 @@ const Inventory = () => {
   const paginatedItems = filteredItems.slice(startIndex, endIndex);
 
   // Get unique categories for filter
-  const categories = [...new Set(inventoryItems.map((item) => item.category))];
+  const categories = [...new Set(medicineRecords.map((item) => item.category))];
 
-  // Status icon helper
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "in_stock":
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case "low_stock":
-        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-      case "out_of_stock":
-        return <Clock className="h-4 w-4 text-red-500" />;
-      default:
-        return <Package className="h-4 w-4" />;
-    }
-  };
-
-  if (!canManageInventory) {
-    console.log("[INVENTORY FRONTEND] Permission denied:", {
+  if (!canManageMedicines) {
+    console.log("[MEDICINE RECORDS FRONTEND] Permission denied:", {
       currentUser,
       can_manage_inventory: currentUser?.can_manage_inventory,
       role: currentUser?.role,
-      canManageInventory,
+      canManageMedicines,
     });
     return (
       <div className="p-6">
@@ -489,7 +389,7 @@ const Inventory = () => {
               <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
               <p className="text-gray-600">
-                You don't have permission to access inventory management.
+                You don't have permission to access medicine records management.
               </p>
             </div>
           </CardContent>
@@ -501,7 +401,7 @@ const Inventory = () => {
   if (loading) {
     return (
       <div className="p-6">
-        <div className="text-center">Loading inventory...</div>
+        <div className="text-center">Loading medicine records...</div>
       </div>
     );
   }
@@ -511,23 +411,23 @@ const Inventory = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold">Medication Inventory</h1>
-          <p className="text-gray-600">Manage your clinic's medication stock</p>
+          <h1 className="text-2xl font-bold">Medicine Records</h1>
+          <p className="text-gray-600">Manage medicine database for e-prescription creation</p>
         </div>
         <Button onClick={() => setIsAddModalOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          Add Item
+          Add Medicine
         </Button>
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Items</p>
-                <p className="text-2xl font-bold">{inventoryItems.length}</p>
+                <p className="text-sm font-medium text-gray-600">Total Medicines</p>
+                <p className="text-2xl font-bold">{medicineRecords.length}</p>
               </div>
               <Package className="h-8 w-8 text-blue-500" />
             </div>
@@ -537,12 +437,9 @@ const Inventory = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">In Stock</p>
+                <p className="text-sm font-medium text-gray-600">Categories</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {
-                    inventoryItems.filter((item) => item.status === "in_stock")
-                      .length
-                  }
+                  {categories.length}
                 </p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-500" />
@@ -553,34 +450,19 @@ const Inventory = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Low Stock</p>
-                <p className="text-2xl font-bold text-yellow-600">
+                <p className="text-sm font-medium text-gray-600">Recent Additions</p>
+                <p className="text-2xl font-bold text-blue-600">
                   {
-                    inventoryItems.filter((item) => item.status === "low_stock")
-                      .length
+                    medicineRecords.filter((item) => {
+                      const createdDate = new Date(item.created_at);
+                      const weekAgo = new Date();
+                      weekAgo.setDate(weekAgo.getDate() - 7);
+                      return createdDate >= weekAgo;
+                    }).length
                   }
                 </p>
               </div>
-              <AlertTriangle className="h-8 w-8 text-yellow-500" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Out of Stock
-                </p>
-                <p className="text-2xl font-bold text-red-600">
-                  {
-                    inventoryItems.filter(
-                      (item) => item.status === "out_of_stock"
-                    ).length
-                  }
-                </p>
-              </div>
-              <Clock className="h-8 w-8 text-red-500" />
+              <TrendingUp className="h-8 w-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
@@ -594,24 +476,13 @@ const Inventory = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search items..."
+                  placeholder="Search medicines..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-full md:w-[200px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="in_stock">In Stock</SelectItem>
-                <SelectItem value="low_stock">Low Stock</SelectItem>
-                <SelectItem value="out_of_stock">Out of Stock</SelectItem>
-              </SelectContent>
-            </Select>
             <Select value={filterCategory} onValueChange={setFilterCategory}>
               <SelectTrigger className="w-full md:w-[200px]">
                 <SelectValue placeholder="Filter by category" />
@@ -642,10 +513,10 @@ const Inventory = () => {
         </CardContent>
       </Card>
 
-      {/* Inventory Table */}
+      {/* Medicine Records Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Inventory Items</CardTitle>
+          <CardTitle>Medicine Records</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -657,7 +528,16 @@ const Inventory = () => {
                     onClick={() => handleSort("name")}
                   >
                     <div className="flex items-center gap-2">
-                      Name
+                      Medicine Name
+                      <ArrowUpDown className="h-4 w-4" />
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="cursor-pointer"
+                    onClick={() => handleSort("dosage")}
+                  >
+                    <div className="flex items-center gap-2">
+                      Dosage
                       <ArrowUpDown className="h-4 w-4" />
                     </div>
                   </TableHead>
@@ -670,32 +550,13 @@ const Inventory = () => {
                       <ArrowUpDown className="h-4 w-4" />
                     </div>
                   </TableHead>
+                  <TableHead>Description</TableHead>
                   <TableHead
                     className="cursor-pointer"
-                    onClick={() => handleSort("current_quantity")}
+                    onClick={() => handleSort("created_at")}
                   >
                     <div className="flex items-center gap-2">
-                      Quantity
-                      <ArrowUpDown className="h-4 w-4" />
-                    </div>
-                  </TableHead>
-                  <TableHead>Unit Cost</TableHead>
-                  <TableHead>Total Value</TableHead>
-                  <TableHead
-                    className="cursor-pointer"
-                    onClick={() => handleSort("status")}
-                  >
-                    <div className="flex items-center gap-2">
-                      Status
-                      <ArrowUpDown className="h-4 w-4" />
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer"
-                    onClick={() => handleSort("expiry_date")}
-                  >
-                    <div className="flex items-center gap-2">
-                      Expiry Date
+                      Date Added
                       <ArrowUpDown className="h-4 w-4" />
                     </div>
                   </TableHead>
@@ -706,51 +567,25 @@ const Inventory = () => {
                 {paginatedItems.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="font-medium">
-                      <div>
-                        <div>{item.name}</div>
-                        {item.description && (
-                          <div className="text-sm text-gray-500">
-                            {item.description}
-                          </div>
-                        )}
-                      </div>
+                      <div>{item.name}</div>
                     </TableCell>
-                    <TableCell>{item.category}</TableCell>
                     <TableCell>
-                      <div>
-                        <span
-                          className={`font-medium ${
-                            item.status === "out_of_stock"
-                              ? "text-red-600"
-                              : item.status === "low_stock"
-                              ? "text-yellow-600"
-                              : "text-green-600"
-                          }`}
-                        >
-                          {item.quantity}
-                        </span>
-                        <span className="text-sm text-gray-500 ml-1">
-                          {item.unit}
-                        </span>
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        Min: {item.minimum_stock}
-                      </div>
+                      <span className="font-medium text-blue-600">
+                        {item.dosage}
+                      </span>
                     </TableCell>
-                    <TableCell>${item.unit_price}</TableCell>
-                    <TableCell>${item.total_value}</TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(item.status)}
-                        <span className="text-sm capitalize">
-                          {item.status.replace("_", " ")}
-                        </span>
+                      <span className="capitalize text-sm bg-gray-100 px-2 py-1 rounded">
+                        {item.category}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm text-gray-600">
+                        {item.description || "No description"}
                       </div>
                     </TableCell>
                     <TableCell>
-                      {item.expiry_date
-                        ? format(new Date(item.expiry_date), "MMM dd, yyyy")
-                        : "N/A"}
+                      {format(new Date(item.created_at), "MMM dd, yyyy")}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
@@ -760,13 +595,6 @@ const Inventory = () => {
                           onClick={() => handleEdit(item)}
                         >
                           <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleTransaction(item)}
-                        >
-                          <TrendingUp className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="destructive"
@@ -818,7 +646,7 @@ const Inventory = () => {
         </CardContent>
       </Card>
 
-      {/* Add/Edit Item Modal */}
+      {/* Add/Edit Medicine Modal */}
       <Dialog
         open={isAddModalOpen || isEditModalOpen}
         onOpenChange={(open) => {
@@ -832,23 +660,36 @@ const Inventory = () => {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {selectedItem ? "Edit Item" : "Add New Item"}
+              {selectedItem ? "Edit Medicine" : "Add New Medicine"}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="name">Name *</Label>
+                <Label htmlFor="name">Medicine Name *</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
+                  placeholder="e.g., Paracetamol"
                   required
                 />
               </div>
               <div>
+                <Label htmlFor="dosage">Dosage *</Label>
+                <Input
+                  id="dosage"
+                  value={formData.dosage}
+                  onChange={(e) =>
+                    setFormData({ ...formData, dosage: e.target.value })
+                  }
+                  placeholder="e.g., 500mg, 10ml, 2.5mg"
+                  required
+                />
+              </div>
+              <div className="md:col-span-2">
                 <Label htmlFor="category">Category *</Label>
                 <Select
                   value={formData.category}
@@ -861,110 +702,15 @@ const Inventory = () => {
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="medication">Medication</SelectItem>
-                    <SelectItem value="supplies">Medical Supplies</SelectItem>
-                    <SelectItem value="equipment">Equipment</SelectItem>
+                    <SelectItem value="tablet">Tablet</SelectItem>
+                    <SelectItem value="capsule">Capsule</SelectItem>
+                    <SelectItem value="syrup">Syrup</SelectItem>
+                    <SelectItem value="injection">Injection</SelectItem>
+                    <SelectItem value="cream">Cream/Ointment</SelectItem>
+                    <SelectItem value="drops">Drops</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="unit">Unit *</Label>
-                <Select
-                  value={formData.unit}
-                  onValueChange={(value) =>
-                    setFormData({
-                      ...formData,
-                      unit: value,
-                    })
-                  }
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select unit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="tablets">Tablets</SelectItem>
-                    <SelectItem value="capsules">Capsules</SelectItem>
-                    <SelectItem value="ml">Milliliters (ml)</SelectItem>
-                    <SelectItem value="syrup_bottles">Syrup Bottles</SelectItem>
-                    <SelectItem value="vials">Vials</SelectItem>
-                    <SelectItem value="ampoules">Ampoules</SelectItem>
-                    <SelectItem value="patches">Patches</SelectItem>
-                    <SelectItem value="drops">Drops</SelectItem>
-                    <SelectItem value="sachets">Sachets</SelectItem>
-                    <SelectItem value="pieces">Pieces</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="quantity">
-                  Current Quantity (Individual Units) *
-                </Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  value={formData.quantity}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      quantity: parseInt(e.target.value) || 0,
-                    })
-                  }
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="minimum_stock">
-                  Minimum Stock Alert Level *
-                </Label>
-                <Input
-                  id="minimum_stock"
-                  type="number"
-                  value={formData.minimum_stock}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      minimum_stock: parseInt(e.target.value) || 0,
-                    })
-                  }
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="unit_price">Price Per Unit *</Label>
-                <Input
-                  id="unit_price"
-                  type="number"
-                  step="0.01"
-                  value={formData.unit_price}
-                  onChange={(e) =>
-                    setFormData({ ...formData, unit_price: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="expiry_date">Expiry Date</Label>
-                <Input
-                  id="expiry_date"
-                  type="date"
-                  value={formData.expiry_date}
-                  onChange={(e) =>
-                    setFormData({ ...formData, expiry_date: e.target.value })
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="batch_number">Batch Number</Label>
-                <Input
-                  id="batch_number"
-                  value={formData.batch_number}
-                  onChange={(e) =>
-                    setFormData({ ...formData, batch_number: e.target.value })
-                  }
-                />
               </div>
             </div>
             <div>
@@ -975,6 +721,7 @@ const Inventory = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
+                placeholder="Additional information about the medicine (optional)"
                 rows={3}
               />
             </div>
@@ -993,103 +740,8 @@ const Inventory = () => {
               </Button>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Saving..." : selectedItem ? "Update" : "Add"}{" "}
-                Item
+                Medicine
               </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Transaction Modal */}
-      <Dialog
-        open={isTransactionModalOpen}
-        onOpenChange={setIsTransactionModalOpen}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Record Transaction - {selectedItem?.name}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleTransactionSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="transaction_type">Transaction Type *</Label>
-              <Select
-                value={transactionData.transaction_type}
-                onValueChange={(value: "in" | "out" | "adjustment") =>
-                  setTransactionData({
-                    ...transactionData,
-                    transaction_type: value,
-                  })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="in">Stock In</SelectItem>
-                  <SelectItem value="out">Stock Out</SelectItem>
-                  <SelectItem value="adjustment">Adjustment</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="quantity">Quantity *</Label>
-              <Input
-                id="quantity"
-                type="number"
-                value={transactionData.quantity}
-                onChange={(e) =>
-                  setTransactionData({
-                    ...transactionData,
-                    quantity: parseInt(e.target.value) || 0,
-                  })
-                }
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="reference_number">Reference Number</Label>
-              <Input
-                id="reference_number"
-                value={transactionData.reference_number}
-                onChange={(e) =>
-                  setTransactionData({
-                    ...transactionData,
-                    reference_number: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div>
-              <Label htmlFor="reason">Reason</Label>
-              <Textarea
-                id="reason"
-                value={transactionData.reason}
-                onChange={(e) =>
-                  setTransactionData({
-                    ...transactionData,
-                    reason: e.target.value,
-                  })
-                }
-                rows={3}
-              />
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsTransactionModalOpen(false);
-                  setTransactionData({
-                    transaction_type: "in",
-                    quantity: 0,
-                    reason: "",
-                    reference_number: "",
-                  });
-                }}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">Record Transaction</Button>
             </div>
           </form>
         </DialogContent>

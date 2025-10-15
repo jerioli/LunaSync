@@ -2,6 +2,66 @@ from django.db import models
 from django.utils import timezone
 from security_app.fields import EncryptedCharField, EncryptedTextField
 
+class MedicineRecordManager(models.Manager):
+    def get_queryset(self):
+        """Return only non-deleted medicine records by default"""
+        return super().get_queryset().filter(is_deleted=False)
+    
+    def all_including_deleted(self):
+        """Return all medicine records including deleted ones"""
+        return super().get_queryset()
+    
+    def deleted_only(self):
+        """Return only deleted medicine records"""
+        return super().get_queryset().filter(is_deleted=True)
+
+class MedicineRecord(models.Model):
+    CATEGORY_CHOICES = [
+        ('tablet', 'Tablet'),
+        ('capsule', 'Capsule'),
+        ('syrup', 'Syrup'),
+        ('injection', 'Injection'),
+        ('cream', 'Cream/Ointment'),
+        ('drops', 'Drops'),
+        ('other', 'Other'),
+    ]
+    
+    # Basic medicine information
+    name = EncryptedCharField(max_length=200)
+    dosage = EncryptedCharField(max_length=100)  # e.g., 500mg, 10ml, 2.5mg
+    description = EncryptedTextField(blank=True, null=True)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='tablet')
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, blank=True)
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    
+    # Custom manager
+    objects = MedicineRecordManager()
+    
+    class Meta:
+        db_table = 'inventory_medicine_record'
+        ordering = ['name', 'dosage']
+        unique_together = ['name', 'dosage']  # Prevent duplicate medicine-dosage combinations
+    
+    def __str__(self):
+        return f"{self.name} - {self.dosage}"
+    
+    def soft_delete(self):
+        """Soft delete the medicine record"""
+        self.is_deleted = True
+        self.deleted_at = timezone.now()
+        self.save()
+    
+    def restore(self):
+        """Restore a soft-deleted medicine record"""
+        self.is_deleted = False
+        self.deleted_at = None
+        self.save()
+
 class InventoryManager(models.Manager):
     def get_queryset(self):
         """Return only non-deleted inventory items by default"""

@@ -2,10 +2,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import Inventory, InventoryTransaction
+from .models import Inventory, InventoryTransaction, MedicineRecord
 from .serializers import (
     InventorySerializer, InventoryTransactionSerializer,
-    InventoryCreateSerializer, InventoryUpdateSerializer
+    InventoryCreateSerializer, InventoryUpdateSerializer,
+    MedicineRecordSerializer
 )
 from django.http import Http404
 from systemlogs.audit_logger import AuditLogger
@@ -465,3 +466,224 @@ class AllTransactionsView(APIView):
                 'success': False,
                 'error': f'Failed to fetch transactions: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# Medicine Record Views
+@method_decorator(csrf_exempt, name='dispatch')
+class MedicineRecordListCreateView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """Get all medicine records"""
+        try:
+            # Check permissions
+            if not self._has_medicine_permissions(request.user):
+                return Response({
+                    'success': False,
+                    'error': 'Permission denied. You do not have access to manage medicine records.'
+                }, status=status.HTTP_403_FORBIDDEN)
+            
+            # Get all medicine records
+            medicines = MedicineRecord.objects.all().order_by('name', 'dosage')
+            serializer = MedicineRecordSerializer(medicines, many=True)
+            
+            return Response({
+                'success': True,
+                'data': serializer.data,
+                'total': medicines.count()
+            })
+            
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': f'Failed to fetch medicine records: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def post(self, request):
+        """Create a new medicine record"""
+        try:
+            # Check permissions
+            if not self._has_medicine_permissions(request.user):
+                return Response({
+                    'success': False,
+                    'error': 'Permission denied. You do not have access to manage medicine records.'
+                }, status=status.HTTP_403_FORBIDDEN)
+            
+            serializer = MedicineRecordSerializer(data=request.data)
+            if serializer.is_valid():
+                medicine = serializer.save(created_by=request.user)
+                
+                # Log the action
+                AuditLogger.log_action(
+                    user=request.user,
+                    action='CREATE',
+                    model_name='MedicineRecord',
+                    object_id=medicine.id,
+                    changes={'created': serializer.data}
+                )
+                
+                return Response({
+                    'success': True,
+                    'message': 'Medicine record created successfully',
+                    'data': serializer.data
+                }, status=status.HTTP_201_CREATED)
+            else:
+                return Response({
+                    'success': False,
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': f'Failed to create medicine record: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def _has_medicine_permissions(self, user):
+        """Check if user has permission to manage medicine records"""
+        return (
+            user.is_authenticated and 
+            (user.role in ['doctor', 'admin'] or getattr(user, 'can_manage_inventory', False))
+        )
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class MedicineRecordDetailView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get_object(self, pk):
+        """Get medicine record by ID"""
+        try:
+            return MedicineRecord.objects.get(pk=pk)
+        except MedicineRecord.DoesNotExist:
+            raise Http404
+    
+    def get(self, request, pk):
+        """Get specific medicine record"""
+        try:
+            # Check permissions
+            if not self._has_medicine_permissions(request.user):
+                return Response({
+                    'success': False,
+                    'error': 'Permission denied. You do not have access to manage medicine records.'
+                }, status=status.HTTP_403_FORBIDDEN)
+            
+            medicine = self.get_object(pk)
+            serializer = MedicineRecordSerializer(medicine)
+            
+            return Response({
+                'success': True,
+                'data': serializer.data
+            })
+            
+        except Http404:
+            return Response({
+                'success': False,
+                'error': 'Medicine record not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': f'Failed to fetch medicine record: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def put(self, request, pk):
+        """Update medicine record"""
+        try:
+            # Check permissions
+            if not self._has_medicine_permissions(request.user):
+                return Response({
+                    'success': False,
+                    'error': 'Permission denied. You do not have access to manage medicine records.'
+                }, status=status.HTTP_403_FORBIDDEN)
+            
+            medicine = self.get_object(pk)
+            old_data = MedicineRecordSerializer(medicine).data
+            
+            serializer = MedicineRecordSerializer(medicine, data=request.data, partial=True)
+            if serializer.is_valid():
+                medicine = serializer.save()
+                
+                # Log the action
+                AuditLogger.log_action(
+                    user=request.user,
+                    action='UPDATE',
+                    model_name='MedicineRecord',
+                    object_id=medicine.id,
+                    changes={
+                        'old': old_data,
+                        'new': serializer.data
+                    }
+                )
+                
+                return Response({
+                    'success': True,
+                    'message': 'Medicine record updated successfully',
+                    'data': serializer.data
+                })
+            else:
+                return Response({
+                    'success': False,
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
+        except Http404:
+            return Response({
+                'success': False,
+                'error': 'Medicine record not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': f'Failed to update medicine record: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def delete(self, request, pk):
+        """Delete (soft delete) medicine record"""
+        try:
+            # Check permissions
+            if not self._has_medicine_permissions(request.user):
+                return Response({
+                    'success': False,
+                    'error': 'Permission denied. You do not have access to manage medicine records.'
+                }, status=status.HTTP_403_FORBIDDEN)
+            
+            medicine = self.get_object(pk)
+            old_data = MedicineRecordSerializer(medicine).data
+            
+            # Soft delete the medicine record
+            medicine.soft_delete()
+            
+            # Log the action
+            AuditLogger.log_action(
+                user=request.user,
+                action='DELETE',
+                model_name='MedicineRecord',
+                object_id=medicine.id,
+                changes={'deleted': old_data}
+            )
+            
+            return Response({
+                'success': True,
+                'message': 'Medicine record deleted successfully'
+            })
+            
+        except Http404:
+            return Response({
+                'success': False,
+                'error': 'Medicine record not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': f'Failed to delete medicine record: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def _has_medicine_permissions(self, user):
+        """Check if user has permission to manage medicine records"""
+        return (
+            user.is_authenticated and 
+            (user.role in ['doctor', 'admin'] or getattr(user, 'can_manage_inventory', False))
+        )

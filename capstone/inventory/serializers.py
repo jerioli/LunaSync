@@ -1,5 +1,45 @@
 from rest_framework import serializers
-from .models import Inventory, InventoryTransaction
+from .models import Inventory, InventoryTransaction, MedicineRecord
+
+class MedicineRecordSerializer(serializers.ModelSerializer):
+    created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
+    
+    class Meta:
+        model = MedicineRecord
+        fields = [
+            'id', 'name', 'dosage', 'description', 'category',
+            'created_at', 'updated_at', 'created_by', 'created_by_name'
+        ]
+        read_only_fields = ['created_at', 'updated_at', 'created_by']
+
+    def validate_name(self, value):
+        """Validate that medicine name is not empty"""
+        if not value.strip():
+            raise serializers.ValidationError("Medicine name cannot be empty.")
+        return value.strip()
+
+    def validate_dosage(self, value):
+        """Validate that dosage is not empty"""
+        if not value.strip():
+            raise serializers.ValidationError("Dosage cannot be empty.")
+        return value.strip()
+
+    def validate(self, data):
+        """Validate unique combination of name and dosage"""
+        name = data.get('name', '').strip()
+        dosage = data.get('dosage', '').strip()
+        
+        # Check for existing combination (excluding current instance if updating)
+        queryset = MedicineRecord.objects.filter(name=name, dosage=dosage)
+        if self.instance:
+            queryset = queryset.exclude(pk=self.instance.pk)
+        
+        if queryset.exists():
+            raise serializers.ValidationError(
+                f"Medicine record with name '{name}' and dosage '{dosage}' already exists."
+            )
+        
+        return data
 
 class InventorySerializer(serializers.ModelSerializer):
     # Read-only calculated fields

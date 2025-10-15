@@ -17,6 +17,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import MedicineSearch from "@/components/MedicineSearch";
 import { axiosInstance } from "@/services/api";
 import {
     ArrowLeft,
@@ -25,6 +26,14 @@ import {
     XCircle
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
+
+interface MedicineRecord {
+  id: number;
+  name: string;
+  dosage: string;
+  category: string;
+  description?: string;
+}
 
 interface Medication {
   id: number;
@@ -36,6 +45,7 @@ interface Medication {
   endDate: string;
   notes: string;
   nameType: "Generic" | "Brand";
+  medicineRecord?: MedicineRecord; // Reference to the medicine record
 }
 
 interface LatestPrescription {
@@ -93,6 +103,7 @@ const PrescriptionApproval: React.FC<PrescriptionApprovalProps> = ({
     endDate: "",
     notes: "",
     nameType: "Generic",
+    medicineRecord: undefined,
   });
   const [generalNotes, setGeneralNotes] = useState("");
   const [doctorNotes, setDoctorNotes] = useState("");
@@ -160,6 +171,7 @@ const PrescriptionApproval: React.FC<PrescriptionApprovalProps> = ({
               endDate: "",
               notes: "",
               nameType: "Generic",
+              medicineRecord: undefined,
             };
             
             setMedications([newMedication]);
@@ -182,6 +194,7 @@ const PrescriptionApproval: React.FC<PrescriptionApprovalProps> = ({
         endDate: "",
         notes: "",
         nameType: "Generic",
+        medicineRecord: undefined,
       };
       
       if (newMedication.name) {
@@ -212,6 +225,7 @@ const PrescriptionApproval: React.FC<PrescriptionApprovalProps> = ({
         endDate: "",
         notes: "",
         nameType: "Generic",
+        medicineRecord: undefined,
       });
     }
   };
@@ -516,16 +530,41 @@ const PrescriptionApproval: React.FC<PrescriptionApprovalProps> = ({
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
-                      <Input
-                        placeholder="Medication Name"
-                        value={currentMedication.name}
-                        onChange={(e) => handleMedicationChange("name", e.target.value)}
-                      />
-                      <Input
-                        placeholder="e.g., 500mg"
-                        value={currentMedication.dose}
-                        onChange={(e) => handleMedicationChange("dose", e.target.value)}
-                      />
+                      <div>
+                        <Label className="text-sm">Medicine Name</Label>
+                        <MedicineSearch
+                          value={currentMedication.name}
+                          onSelect={(medicine) => {
+                            if (medicine) {
+                              handleMedicationChange("name", medicine.name);
+                              // Auto-fill dose if available from medicine record
+                              if (medicine.dosage && !currentMedication.dose) {
+                                handleMedicationChange("dose", medicine.dosage);
+                              }
+                              // Store medicine record reference
+                              setCurrentMedication(prev => ({
+                                ...prev,
+                                medicineRecord: medicine
+                              }));
+                            } else {
+                              handleMedicationChange("name", "");
+                              setCurrentMedication(prev => ({
+                                ...prev,
+                                medicineRecord: undefined
+                              }));
+                            }
+                          }}
+                          placeholder="Search medicine..."
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-sm">Dosage</Label>
+                        <Input
+                          placeholder="e.g., 500mg"
+                          value={currentMedication.dose}
+                          onChange={(e) => handleMedicationChange("dose", e.target.value)}
+                        />
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
