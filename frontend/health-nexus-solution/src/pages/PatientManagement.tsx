@@ -46,20 +46,13 @@ import { Patient } from "@/lib/mock-data";
 import { axiosInstance } from "@/services/api";
 import { type LabResult as APILabResult } from "@/services/medicalDocumentsAPI";
 import { parseApiError } from "@/utils/errorHandler";
-import { 
+import {
   HTMLToPDFConverter,
+  generateClinicalNoteHTML,
   generatePrescriptionHTML,
-  generateSOAPNoteHTML,
-  generateClinicalNoteHTML
+  generateSOAPNoteHTML
 } from "@/utils/htmlToPdf";
-import { 
-  pdfGenerator, 
-  type PrescriptionData,
-  type SOAPNoteData,
-  type DocumentHeaderInfo,
-  type PatientInfo 
-} from "@/utils/pdfGenerator";
-import { generatePrescriptionPDF, generateSOAPNotePDF } from "@/utils/patientPDFHelpers";
+import { formatPatientNameWithFullMiddle } from "@/utils/patientNameUtils";
 import { format } from "date-fns";
 import {
   ArrowLeft,
@@ -101,22 +94,9 @@ const PatientManagement = () => {
     clinicCustomization,
   } = useClinic();
 
-  // Helper function to construct full name from name parts
+  // Helper function to construct full name from name parts for patient record view
   const getFullName = (patient: Patient) => {
-    if (patient.first_name || patient.last_name) {
-      const nameParts = [];
-      if (patient.first_name) nameParts.push(patient.first_name);
-      if (patient.middle_initial) {
-        const initial = patient.middle_initial.endsWith(".")
-          ? patient.middle_initial
-          : patient.middle_initial + ".";
-        nameParts.push(initial);
-      }
-      if (patient.last_name) nameParts.push(patient.last_name);
-      if (patient.suffix) nameParts.push(patient.suffix);
-      return nameParts.join(" ");
-    }
-    return patient.name || "Unknown Patient";
+    return formatPatientNameWithFullMiddle(patient);
   };
 
   // Helper function to get logo URL
@@ -3682,7 +3662,7 @@ const PatientManagement = () => {
               <h3 className="font-semibold text-lg">Basic Information</h3>
               <div className="space-y-1">
                 <div>
-                  <span className="font-medium">Name:</span> {patientData.name}
+                  <span className="font-medium">Name:</span> {getFullName(patientData)}
                 </div>
                 <div>
                   <span className="font-medium">Age:</span>{" "}

@@ -20,8 +20,8 @@ import {
 } from "@/components/ui/table";
 import { useClinic } from "@/contexts/ClinicContext";
 import { useToast } from "@/hooks/use-toast";
-import axios from "axios";
 // Import sessionManager to ensure global axios configuration is applied
+import { formatPatientNameWithInitial, getPatientInitial } from "@/utils/patientNameUtils";
 import "@/utils/sessionManager";
 import { format } from "date-fns";
 import {
@@ -275,11 +275,13 @@ const PatientsList = () => {
                       <div className="flex items-center gap-3">
                         <Avatar>
                           <AvatarFallback>
-                            {patient.name.charAt(0)}
+                            {getPatientInitial(patient)}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{patient.name}</div>
+                          <div className="font-medium">
+                            {formatPatientNameWithInitial(patient) || patient.name}
+                          </div>
                           <div className="text-sm text-muted-foreground">
                             ID: {patient.id}
                           </div>

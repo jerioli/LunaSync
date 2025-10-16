@@ -33,7 +33,8 @@ class AppointmentCreateView(APIView):
             logger.info(f"Request data keys: {request.data.keys()}")
             
             # Check if this is an existing patient lookup
-            patient_id = request.data.get('patient_id', '').strip()
+            patient_id = request.data.get('patient_id') or ''
+            patient_id = patient_id.strip() if patient_id else ''
             existing_patient = None
             
             if patient_id:
@@ -46,14 +47,14 @@ class AppointmentCreateView(APIView):
             # Transform the incoming data
             data = {
                 # Handle separate name fields from chatbot
-                'firstName': request.data.get('firstName', '').strip(),
-                'middleInitial': request.data.get('middleInitial', '').strip(),
-                'lastName': request.data.get('lastName', '').strip(),
-                'suffix': request.data.get('suffix', '').strip(),
+                'firstName': (request.data.get('firstName') or '').strip(),
+                'middleInitial': (request.data.get('middleInitial') or '').strip(),
+                'lastName': (request.data.get('lastName') or '').strip(),
+                'suffix': (request.data.get('suffix') or '').strip(),
                 # Legacy patient_name field (for backward compatibility)
-                'patient_name': request.data.get('patient_name', '').strip(),
+                'patient_name': (request.data.get('patient_name') or '').strip(),
                 'patient_id': patient_id,  # Include patient ID for existing patient lookup
-                'appointment_type': request.data.get('appointment_type', '').strip(),
+                'appointment_type': (request.data.get('appointment_type') or '').strip(),
                 'date': request.data.get('date', ''),
                 'time': request.data.get('time', ''),
                 'doctor_id': request.data.get('doctor_id'),
@@ -74,8 +75,8 @@ class AppointmentCreateView(APIView):
             else:
                 # For new patients, use provided data
                 data.update({
-                    'patient_email': request.data.get('patient_email', '').strip(),
-                    'patient_phone': request.data.get('patient_phone', '').strip(),
+                    'patient_email': (request.data.get('patient_email') or '').strip(),
+                    'patient_phone': (request.data.get('patient_phone') or '').strip(),
                     'date_of_birth': request.data.get('date_of_birth'),
                     'gender': request.data.get('gender'),
                     'address': request.data.get('address'),
@@ -458,7 +459,8 @@ class AppointmentUpdateStatusView(APIView):
                             date_of_birth=appointment.date_of_birth,
                             gender=appointment.gender,
                             address=appointment.address,
-                            marital_status=appointment.marital_status
+                            marital_status=appointment.marital_status,
+                            religion=appointment.religion
                         )
                         
                         # Link the patient to the appointment

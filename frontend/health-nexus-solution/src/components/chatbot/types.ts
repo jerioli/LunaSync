@@ -1,10 +1,12 @@
 export type FormField = {
   name: string;
   label: string;
-  type: 'text' | 'email' | 'tel' | 'date' | 'select';
+  type: 'text' | 'email' | 'tel' | 'date' | 'select' | 'number';
   required?: boolean;
   placeholder?: string;
   options?: { value: string; label: string }[];
+  readonly?: boolean;
+  hasNoMiddleNameOption?: boolean;
   validation?: {
     pattern?: string;
     message?: string;
@@ -31,6 +33,7 @@ export type MessageType = {
   fileUploadAccept?: string;
   messageKey?: string; // To identify which set of options this message contains
   formFields?: FormField[];
+  showCancelOption?: boolean; // For form cancel functionality
   isTyping?: boolean; // For typing animation
 };
 
@@ -56,8 +59,10 @@ export interface AppointmentForm {
   notes: string;
   dateOfBirth: string;
   gender: string;
+  religion?: string;
   address: string;
   maritalStatus: string;
+  confirmationMethod?: 'sms' | 'email';
   termsAgreed?: boolean;
   patient_id?: string; // For returning patients
 }

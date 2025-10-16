@@ -3,6 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { Appointment } from '@/lib/mock-data';
 import { api, axiosInstance, Doctor, Patient } from '@/services/api';
+import { calculateAge } from '@/utils/medicalCertificateTemplate';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
@@ -153,6 +154,7 @@ export const useChatbotLogic = () => {
     notes: '',
     dateOfBirth: '',
     gender: '',
+    religion: '',
     address: '',
     maritalStatus: '',
     termsAgreed: false,
@@ -360,7 +362,8 @@ export const useChatbotLogic = () => {
     selectedDate?: Date,
     selectedTime?: string,
     dateTimePicker?: boolean,
-    getTimeSlotsForDate?: (date: Date) => Promise<string[]>
+    getTimeSlotsForDate?: (date: Date) => Promise<string[]>,
+    showCancelOption?: boolean
   ) => {
     const messageId = uuidv4();
     // Create messageKey for options or timeSelector (for disabling functionality)
@@ -384,7 +387,8 @@ export const useChatbotLogic = () => {
       fileUploadLabel,
       fileUploadAccept,
       type: messageType,
-      formFields
+      formFields,
+      showCancelOption
     }]);
   };
 
@@ -405,7 +409,8 @@ export const useChatbotLogic = () => {
     selectedTime?: string,
     typingDuration: number = 1000,
     dateTimePicker?: boolean,
-    getTimeSlotsForDate?: (date: Date) => Promise<string[]>
+    getTimeSlotsForDate?: (date: Date) => Promise<string[]>,
+    showCancelOption?: boolean
   ) => {
     // Show typing indicator
     setIsTyping(true);
@@ -448,7 +453,8 @@ export const useChatbotLogic = () => {
           fileUploadLabel,
           fileUploadAccept,
           type: messageType,
-          formFields
+          formFields,
+          showCancelOption
         }];
       });
     }, typingDuration);
@@ -1100,6 +1106,20 @@ export const useChatbotLogic = () => {
       } else if (chatStep === 15) {
         // Confirmation is handled in handleOptionSelect
         return;
+      } else if (chatStep === 'additional-notes') {
+        // Handle additional notes input
+        addMessage('user', input || 'No additional notes');
+        setAppointmentForm(prev => ({ ...prev, notes: input }));
+        setInput('');
+        
+        setTimeout(() => {
+          addBotMessage('How would you like to receive the confirmation of your booking?', [
+            { label: '📱 Text Message', value: 'confirmation-sms' },
+            { label: '📧 Email', value: 'confirmation-email' }
+          ]);
+          setChatStep('confirmation-method');
+          setIsInputDisabled(true);
+        }, 500);
       }
     } else if (chatMode === 'medicalRecord') {
       await handleMedicalRecordFlow();
@@ -1869,20 +1889,12 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       // Handle first visit selection
       addMessage('user', 'This is my first visit');
       setTimeout(() => {
-        addBotMessage('Welcome to our clinic! 🌟 We are so excited to meet you. Before we proceed, I need to let you know that I will be collecting some personal information to process your appointment request.');
-        
-        setTimeout(() => {
-          addBotMessage('This includes your full name, email, phone number, and appointment details. Your information will be kept secure and used only for healthcare purposes. 🔒');
-          
-          setTimeout(() => {
-            addBotMessage('Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
-              { label: '✓ I agree to Terms & Conditions and Privacy Policy', value: 'agree-terms' },
-              { label: '✗ I do not agree', value: 'decline-terms' }
-            ]);
-            setChatStep(6.5); // Direct to terms for new patients
-            setIsInputDisabled(true);
-          }, 1000);
-        }, 1000);
+        addBotMessage('Welcome! Before we proceed, I need to inform you that we will be collecting some personal information to process your appointment request. Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
+          { label: '✓ I agree', value: 'agree-terms' },
+          { label: '✗ I do not agree', value: 'decline-terms' }
+        ]);
+        setChatStep(6.5); // Direct to terms for new patients
+        setIsInputDisabled(true);
       }, 500);
     } else if (value === 'retry-appointment') {
       // Handle retry appointment after error
@@ -1901,6 +1913,44 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           { label: 'Cancel', value: 'cancel-appointment' }
         ]);
         setChatStep(20);
+      }, 500);
+    } else if (value === 'back-to-main') {
+      addMessage('user', 'Back to Main Menu');
+      setChatMode(null);
+      resetForms();
+      setTimeout(() => {
+        addBotMessage("Nice to meet you! 🌟 I'm here to help you with your healthcare needs. What would you like to do today?", [
+          { label: '📅 Book an Appointment', value: 'appointment' },
+          { label: '📋 Get Medical Certificate', value: 'medicalRecord' },
+          { label: '💊 Request Prescription Refill', value: 'prescription' },
+          { label: '❓ Ask Questions (FAQ)', value: 'faq' },
+        ]);
+        setChatStep(1);
+        setIsInputDisabled(true);
+      }, 500);
+    } else if (value === 'try-booking-again') {
+      addMessage('user', 'Try Booking Again');
+      setTimeout(() => {
+        addBotMessage('Perfect! I would be happy to help you schedule an appointment. 📅 To make this easier for you, how would you prefer to start?', [
+          { label: '👨‍⚕️ I want to choose my doctor first', value: 'doctor-first' },
+          { label: '📅 I have a specific date in mind', value: 'date-first' }
+        ]);
+        setChatStep(2);
+        setIsInputDisabled(true);
+      }, 500);
+    } else if (value === 'confirmation-sms') {
+      addMessage('user', 'Text Message');
+      setAppointmentForm(prev => ({ ...prev, confirmationMethod: 'sms' }));
+      
+      setTimeout(() => {
+        showAppointmentSummary();
+      }, 500);
+    } else if (value === 'confirmation-email') {
+      addMessage('user', 'Email');
+      setAppointmentForm(prev => ({ ...prev, confirmationMethod: 'email' }));
+      
+      setTimeout(() => {
+        showAppointmentSummary();
       }, 500);
     } else if (chatMode === 'appointment') {
       if (chatStep === 11) {
@@ -2718,104 +2768,114 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         addMessage('user', 'I agree to the Terms & Conditions and Privacy Policy');
         
         setTimeout(() => {
-         addBotMessage('Great! Now I need some information about you.');
-          
-          setTimeout(() => {
-            addBotMessage('Please fill out the form below with your personal information:', undefined, undefined, undefined, undefined, undefined, undefined, undefined, 'form', [
-              {
-                name: 'firstName',
-                label: 'First Name',
-                type: 'text',
-                required: true,
-                placeholder: 'Enter your first name'
-              },
-              {
-                name: 'middleInitial',
-                label: 'Middle Initial',
-                type: 'text',
-                required: false,
-                placeholder: 'M (optional)'
-              },
-              {
-                name: 'lastName',
-                label: 'Last Name',
-                type: 'text',
-                required: true,
-                placeholder: 'Enter your last name'
-              },
-              {
-                name: 'suffix',
-                label: 'Suffix',
-                type: 'text',
-                required: false,
-                placeholder: 'Jr., Sr., III, etc. (optional)'
-              },
-              {
-                name: 'email',
-                label: 'Email Address',
-                type: 'email',
-                required: true,
-                placeholder: 'your.email@example.com'
-              },
-              {
-                name: 'phone',
-                label: 'Phone Number',
-                type: 'tel',
-                required: true,
-                placeholder: '09123456789'
-              },
-              {
-                name: 'dateOfBirth',
-                label: 'Date of Birth',
-                type: 'date',
-                required: true
-              },
-              {
-                name: 'gender',
-                label: 'Gender',
-                type: 'select',
-                required: true,
-                options: [
-                  { value: 'Male', label: 'Male' },
-                  { value: 'Female', label: 'Female' },
-                 
-                ]
-              },
-              {
-                name: 'address',
-                label: 'Address',
-                type: 'text',
-                required: false,
-                placeholder: 'Your complete address (optional)'
-              },
-              {
-                name: 'maritalStatus',
-                label: 'Marital Status',
-                type: 'select',
-                required: false,
-                options: [
-                  { value: 'Single', label: 'Single' },
-                  { value: 'Married', label: 'Married' },
-                  { value: 'Divorced', label: 'Divorced' },
-                  { value: 'Widowed', label: 'Widowed' },
-                  { value: 'Prefer not to say', label: 'Prefer not to say' }
-                ]
-              }
-            ]);
-            setIsInputDisabled(true); // Disable chat input while form is shown
-          }, 500);
+          addBotMessage('Please fill out the registration form so we can finish booking your appointment:', undefined, undefined, undefined, undefined, undefined, undefined, undefined, 'form', [
+            {
+              name: 'firstName',
+              label: 'First Name',
+              type: 'text',
+              required: true,
+              placeholder: 'Enter your first name'
+            },
+            {
+              name: 'middleName',
+              label: 'Middle Name',
+              type: 'text',
+              required: false,
+              placeholder: 'Enter your middle name',
+              hasNoMiddleNameOption: true
+            },
+            {
+              name: 'lastName',
+              label: 'Last Name',
+              type: 'text',
+              required: true,
+              placeholder: 'Enter your last name'
+            },
+            {
+              name: 'suffix',
+              label: 'Suffix',
+              type: 'text',
+              required: false,
+              placeholder: 'Jr., Sr., III, etc. (optional)'
+            },
+            {
+              name: 'email',
+              label: 'Email Address',
+              type: 'email',
+              required: true,
+              placeholder: 'your.email@example.com'
+            },
+            {
+              name: 'phone',
+              label: 'Phone Number',
+              type: 'tel',
+              required: true,
+              placeholder: '09123456789'
+            },
+            {
+              name: 'dateOfBirth',
+              label: 'Date of Birth',
+              type: 'date',
+              required: true
+            },
+            {
+              name: 'sex',
+              label: 'Sex',
+              type: 'select',
+              required: true,
+              options: [
+                { value: 'Male', label: 'Male' },
+                { value: 'Female', label: 'Female' }
+              ]
+            },
+            {
+              name: 'religion',
+              label: 'Religion',
+              type: 'text',
+              required: false,
+              placeholder: 'Enter your religion (optional)'
+            },
+            {
+              name: 'address',
+              label: 'Home Address',
+              type: 'text',
+              required: true,
+              placeholder: 'Enter your complete home address'
+            },
+            {
+              name: 'maritalStatus',
+              label: 'Marital Status',
+              type: 'select',
+              required: false,
+              options: [
+                { value: 'Single', label: 'Single' },
+                { value: 'Married', label: 'Married' },
+                { value: 'Divorced', label: 'Divorced' },
+                { value: 'Widowed', label: 'Widowed' },
+                { value: 'Prefer not to say', label: 'Prefer not to say' }
+              ]
+            }
+          ],
+          undefined, // availableDates
+          undefined, // selectedDate
+          undefined, // selectedTime
+          500, // typingDuration
+          undefined, // dateTimePicker
+          undefined, // getTimeSlotsForDate
+          true // showCancelOption
+          );
+          setIsInputDisabled(true); // Disable chat input while form is shown
         }, 500);
       } else if (value === 'decline-terms') {
         setIsInputDisabled(false); // Re-enable input after declining terms
-        addMessage('user', 'I do not agree to the terms');
+        addMessage('user', 'I do not agree');
         
         setTimeout(() => {
-         addBotMessage( 'I understand. Unfortunately, I cannot proceed with booking an appointment without your consent to our Terms & Conditions and Privacy Policy.');
-          
-          setTimeout(() => {
-           addBotMessage( 'If you change your mind, please feel free to start a new conversation. Is there anything else I can help you with today?');
-            setChatStep(1); // Reset to main menu
-          }, 1000);
+          addBotMessage('No problem — you can return to the main menu or start over any time. Would you like to go back?', [
+            { label: '🏠 Back to Main Menu', value: 'back-to-main' },
+            { label: '🔄 Try Booking Again', value: 'try-booking-again' }
+          ]);
+          setIsInputDisabled(true);
         }, 500);
       }
     } else if (chatStep === 7) {
@@ -2989,6 +3049,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
             dateOfBirth: existingPatient.date_of_birth || '',
             gender: existingPatient.gender || '',
             address: existingPatient.address || '',
+            religion: existingPatient.religion || '',
             maritalStatus: existingPatient.marital_status || ''
           }
         : Object.keys(tempFormData).length > 0 ? tempFormData : appointmentForm;
@@ -3059,6 +3120,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         })(),
         gender: (formDataToUse.gender || appointmentForm.gender) === 'Prefer not to say' ? 'prefer_not_to_say' : ((formDataToUse.gender || appointmentForm.gender) ? (formDataToUse.gender || appointmentForm.gender).toLowerCase() : null),
         address: formDataToUse.address || appointmentForm.address || null,
+        religion: formDataToUse.religion || appointmentForm.religion || null,
         marital_status: (formDataToUse.maritalStatus || appointmentForm.maritalStatus) === 'Prefer not to say' ? 'prefer_not_to_say' : ((formDataToUse.maritalStatus || appointmentForm.maritalStatus) ? (formDataToUse.maritalStatus || appointmentForm.maritalStatus).toLowerCase() : null),
         appointment_type: appointmentForm.type,
         date: formattedDate,
@@ -3662,6 +3724,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       notes: '',
       dateOfBirth: '',
       gender: '',
+      religion: '',
       address: '',
       maritalStatus: '',
       termsAgreed: false,
@@ -4465,50 +4528,80 @@ Would you like to use this information or update it?`, [
       setAppointmentForm(prev => ({
         ...prev,
         firstName: formData.firstName || '',
-        middleInitial: formData.middleInitial || '',
+        middleInitial: formData.middleName || '', // Map middleName to middleInitial
         lastName: formData.lastName || '',
         suffix: formData.suffix || '',
         email: formData.email || '',
         phone: formData.phone || '',
         dateOfBirth: formData.dateOfBirth || '',
-        gender: formData.gender || '',
+        gender: formData.sex || '', // Map sex to gender
         address: formData.address || '',
-        maritalStatus: formData.maritalStatus || ''
+        maritalStatus: formData.maritalStatus || '',
+        religion: formData.religion || '',
+        age: formData.dateOfBirth ? calculateAge(formData.dateOfBirth) : ''
       }));
 
       // Add user message showing the submitted information
       addMessage('user', 'I have submitted my personal information');
 
-      // Continue with the next step
+      // Continue with additional notes step
       setTimeout(() => {
-       addMessage('bot',  'Thank you for providing your information! Let me summarize your appointment details:');
-        
-        setTimeout(() => {
-          const appointmentDetails = `
-📅 Date: ${appointmentForm.date?.toLocaleDateString()}
-⏰ Time: ${appointmentForm.time}
-👨‍⚕️ Doctor: ${doctors.find(d => d.id.toString() === appointmentForm.doctorId)?.first_name} ${doctors.find(d => d.id.toString() === appointmentForm.doctorId)?.last_name}
-📋 Type: ${appointmentForm.type}
-👤 Patient: ${constructFullName({ firstName: formData.firstName, middleInitial: formData.middleInitial, lastName: formData.lastName, suffix: formData.suffix } as AppointmentForm)}
-📧 Email: ${formData.email}
-📞 Phone: ${formData.phone}
-🎂 Date of Birth: ${formData.dateOfBirth}
-⚧ Gender: ${formData.gender}
-          `.trim();
-
-         addBotMessage( appointmentDetails);
-
-          setTimeout(() => {
-            addMessage('bot', 'Would you like to confirm this appointment?', [
-              { label: '✅ Yes, confirm appointment', value: 'confirm-appointment' },
-              { label: '❌ No, make changes', value: 'cancel-appointment' }
-            ]);
-            setChatStep(20); // Move to confirmation step
-            setIsInputDisabled(true); // Disable input when showing confirmation options
-          }, 1000);
-        }, 500);
+        addBotMessage('Is there any additional notes or special requests for your appointment?');
+        setChatStep('additional-notes');
+        setIsInputDisabled(false);
       }, 500);
     }
+  };
+
+  const handleFormCancel = () => {
+    addMessage('user', 'Cancel form');
+    setTimeout(() => {
+      addBotMessage('No problem — you can return to the main menu or start over any time. Would you like to go back?', [
+        { label: '🏠 Back to Main Menu', value: 'back-to-main' },
+        { label: '🔄 Try Booking Again', value: 'try-booking-again' }
+      ]);
+      setIsInputDisabled(true);
+    }, 500);
+  };
+
+  const showAppointmentSummary = () => {
+    addBotMessage('Thank you! Here is a summary of your appointment booking:');
+    
+    setTimeout(() => {
+      const selectedDoctor = doctors.find(d => d.id.toString() === appointmentForm.doctorId);
+      const doctorName = selectedDoctor 
+        ? `Dr. ${selectedDoctor.first_name} ${selectedDoctor.last_name}`
+        : 'Selected Doctor';
+      
+      const appointmentDetails = `
+📅 Date: ${appointmentForm.date?.toLocaleDateString()}
+⏰ Time: ${appointmentForm.time}
+👨‍⚕️ Doctor: ${doctorName}
+📋 Type: ${appointmentForm.type}
+👤 Patient: ${constructFullName(appointmentForm)}
+📧 Email: ${appointmentForm.email}
+📞 Phone: ${appointmentForm.phone}
+🎂 Date of Birth: ${appointmentForm.dateOfBirth}
+🎂 Age: ${appointmentForm.dateOfBirth ? calculateAge(appointmentForm.dateOfBirth) : 'Not provided'}
+⚧ Sex: ${appointmentForm.gender}
+🙏 Religion: ${appointmentForm.religion || 'Not specified'}
+🏠 Address: ${appointmentForm.address}
+💒 Marital Status: ${appointmentForm.maritalStatus || 'Not specified'}
+📝 Notes: ${appointmentForm.notes || 'None'}
+📬 Confirmation: ${appointmentForm.confirmationMethod === 'sms' ? 'Text Message' : 'Email'}
+      `.trim();
+
+      addBotMessage(appointmentDetails);
+
+      setTimeout(() => {
+        addBotMessage('Would you like to confirm this appointment?', [
+          { label: '✅ Yes, confirm appointment', value: 'confirm-appointment' },
+          { label: '❌ No, make changes', value: 'cancel-appointment' }
+        ]);
+        setChatStep(20); // Move to confirmation step
+        setIsInputDisabled(true);
+      }, 1000);
+    }, 500);
   };
 
   return {
@@ -4523,6 +4616,7 @@ Would you like to use this information or update it?`, [
     handleDateTimeSelect,
     handleFileUpload,
     handleFormSubmit,
+    handleFormCancel,
     startChat,
     isLoadingDoctors,
     isLoadingProfanityWords,

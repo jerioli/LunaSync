@@ -14,16 +14,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useClinic } from "@/contexts/ClinicContext";
 import { Patient } from "@/lib/mock-data";
+import { axiosInstance } from "@/services/api";
+import { HTMLToPDFConverter } from "@/utils/htmlToPdf";
 import {
   generateMedicalCertificateHTML,
   MedicalCertificateTemplateData,
 } from "@/utils/medicalCertificateTemplate";
-import { HTMLToPDFConverter } from "@/utils/htmlToPdf";
-import { axiosInstance } from "@/services/api";
+import { formatPatientNameWithFullMiddle } from "@/utils/patientNameUtils";
 import { format } from "date-fns";
 import {
   Download,
@@ -31,9 +31,8 @@ import {
   FileCheck,
   FileText,
   Mail,
-  Printer,
   Save,
-  Trash2,
+  Trash2
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
@@ -117,6 +116,11 @@ const MedicalCertificateGenerator: React.FC<
     typeof onDeleteCertificate
   );
   const { currentUser } = useClinic();
+  
+  // Helper function to get patient's full name for medical certificates
+  const getPatientFullName = () => {
+    return formatPatientNameWithFullMiddle(patient);
+  };
   const [showForm, setShowForm] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -145,7 +149,7 @@ const MedicalCertificateGenerator: React.FC<
       doctorLicense: "",
       doctorPRC: "",
       doctorPTR: "",
-      patientName: patient.name,
+      patientName: getPatientFullName(),
       patientAge: patient.date_of_birth
         ? String(
             new Date().getFullYear() -
@@ -328,11 +332,11 @@ const MedicalCertificateGenerator: React.FC<
 
       const apiData = {
         patient: patient.id,
-        title: `Medical Certificate - ${patient.name}`,
+        title: `Medical Certificate - ${getPatientFullName()}`,
         description: `${certificateType
           .replace("_", " ")
           .replace(/\b\w/g, (l) => l.toUpperCase())} certificate for ${
-          patient.name
+          getPatientFullName()
         }`,
         certificate_type: certificateType,
         purpose:
@@ -378,7 +382,7 @@ Fitness Status: ${certificateData.fitForWork}
 
       const { toast } = await import("sonner");
       toast.success("Medical certificate saved successfully!", {
-        description: `Certificate saved to database and available for ${patient.name}`,
+        description: `Certificate saved to database and available for ${getPatientFullName()}`,
       });
     } catch (error) {
       console.error("Error saving certificate to database:", error);
@@ -425,11 +429,11 @@ Fitness Status: ${certificateData.fitForWork}
 
       const apiData = {
         patient: patient.id,
-        title: `Medical Certificate - ${patient.name}`,
+        title: `Medical Certificate - ${getPatientFullName()}`,
         description: `${certificateType
           .replace("_", " ")
           .replace(/\b\w/g, (l) => l.toUpperCase())} certificate for ${
-          patient.name
+          getPatientFullName()
         }`,
         certificate_type: certificateType,
         purpose:
@@ -474,7 +478,7 @@ Fitness Status: ${certificateData.fitForWork}
       // Send email with the certificate
       const emailData = {
         patient_email: patient.email,
-        patient_name: patient.name,
+        patient_name: getPatientFullName(),
         certificate_html: generateCertificateHTML(),
         certificate_type:
           certificateData.fitForWork === "unfit"
@@ -493,7 +497,7 @@ Fitness Status: ${certificateData.fitForWork}
             ? "Fitness Certificate (Limited)"
             : "Fitness Certificate"
         }`,
-        email_body: `Dear ${patient.name},
+        email_body: `Dear ${getPatientFullName()},
 
 Please find attached your medical certificate as requested.
 
@@ -660,7 +664,7 @@ ${certificateData.hospitalName}`,
             </DialogTitle>
             <p className="text-sm text-muted-foreground">
               Fill out the details to generate a medical certificate for{" "}
-              {patient.name}
+              {getPatientFullName()}
             </p>
           </DialogHeader>
           {loading && (
@@ -677,7 +681,7 @@ ${certificateData.hospitalName}`,
                 Medical Certificate Information
               </h3>
               <p className="text-sm text-muted-foreground">
-                Fill out the required medical information for {patient.name}.
+                Fill out the required medical information for {getPatientFullName()}.
                 Hospital, doctor, and patient information will be
                 auto-populated.
               </p>

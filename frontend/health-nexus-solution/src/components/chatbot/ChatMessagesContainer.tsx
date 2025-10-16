@@ -11,6 +11,7 @@ interface ChatMessagesContainerProps {
   onDateTimeSelect?: (date: Date, time: string) => void;
   onFileUpload?: (file: File) => void;
   onFormSubmit?: (formData: Record<string, string>) => void;
+  onFormCancel?: () => void;
 }
 
 export const ChatMessagesContainer = ({
@@ -20,7 +21,8 @@ export const ChatMessagesContainer = ({
   onDateSelect,
   onDateTimeSelect,
   onFileUpload,
-  onFormSubmit
+  onFormSubmit,
+  onFormCancel
 }: ChatMessagesContainerProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -44,6 +46,8 @@ export const ChatMessagesContainer = ({
             <ChatForm 
               fields={message.formFields}
               onSubmit={onFormSubmit}
+              onCancel={message.showCancelOption ? onFormCancel : undefined}
+              showCancelButton={message.showCancelOption}
             />
           )}
         </div>

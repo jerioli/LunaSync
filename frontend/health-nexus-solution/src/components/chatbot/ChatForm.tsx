@@ -2,25 +2,38 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { FormField } from './types';
 
 interface ChatFormProps {
   fields: FormField[];
   onSubmit: (formData: Record<string, string>) => void;
+  onCancel?: () => void;
+  showCancelButton?: boolean;
 }
 
-export const ChatForm = ({ fields, onSubmit }: ChatFormProps) => {
+export const ChatForm = ({ fields, onSubmit, onCancel, showCancelButton }: ChatFormProps) => {
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleInputChange = (name: string, value: string) => {
+  const handleInputChange = useCallback((name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
-  };
+  }, [errors]);
+
+  // Memoize select options for better performance
+  const memoizedSelectOptions = useMemo(() => {
+    const selectFieldsOptions: Record<string, { value: string; label: string }[]> = {};
+    fields.forEach(field => {
+      if (field.type === 'select' && field.options) {
+        selectFieldsOptions[field.name] = field.options;
+      }
+    });
+    return selectFieldsOptions;
+  }, [fields]);
 
   const validateField = (field: FormField, value: string): string | null => {
     if (field.required && !value.trim()) {
@@ -81,11 +94,14 @@ export const ChatForm = ({ fields, onSubmit }: ChatFormProps) => {
     onSubmit(formData);
   };
 
-  const renderField = (field: FormField) => {
+  const renderField = useCallback((field: FormField) => {
     const value = formData[field.name] || '';
     const error = errors[field.name];
 
     if (field.type === 'select' && field.options) {
+      // Use memoized options for better performance
+      const options = memoizedSelectOptions[field.name] || field.options;
+      
       return (
         <div key={field.name} className="space-y-1">
           <Label htmlFor={field.name} className="text-sm font-medium">
@@ -96,7 +112,7 @@ export const ChatForm = ({ fields, onSubmit }: ChatFormProps) => {
               <SelectValue placeholder={field.placeholder || `Select ${field.label.toLowerCase()}`} />
             </SelectTrigger>
             <SelectContent>
-              {field.options.map(option => (
+              {options.map(option => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
@@ -124,18 +140,30 @@ export const ChatForm = ({ fields, onSubmit }: ChatFormProps) => {
         {error && <p className="text-xs text-red-500">{error}</p>}
       </div>
     );
-  };
+  }, [formData, errors, memoizedSelectOptions, handleInputChange]);
 
   return (
     <div className="bg-gray-50 p-4 rounded-lg border my-2">
       <form onSubmit={handleSubmit} className="space-y-4">
         {fields.map(renderField)}
-        <Button 
-          type="submit" 
-          className="w-full bg-[#79c942] hover:bg-[#6bb33a] text-white"
-        >
-          Submit Information
-        </Button>
+        <div className={`flex gap-2 ${showCancelButton ? 'flex-row' : ''}`}>
+          <Button 
+            type="submit" 
+            className={`bg-[#79c942] hover:bg-[#6bb33a] text-white ${showCancelButton ? 'flex-1' : 'w-full'}`}
+          >
+            Submit Information
+          </Button>
+          {showCancelButton && onCancel && (
+            <Button 
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+          )}
+        </div>
       </form>
     </div>
   );

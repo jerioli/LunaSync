@@ -49,6 +49,7 @@ class Appointment(models.Model):
     gender = EncryptedCharField(max_length=100, blank=True, null=True)
     address = EncryptedTextField(blank=True, null=True)
     marital_status = EncryptedCharField(max_length=100, blank=True, null=True)
+    religion = EncryptedCharField(max_length=100, blank=True, null=True)
 
     class Meta:
         db_table = 'appointments'

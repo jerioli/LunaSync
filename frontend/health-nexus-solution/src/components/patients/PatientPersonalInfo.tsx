@@ -58,7 +58,7 @@ const PatientPersonalInfo: React.FC<PatientPersonalInfoProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="middleInitial">Middle Initial</Label>
+            <Label htmlFor="middleInitial">Middle Name</Label>
             {isEditing ? (
               <Input 
                 id="middleInitial" 

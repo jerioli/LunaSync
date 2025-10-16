@@ -21,6 +21,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useClinic } from "@/hooks/useClinicContext";
 import { axiosInstance } from "@/services/api";
+import { getPatientNameFromAppointment } from "@/utils/patientNameUtils";
 import { Calendar, CalendarCheck, Clock, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -511,92 +512,7 @@ const Appointments = () => {
   }, [activeTab, appointments]);
 
   const getPatientName = (patientId, appointment) => {
-    // Debug logging
-    console.log("getPatientName called with:", {
-      patientId,
-      appointmentId: appointment?.id,
-      patient_name: appointment?.patient_name,
-      display_patient_name: appointment?.display_patient_name,
-      status: appointment?.status,
-      notes: appointment?.notes,
-    });
-
-    // First check for patient_name field (from API response)
-    if (
-      appointment?.patient_name &&
-      appointment.patient_name !== "N/A" &&
-      appointment.patient_name.trim() !== ""
-    ) {
-      console.log("Using patient_name:", appointment.patient_name);
-      return appointment.patient_name;
-    }
-
-    // For confirmed appointments, use display_patient_name if available
-    if (
-      appointment?.display_patient_name &&
-      appointment.display_patient_name !== "N/A" &&
-      appointment.display_patient_name.trim() !== ""
-    ) {
-      console.log(
-        "Using display_patient_name:",
-        appointment.display_patient_name
-      );
-      return appointment.display_patient_name;
-    }
-
-    // For pending appointments, try to get name from notes
-    if (appointment?.notes && appointment.status === "pending") {
-      const notes = appointment.notes;
-      if (notes.includes("Patient Details (Pending):")) {
-        try {
-          const patientDetails = JSON.parse(
-            notes.split("Patient Details (Pending):")[1].trim()
-          );
-          console.log("Parsed patient details from notes:", patientDetails);
-
-          // Try to construct name from individual fields in the JSON
-          const nameFromFields = [
-            patientDetails.firstName,
-            patientDetails.middleInitial,
-            patientDetails.lastName,
-            patientDetails.suffix,
-          ]
-            .filter((part) => part && part.trim())
-            .join(" ");
-
-          if (nameFromFields.trim()) {
-            console.log("Using name from individual fields:", nameFromFields);
-            return nameFromFields;
-          }
-
-          // Fallback to the name field
-          if (patientDetails.name && patientDetails.name.trim()) {
-            console.log(
-              "Using name from JSON name field:",
-              patientDetails.name
-            );
-            return patientDetails.name;
-          }
-        } catch (error) {
-          console.error("Error parsing patient details:", error);
-        }
-      }
-    }
-
-    // Fallback to patient lookup by ID
-    if (patientId) {
-      const patient = localPatients.find(
-        (p) => String(p.id) === String(patientId)
-      );
-      if (patient && patient.name) return patient.name;
-    }
-
-    // If patientId is an object with name, use it
-    if (typeof patientId === "object" && patientId !== null && patientId.name) {
-      return patientId.name;
-    }
-
-    return "Unknown Patient";
+    return getPatientNameFromAppointment(patientId, appointment);
   };
 
   const getDoctorName = (doctorId: string, appointment?: any) => {

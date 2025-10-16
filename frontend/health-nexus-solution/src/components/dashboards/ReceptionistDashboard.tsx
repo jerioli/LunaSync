@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useClinic } from '@/contexts/ClinicContext';
 import { axiosInstance } from '@/services/api';
+import { getPatientNameFromAppointment } from '@/utils/patientNameUtils';
 import { Calendar, CalendarDays, Clock, List, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -37,59 +38,7 @@ const ReceptionistDashboard = () => {
 
   // Helper function to get patient name from appointment data
   const getPatientName = (patientId, appointment) => {
-    // First check for patient_name field (from API response)
-    if (appointment?.patient_name && appointment.patient_name !== 'N/A' && appointment.patient_name.trim() !== '') {
-      return appointment.patient_name;
-    }
-
-    // For confirmed appointments, use display_patient_name if available
-    if (appointment?.display_patient_name && appointment.display_patient_name !== 'N/A' && appointment.display_patient_name.trim() !== '') {
-      return appointment.display_patient_name;
-    }
-
-    // For pending appointments, try to get name from notes
-    if (appointment?.notes && appointment.status === 'pending') {
-      const notes = appointment.notes;
-      if (notes.includes('Patient Details (Pending):')) {
-        try {
-          const patientDetails = JSON.parse(notes.split('Patient Details (Pending):')[1].trim());
-          
-          // Try to construct name from individual fields in the JSON
-          const nameFromFields = [
-            patientDetails.firstName,
-            patientDetails.middleInitial, 
-            patientDetails.lastName,
-            patientDetails.suffix
-          ].filter(part => part && part.trim()).join(' ');
-          
-          if (nameFromFields.trim()) {
-            return nameFromFields;
-          }
-          
-          // Fallback to the name field
-          if (patientDetails.name && patientDetails.name.trim()) {
-            return patientDetails.name;
-          }
-        } catch (error) {
-          console.error('Error parsing patient details:', error);
-        }
-      }
-    }
-
-    // Fallback to patient lookup by ID
-    if (patientId) {
-      const patient = localPatients.find(p => String(p.id) === String(patientId)) || 
-                     patients.find(p => String(p.id) === String(patientId)) ||
-                     patientDetails[patientId];
-      if (patient && patient.name) return patient.name;
-    }
-    
-    // If patientId is an object with name, use it
-    if (typeof patientId === 'object' && patientId !== null && patientId.name) {
-      return patientId.name;
-    }
-    
-    return "Unknown Patient";
+    return getPatientNameFromAppointment(patientId, appointment);
   };
 
   // Fetch appointments from backend
