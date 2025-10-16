@@ -19,7 +19,13 @@ class MedicalCertificateRequest(models.Model):
         ('rejected', 'Rejected'),
     ]
     
+    DELIVERY_METHODS = [
+        ('pickup', 'Pickup from Clinic'),
+        ('email', 'Send via Email'),
+    ]
+    
     request_type = models.CharField(max_length=20, choices=REQUEST_TYPES)
+    delivery_method = models.CharField(max_length=10, choices=DELIVERY_METHODS, default='pickup')
     patient_name = EncryptedCharField(max_length=800)  # Encrypted patient name
     date_of_birth = EncryptedCharField(max_length=100)  # Encrypted DOB
     email = EncryptedCharField(max_length=600)  # Encrypted email

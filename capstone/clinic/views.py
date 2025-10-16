@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import ClinicSettings, FAQ, Review
-from .serializers import ClinicSettingsSerializer, ReviewSerializer
+from .serializers import ClinicSettingsSerializer, ReviewSerializer, FAQSerializer
 from django.core.mail import send_mail, EmailMessage
 from django.conf import settings
 
@@ -78,4 +78,15 @@ class ReviewCreateView(APIView):
             )
             email.send(fail_silently=True)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class FAQListView(APIView):
+    permission_classes = [AllowAny]  # Allow public access for reading FAQs
+    
+    def get(self, request):
+        """
+        GET: Retrieve all FAQs
+        """
+        faqs = FAQ.objects.all().order_by('id')  # Order by creation order
+        serializer = FAQSerializer(faqs, many=True)
+        return Response(serializer.data) 

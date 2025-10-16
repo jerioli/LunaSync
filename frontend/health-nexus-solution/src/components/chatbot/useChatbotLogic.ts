@@ -164,6 +164,7 @@ export const useChatbotLogic = () => {
   // Form state for medical record requests
   const [medicalRecordForm, setMedicalRecordForm] = useState<MedicalRecordRequestForm>({
     requestType: 'Medical Certificate', // Default to medical certificate
+    deliveryMethod: 'pickup', // Default to pickup
     patientId: '',
     firstName: '',
     middleInitial: '',
@@ -231,6 +232,36 @@ export const useChatbotLogic = () => {
   });
   const [lookupResult, setLookupResult] = useState<any>(null);
   const [isPatientLookup, setIsPatientLookup] = useState(false);
+
+  // State for FAQs fetched from database
+  const [databaseFaqs, setDatabaseFaqs] = useState<any[]>([]);
+  const [isLoadingFaqs, setIsLoadingFaqs] = useState(false);
+
+  // Function to fetch FAQs from database
+  const fetchFAQs = async () => {
+    if (isLoadingFaqs || databaseFaqs.length > 0) return; // Prevent multiple calls
+    
+    setIsLoadingFaqs(true);
+    try {
+      const response = await axiosInstance.get('/clinic/faqs/');
+      if (response.data && Array.isArray(response.data)) {
+        setDatabaseFaqs(response.data);
+      } else {
+        console.warn('FAQ response is not an array:', response.data);
+        setDatabaseFaqs([]);
+      }
+    } catch (error) {
+      console.error('Error fetching FAQs:', error);
+      setDatabaseFaqs([]);
+    } finally {
+      setIsLoadingFaqs(false);
+    }
+  };
+
+  // Fetch FAQs when component mounts
+  useEffect(() => {
+    fetchFAQs();
+  }, []);
 
   // Helper function to make responses more natural and varied
   const getRandomResponse = (responses: string[]): string => {
@@ -356,14 +387,15 @@ export const useChatbotLogic = () => {
     fileUpload?: boolean, 
     fileUploadLabel?: string, 
     fileUploadAccept?: string,
-    messageType?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form' | 'datetime-picker',
+    messageType?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form' | 'datetime-picker' | 'faq-accordion',
     formFields?: FormField[],
     availableDates?: Date[],
     selectedDate?: Date,
     selectedTime?: string,
     dateTimePicker?: boolean,
     getTimeSlotsForDate?: (date: Date) => Promise<string[]>,
-    showCancelOption?: boolean
+    showCancelOption?: boolean,
+    faqs?: any[]
   ) => {
     const messageId = uuidv4();
     // Create messageKey for options or timeSelector (for disabling functionality)
@@ -388,7 +420,8 @@ export const useChatbotLogic = () => {
       fileUploadAccept,
       type: messageType,
       formFields,
-      showCancelOption
+      showCancelOption,
+      faqs
     }]);
   };
 
@@ -402,7 +435,7 @@ export const useChatbotLogic = () => {
     fileUpload?: boolean, 
     fileUploadLabel?: string, 
     fileUploadAccept?: string,
-    messageType?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form' | 'datetime-picker',
+    messageType?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form' | 'datetime-picker' | 'faq-accordion',
     formFields?: FormField[],
     availableDates?: Date[],
     selectedDate?: Date,
@@ -410,7 +443,8 @@ export const useChatbotLogic = () => {
     typingDuration: number = 1000,
     dateTimePicker?: boolean,
     getTimeSlotsForDate?: (date: Date) => Promise<string[]>,
-    showCancelOption?: boolean
+    showCancelOption?: boolean,
+    faqs?: any[]
   ) => {
     // Show typing indicator
     setIsTyping(true);
@@ -454,7 +488,8 @@ export const useChatbotLogic = () => {
           fileUploadAccept,
           type: messageType,
           formFields,
-          showCancelOption
+          showCancelOption,
+          faqs
         }];
       });
     }, typingDuration);
@@ -668,31 +703,16 @@ export const useChatbotLogic = () => {
       return;
     }
     
-    // FAQ chat mode
+    // FAQ chat mode - now handled via accordion display, no text input needed
     if (chatMode === 'faq') {
-      // Check for profanity in FAQ questions
-      if (handleProfanityDetection(input)) {
-        setInput('');
-        return;
-      }
-      
+      // FAQ interactions are handled through the accordion component
+      // Just acknowledge any user input and redirect back to main menu
       addMessage('user', input);
-      const match = findBestFaq(input);
       setInput('');
       setTimeout(() => {
-        if (match) {
-          addBotMessage(match.answer);
-        } else {
-          addBotMessage(t('chatbot.couldntFindAnswer'));
-        }
-        // Show FAQ options again or allow return
-        setTimeout(() => {
-          addBotMessage(t('chatbot.askAnotherQuestion'), [
-            ...faqs.map((faq, i) => ({ label: faq.question, value: `faq_${i}` })),
-            { label: t('chatbot.mainMenu'), value: 'main' },
-          ]);
-          setChatStep(2);
-        }, 500);
+        addBotMessage('Please use the accordion above to browse through our frequently asked questions, or return to the main menu.', [
+          { label: 'Back to Main Menu', value: 'main' }
+        ]);
       }, 500);
       return;
     }
@@ -1210,8 +1230,11 @@ export const useChatbotLogic = () => {
             Email: ${patientData.email || 'Not provided'}
             Phone: ${patientData.phone || 'Not provided'}
             
-Now please upload the FRONT side of your valid government-issued ID for verification.`, [], false, false, [], true, 'Upload ID Front', 'image/*');
-          setChatStep(3);
+How would you like to receive your medical certificate?`, [
+            { label: 'Pickup from Clinic', value: 'pickup' },
+            { label: 'Send via Email', value: 'email' }
+          ]);
+          setChatStep('2.5');
         }, 1000);
         
       } catch (error) {
@@ -1222,6 +1245,9 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       }
       
       setInput('');
+    } else if (chatMode === 'medicalRecord' && chatStep === '2.5') {
+      // Delivery method is handled by handleOptionSelect, not text input
+      return;
     } else if (chatMode === 'medicalRecord' && chatStep === 3) {
       // Front ID upload is handled by handleFileUpload - this step waits for file upload
       return;
@@ -1241,6 +1267,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           const summary = `
             Request Type: Medical Certificate
             Patient ID: ${medicalRecordForm.patientId}
+            Delivery Method: ${medicalRecordForm.deliveryMethod === 'pickup' ? 'Pickup from Clinic' : 'Send via Email'}
             ID Verification: ${medicalRecordForm.idVerificationFront && medicalRecordForm.idVerificationBack ? 'Both sides uploaded' : 'Not complete'}
             Additional Info: ${medicalRecordForm.additionalInfo || 'None'}
           `;
@@ -1800,12 +1827,23 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       setChatMode('faq');
       addMessage('user', 'I have some questions');
       setTimeout(() => {
-        addBotMessage('I love answering questions! 💭 Here are some common ones I get asked, or feel free to type your own question:',
-          [
-            ...faqs.map((faq, i) => ({ label: faq.question, value: `faq_${i}` })),
-            { label: '⬅️ Back to Main Menu', value: 'main' },
-          ]
-        );
+        if (databaseFaqs.length > 0) {
+          addBotMessage('Here are our frequently asked questions. Click on any question to see the answer:', [], false, false, [], false, '', '', 'faq-accordion', [], [], undefined, undefined, 1000, false, undefined, false, databaseFaqs);
+        } else {
+          addBotMessage('I\'m loading our frequently asked questions for you...', [], false, false, [], false, '', '', 'text');
+          // Try fetching FAQs again if they weren't loaded
+          fetchFAQs().then(() => {
+            setTimeout(() => {
+              if (databaseFaqs.length > 0) {
+                addBotMessage('Here are our frequently asked questions. Click on any question to see the answer:', [], false, false, [], false, '', '', 'faq-accordion', [], [], undefined, undefined, 500, false, undefined, false, databaseFaqs);
+              } else {
+                addBotMessage('Sorry, I couldn\'t load the FAQ information right now. Please try again later or contact us directly for assistance.', [
+                  { label: 'Back to Main Menu', value: 'main' }
+                ]);
+              }
+            }, 1000);
+          });
+        }
         setChatStep(2);
       }, 500);
       return;
@@ -2288,6 +2326,16 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           ]);
           setChatStep(1);
           resetForms();
+        }, 500);
+      } else if (value === 'pickup' || value === 'email') {
+        // Handle delivery method selection
+        const deliveryText = value === 'pickup' ? 'Pickup from Clinic' : 'Send via Email';
+        addMessage('user', deliveryText);
+        setMedicalRecordForm(prev => ({ ...prev, deliveryMethod: value }));
+        
+        setTimeout(() => {
+          addBotMessage('Perfect! Now please upload the FRONT side of your valid government-issued ID for verification.', [], false, false, [], true, 'Upload ID Front', 'image/*');
+          setChatStep(3);
         }, 500);
       } else {
         handleMedicalRecordOptionSelect(value);
@@ -3198,6 +3246,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     
       const formData = new FormData();
       formData.append('request_type', medicalRecordForm.requestType);
+      formData.append('delivery_method', medicalRecordForm.deliveryMethod);
       formData.append('patient_id', medicalRecordForm.patientId);
       formData.append('additional_info', medicalRecordForm.additionalInfo);
       
@@ -3462,15 +3511,18 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       setInput('');
       
       setTimeout(() => {
-        addBotMessage( 'Please upload an image of your ID for verification (required):', undefined, undefined, undefined, undefined, true, "Upload ID", "image/*");
-        setChatStep(7);
+        addBotMessage('How would you like to receive your medical certificate?', [
+          { label: 'Pickup from Clinic', value: 'pickup' },
+          { label: 'Send via Email', value: 'email' }
+        ]);
+        setChatStep('6.5');
       }, 500);
+    } else if (chatStep === '6.5') {
+      // Delivery method selection handled by option select
+      return;
     } else if (chatStep === 7) {
       // ID verification upload handled by file upload component
-      setTimeout(() => {
-        addBotMessage( 'Any additional information about your request? (Optional)');
-        setChatStep(8);
-      }, 500);
+      return;
     } else if (chatStep === 8) {
       // Additional info
       addMessage('user', input || 'No additional information');
@@ -3481,12 +3533,14 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
        addBotMessage( 'Thank you! Here is a summary of your medical records request:');
         
         setTimeout(() => {
+          const deliveryText = medicalRecordForm.deliveryMethod === 'pickup' ? 'Pickup from Clinic' : 'Send via Email';
           const summary = `
             Record Type: ${medicalRecordForm.requestType}
             Patient Name: ${constructFullName(medicalRecordForm)}
             Date of Birth: ${medicalRecordForm.dateOfBirth}
             Email: ${medicalRecordForm.email}
             Phone: ${medicalRecordForm.phone}
+            Delivery Method: ${deliveryText}
             ID Verification: ${medicalRecordForm.idVerificationFront && medicalRecordForm.idVerificationBack ? 'Both sides uploaded' : 'Not complete'}
             Additional Info: ${medicalRecordForm.additionalInfo || 'None'}
           `;
@@ -3732,6 +3786,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     });
     setMedicalRecordForm({
       requestType: 'Medical Certificate',
+      deliveryMethod: 'pickup',
       patientId: '',
       firstName: '',
       middleInitial: '',

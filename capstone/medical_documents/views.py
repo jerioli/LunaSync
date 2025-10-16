@@ -768,6 +768,7 @@ def medical_certificates_endpoint(request):
             data.append({
                 'id': req.id,
                 'request_type': req.request_type,
+                'delivery_method': req.delivery_method,
                 'patient_name': req.patient_name,
                 'date_of_birth': req.date_of_birth,
                 'email': req.email,
@@ -793,6 +794,7 @@ def medical_certificates_endpoint(request):
             
             # Handle form data
             request_type = request.POST.get('request_type', 'Medical Certificate')
+            delivery_method = request.POST.get('delivery_method', 'pickup')
             patient_name = request.POST.get('patient_name')
             date_of_birth = request.POST.get('date_of_birth')
             email = request.POST.get('email')
@@ -802,6 +804,7 @@ def medical_certificates_endpoint(request):
             # Create new medical certificate request
             cert_request = MedicalCertificateRequest.objects.create(
                 request_type=request_type,
+                delivery_method=delivery_method,
                 patient_name=patient_name,
                 date_of_birth=date_of_birth,
                 email=email,

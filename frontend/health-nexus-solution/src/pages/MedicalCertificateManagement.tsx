@@ -1,3 +1,5 @@
+
+import MedicalCertificateGenerator from "@/components/patients/MedicalCertificateGenerator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,11 +29,11 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useClinic } from "@/contexts/ClinicContext";
+import { axiosInstance } from "@/services/api";
 import {
   generateMedicalCertificateHTML,
   MedicalCertificateTemplateData,
 } from "@/utils/medicalCertificateTemplate";
-import axios from "axios";
 import { format } from "date-fns";
 import {
   ArrowUpDown,
@@ -51,13 +53,13 @@ import {
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { axiosInstance } from "@/services/api";
 
 // Remove axios default configuration since we're using axiosInstance
 
 interface MedicalCertificateRequest {
   id: number;
   request_type: string;
+  delivery_method: string;
   patient_name: string;
   date_of_birth: string;
   email: string;
@@ -126,6 +128,7 @@ interface CertificateFormData {
 type SortField =
   | "patient_name"
   | "request_type"
+  | "delivery_method"
   | "status"
   | "requested_at"
   | "email";
@@ -197,10 +200,13 @@ const MedicalCertificateManagement: React.FC = () => {
   const [doctorNotes, setDoctorNotes] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterDeliveryMethod, setFilterDeliveryMethod] = useState<string>("all");
   const [showCertificateForm, setShowCertificateForm] = useState(false);
+  const [showCertificateGenerator, setShowCertificateGenerator] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [clinicInfo, setClinicInfo] = useState<ClinicInfo | null>(null);
   const [doctorInfo, setDoctorInfo] = useState<DoctorInfo | null>(null);
+  const [currentPatient, setCurrentPatient] = useState<any>(null);
 
   // Search and sort states
   const [searchQuery, setSearchQuery] = useState("");
@@ -391,7 +397,10 @@ const MedicalCertificateManagement: React.FC = () => {
       const matchesStatus =
         filterStatus === "all" || request.status === filterStatus;
 
-      return matchesSearch && matchesStatus;
+      const matchesDeliveryMethod =
+        filterDeliveryMethod === "all" || request.delivery_method === filterDeliveryMethod;
+
+      return matchesSearch && matchesStatus && matchesDeliveryMethod;
     })
   );
 
@@ -408,7 +417,7 @@ const MedicalCertificateManagement: React.FC = () => {
   // Reset current page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, filterStatus, sortField, sortDirection]);
+  }, [searchQuery, filterStatus, filterDeliveryMethod, sortField, sortDirection]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -419,28 +428,85 @@ const MedicalCertificateManagement: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const handleCreateCertificate = (request: MedicalCertificateRequest) => {
-    // Calculate patient age
-    const patientAge = request.date_of_birth
-      ? String(
-          new Date().getFullYear() -
-            new Date(request.date_of_birth).getFullYear()
-        )
-      : "";
+  const fetchPatientData = async (patientName: string, dateOfBirth: string) => {
+    try {
+      // Try to fetch patient by name and date of birth
+      const response = await axiosInstance.get('/patients/', {
+        params: {
+          search: patientName,
+          date_of_birth: dateOfBirth
+        }
+      });
+      
+      if (response.data && response.data.length > 0) {
+        // Find the best match
+        const patient = response.data.find((p: any) => 
+          p.name.toLowerCase() === patientName.toLowerCase() && 
+          p.date_of_birth === dateOfBirth
+        ) || response.data[0];
+        
+        return patient;
+      }
+    } catch (error) {
+      console.error('Error fetching patient data:', error);
+    }
+    
+    // If no patient found, create a mock patient object with available data
+    return {
+      name: patientName,
+      date_of_birth: dateOfBirth,
+      email: '',
+      phone: '',
+      gender: '',
+      address: '',
+      id: null
+    };
+  };
 
-    // Set up certificate form data with request information
-    setCertificateFormData((prev) => ({
-      ...prev,
-      patientName: request.patient_name,
-      patientAge: patientAge,
-      certificateType: request.request_type,
-      // Pre-fill with any existing certificate content
-      diagnosis: request.certificate_content || "",
-      recommendations: request.additional_info || "",
-    }));
+  const handleCreateCertificate = async (request: MedicalCertificateRequest) => {
+    try {
+      // Fetch full patient data
+      const patientData = await fetchPatientData(request.patient_name, request.date_of_birth);
+      
+      setCurrentPatient(patientData);
+      setSelectedRequest(request);
+      setShowCertificateGenerator(true);
+    } catch (error) {
+      console.error('Error preparing certificate generation:', error);
+      toast.error("Failed to load patient data for certificate generation");
+    }
+  };
 
-    setSelectedRequest(request);
-    setShowCertificateForm(true);
+  const handleSaveCertificateFromGenerator = async (certificate: any) => {
+    if (!selectedRequest) return;
+
+    try {
+      setLoading(true);
+      
+      // Update the request with certificate content
+      const response = await axiosInstance.post(
+        `/medical-certificates/${selectedRequest.id}/approve/`,
+        {
+          action: "doctor_approve",
+          certificate_content: certificate.content,
+          certificate_html: certificate.content,
+          doctor_notes: certificate.data.doctorNotes || "",
+        }
+      );
+
+      toast.success("Certificate generated and sent successfully");
+      setShowCertificateGenerator(false);
+      
+      // Refresh the requests list to show updated data
+      setTimeout(() => {
+        fetchRequests();
+      }, 1000);
+    } catch (error) {
+      console.error("Error saving certificate:", error);
+      toast.error("Failed to save certificate");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePreviewCertificate = () => {
@@ -689,6 +755,17 @@ const MedicalCertificateManagement: React.FC = () => {
                 </SelectContent>
               </Select>
 
+              <Select value={filterDeliveryMethod} onValueChange={setFilterDeliveryMethod}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Delivery Methods</SelectItem>
+                  <SelectItem value="pickup">Pickup from Clinic</SelectItem>
+                  <SelectItem value="email">Send via Email</SelectItem>
+                </SelectContent>
+              </Select>
+
               <Button
                 variant="outline"
                 size="sm"
@@ -703,6 +780,7 @@ const MedicalCertificateManagement: React.FC = () => {
 
               {(searchQuery ||
                 filterStatus !== "all" ||
+                filterDeliveryMethod !== "all" ||
                 sortField !== "requested_at" ||
                 sortDirection !== "desc") && (
                 <Button
@@ -711,6 +789,7 @@ const MedicalCertificateManagement: React.FC = () => {
                   onClick={() => {
                     setSearchQuery("");
                     setFilterStatus("all");
+                    setFilterDeliveryMethod("all");
                     setSortField("requested_at");
                     setSortDirection("desc");
                   }}
@@ -729,7 +808,7 @@ const MedicalCertificateManagement: React.FC = () => {
           ) : totalItems === 0 ? (
             <div className="text-center py-8">
               <div className="text-muted-foreground">
-                {searchQuery || filterStatus !== "all" ? (
+                {searchQuery || filterStatus !== "all" || filterDeliveryMethod !== "all" ? (
                   <>
                     <p className="text-lg font-medium">
                       No medical certificate requests found
@@ -778,6 +857,16 @@ const MedicalCertificateManagement: React.FC = () => {
                     <Button
                       variant="ghost"
                       className="h-auto p-0 font-semibold hover:bg-transparent"
+                      onClick={() => handleSort("delivery_method")}
+                    >
+                      Delivery Method
+                      {renderSortIcon("delivery_method")}
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button
+                      variant="ghost"
+                      className="h-auto p-0 font-semibold hover:bg-transparent"
                       onClick={() => handleSort("email")}
                     >
                       Email
@@ -815,6 +904,11 @@ const MedicalCertificateManagement: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       {getRequestTypeLabel(request.request_type)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={request.delivery_method === 'pickup' ? 'default' : 'secondary'}>
+                        {request.delivery_method === 'pickup' ? 'Pickup' : 'Email'}
+                      </Badge>
                     </TableCell>
                     <TableCell>{request.email}</TableCell>
                     <TableCell>{getStatusBadge(request.status)}</TableCell>
@@ -889,6 +983,16 @@ const MedicalCertificateManagement: React.FC = () => {
                                     </Label>
                                     <div className="mt-1">
                                       {getStatusBadge(selectedRequest.status)}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <Label className="font-medium text-xs text-muted-foreground">
+                                      Delivery Method
+                                    </Label>
+                                    <div className="mt-1">
+                                      <Badge variant={selectedRequest.delivery_method === 'pickup' ? 'default' : 'secondary'}>
+                                        {selectedRequest.delivery_method === 'pickup' ? 'Pickup from Clinic' : 'Send via Email'}
+                                      </Badge>
                                     </div>
                                   </div>
                                 </div>
@@ -1153,6 +1257,7 @@ const MedicalCertificateManagement: React.FC = () => {
                     }))
                   }
                   placeholder="Enter patient name"
+                  readOnly
                 />
               </div>
               <div>
@@ -1167,6 +1272,7 @@ const MedicalCertificateManagement: React.FC = () => {
                     }))
                   }
                   placeholder="Enter patient age"
+                  readOnly
                 />
               </div>
             </div>
@@ -1364,6 +1470,25 @@ const MedicalCertificateManagement: React.FC = () => {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Medical Certificate Generator Dialog */}
+      <Dialog open={showCertificateGenerator} onOpenChange={setShowCertificateGenerator}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>Generate Medical Certificate</DialogTitle>
+          </DialogHeader>
+          
+          {currentPatient && (
+            <div className="overflow-y-auto max-h-[80vh]">
+              <MedicalCertificateGenerator
+                patient={currentPatient}
+                onSaveCertificate={handleSaveCertificateFromGenerator}
+                savedCertificates={[]}
+              />
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

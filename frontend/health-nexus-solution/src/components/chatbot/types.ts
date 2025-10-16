@@ -13,11 +13,20 @@ export type FormField = {
   };
 };
 
+export type FAQ = {
+  id: number;
+  question: string;
+  answer: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 export type MessageType = {
   id: string;
   sender: 'user' | 'bot';
   text: string;
-  type?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form' | 'typing' | 'datetime-picker';
+  type?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form' | 'typing' | 'datetime-picker' | 'faq-accordion';
   options?: { value: string; label: string; disabled?: boolean }[];
   dateSelector?: boolean;
   timeSelector?: boolean;
@@ -35,6 +44,7 @@ export type MessageType = {
   formFields?: FormField[];
   showCancelOption?: boolean; // For form cancel functionality
   isTyping?: boolean; // For typing animation
+  faqs?: FAQ[]; // For FAQ accordion display
 };
 
 export type Doctor = {
@@ -69,6 +79,7 @@ export interface AppointmentForm {
 
 export type MedicalRecordRequestForm = {
   requestType: string;
+  deliveryMethod: string;
   patientId: string;
   firstName: string;
   middleInitial: string;

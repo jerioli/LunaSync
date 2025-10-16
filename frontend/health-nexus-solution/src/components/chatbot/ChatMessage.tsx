@@ -1,6 +1,7 @@
 import { DatePopover } from './DatePopover';
 import { DateSelector } from './DateSelector';
 import DateTimePicker from './DateTimePicker';
+import { FAQAccordion } from './FAQAccordion';
 import { FileUpload } from './FileUpload';
 import { MessageOptions } from './MessageOptions';
 import { MessageSender } from './MessageSender';
@@ -108,6 +109,13 @@ export const ChatMessage = ({
             onFileUpload={onFileUpload} 
             label={message.fileUploadLabel || "Upload File"} 
             accept={message.fileUploadAccept}
+          />
+        )}
+
+        {message.type === 'faq-accordion' && message.faqs && (
+          <FAQAccordion 
+            faqs={message.faqs} 
+            onBackToMainMenu={() => onOptionSelect('main')} 
           />
         )}
       </div>
