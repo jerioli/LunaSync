@@ -4,45 +4,45 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
+    NavigationMenu,
+    NavigationMenuItem,
+    NavigationMenuLink,
+    NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/services/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import {
-  ArrowUp,
-  BotMessageSquare,
-  Calendar,
-  CheckCircle,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  FileText,
-  Info,
-  Monitor,
-  Moon,
-  Pill,
-  Stethoscope,
-  Sun,
-  User,
+    ArrowUp,
+    BotMessageSquare,
+    Calendar,
+    CheckCircle,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    FileText,
+    Info,
+    Monitor,
+    Moon,
+    Pill,
+    Stethoscope,
+    Sun,
+    User,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -203,11 +203,7 @@ const PatientPortal = () => {
   const [appointmentTypes] = useState([
     "Consultation",
     "Follow-up",
-    "Check-up",
-    "Vaccination",
-    "Physical Therapy",
-    "Laboratory",
-    "Emergency",
+    "Vaccination"
   ]);
   const [selectedAppointmentType, setSelectedAppointmentType] = useState("");
   const [selectedDate, setSelectedDate] = useState("");

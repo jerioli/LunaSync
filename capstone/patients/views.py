@@ -587,51 +587,102 @@ class PatientLookupView(APIView):
             # Split the full name for more flexible matching
             name_parts = full_name.lower().split()
             
-            # Exact match search first
-            exact_matches = Patient.objects.filter(
+            # Since email, phone, and name fields are encrypted, we need to check all patients
+            # with the matching date_of_birth first, then compare decrypted values
+            potential_matches = Patient.objects.filter(
                 date_of_birth=date_of_birth,
-                email__iexact=email,
-                phone=phone
+                is_deleted=False  # Only check non-deleted patients
             )
             
-            # Filter by name parts
-            for match in exact_matches:
-                patient_name = f"{match.first_name} {match.middle_initial or ''} {match.last_name} {match.suffix or ''}".strip()
-                if patient_name.lower().replace('  ', ' ') == full_name.lower():
-                    return Response({
-                        'status': 'match',
-                        'patient_id': match.patient_id,
-                        'message': 'Patient found successfully'
-                    })
+            print(f"[DEBUG] Found {potential_matches.count()} patients with date_of_birth: {date_of_birth}")
             
-            # Partial match search - try different combinations
-            partial_matches = Patient.objects.filter(
-                date_of_birth=date_of_birth
-            ).filter(
-                models.Q(email__iexact=email) | 
-                models.Q(phone=phone) |
-                models.Q(first_name__icontains=name_parts[0] if name_parts else '') |
-                models.Q(last_name__icontains=name_parts[-1] if len(name_parts) > 1 else name_parts[0] if name_parts else '')
-            ).distinct()
+            # Check each potential match for exact email and phone match
+            for patient in potential_matches:
+                try:
+                    # Compare decrypted email and phone
+                    patient_email = str(patient.email).lower().strip() if patient.email else ''
+                    patient_phone = str(patient.phone).strip() if patient.phone else ''
+                    
+                    print(f"[DEBUG] Checking patient {patient.patient_id}: email='{patient_email}', phone='{patient_phone}'")
+                    
+                    # Check for exact match on email and phone
+                    if patient_email == email.lower().strip() and patient_phone == phone.strip():
+                        # Also check name match
+                        patient_first = str(patient.first_name).strip() if patient.first_name else ''
+                        patient_middle = str(patient.middle_initial).strip() if patient.middle_initial else ''
+                        patient_last = str(patient.last_name).strip() if patient.last_name else ''
+                        patient_suffix = str(patient.suffix).strip() if patient.suffix else ''
+                        
+                        patient_full_name = f"{patient_first} {patient_middle} {patient_last} {patient_suffix}".strip()
+                        patient_full_name = ' '.join(patient_full_name.split())  # Remove extra spaces
+                        
+                        print(f"[DEBUG] Patient full name: '{patient_full_name}' vs lookup: '{full_name}'")
+                        
+                        if patient_full_name.lower() == full_name.lower():
+                            print(f"[DEBUG] EXACT MATCH found for patient {patient.patient_id}")
+                            return Response({
+                                'status': 'match',
+                                'patient_id': patient.patient_id,
+                                'message': 'Patient found successfully'
+                            })
+                except Exception as decrypt_error:
+                    print(f"[DEBUG] Error decrypting patient {patient.patient_id}: {decrypt_error}")
+                    continue
             
-            if partial_matches.count() == 1:
-                patient = partial_matches.first()
-                patient_full_name = f"{patient.first_name} {patient.middle_initial or ''} {patient.last_name} {patient.suffix or ''}".strip().replace('  ', ' ')
+            # Partial match search - check all patients with same date_of_birth
+            # and look for similar email, phone, or name
+            partial_candidates = []
+            
+            for patient in potential_matches:
+                try:
+                    patient_email = str(patient.email).lower().strip() if patient.email else ''
+                    patient_phone = str(patient.phone).strip() if patient.phone else ''
+                    patient_first = str(patient.first_name).strip() if patient.first_name else ''
+                    patient_last = str(patient.last_name).strip() if patient.last_name else ''
+                    patient_middle = str(patient.middle_initial).strip() if patient.middle_initial else ''
+                    patient_suffix = str(patient.suffix).strip() if patient.suffix else ''
+                    
+                    patient_full_name = f"{patient_first} {patient_middle} {patient_last} {patient_suffix}".strip()
+                    patient_full_name = ' '.join(patient_full_name.split())  # Remove extra spaces
+                    
+                    # Check for partial matches
+                    email_match = patient_email == email.lower().strip()
+                    phone_match = patient_phone == phone.strip()
+                    
+                    # Calculate name similarity
+                    name_similarity = SequenceMatcher(None, full_name.lower(), patient_full_name.lower()).ratio()
+                    
+                    # If email OR phone matches, or name similarity is high
+                    if email_match or phone_match or name_similarity > 0.7:
+                        partial_candidates.append({
+                            'patient': patient,
+                            'similarity': name_similarity,
+                            'email_match': email_match,
+                            'phone_match': phone_match,
+                            'full_name': patient_full_name
+                        })
+                        
+                except Exception as decrypt_error:
+                    print(f"[DEBUG] Error processing patient {patient.patient_id}: {decrypt_error}")
+                    continue
+            
+            print(f"[DEBUG] Found {len(partial_candidates)} partial match candidates")
+            
+            # If exactly one partial match, suggest it
+            if len(partial_candidates) == 1:
+                candidate = partial_candidates[0]
+                patient = candidate['patient']
+                suggestion = f"Name: {candidate['full_name']}, Email: {patient.email}"
                 
-                # Calculate similarity
-                similarity = SequenceMatcher(None, full_name.lower(), patient_full_name.lower()).ratio()
-                
-                if similarity > 0.7:  # 70% similarity threshold
-                    suggestion = f"Name: {patient_full_name}, Email: {patient.email}"
-                    return Response({
-                        'status': 'partial_match',
-                        'patient_id': patient.patient_id,
-                        'suggestion': suggestion,
-                        'message': 'Similar patient found'
-                    })
+                return Response({
+                    'status': 'partial_match',
+                    'patient_id': patient.patient_id,
+                    'suggestion': suggestion,
+                    'message': 'Similar patient found'
+                })
             
-            # Multiple matches found
-            if partial_matches.count() > 1:
+            # Multiple partial matches found
+            elif len(partial_candidates) > 1:
                 return Response({
                     'status': 'multiple_match',
                     'message': 'Multiple patients found with similar details'

@@ -473,13 +473,9 @@ const PatientAppointmentModal: React.FC<PatientAppointmentModalProps> = ({
                     <SelectValue placeholder="Select appointment type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Check-up">Check-up</SelectItem>
-                    <SelectItem value="Follow-up">Follow-up</SelectItem>
                     <SelectItem value="Consultation">Consultation</SelectItem>
+                    <SelectItem value="Follow-up">Follow-up</SelectItem>
                     <SelectItem value="Vaccination">Vaccination</SelectItem>
-                    <SelectItem value="Lab Test">Lab Test</SelectItem>
-                    <SelectItem value="Physical Examination">Physical Examination</SelectItem>
-                    <SelectItem value="Emergency">Emergency</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

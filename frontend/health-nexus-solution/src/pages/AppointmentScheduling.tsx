@@ -1,19 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { useToast } from '@/components/ui/use-toast';
 import { api } from '@/services/api';
 import { format } from 'date-fns';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { CalendarIcon, CheckCircle } from 'lucide-react';
 
 interface Doctor {
@@ -633,12 +632,9 @@ const AppointmentScheduling: React.FC = () => {
                           <SelectValue placeholder="Select appointment type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Consultation">General Consultation</SelectItem>
-                          <SelectItem value="Regular Checkup">Regular Check-up</SelectItem>
-                          <SelectItem value="Follow-up">Follow-up Visit</SelectItem>
+                          <SelectItem value="Consultation">Consultation</SelectItem>
+                          <SelectItem value="Follow-up">Follow-up</SelectItem>
                           <SelectItem value="Vaccination">Vaccination</SelectItem>
-                          <SelectItem value="Specialist Consultation">Specialist Consultation</SelectItem>
-                          <SelectItem value="Urgent Care">Urgent Care</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

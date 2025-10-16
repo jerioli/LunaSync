@@ -12,9 +12,8 @@ export const generateTimeSlots = () => {
 };
 
 export const appointmentTypes = [
-  { label: 'Regular Checkup', value: 'Regular Checkup' },
-  { label: 'Follow-up', value: 'Follow-up' },
   { label: 'Consultation', value: 'Consultation' },
+  { label: 'Follow-up', value: 'Follow-up' },
   { label: 'Vaccination', value: 'Vaccination' }
 ];
 

@@ -90,17 +90,51 @@ export const useChatbotLogic = () => {
   // Add patient lookup API function
   const lookupPatientByDetails = async (lookupData: typeof patientLookupForm) => {
     try {
-      const response = await axiosInstance.post('/patients/lookup-patient/', {
-        full_name: lookupData.fullName,
-        date_of_birth: lookupData.dateOfBirth,
-        email: lookupData.email,
-        phone: lookupData.phone
-      });
+      // Parse the full name into components for better matching
+      const fullNameTrimmed = lookupData.fullName.trim();
+      const nameParts = fullNameTrimmed.split(/\s+/);
+      
+      const requestData = {
+        full_name: fullNameTrimmed,
+        date_of_birth: lookupData.dateOfBirth.trim(),
+        email: lookupData.email.trim().toLowerCase(),
+        phone: lookupData.phone.trim(),
+        // Add parsed name components for better backend matching
+        first_name: nameParts[0] || '',
+        last_name: nameParts[nameParts.length - 1] || '',
+        middle_initial: nameParts.length > 2 ? nameParts[1] : ''
+      };
+      
+      console.log('[DEBUG] Patient lookup request data:', requestData);
+      console.log('[DEBUG] Full name:', requestData.full_name);
+      console.log('[DEBUG] Parsed - First:', requestData.first_name, 'Middle:', requestData.middle_initial, 'Last:', requestData.last_name);
+      console.log('[DEBUG] Date format:', requestData.date_of_birth);
+      console.log('[DEBUG] Email format:', requestData.email);
+      console.log('[DEBUG] Phone format:', requestData.phone);
+      console.log('[DEBUG] Request payload:', JSON.stringify(requestData, null, 2));
+      
+      const response = await axiosInstance.post('/patients/lookup-patient/', requestData);
+      
+      console.log('[DEBUG] Patient lookup response:', response.data);
+      console.log('[DEBUG] Response status:', response.status);
+      console.log('[DEBUG] Response headers:', response.headers);
       
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error looking up patient:', error);
-      throw error;
+      
+      // Handle different types of errors
+      if (error.response?.status === 404) {
+        return { status: 'no_match', message: 'No patient found with the provided details.' };
+      } else if (error.response?.status === 400) {
+        return { status: 'error', message: 'Invalid request data. Please check your information and try again.' };
+      } else if (error.response?.status === 500) {
+        return { status: 'error', message: 'Server error. Please try again later.' };
+      } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+        return { status: 'error', message: 'Network error. Please check your connection and try again.' };
+      } else {
+        return { status: 'error', message: 'An unexpected error occurred during lookup. Please try again.' };
+      }
     }
   };
 
@@ -184,6 +218,10 @@ export const useChatbotLogic = () => {
 
   // Add patient lookup state
   const [patientLookupForm, setPatientLookupForm] = useState({
+    firstName: '',
+    middleInitial: '',
+    lastName: '',
+    suffix: '',
     fullName: '',
     dateOfBirth: '',
     email: '',
@@ -269,6 +307,13 @@ export const useChatbotLogic = () => {
     ].filter(part => part && part.length > 0);
     
     return parts.join(' ');
+  };
+
+  // Helper function to construct full name matching backend format exactly
+  const constructFullNameForLookup = (firstName: string, middleInitial: string, lastName: string, suffix: string) => {
+    // Match the exact backend format: f"{first_name} {middle_initial or ''} {last_name} {suffix or ''}".strip().replace('  ', ' ')
+    const fullName = `${firstName || ''} ${middleInitial || ''} ${lastName || ''} ${suffix || ''}`.trim().replace(/\s+/g, ' ');
+    return fullName;
   };
 
   // Helper: Find best matching FAQ (simple substring match, case-insensitive)
@@ -662,6 +707,8 @@ export const useChatbotLogic = () => {
             setMedicalRecordForm(prev => ({ ...prev, patientId }));
           } else if (chatMode === 'prescription') {
             setPrescriptionForm(prev => ({ ...prev, patientId }));
+          } else if (chatMode === 'appointment') {
+            setAppointmentForm(prev => ({ ...prev, patient_id: patientId }));
           }
           
           localStorage.setItem('chatbot_patient_id', patientId);
@@ -671,6 +718,8 @@ export const useChatbotLogic = () => {
           setTimeout(() => {
             if (chatMode === 'medicalRecord' || chatMode === 'prescription') {
               fetchPatientDataAndContinue(patientId, chatMode);
+            } else if (chatMode === 'appointment') {
+              fetchPatientDataAndContinueAppointment(patientId);
             }
           }, 1000);
         }
@@ -1481,13 +1530,34 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       setIsPatientLookup(true);
       
       setTimeout(() => {
-        addBotMessage('No worries! I can help you find your Patient ID. Please fill out the form below with your registered information:', undefined, undefined, undefined, undefined, undefined, undefined, undefined, 'form', [
+        addBotMessage('No worries! I can help you find your Patient ID. Please fill out the form below with your registered information exactly as you provided during registration:', undefined, undefined, undefined, undefined, undefined, undefined, undefined, 'form', [
           {
-            name: 'fullName',
-            label: 'Full Name',
+            name: 'firstName',
+            label: 'First Name',
             type: 'text',
             required: true,
-            placeholder: 'Enter your full name as registered'
+            placeholder: 'Enter your first name'
+          },
+          {
+            name: 'middleInitial',
+            label: 'Middle Initial (if any)',
+            type: 'text',
+            required: false,
+            placeholder: 'M (optional)'
+          },
+          {
+            name: 'lastName',
+            label: 'Last Name',
+            type: 'text',
+            required: true,
+            placeholder: 'Enter your last name'
+          },
+          {
+            name: 'suffix',
+            label: 'Suffix (if any)',
+            type: 'text',
+            required: false,
+            placeholder: 'Jr., Sr., III, etc. (optional)'
           },
           {
             name: 'dateOfBirth',
@@ -1521,13 +1591,34 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       addMessage('user', 'Try again');
       
       setTimeout(() => {
-        addBotMessage('Please fill out the form below with your registered information:', undefined, undefined, undefined, undefined, undefined, undefined, undefined, 'form', [
+        addBotMessage('Please fill out the form below with your registered information exactly as you provided during registration:', undefined, undefined, undefined, undefined, undefined, undefined, undefined, 'form', [
           {
-            name: 'fullName',
-            label: 'Full Name',
+            name: 'firstName',
+            label: 'First Name',
             type: 'text',
             required: true,
-            placeholder: 'Enter your full name as registered'
+            placeholder: 'Enter your first name'
+          },
+          {
+            name: 'middleInitial',
+            label: 'Middle Initial (if any)',
+            type: 'text',
+            required: false,
+            placeholder: 'M (optional)'
+          },
+          {
+            name: 'lastName',
+            label: 'Last Name',
+            type: 'text',
+            required: true,
+            placeholder: 'Enter your last name'
+          },
+          {
+            name: 'suffix',
+            label: 'Suffix (if any)',
+            type: 'text',
+            required: false,
+            placeholder: 'Jr., Sr., III, etc. (optional)'
           },
           {
             name: 'dateOfBirth',
@@ -1566,7 +1657,9 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           // Store the patient ID
           const patientId = lookupResult.patient_id;
           
-          if (chatMode === 'medicalRecord') {
+          if (chatMode === 'appointment') {
+            setAppointmentForm(prev => ({ ...prev, patient_id: patientId }));
+          } else if (chatMode === 'medicalRecord') {
             setMedicalRecordForm(prev => ({ ...prev, patientId }));
           } else if (chatMode === 'prescription') {
             setPrescriptionForm(prev => ({ ...prev, patientId }));
@@ -1574,10 +1667,12 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           
           localStorage.setItem('chatbot_patient_id', patientId);
           
-          addBotMessage('Perfect! I\'ve confirmed your patient record. Let\'s continue your request.');
+          addBotMessage('✅ Perfect! I\'ve confirmed your patient record. Let\'s continue your request.');
           
           setTimeout(() => {
-            if (chatMode === 'medicalRecord' || chatMode === 'prescription') {
+            if (chatMode === 'appointment') {
+              fetchPatientDataAndContinueAppointment(patientId);
+            } else if (chatMode === 'medicalRecord' || chatMode === 'prescription') {
               fetchPatientDataAndContinue(patientId, chatMode);
             }
           }, 1000);
@@ -1586,13 +1681,34 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         addMessage('user', 'No');
         
         setTimeout(() => {
-          addBotMessage('I understand. Please re-enter your information carefully:', undefined, undefined, undefined, undefined, undefined, undefined, undefined, 'form', [
+          addBotMessage('No worries! Let me help you find your Patient ID. Please fill out the form below with your registered information exactly as you provided during registration:', undefined, undefined, undefined, undefined, undefined, undefined, undefined, 'form', [
             {
-              name: 'fullName',
-              label: 'Full Name',
+              name: 'firstName',
+              label: 'First Name',
               type: 'text',
               required: true,
-              placeholder: 'Enter your full name as registered'
+              placeholder: 'Enter your first name'
+            },
+            {
+              name: 'middleInitial',
+              label: 'Middle Initial (if any)',
+              type: 'text',
+              required: false,
+              placeholder: 'M (optional)'
+            },
+            {
+              name: 'lastName',
+              label: 'Last Name',
+              type: 'text',
+              required: true,
+              placeholder: 'Enter your last name'
+            },
+            {
+              name: 'suffix',
+              label: 'Suffix (if any)',
+              type: 'text',
+              required: false,
+              placeholder: 'Jr., Sr., III, etc. (optional)'
             },
             {
               name: 'dateOfBirth',
@@ -1723,10 +1839,9 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       addMessage('user', 'I need a medical certificate');
       setIsInputDisabled(false); // Ensure input is enabled for new service
       setTimeout(() => {
-        addBotMessage('I can definitely help you get a medical certificate! 📋 To process your request quickly and securely, I will need your Patient ID.', [
+        addBotMessage('I can definitely help you get a medical certificate! 📋 To process your request quickly and securely, I will need your Patient ID.\n\n💡 Your Patient ID follows this format: P-YYYYMMDD-XXXX (like P-20250822-1234). You can find it in your previous appointment emails or medical records.', [
           { label: 'Forgot Patient ID?', value: 'forgot-patient-id' }
         ]);
-        addBotMessage('💡 Your Patient ID follows this format: P-YYYYMMDD-XXXX (like P-20250822-1234). You can find it in your previous appointment emails or medical records.');
         setChatStep(2);
       }, 500);
     } else if (value === 'prescription') {
@@ -1735,18 +1850,18 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       setPrescriptionForm(prev => ({ ...prev, prescriptionType: 'refill' }));
       setIsInputDisabled(false); // Ensure input is enabled for new service
       setTimeout(() => {
-        addBotMessage('I will help you request a prescription refill! � This will request a refill of your most recent prescription. I will need your Patient ID to get started.', [
+        addBotMessage('I will help you request a prescription refill! 💊 This will request a refill of your most recent prescription. I will need your Patient ID to get started.\n\n💡 Your Patient ID follows this format: P-YYYYMMDD-XXXX (like P-20250822-1234). You can find it in your previous appointment emails or medical records.', [
           { label: 'Forgot Patient ID?', value: 'forgot-patient-id' }
         ]);
-        addBotMessage('💡 Your Patient ID follows this format: P-YYYYMMDD-XXXX (like P-20250822-1234). You can find it in your previous appointment emails or medical records.');
         setChatStep(2);
       }, 500);
     } else if (value === 'returning-patient') {
       // Handle returning patient selection
       addMessage('user', 'I am a returning patient');
       setTimeout(() => {
-        addBotMessage('Welcome back! 🎉 It is always great to see our patients again. To look up your information quickly, I will need your unique Patient ID.');
-        addBotMessage('💡 Your Patient ID follows this format: P-YYYYMMDD-XXXX (like P-20250822-1234). You can find it in your previous appointment emails or medical records.');
+        addBotMessage('Welcome back! 🎉 It is always great to see our patients again. To look up your information quickly, I will need your unique Patient ID.\n\n💡 Your Patient ID follows this format: P-YYYYMMDD-XXXX (like P-20250822-1234). You can find it in your previous appointment emails or medical records.', [
+          { label: 'Forgot Patient ID?', value: 'forgot-patient-id' }
+        ]);
         setChatStep(6.1); // Patient ID input for returning patients
         setIsInputDisabled(false);
       }, 500);
@@ -1849,7 +1964,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
             marital_status: appointmentForm.maritalStatus === 'Prefer not to say' ? 'prefer_not_to_say' : (appointmentForm.maritalStatus ? appointmentForm.maritalStatus.toLowerCase() : null),
             
             // Appointment details
-            appointment_type: appointmentForm.type === 'Regular Checkup' ? 'Routine Check-up' : appointmentForm.type,
+            appointment_type: appointmentForm.type,
             date: formattedDate,
             time: formattedTime,
             notes: appointmentForm.notes || '',  // Only user's notes, no JSON structure
@@ -2945,7 +3060,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         gender: (formDataToUse.gender || appointmentForm.gender) === 'Prefer not to say' ? 'prefer_not_to_say' : ((formDataToUse.gender || appointmentForm.gender) ? (formDataToUse.gender || appointmentForm.gender).toLowerCase() : null),
         address: formDataToUse.address || appointmentForm.address || null,
         marital_status: (formDataToUse.maritalStatus || appointmentForm.maritalStatus) === 'Prefer not to say' ? 'prefer_not_to_say' : ((formDataToUse.maritalStatus || appointmentForm.maritalStatus) ? (formDataToUse.maritalStatus || appointmentForm.maritalStatus).toLowerCase() : null),
-        appointment_type: appointmentForm.type === 'Regular Checkup' ? 'Routine Check-up' : appointmentForm.type,
+        appointment_type: appointmentForm.type,
         date: formattedDate,
         time: formattedTime,
         doctor_id: parseInt(appointmentForm.doctorId),
@@ -3682,11 +3797,8 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     // Move to next step in appointment flow
     setTimeout(() => {
       addBotMessage(`Excellent! 🎉 I have you down for ${date.toLocaleDateString()} at ${time}. Now, what type of appointment do you need?`, [
-        { label: 'Routine Check-up', value: 'Routine Check-up' },
-        { label: 'Follow-up', value: 'Follow-up' },
         { label: 'Consultation', value: 'Consultation' },
-        { label: 'Urgent Care', value: 'Urgent Care' },
-        { label: 'Physical Exam', value: 'Physical Exam' },
+        { label: 'Follow-up', value: 'Follow-up' },
         { label: 'Vaccination', value: 'Vaccination' }
       ]);
       setChatStep(6);
@@ -4074,7 +4186,9 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     switch (status) {
       case 'match':
         // Store the patient ID for later use
-        if (chatMode === 'medicalRecord') {
+        if (chatMode === 'appointment') {
+          setAppointmentForm(prev => ({ ...prev, patient_id: patient_id }));
+        } else if (chatMode === 'medicalRecord') {
           setMedicalRecordForm(prev => ({ ...prev, patientId: patient_id }));
         } else if (chatMode === 'prescription') {
           setPrescriptionForm(prev => ({ ...prev, patientId: patient_id }));
@@ -4083,11 +4197,13 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         // Store in localStorage for session persistence
         localStorage.setItem('chatbot_patient_id', patient_id);
         
-        addBotMessage('Thank you! I\'ve found your patient record. Your information has been verified successfully. Let\'s continue your request.');
+        addBotMessage('✅ Thank you! I\'ve found your patient record. Your information has been verified successfully. Let\'s continue your request.');
         
         setTimeout(() => {
-          // Continue with the normal flow
-          if (chatMode === 'medicalRecord' || chatMode === 'prescription') {
+          // Continue with the normal flow based on chat mode
+          if (chatMode === 'appointment') {
+            fetchPatientDataAndContinueAppointment(patient_id);
+          } else if (chatMode === 'medicalRecord' || chatMode === 'prescription') {
             fetchPatientDataAndContinue(patient_id, chatMode);
           }
         }, 1000);
@@ -4101,8 +4217,8 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         break;
         
       case 'no_match':
-        addBotMessage('I couldn\'t find any patient record with those details. Please double-check your name, birthdate, email, or phone number. If the issue persists, contact the clinic for help.', [
-          { label: 'Try Again', value: 'retry-lookup' }
+        addBotMessage('⚠️ I couldn\'t find any patient record with those details. Please double-check your name, birthdate, email, or phone number. If the issue persists, contact the clinic for help.', [
+          { label: '🔄 Try Again', value: 'retry-lookup' }
         ]);
         break;
         
@@ -4127,9 +4243,15 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         setIsInputDisabled(true);
         break;
         
+      case 'error':
+        addBotMessage('I apologize, but I\'m having trouble accessing our records right now. Please try again later or contact the clinic for assistance.', [
+          { label: '🔄 Try Again', value: 'retry-lookup' }
+        ]);
+        break;
+        
       default:
         addBotMessage('There was an issue processing your request. Please try again.', [
-          { label: 'Try Again', value: 'retry-lookup' }
+          { label: '🔄 Try Again', value: 'retry-lookup' }
         ]);
     }
   };
@@ -4190,10 +4312,65 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     }
   };
 
+  // Handle patient data fetching and continuation for appointments
+  const fetchPatientDataAndContinueAppointment = async (patientId: string) => {
+    try {
+      const patientData = await fetchPatientData(patientId);
+      
+      // Store existing patient data for later use
+      setExistingPatient(patientData);
+      
+      // Pre-populate appointment form with patient data
+      setAppointmentForm(prev => ({
+        ...prev,
+        patient_id: patientId,
+        firstName: patientData.first_name || '',
+        middleInitial: patientData.middle_initial || '',
+        lastName: patientData.last_name || '',
+        suffix: patientData.suffix || '',
+        dateOfBirth: patientData.date_of_birth || '',
+        email: patientData.email || '',
+        phone: patientData.phone || '',
+        gender: patientData.gender || '',
+        address: patientData.address || '',
+        maritalStatus: patientData.marital_status || ''
+      }));
+      
+      setTimeout(() => {
+        addBotMessage(`Great! I found your information:
+          Name: ${patientData.first_name || ''} ${patientData.middle_initial || ''} ${patientData.last_name || ''} ${patientData.suffix || ''}
+          Email: ${patientData.email || 'Not provided'}
+          Phone: ${patientData.phone || 'Not provided'}
+          
+Would you like to use this information or update it?`, [
+          { label: '✓ Use existing information', value: 'use-existing-info' },
+          { label: '✏️ Update my information', value: 'update-info' }
+        ]);
+        setChatStep(6.2); // Go to patient info choice step
+        setIsInputDisabled(true);
+      }, 1000);
+    } catch (error) {
+      console.error('Error fetching patient data:', error);
+      addBotMessage('Sorry, there was an error retrieving your patient data. Please try again.');
+    }
+  };
+
   // Add form submission handler for patient lookup
   const handlePatientLookupSubmit = async (formData: Record<string, string>) => {
+    // Construct full name from components to match backend format exactly
+    const fullName = constructFullNameForLookup(
+      formData.firstName || '',
+      formData.middleInitial || '',
+      formData.lastName || '',
+      formData.suffix || ''
+    );
+    
     const lookupData = {
-      fullName: formData.fullName || '',
+      firstName: formData.firstName || '',
+      middleInitial: formData.middleInitial || '',
+      lastName: formData.lastName || '',
+      suffix: formData.suffix || '',
+      fullName: fullName,
       dateOfBirth: formData.dateOfBirth || '',
       email: formData.email || '',
       phone: formData.phone || ''
@@ -4207,16 +4384,32 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     try {
       addBotMessage('Looking up your patient record...');
       
+      // Add a small delay to ensure any recent patient creation is committed
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const lookupResponse = await lookupPatientByDetails(lookupData);
       
       setTimeout(() => {
         handleLookupResponse(lookupResponse);
       }, 1000);
       
-    } catch (error) {
+    } catch (error: any) {
       setTimeout(() => {
-        addBotMessage('Sorry, there was an error looking up your information. Please try again or contact the clinic for assistance.', [
-          { label: 'Try Again', value: 'retry-lookup' }
+        console.error('Patient lookup error:', error);
+        let errorMessage = '⚠️ I apologize, but I\'m having trouble accessing our records right now. ';
+        
+        if (error.message === 'Network Error') {
+          errorMessage += 'Please check your internet connection and try again.';
+        } else if (error.response?.status === 500) {
+          errorMessage += 'Our server is experiencing issues. Please try again in a few minutes.';
+        } else if (error.response?.status === 400) {
+          errorMessage += 'Please double-check your information and try again.';
+        } else {
+          errorMessage += 'Please try again later or contact the clinic for assistance.';
+        }
+        
+        addBotMessage(errorMessage, [
+          { label: '🔄 Try Again', value: 'retry-lookup' }
         ]);
       }, 1000);
     }
@@ -4245,7 +4438,18 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         })
         .catch(error => {
           setTimeout(() => {
-            addBotMessage('Sorry, there was an error looking up your information. Please try again or contact the clinic for assistance.', [
+            console.error('Patient refined lookup error:', error);
+            let errorMessage = 'Sorry, there was an error looking up your information. ';
+            
+            if (error.message === 'Network Error') {
+              errorMessage += 'Please check your internet connection and try again.';
+            } else if (error.response?.status === 500) {
+              errorMessage += 'Our server is experiencing issues. Please try again in a few minutes.';
+            } else {
+              errorMessage += 'Please try again or contact the clinic for assistance.';
+            }
+            
+            addBotMessage(errorMessage, [
               { label: 'Try Again', value: 'retry-lookup' }
             ]);
           }, 1000);
