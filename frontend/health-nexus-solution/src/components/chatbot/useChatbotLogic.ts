@@ -20,8 +20,26 @@ export const useChatbotLogic = () => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [isLoadingDoctors, setIsLoadingDoctors] = useState(false);
   const [isInputDisabled, setIsInputDisabled] = useState(false);
+  const [clinicPhone, setClinicPhone] = useState<string>('');
   
   const API_BASE_URL = 'http://localhost:8000/api';
+
+  // Function to fetch clinic settings
+  const fetchClinicSettings = async () => {
+    try {
+      const response = await axiosInstance.get('/clinic/');
+      const clinicData = response.data || {};
+      setClinicPhone(clinicData.phone || '(555) 123-4567');
+    } catch (error) {
+      console.error('Error fetching clinic settings:', error);
+      setClinicPhone('(555) 123-4567'); // Fallback phone number
+    }
+  };
+
+  // Fetch clinic settings on component mount
+  useEffect(() => {
+    fetchClinicSettings();
+  }, []);
 
   // Function to get CSRF token from cookies
   const getCSRFToken = () => {
@@ -268,14 +286,18 @@ export const useChatbotLogic = () => {
   };
 
   useEffect(() => {
-    if (showChat) {
+    if (showChat && clinicPhone) {
       setTimeout(() => {
-        addBotMessage("Hello there! 👋 I'm Luna, your friendly healthcare assistant. I'm here to help make your healthcare experience as smooth as possible. Ready to get started?", [
+        const greetingMessage = `Hello there! 👋 I'm Luna, your friendly healthcare assistant. I'm here to help make your healthcare experience as smooth as possible. Ready to get started?
+
+⚠️ For Emergency, Please contact clinic directly via call: ${clinicPhone}`;
+        
+        addBotMessage(greetingMessage, [
           { label: "Let's get started!", value: "hi" }
         ]);
       }, 500);
     }
-  }, [showChat, t]);
+  }, [showChat, t, clinicPhone]);
 
   const addMessage = (
     sender: 'user' | 'bot', 
@@ -287,15 +309,17 @@ export const useChatbotLogic = () => {
     fileUpload?: boolean, 
     fileUploadLabel?: string, 
     fileUploadAccept?: string,
-    messageType?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form',
+    messageType?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form' | 'datetime-picker',
     formFields?: FormField[],
     availableDates?: Date[],
     selectedDate?: Date,
-    selectedTime?: string
+    selectedTime?: string,
+    dateTimePicker?: boolean,
+    getTimeSlotsForDate?: (date: Date) => Promise<string[]>
   ) => {
     const messageId = uuidv4();
     // Create messageKey for options or timeSelector (for disabling functionality)
-    const messageKey = (options || timeSelector) ? messageId : undefined;
+    const messageKey = (options || timeSelector || dateTimePicker) ? messageId : undefined;
 
     setMessages(prev => [...prev, {
       id: messageId,
@@ -305,10 +329,12 @@ export const useChatbotLogic = () => {
       options,
       dateSelector,
       timeSelector,
+      dateTimePicker,
       times,
       availableDates,
       selectedDate,
       selectedTime,
+      getTimeSlotsForDate,
       fileUpload,
       fileUploadLabel,
       fileUploadAccept,
@@ -327,12 +353,14 @@ export const useChatbotLogic = () => {
     fileUpload?: boolean, 
     fileUploadLabel?: string, 
     fileUploadAccept?: string,
-    messageType?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form',
+    messageType?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form' | 'datetime-picker',
     formFields?: FormField[],
     availableDates?: Date[],
     selectedDate?: Date,
     selectedTime?: string,
-    typingDuration: number = 1000
+    typingDuration: number = 1000,
+    dateTimePicker?: boolean,
+    getTimeSlotsForDate?: (date: Date) => Promise<string[]>
   ) => {
     // Show typing indicator
     setIsTyping(true);
@@ -355,7 +383,7 @@ export const useChatbotLogic = () => {
         
         // Add actual message
         const messageId = uuidv4();
-        const messageKey = (options || timeSelector) ? messageId : undefined;
+        const messageKey = (options || timeSelector || dateTimePicker) ? messageId : undefined;
 
         return [...withoutTyping, {
           id: messageId,
@@ -365,10 +393,12 @@ export const useChatbotLogic = () => {
           options,
           dateSelector,
           timeSelector,
+          dateTimePicker,
           times,
           availableDates,
           selectedDate,
           selectedTime,
+          getTimeSlotsForDate,
           fileUpload,
           fileUploadLabel,
           fileUploadAccept,
@@ -535,10 +565,10 @@ export const useChatbotLogic = () => {
       
       setTimeout(() => {
         addBotMessage(t('chatbot.howCanIHelp'), [
-          { label: t('appointment.schedule'), value: 'appointment' },
-          { label: 'Request Medical Certificate', value: 'medicalRecord' },
-          { label: t('chatbot.requestPrescription'), value: 'prescription' },
-          { label: 'FAQs', value: 'faq' },
+          { label: '📅 Book an Appointment', value: 'appointment' },
+          { label: '📋 Get Medical Certificate', value: 'medicalRecord' },
+          { label: '💊 Request Prescription Refill', value: 'prescription' },
+          { label: '❓ Ask Questions (FAQ)', value: 'faq' },
         ]);
         setChatStep(1);
       }, 500);
@@ -577,10 +607,10 @@ export const useChatbotLogic = () => {
         // If input doesn't match any option, show the menu again with guidance
         setTimeout(() => {
           addBotMessage('I didn\'t understand that. Please choose one of the following options by typing the number or service name:', [
-            { label: '1. ' + t('appointment.schedule'), value: 'appointment' },
-            { label: '2. Request Medical Certificate', value: 'medicalRecord' },
-            { label: '3. ' + t('chatbot.requestPrescription'), value: 'prescription' },
-            { label: '4. FAQs', value: 'faq' },
+            { label: '1. 📅 Book an Appointment', value: 'appointment' },
+            { label: '2. 📋 Get Medical Certificate', value: 'medicalRecord' },
+            { label: '3. 💊 Request Prescription Refill', value: 'prescription' },
+            { label: '4. ❓ Ask Questions (FAQ)', value: 'faq' },
           ]);
         }, 500);
       }
@@ -1650,9 +1680,9 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         setChatMode(null);
         setTimeout(() => {
           addBotMessage('How can I assist you today?', [
-            { label: 'Schedule an Appointment', value: 'appointment' },
-            { label: 'Request a Medical Certificate', value: 'medicalRecord' },
-            { label: 'Request E-Prescription', value: 'prescription' },
+            { label: '📅 Book an Appointment', value: 'appointment' },
+            { label: '📋 Get Medical Certificate', value: 'medicalRecord' },
+            { label: '💊 Request Prescription Refill', value: 'prescription' },
           ]);
           setChatStep(1);
         }, 500);
@@ -1868,9 +1898,9 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
                 
                 setTimeout(() => {
                   addBotMessage( 'Is there anything else I can help you with?', [
-                    { label: 'Schedule Another Appointment', value: 'appointment' },
-                    { label: 'Request Medical Records', value: 'medicalRecord' },
-                    { label: 'No, Thank You', value: 'end' }
+                    { label: '📅 Book an Appointment', value: 'appointment' },
+                    { label: '📋 Get Medical Certificate', value: 'medicalRecord' },
+                    { label: '👋 No, thank you!', value: 'end' }
                   ]);
                   setChatStep(1);
                   setIsInputDisabled(false); // Re-enable input for new service selection
@@ -1964,9 +1994,9 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           
           setTimeout(() => {
             addBotMessage( 'Appointment booking cancelled. Is there anything else I can help you with?', [
-              { label: 'Schedule Appointment', value: 'appointment' },
-              { label: 'Request Medical Records', value: 'medicalRecord' },
-              { label: 'No, Thank You', value: 'end' }
+              { label: '📅 Book an Appointment', value: 'appointment' },
+              { label: '📋 Get Medical Certificate', value: 'medicalRecord' },
+              { label: '👋 No, thank you!', value: 'end' }
             ]);
             setChatStep(1);
             resetForms();
@@ -1987,9 +2017,9 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
               
               setTimeout(() => {
                 addBotMessage('Is there anything else I can help you with today? 😊', [
-                  { label: '📅 Schedule Another Appointment', value: 'appointment' },
-                  { label: '💊 Request Prescription', value: 'prescription' },
-                  { label: '📋 Request Medical Certificate', value: 'medicalRecord' },
+                  { label: '📅 Book an Appointment', value: 'appointment' },
+                  { label: '💊 Request Prescription Refill', value: 'prescription' },
+                  { label: '📋 Get Medical Certificate', value: 'medicalRecord' },
                   { label: '👋 No, thank you!', value: 'end' }
                 ]);
                 setChatStep(1);
@@ -2056,10 +2086,10 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           
           setTimeout(() => {
           addBotMessage( 'Appointment cancelled. Is there anything else I can help you with?', [
-              { label: 'Schedule an Appointment', value: 'appointment' },
-              { label: 'Request E-Prescription', value: 'prescription' },
-              { label: 'Request Medical Records', value: 'medicalRecord' },
-              { label: 'No, Thank You', value: 'end' }
+              { label: '📅 Book an Appointment', value: 'appointment' },
+              { label: '💊 Request Prescription Refill', value: 'prescription' },
+              { label: '📋 Get Medical Certificate', value: 'medicalRecord' },
+              { label: '👋 No, thank you!', value: 'end' }
             ]);
             setChatStep(1);
             setIsInputDisabled(false); // Re-enable input for new service selection
@@ -2087,9 +2117,9 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         
         setTimeout(() => {
        addBotMessage( 'Medical record request cancelled. Is there anything else I can help you with?', [
-            { label: 'Schedule an Appointment', value: 'appointment' },
-            { label: 'Request E-Prescription', value: 'prescription' },
-            { label: 'No, Thank You', value: 'end' }
+            { label: '📅 Book an Appointment', value: 'appointment' },
+            { label: '💊 Request Prescription Refill', value: 'prescription' },
+            { label: '👋 No, thank you!', value: 'end' }
           ]);
           setChatStep(1);
           resetForms();
@@ -2126,9 +2156,9 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         
         setTimeout(() => {
         addBotMessage( 'Prescription request cancelled. Is there anything else I can help you with?', [
-            { label: 'Schedule an Appointment', value: 'appointment' },
-            { label: 'Request Medical Records', value: 'medicalRecord' },
-            { label: 'No, Thank You', value: 'end' }
+            { label: '📅 Book an Appointment', value: 'appointment' },
+            { label: '📋 Get Medical Certificate', value: 'medicalRecord' },
+            { label: '👋 No, thank you!', value: 'end' }
           ]);
           setChatStep(1);
           resetForms();
@@ -2176,7 +2206,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         addMessage('user', 'I have a specific date in mind');
         
         // Show loading message while fetching available dates
-        addBotMessage('Excellent! Let me find available dates for you... ⏳');
+        addBotMessage('Excellent! Let me find available dates and times for you... ⏳');
         
         getAvailableDates().then(availableDates => {
           setTimeout(() => {
@@ -2191,23 +2221,31 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
               return;
             }
             
+            // Use the new combined datetime picker
+            // Create a wrapper function that binds the doctor ID
+            const getTimeSlotsForSelectedDate = (date: Date) => 
+              getAvailableTimeSlotsForDoctor(appointmentForm.doctorId, date);
+
             addBotMessage( 
-              'Here are the available dates! 📅 Please choose one that works for you:', 
+              'Please select your preferred appointment date and time 📅 ⏰:', 
               undefined, // options
-              true, // dateSelector
+              false, // dateSelector
               false, // timeSelector
               undefined, // times
               false, // fileUpload
               undefined, // fileUploadLabel
               undefined, // fileUploadAccept
-              'date', // messageType
+              'datetime-picker', // messageType
               undefined, // formFields
               availableDates, // availableDates
               undefined, // selectedDate
-              undefined // selectedTime
+              undefined, // selectedTime
+              1000, // typingDuration
+              true, // dateTimePicker
+              getTimeSlotsForSelectedDate // getTimeSlotsForDate function
             );
             setChatStep(4);
-            setIsInputDisabled(true); // Disable input when showing dates
+            setIsInputDisabled(true); // Disable input when showing datetime picker
           }, 500);
         });
       }
@@ -2221,23 +2259,30 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         
         getAvailableDatesForDoctor(value).then(availableDates => {
           setTimeout(() => {
-           addBotMessage(
-              `Dr. ${selectedDoctor.first_name} ${selectedDoctor.last_name} is available on the following dates:`, 
+            // Create a wrapper function that binds the doctor ID
+            const getTimeSlotsForSelectedDate = (date: Date) => 
+              getAvailableTimeSlotsForDoctor(value, date);
+
+            addBotMessage(
+              `Please select your preferred appointment date and time 📅 ⏰`,
               undefined, // options
-              true, // dateSelector
+              false, // dateSelector
               false, // timeSelector
               undefined, // times
               false, // fileUpload
               undefined, // fileUploadLabel
               undefined, // fileUploadAccept
-              'date', // messageType
+              'datetime-picker', // messageType
               undefined, // formFields
               availableDates, // availableDates
               undefined, // selectedDate
-              undefined // selectedTime
+              undefined, // selectedTime
+              1000, // typingDuration
+              true, // dateTimePicker
+              getTimeSlotsForSelectedDate // getTimeSlotsForDate function
             );
             setChatStep(4);
-            setIsInputDisabled(true); // Disable input when showing dates
+            setIsInputDisabled(true); // Disable input when showing date-time picker
           }, 500);
         });
       }
@@ -3018,10 +3063,10 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         
         setTimeout(() => {
           addBotMessage('Is there anything else I can help you with?', [
-            { label: 'Schedule an Appointment', value: 'appointment' },
-            { label: 'Request E-Prescription', value: 'prescription' },
-            { label: 'Request Another Medical Certificate', value: 'medicalRecord' },
-            { label: 'No, Thank You', value: 'end' }
+            { label: '📅 Book an Appointment', value: 'appointment' },
+            { label: '💊 Request Prescription Refill', value: 'prescription' },
+            { label: '📋 Get Medical Certificate', value: 'medicalRecord' },
+            { label: '👋 No, thank you!', value: 'end' }
           ]);
           setChatStep(1);
           setIsInputDisabled(false); // Re-enable input for new service selection
@@ -3106,10 +3151,10 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         
         setTimeout(() => {
           addBotMessage('Is there anything else I can help you with?', [
-            { label: 'Schedule an Appointment', value: 'appointment' },
-            { label: 'Request Prescription Refill', value: 'prescription' },
-            { label: 'Request Medical Certificate', value: 'medicalRecord' },
-            { label: 'No, Thank You', value: 'end' }
+            { label: '📅 Book an Appointment', value: 'appointment' },
+            { label: '💊 Request Prescription Refill', value: 'prescription' },
+            { label: '📋 Get Medical Certificate', value: 'medicalRecord' },
+            { label: '👋 No, thank you!', value: 'end' }
           ]);
           setChatStep(1);
           setIsInputDisabled(false); // Re-enable input for new service selection
@@ -3613,6 +3658,39 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         }
       }, 500);
     }
+  };
+
+  // New handler for combined date-time selection
+  const handleDateTimeSelect = (date: Date, time: string) => {
+    setAppointmentForm(prev => ({ ...prev, date, time }));
+    addMessage('user', `I want an appointment on ${date.toLocaleDateString()} at ${time}`);
+    
+    // Update the datetime picker message to show selection is disabled
+    setMessages(prevMessages => 
+      prevMessages.map(msg => 
+        msg.dateTimePicker && msg.messageKey
+          ? {
+              ...msg,
+              selectedDate: date,
+              selectedTime: time,
+              dateTimePicker: false // Disable the picker after selection
+            }
+          : msg
+      )
+    );
+
+    // Move to next step in appointment flow
+    setTimeout(() => {
+      addBotMessage(`Excellent! 🎉 I have you down for ${date.toLocaleDateString()} at ${time}. Now, what type of appointment do you need?`, [
+        { label: 'Routine Check-up', value: 'Routine Check-up' },
+        { label: 'Follow-up', value: 'Follow-up' },
+        { label: 'Consultation', value: 'Consultation' },
+        { label: 'Urgent Care', value: 'Urgent Care' },
+        { label: 'Physical Exam', value: 'Physical Exam' },
+        { label: 'Vaccination', value: 'Vaccination' }
+      ]);
+      setChatStep(6);
+    }, 500);
   };
 
   const startChat = () => {
@@ -4238,6 +4316,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     handleSendMessage,
     handleOptionSelect,
     handleDateSelect,
+    handleDateTimeSelect,
     handleFileUpload,
     handleFormSubmit,
     startChat,

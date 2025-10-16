@@ -37,17 +37,20 @@ export const DatePopover = ({
         <PopoverTrigger asChild>
           <Button 
             variant="outline" 
-            className={`w-full justify-start text-left font-normal bg-white ${
+            className={`w-full justify-start text-left font-normal bg-white min-w-0 ${
               disabled ? 'opacity-50 cursor-not-allowed' : ''
             }`}
             disabled={disabled}
+            title={selectedDate ? selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : "Select a date"}
           >
-            <Calendar className="mr-2 h-4 w-4" />
-            {selectedDate ? formatDate(selectedDate) : "Select a date"}
+            <Calendar className="mr-2 h-4 w-4 flex-shrink-0" />
+            <span className="truncate">
+              {selectedDate ? formatDate(selectedDate) : "Select a date"}
+            </span>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-2" align="start" side="top">
-          <div className="flex flex-col gap-2 max-h-60 overflow-y-auto">
+        <PopoverContent className="w-64 max-w-[90vw] p-2" align="start" side="top">
+          <div className="flex flex-col gap-2 max-h-60 overflow-y-auto min-w-0">
             <div className="text-sm font-medium text-gray-700 px-2 py-1 border-b">
               Available Dates
             </div>
@@ -60,13 +63,14 @@ export const DatePopover = ({
                 <Button
                   key={date.toISOString()}
                   variant={selectedDate?.toDateString() === date.toDateString() ? "default" : "ghost"}
-                  className="justify-start text-left h-auto p-2"
+                  className="justify-start text-left h-auto p-2 min-w-0"
                   onClick={() => handleDateSelect(date)}
+                  title={date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 >
-                  <CalendarDays className="mr-2 h-4 w-4" />
-                  <div>
-                    <div className="font-medium">{formatDate(date)}</div>
-                    <div className="text-xs text-gray-500">
+                  <CalendarDays className="mr-2 h-4 w-4 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium truncate">{formatDate(date)}</div>
+                    <div className="text-xs text-gray-500 truncate">
                       {date.toLocaleDateString('en-US', { year: 'numeric' })}
                     </div>
                   </div>

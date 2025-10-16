@@ -1,5 +1,6 @@
 import { DatePopover } from './DatePopover';
 import { DateSelector } from './DateSelector';
+import DateTimePicker from './DateTimePicker';
 import { FileUpload } from './FileUpload';
 import { MessageOptions } from './MessageOptions';
 import { MessageSender } from './MessageSender';
@@ -13,6 +14,7 @@ interface ChatMessageProps {
   appointmentForm: AppointmentForm;
   onOptionSelect: (value: string, messageKey?: string) => void;
   onDateSelect: (date: Date | undefined) => void;
+  onDateTimeSelect?: (date: Date, time: string) => void;
   onFileUpload?: (file: File) => void;
 }
 
@@ -21,6 +23,7 @@ export const ChatMessage = ({
   appointmentForm,
   onOptionSelect,
   onDateSelect,
+  onDateTimeSelect,
   onFileUpload
 }: ChatMessageProps) => {
   const isUserMessage = message.sender === 'user';
@@ -42,7 +45,7 @@ export const ChatMessage = ({
       key={message.id} 
       className={`mb-4 flex ${isUserMessage ? 'justify-end' : 'justify-start'}`}
     >
-      <div className={`max-w-[80%] ${isUserMessage ? 'bg-[#79c942] text-white' : 'bg-gray-100'} rounded-lg p-3`}>
+      <div className={`${message.type === 'datetime-picker' ? 'max-w-[95%] w-full' : 'max-w-[80%]'} ${isUserMessage ? 'bg-[#79c942] text-white' : 'bg-gray-100'} rounded-lg p-3`}>
         {message.sender === 'bot' && (
           <MessageSender name="MedySync" />
         )}
@@ -55,6 +58,15 @@ export const ChatMessage = ({
             onOptionSelect={onOptionSelect}
             isDarkBackground={isUserMessage}
             messageKey={message.messageKey}
+          />
+        )}
+
+        {message.type === 'datetime-picker' && onDateTimeSelect && message.availableDates && message.getTimeSlotsForDate && (
+          <DateTimePicker 
+            availableDates={message.availableDates}
+            selectedDate={appointmentForm.date}
+            getTimeSlotsForDate={message.getTimeSlotsForDate}
+            onDateTimeSelect={onDateTimeSelect}
           />
         )}
         

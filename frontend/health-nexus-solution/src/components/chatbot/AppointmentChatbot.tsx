@@ -19,6 +19,7 @@ export const AppointmentChatbot = ({ onClose }: AppointmentChatbotProps) => {
     handleSendMessage,
     handleOptionSelect,
     handleDateSelect,
+    handleDateTimeSelect,
     handleFileUpload,
     handleFormSubmit,
     startChat,
@@ -38,6 +39,7 @@ export const AppointmentChatbot = ({ onClose }: AppointmentChatbotProps) => {
             appointmentForm={appointmentForm}
             onOptionSelect={handleOptionSelect}
             onDateSelect={handleDateSelect}
+            onDateTimeSelect={handleDateTimeSelect}
             onFileUpload={handleFileUpload}
             onFormSubmit={handleFormSubmit}
           />

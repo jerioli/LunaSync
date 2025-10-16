@@ -8,6 +8,7 @@ interface ChatMessagesContainerProps {
   appointmentForm: AppointmentForm;
   onOptionSelect: (value: string, messageKey?: string) => void;
   onDateSelect: (date: Date | undefined) => void;
+  onDateTimeSelect?: (date: Date, time: string) => void;
   onFileUpload?: (file: File) => void;
   onFormSubmit?: (formData: Record<string, string>) => void;
 }
@@ -17,6 +18,7 @@ export const ChatMessagesContainer = ({
   appointmentForm,
   onOptionSelect,
   onDateSelect,
+  onDateTimeSelect,
   onFileUpload,
   onFormSubmit
 }: ChatMessagesContainerProps) => {
@@ -27,7 +29,7 @@ export const ChatMessagesContainer = ({
   }, [messages]);
 
   return (
-    <div className="h-96 overflow-y-auto p-4">
+    <div className="h-96 overflow-y-auto p-4" style={{ overflowX: 'visible' }}>
       {messages.map((message) => (
         <div key={message.id}>
           <ChatMessage 
@@ -35,6 +37,7 @@ export const ChatMessagesContainer = ({
             appointmentForm={appointmentForm}
             onOptionSelect={onOptionSelect}
             onDateSelect={onDateSelect}
+            onDateTimeSelect={onDateTimeSelect}
             onFileUpload={onFileUpload}
           />
           {message.type === 'form' && message.formFields && onFormSubmit && (

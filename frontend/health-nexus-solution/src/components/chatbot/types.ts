@@ -15,15 +15,17 @@ export type MessageType = {
   id: string;
   sender: 'user' | 'bot';
   text: string;
-  type?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form' | 'typing';
+  type?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form' | 'typing' | 'datetime-picker';
   options?: { value: string; label: string; disabled?: boolean }[];
   dateSelector?: boolean;
   timeSelector?: boolean;
+  dateTimePicker?: boolean; // New combined date-time picker
   times?: string[];
   timesDisabled?: boolean; // To disable time slots after selection
   availableDates?: Date[]; // For popover date selector
   selectedDate?: Date; // For popover date selector
   selectedTime?: string; // For popover time selector
+  getTimeSlotsForDate?: (date: Date) => Promise<string[]>; // Function to get time slots for a date
   fileUpload?: boolean;
   fileUploadLabel?: string;
   fileUploadAccept?: string;
