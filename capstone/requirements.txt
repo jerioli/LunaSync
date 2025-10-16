@@ -1,0 +1,21 @@
+# LunaSync Requirements
+# Core Django and dependencies
+Django>=4.2.0
+djangorestframework
+django-cors-headers
+cryptography
+Pillow
+python-decouple
+requests
+
+# Production-specific packages
+gunicorn==21.2.0
+psycopg2-binary==2.9.7
+whitenoise==6.5.0
+dj-database-url==2.1.0
+
+# Optional production monitoring
+sentry-sdk==1.32.0
+
+# Development dependencies (uncomment for dev)
+# django-debug-toolbar

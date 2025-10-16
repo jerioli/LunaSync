@@ -22,6 +22,10 @@ ssl._create_default_https_context = ssl._create_unverified_context
 # Load environment variables from .env file
 load_dotenv(os.path.join(Path(__file__).resolve().parent.parent, '.env'))
 
+# Environment detection
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
+PRODUCTION = os.environ.get('PRODUCTION', 'False').lower() == 'true'
+
 # Encryption key for AES-256 (must be 32 bytes, base64-encoded)
 ENCRYPTION_KEY = os.environ.get('ENCRYPTION_KEY', None)
 
@@ -33,35 +37,52 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-(7t38w67gl69j@dltx41uxo#zfm)k6j4km_qkt#2r@)!g6h0m)'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-(7t38w67gl69j@dltx41uxo#zfm)k6j4km_qkt#2r@)!g6h0m)')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+if PRODUCTION:
+    DEBUG = False  # Always False in production
+else:
+    DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'  # Environment-controlled in development
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
+# Dynamic allowed hosts based on environment
+if PRODUCTION:
+    ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else ['*']
+else:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
-# Security Settings
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+# Security Settings - Environment dependent
+if PRODUCTION:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Strict'
+    CSRF_COOKIE_SAMESITE = 'Strict'
+else:
+    # Development settings
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_HTTPONLY = False
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    CSRF_COOKIE_SAMESITE = 'Lax'
 
 # Session Security
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Store sessions in database
-SESSION_COOKIE_HTTPONLY = False  # Allow JS access for development
 SESSION_COOKIE_AGE = 1800  # 30 minutes
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_DOMAIN = None     # Allow for localhost development
 SESSION_SAVE_EVERY_REQUEST = True  # Update session on every request
-
-
-# For cross-origin cookies (required for frontend/backend on different ports)
-SESSION_COOKIE_SECURE = False  # Allow cookies over HTTP for local development
-CSRF_COOKIE_SECURE = False     # Allow cookies over HTTP for local development
-SECURE_SSL_REDIRECT = False   # Set to True in production
-
-# Use 'Lax' for SAMESITE for local dev, more reliable for localhost cross-origin with credentials
-SESSION_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_NAME = 'sessionid'  # Default session cookie name
 CSRF_COOKIE_NAME = 'csrftoken'     # Default CSRF cookie name
 
@@ -100,31 +121,42 @@ INSTALLED_APPS = [
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = False  # More secure than True
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8080",  # React dev server
-    "http://localhost:8081",  # React dev server alternative port
-    "http://localhost:3000",  # React dev server alternative port
-    "http://localhost:5173",  # Vite dev server default port
-    "http://localhost:4173",  # Vite preview port
-    "http://127.0.0.1:8080",  # React dev server (IP form)
-    "http://127.0.0.1:8081",  # React dev server alternative port (IP form)
-]
+# Environment-dependent CORS settings
+if PRODUCTION:
+    # Production CORS - more restrictive
+    CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',') if os.environ.get('CORS_ALLOWED_ORIGINS') else []
+    CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if os.environ.get('CSRF_TRUSTED_ORIGINS') else []
+    CSRF_USE_SESSIONS = True
+    CSRF_CHECK_DISABLED = False
+else:
+    # Development CORS - more permissive
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:8080",  # React dev server
+        "http://localhost:8081",  # React dev server alternative port
+        "http://localhost:3000",  # React dev server alternative port
+        "http://localhost:5173",  # Vite dev server default port
+        "http://localhost:4173",  # Vite preview port
+        "http://127.0.0.1:8080",  # React dev server (IP form)
+        "http://127.0.0.1:8081",  # React dev server alternative port (IP form)
+        "http://127.0.0.1:5173",  # Vite dev server (IP form)
+        "http://127.0.0.1:4173",  # Vite preview port (IP form)
+    ]
 
-# CSRF Trusted Origins for development
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:8080",  # React dev server
-    "http://localhost:8081",  # React dev server alternative port
-    "http://localhost:3000",  # React dev server alternative port
-    "http://localhost:5173",  # Vite dev server default port
-    "http://localhost:4173",  # Vite preview port
-    "http://127.0.0.1:8080",  # React dev server (IP form)
-    "http://127.0.0.1:8081",  # React dev server alternative port (IP form)
-]
-
-
-
-CSRF_USE_SESSIONS = False
-CSRF_CHECK_DISABLED = True
+    # CSRF Trusted Origins for development
+    CSRF_TRUSTED_ORIGINS = [
+        "http://localhost:8080",  # React dev server
+        "http://localhost:8081",  # React dev server alternative port
+        "http://localhost:3000",  # React dev server alternative port
+        "http://localhost:5173",  # Vite dev server default port
+        "http://localhost:4173",  # Vite preview port
+        "http://127.0.0.1:8080",  # React dev server (IP form)
+        "http://127.0.0.1:8081",  # React dev server alternative port (IP form)
+        "http://127.0.0.1:5173",  # Vite dev server (IP form)
+        "http://127.0.0.1:4173",  # Vite preview port (IP form)
+    ]
+    
+    CSRF_USE_SESSIONS = False
+    CSRF_CHECK_DISABLED = True
 
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -192,23 +224,47 @@ TEMPLATES = [
 WSGI_APPLICATION = 'capstone.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME':'medsync',
-        'USER':'postgres',
-        'PASSWORD':'admin',
-        'HOST':'127.0.0.1',
-        'PORT':'5432',
-        'OPTIONS': {
-            'sslmode': 'require',  # Enable SSL for database connections
-            'connect_timeout': 60,
-        },
+# Database configuration - Environment dependent
+if PRODUCTION and os.environ.get('DATABASE_URL'):
+    try:
+        import dj_database_url
+        DATABASES = {
+            'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
+        }
+    except ImportError:
+        # If dj_database_url is not installed, parse manually
+        import urllib.parse as urlparse
+        url = urlparse.urlparse(os.environ.get('DATABASE_URL'))
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': url.path[1:],
+                'USER': url.username,
+                'PASSWORD': url.password,
+                'HOST': url.hostname,
+                'PORT': url.port,
+                'OPTIONS': {
+                    'sslmode': 'require',  # Enable SSL for database connections
+                    'connect_timeout': 60,
+                },
+            }
+        }
+else:
+    # Development database configuration
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME':'medsync',
+            'USER':'postgres',
+            'PASSWORD':'admin',
+            'HOST':'127.0.0.1',
+            'PORT':'5432',
+            'OPTIONS': {
+                'sslmode': 'require',  # Enable SSL for database connections
+                'connect_timeout': 60,
+            },
+        }
     }
-}
 
 # Cache configuration for OTP storage
 CACHES = {
@@ -319,5 +375,30 @@ TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER', '')  # Your Twilio phone 
 OTP_LENGTH = 6
 OTP_EXPIRY_MINUTES = 5
 OTP_MAX_ATTEMPTS = 3
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/4.2/howto/static-files/
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+# Media files (user uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Static files configuration for production
+if PRODUCTION:
+    # Use WhiteNoise for serving static files in production
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 

@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { ENV } from '../config/env';
 
-// Use direct URL to ensure session cookies are handled properly
-const API_BASE_URL = 'http://localhost:8000/api';
+// Use environment-aware API URL
+const API_BASE_URL = ENV.API_URL;
 
 // Create axios instance with credentials for session authentication
 const axiosInstance = axios.create({
@@ -10,6 +11,7 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: ENV.IS_PRODUCTION ? 30000 : 10000, // 30s timeout in production, 10s in dev
 });
 
 // Add request interceptor to include session ID for development
@@ -20,9 +22,38 @@ axiosInstance.interceptors.request.use(
     if (sessionId) {
       config.headers['X-Session-ID'] = sessionId;
     }
+    
+    // Add environment info for debugging
+    if (ENV.IS_DEVELOPMENT) {
+      console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    }
+    
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for error handling
+axiosInstance.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (ENV.IS_DEVELOPMENT) {
+      console.error('API Error:', error.response?.status, error.response?.data);
+    }
+    
+    // Handle common errors
+    if (error.response?.status === 401) {
+      // Unauthorized - redirect to login
+      localStorage.removeItem('sessionId');
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+    }
+    
     return Promise.reject(error);
   }
 );

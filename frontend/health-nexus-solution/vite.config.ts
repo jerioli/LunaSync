@@ -16,6 +16,25 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: mode === 'development',
+    minify: mode === 'production' ? 'esbuild' : false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-popover', '@radix-ui/react-select'],
+          utils: ['axios', 'date-fns', 'lucide-react']
+        }
+      }
+    }
+  },
+  preview: {
+    port: 4173,
+    host: "::",
+  },
   plugins: [
     react(),
     mode === 'development' &&
@@ -25,5 +44,8 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  define: {
+    __DEV__: mode === 'development',
   },
 }));

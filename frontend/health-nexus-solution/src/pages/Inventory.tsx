@@ -185,13 +185,6 @@ const Inventory = () => {
     }
   };
 
-  useEffect(() => {
-    if (canManageMedicines) {
-      fetchMedicineRecords();
-      fetchTransactions();
-    }
-  }, [canManageMedicines]);
-
   // Form validation
   const validateForm = () => {
     const errors: string[] = [];

@@ -518,9 +518,12 @@ class MedicineRecordListCreateView(APIView):
                 AuditLogger.log_action(
                     user=request.user,
                     action='CREATE',
-                    model_name='MedicineRecord',
-                    object_id=medicine.id,
-                    changes={'created': serializer.data}
+                    resource_type='MEDICINE_RECORD',
+                    resource_id=medicine.id,
+                    resource_name=medicine.name,
+                    description=f'Created medicine record: {medicine.name}',
+                    details={'created_data': serializer.data},
+                    request=request
                 )
                 
                 return Response({
@@ -610,12 +613,13 @@ class MedicineRecordDetailView(APIView):
                 AuditLogger.log_action(
                     user=request.user,
                     action='UPDATE',
-                    model_name='MedicineRecord',
-                    object_id=medicine.id,
-                    changes={
-                        'old': old_data,
-                        'new': serializer.data
-                    }
+                    resource_type='MEDICINE_RECORD',
+                    resource_id=medicine.id,
+                    resource_name=medicine.name,
+                    description=f'Updated medicine record: {medicine.name}',
+                    old_values=old_data,
+                    new_values=serializer.data,
+                    request=request
                 )
                 
                 return Response({
@@ -660,9 +664,12 @@ class MedicineRecordDetailView(APIView):
             AuditLogger.log_action(
                 user=request.user,
                 action='DELETE',
-                model_name='MedicineRecord',
-                object_id=medicine.id,
-                changes={'deleted': old_data}
+                resource_type='MEDICINE_RECORD',
+                resource_id=medicine.id,
+                resource_name=medicine.name,
+                description=f'Deleted medicine record: {medicine.name}',
+                details={'deleted_data': old_data},
+                request=request
             )
             
             return Response({

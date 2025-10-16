@@ -8,6 +8,7 @@ import json
 import logging
 import traceback
 from django.utils import timezone
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -144,9 +145,10 @@ class AppointmentSerializer(serializers.ModelSerializer):
     def validate(self, data):
         try:
             # Debug logging - first thing in validate method
-            print(f"=== VALIDATE METHOD CALLED ===")
-            print(f"Raw data received: {data}")
-            print(f"Data keys: {list(data.keys()) if data else 'None'}")
+            if settings.DEBUG:
+                print(f"=== VALIDATE METHOD CALLED ===")
+                print(f"Raw data received: {data}")
+                print(f"Data keys: {list(data.keys()) if data else 'None'}")
             logger.info(f"Validation data received: {data}")
             
             # Check if we have either a patient object or the necessary data to create one
@@ -160,9 +162,8 @@ class AppointmentSerializer(serializers.ModelSerializer):
             has_last_name = data.get('lastName') and data.get('lastName').strip()
             has_patient_name = data.get('patient_name') and data.get('patient_name').strip()
             
-
-            
-            logger.info(f"Validation checks: has_patient={has_patient}, has_patient_id={has_patient_id}, has_email={has_email}, has_phone={has_phone}, has_first_name={has_first_name}, has_last_name={has_last_name}, has_patient_name={has_patient_name}")
+            if settings.DEBUG:
+                logger.info(f"Validation checks: has_patient={has_patient}, has_patient_id={has_patient_id}, has_email={has_email}, has_phone={has_phone}, has_first_name={has_first_name}, has_last_name={has_last_name}, has_patient_name={has_patient_name}")
             
             # We need either a patient object OR patient_id OR (email + phone + some form of name)
             if not has_patient and not has_patient_id and not (has_email and has_phone and (has_first_name or has_last_name or has_patient_name)):
