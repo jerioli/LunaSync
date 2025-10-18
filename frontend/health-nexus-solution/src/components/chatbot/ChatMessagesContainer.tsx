@@ -9,9 +9,12 @@ interface ChatMessagesContainerProps {
   onOptionSelect: (value: string, messageKey?: string) => void;
   onDateSelect: (date: Date | undefined) => void;
   onDateTimeSelect?: (date: Date, time: string) => void;
+  onDateOnlySelect?: (date: Date) => void; // For separate date picker
+  onTimeOnlySelect?: (time: string) => void; // For separate time picker
   onFileUpload?: (file: File) => void;
   onFormSubmit?: (formData: Record<string, string>) => void;
   onFormCancel?: () => void;
+  onBackToMainMenu?: () => void; // For FAQ accordion
 }
 
 export const ChatMessagesContainer = ({
@@ -20,9 +23,12 @@ export const ChatMessagesContainer = ({
   onOptionSelect,
   onDateSelect,
   onDateTimeSelect,
+  onDateOnlySelect,
+  onTimeOnlySelect,
   onFileUpload,
   onFormSubmit,
-  onFormCancel
+  onFormCancel,
+  onBackToMainMenu
 }: ChatMessagesContainerProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -40,7 +46,10 @@ export const ChatMessagesContainer = ({
             onOptionSelect={onOptionSelect}
             onDateSelect={onDateSelect}
             onDateTimeSelect={onDateTimeSelect}
+            onDateOnlySelect={onDateOnlySelect}
+            onTimeOnlySelect={onTimeOnlySelect}
             onFileUpload={onFileUpload}
+            onBackToMainMenu={onBackToMainMenu}
           />
           {message.type === 'form' && message.formFields && onFormSubmit && (
             <ChatForm 

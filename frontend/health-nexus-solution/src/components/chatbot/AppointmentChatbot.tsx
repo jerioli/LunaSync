@@ -20,9 +20,12 @@ export const AppointmentChatbot = ({ onClose }: AppointmentChatbotProps) => {
     handleOptionSelect,
     handleDateSelect,
     handleDateTimeSelect,
+    handleDateOnlySelect,
+    handleTimeOnlySelect,
     handleFileUpload,
     handleFormSubmit,
     handleFormCancel,
+    handleBackToMainMenu,
     startChat,
     isInputDisabled
   } = useChatbotLogic();
@@ -41,9 +44,12 @@ export const AppointmentChatbot = ({ onClose }: AppointmentChatbotProps) => {
             onOptionSelect={handleOptionSelect}
             onDateSelect={handleDateSelect}
             onDateTimeSelect={handleDateTimeSelect}
+            onDateOnlySelect={handleDateOnlySelect}
+            onTimeOnlySelect={handleTimeOnlySelect}
             onFileUpload={handleFileUpload}
             onFormSubmit={handleFormSubmit}
             onFormCancel={handleFormCancel}
+            onBackToMainMenu={handleBackToMainMenu}
           />
         )}
       </CardContent>

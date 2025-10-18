@@ -16,7 +16,10 @@ interface ChatMessageProps {
   onOptionSelect: (value: string, messageKey?: string) => void;
   onDateSelect: (date: Date | undefined) => void;
   onDateTimeSelect?: (date: Date, time: string) => void;
+  onDateOnlySelect?: (date: Date) => void; // For separate date picker
+  onTimeOnlySelect?: (time: string) => void; // For separate time picker
   onFileUpload?: (file: File) => void;
+  onBackToMainMenu?: () => void; // For FAQ accordion
 }
 
 export const ChatMessage = ({ 
@@ -25,7 +28,10 @@ export const ChatMessage = ({
   onOptionSelect,
   onDateSelect,
   onDateTimeSelect,
-  onFileUpload
+  onDateOnlySelect,
+  onTimeOnlySelect,
+  onFileUpload,
+  onBackToMainMenu
 }: ChatMessageProps) => {
   const isUserMessage = message.sender === 'user';
   
@@ -48,7 +54,7 @@ export const ChatMessage = ({
     >
       <div className={`${message.type === 'datetime-picker' ? 'max-w-[95%] w-full' : 'max-w-[80%]'} ${isUserMessage ? 'bg-[#79c942] text-white' : 'bg-gray-100'} rounded-lg p-3`}>
         {message.sender === 'bot' && (
-          <MessageSender name="MedySync" />
+          <MessageSender name="Luna" />
         )}
         
         <div className="whitespace-pre-line">{message.text}</div>
@@ -62,14 +68,19 @@ export const ChatMessage = ({
           />
         )}
 
-        {message.type === 'datetime-picker' && onDateTimeSelect && message.availableDates && message.getTimeSlotsForDate && (
+        {message.type === 'datetime-picker' && message.availableDates && message.getTimeSlotsForDate && (
           <DateTimePicker 
             availableDates={message.availableDates}
             selectedDate={appointmentForm.date}
             getTimeSlotsForDate={message.getTimeSlotsForDate}
             onDateTimeSelect={onDateTimeSelect}
+            onDateOnlySelect={onDateOnlySelect}
+            dateOnlyMode={message.dateOnlyMode || false}
+            timeOnlyMode={message.timeOnlyMode || false}
           />
         )}
+
+
         
         {message.dateSelector && (
           message.availableDates ? (
@@ -104,18 +115,18 @@ export const ChatMessage = ({
           )
         )}
 
+        {message.type === 'faq-accordion' && message.faqs && onBackToMainMenu && (
+          <FAQAccordion 
+            faqs={message.faqs}
+            onBackToMainMenu={onBackToMainMenu}
+          />
+        )}
+
         {message.fileUpload && onFileUpload && (
           <FileUpload 
             onFileUpload={onFileUpload} 
             label={message.fileUploadLabel || "Upload File"} 
             accept={message.fileUploadAccept}
-          />
-        )}
-
-        {message.type === 'faq-accordion' && message.faqs && (
-          <FAQAccordion 
-            faqs={message.faqs} 
-            onBackToMainMenu={() => onOptionSelect('main')} 
           />
         )}
       </div>

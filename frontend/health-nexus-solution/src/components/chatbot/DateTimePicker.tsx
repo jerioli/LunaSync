@@ -13,19 +13,25 @@ interface TimeSlot {
 interface DateTimePickerProps {
   availableDates: Date[];
   onDateTimeSelect: (date: Date, time: string) => void;
+  onDateOnlySelect?: (date: Date) => void; // New prop for date-only selection
   selectedDate?: Date;
   selectedTime?: string;
   getTimeSlotsForDate: (date: Date) => Promise<string[]>;
   disabled?: boolean;
+  dateOnlyMode?: boolean; // New prop to enable date-only mode
+  timeOnlyMode?: boolean; // New prop to enable time-only mode (date is locked)
 }
 
 const DateTimePicker: React.FC<DateTimePickerProps> = ({
   availableDates,
   onDateTimeSelect,
+  onDateOnlySelect,
   selectedDate,
   selectedTime,
   getTimeSlotsForDate,
-  disabled = false
+  disabled = false,
+  dateOnlyMode = false,
+  timeOnlyMode = false
 }) => {
   const [currentSelectedDate, setCurrentSelectedDate] = useState<Date | undefined>(selectedDate);
   const [currentSelectedTime, setCurrentSelectedTime] = useState<string | undefined>(selectedTime);
@@ -59,11 +65,12 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
     return slots;
   };
 
-  // Load time slots when date is selected
+  // Load time slots when date is selected (or in time-only mode with pre-selected date)
   useEffect(() => {
-    if (currentSelectedDate) {
+    const dateToUse = currentSelectedDate || (timeOnlyMode && selectedDate ? selectedDate : null);
+    if (dateToUse) {
       setLoadingTimeSlots(true);
-      getTimeSlotsForDate(currentSelectedDate)
+      getTimeSlotsForDate(dateToUse)
         .then((slots) => {
           if (slots && slots.length > 0) {
             // Create comprehensive time slots showing available and booked
@@ -95,14 +102,18 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
     } else {
       setTimeSlots([]);
     }
-  }, [currentSelectedDate, getTimeSlotsForDate]);
+  }, [currentSelectedDate, selectedDate, timeOnlyMode, getTimeSlotsForDate]);
 
-  // Show confirmation when both date and time are selected
+  // Show confirmation when both date and time are selected (or just date in date-only mode, or just time in time-only mode)
   useEffect(() => {
-    if (currentSelectedDate && currentSelectedTime && !showConfirmation) {
+    if (dateOnlyMode && currentSelectedDate && !showConfirmation) {
+      setShowConfirmation(true);
+    } else if (timeOnlyMode && currentSelectedTime && !showConfirmation) {
+      setShowConfirmation(true);
+    } else if (!dateOnlyMode && !timeOnlyMode && currentSelectedDate && currentSelectedTime && !showConfirmation) {
       setShowConfirmation(true);
     }
-  }, [currentSelectedDate, currentSelectedTime, showConfirmation]);
+  }, [currentSelectedDate, currentSelectedTime, showConfirmation, dateOnlyMode, timeOnlyMode]);
 
 
 
@@ -119,7 +130,12 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
   };
 
   const handleConfirm = () => {
-    if (currentSelectedDate && currentSelectedTime) {
+    if (dateOnlyMode && currentSelectedDate && onDateOnlySelect) {
+      onDateOnlySelect(currentSelectedDate);
+    } else if (timeOnlyMode && currentSelectedTime && selectedDate) {
+      // In time-only mode, use the pre-selected date with the chosen time
+      onDateTimeSelect(selectedDate, currentSelectedTime);
+    } else if (!dateOnlyMode && !timeOnlyMode && currentSelectedDate && currentSelectedTime) {
       onDateTimeSelect(currentSelectedDate, currentSelectedTime);
     }
   };
@@ -136,37 +152,47 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
       <div className="flex items-start gap-2 mb-4">
         <Calendar className="w-5 h-5 text-[#79c942] flex-shrink-0 mt-0.5" />
         <span className="font-medium text-gray-800 text-sm sm:text-base leading-tight">
-          Please select your preferred appointment date and time 📅 ⏰:
+          {dateOnlyMode ? (
+            'Please select your preferred appointment date 📅:'
+          ) : timeOnlyMode ? (
+            `Please select your preferred time slot for ${selectedDate && !isNaN(selectedDate.getTime()) ? format(selectedDate, 'MM/dd/yyyy') : 'your appointment'} ⏰:`
+          ) : (
+            'Please select your preferred appointment date and time 📅 ⏰:'
+          )}
         </span>
       </div>
 
       {/* Date and Time Selection - Side by Side */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        {/* Date Selection */}
-        <div className="relative min-w-0">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
-          <DatePopover
-            availableDates={availableDates}
-            selectedDate={currentSelectedDate}
-            onDateSelect={handleDateSelect}
-            disabled={disabled}
-          />
-        </div>
+      <div className={`grid ${(dateOnlyMode || timeOnlyMode) ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'} gap-4 mb-4`}>
+        {/* Date Selection - Only show if not in time-only mode */}
+        {!timeOnlyMode && (
+          <div className="relative min-w-0">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+            <DatePopover
+              availableDates={availableDates}
+              selectedDate={currentSelectedDate}
+              onDateSelect={handleDateSelect}
+              disabled={disabled}
+            />
+          </div>
+        )}
 
-        {/* Time Selection */}
-        <div className="relative min-w-0">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Time</label>
-          <TimePopover
-            timeSlots={timeSlots}
-            selectedTime={currentSelectedTime}
-            onTimeSelect={handleTimeSelect}
-            disabled={disabled || loadingTimeSlots || !currentSelectedDate}
-          />
-        </div>
+        {/* Time Selection - Only show if not in date-only mode */}
+        {!dateOnlyMode && (
+          <div className="relative min-w-0">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Time</label>
+            <TimePopover
+              timeSlots={timeSlots}
+              selectedTime={currentSelectedTime}
+              onTimeSelect={handleTimeSelect}
+              disabled={disabled || loadingTimeSlots || (!currentSelectedDate && !timeOnlyMode)}
+            />
+          </div>
+        )}
       </div>
 
       {/* Status message */}
-      {currentSelectedDate && timeSlots.length > 0 && (
+      {!dateOnlyMode && (currentSelectedDate || timeOnlyMode) && timeSlots.length > 0 && (
         <div className="text-xs text-gray-500 mb-4">
           {loadingTimeSlots ? (
             <div className="flex items-center gap-2">
@@ -184,17 +210,27 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
         </div>
       )}
 
-      {!currentSelectedDate && (
+      {!timeOnlyMode && !currentSelectedDate && (
         <div className="text-sm text-gray-500 mb-4">Please select a date first</div>
       )}
 
       {/* Confirmation */}
-      {showConfirmation && currentSelectedDate && currentSelectedTime && (
+      {showConfirmation && (
+        (dateOnlyMode && currentSelectedDate) || 
+        (timeOnlyMode && currentSelectedTime) || 
+        (!dateOnlyMode && !timeOnlyMode && currentSelectedDate && currentSelectedTime)
+      ) && (
         <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg min-w-0">
           <div className="flex items-start gap-2 mb-2">
             <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
             <span className="text-sm font-medium text-green-800 break-words">
-              ✅ Appointment set for {format(currentSelectedDate, 'MM/dd/yyyy')} at {currentSelectedTime}
+              {dateOnlyMode ? (
+                `✅ Date selected: ${currentSelectedDate && !isNaN(currentSelectedDate.getTime()) ? format(currentSelectedDate, 'MM/dd/yyyy') : 'Invalid date'}`
+              ) : timeOnlyMode ? (
+                `✅ Time selected: ${currentSelectedTime} on ${selectedDate && !isNaN(selectedDate.getTime()) ? format(selectedDate, 'MM/dd/yyyy') : 'Invalid date'}`
+              ) : (
+                `✅ Appointment set for ${currentSelectedDate && !isNaN(currentSelectedDate.getTime()) ? format(currentSelectedDate, 'MM/dd/yyyy') : 'Invalid date'} at ${currentSelectedTime || 'No time'}`
+              )}
             </span>
           </div>
           
@@ -204,7 +240,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
               disabled={disabled}
               className="flex-1 bg-[#79c942] text-white px-4 py-2 rounded text-sm font-medium hover:bg-[#6bb836] transition-colors min-w-0"
             >
-              Confirm Appointment
+              {dateOnlyMode ? 'Continue with Date' : timeOnlyMode ? 'Continue with Time' : 'Confirm Appointment'}
             </button>
             <button
               onClick={handleCancel}

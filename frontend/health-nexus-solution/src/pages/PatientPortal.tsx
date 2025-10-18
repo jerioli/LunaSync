@@ -1,50 +1,51 @@
 import { AppointmentChatbot } from "@/components/chatbot/AppointmentChatbot";
+import DateTimePicker from "@/components/chatbot/DateTimePicker";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
-    NavigationMenu,
-    NavigationMenuItem,
-    NavigationMenuLink,
-    NavigationMenuList,
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/services/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
+import { format } from "date-fns";
 import {
-    ArrowUp,
-    BotMessageSquare,
-    Calendar,
-    CheckCircle,
-    ChevronLeft,
-    ChevronRight,
-    Clock,
-    FileText,
-    Info,
-    Monitor,
-    Moon,
-    Pill,
-    Stethoscope,
-    Sun,
-    User,
+  ArrowUp,
+  BotMessageSquare,
+  Calendar,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Info,
+  Monitor,
+  Moon,
+  Pill,
+  Stethoscope,
+  Sun,
+  User
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -76,16 +77,18 @@ axiosInstance.interceptors.request.use(
 // Form schemas
 const patientSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
-  middleInitial: z.string().optional(),
+  middleName: z.string().min(1, "Middle name is required"),
   lastName: z.string().min(1, "Last name is required"),
   suffix: z.string().optional(),
   phone: z.string().min(10, "Contact number must be at least 10 digits"),
-  gender: z.enum(["male", "female", "prefer_not_to_say"], {
-    required_error: "Gender is required",
+  sex: z.enum(["male", "female", "prefer_not_to_say"], {
+    required_error: "Sex is required",
   }),
   email: z.string().email("Invalid email address"),
-  address: z.string().min(1, "Address is required"),
+  address: z.string().min(1, "Home address is required"),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
+  age: z.string().min(1, "Age is required"),
+  religion: z.string().min(1, "Religion is required"),
   maritalStatus: z
     .enum(["single", "married", "divorced", "widowed", "prefer_not_to_say"])
     .optional(),
@@ -199,6 +202,7 @@ const PatientPortal = () => {
   const [patients, setPatients] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const [doctors, setDoctors] = useState([]);
+  const [filteredDoctors, setFilteredDoctors] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
   const [appointmentTypes] = useState([
     "Consultation",
@@ -206,25 +210,48 @@ const PatientPortal = () => {
     "Vaccination"
   ]);
   const [selectedAppointmentType, setSelectedAppointmentType] = useState("");
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Booking preference: "doctor" or "datetime"
+  const [bookingPreference, setBookingPreference] = useState<"doctor" | "datetime" | null>(null);
+
+  // New patient terms and conditions
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [noMiddleName, setNoMiddleName] = useState(false);
+
+  // Forgot Patient ID states
+  const [showForgotPatientId, setShowForgotPatientId] = useState(false);
+  const [forgotIdForm, setForgotIdForm] = useState({
+    firstName: "",
+    middleInitial: "",
+    lastName: "",
+    suffix: "",
+    dateOfBirth: "",
+    email: "",
+    phone: ""
+  });
+  const [forgotIdSubmitting, setForgotIdSubmitting] = useState(false);
+  const [lookupResult, setLookupResult] = useState<any>(null);
 
   // Form handling
   const patientForm = useForm<PatientFormData>({
     resolver: zodResolver(patientSchema),
     defaultValues: {
       firstName: "",
-      middleInitial: "",
+      middleName: "",
       lastName: "",
       suffix: "",
       phone: "",
-      gender: "male",
+      sex: "male",
       email: "",
       address: "",
       dateOfBirth: "",
+      age: "",
+      religion: "",
       maritalStatus: "single",
     },
   });
@@ -256,6 +283,22 @@ const PatientPortal = () => {
   const [medCertNotes, setMedCertNotes] = useState("");
   const [medCertSubmitting, setMedCertSubmitting] = useState(false);
 
+  // Medical Certificate forgot Patient ID states
+  const [showMedCertForgotPatientId, setShowMedCertForgotPatientId] = useState(false);
+  const [medCertForgotIdForm, setMedCertForgotIdForm] = useState({
+    firstName: "",
+    middleInitial: "",
+    lastName: "",
+    suffix: "",
+    dateOfBirth: "",
+    email: "",
+    phone: ""
+  });
+  const [medCertForgotIdSubmitting, setMedCertForgotIdSubmitting] = useState(false);
+  
+  // Medical Certificate delivery method
+  const [medCertDeliveryMethod, setMedCertDeliveryMethod] = useState("pickup");
+
   // Prescription wizard states
   const [prescriptionStep, setPrescriptionStep] = useState(1);
   const [prescriptionIsExistingPatient, setPrescriptionIsExistingPatient] =
@@ -277,6 +320,19 @@ const PatientPortal = () => {
     string | null
   >(null);
   const [prescriptionSubmitting, setPrescriptionSubmitting] = useState(false);
+
+  // Prescription forgot Patient ID states
+  const [showPrescriptionForgotPatientId, setShowPrescriptionForgotPatientId] = useState(false);
+  const [prescriptionForgotIdForm, setPrescriptionForgotIdForm] = useState({
+    firstName: "",
+    middleInitial: "",
+    lastName: "",
+    suffix: "",
+    dateOfBirth: "",
+    email: "",
+    phone: ""
+  });
+  const [prescriptionForgotIdSubmitting, setPrescriptionForgotIdSubmitting] = useState(false);
 
   // Form handling for medical cert and prescription
   const medicalCertForm = useForm<MedicalCertFormData>({
@@ -318,9 +374,6 @@ const PatientPortal = () => {
   const twoMonthsLater = new Date(today);
   twoMonthsLater.setMonth(today.getMonth() + 2);
   const twoMonthsLaterStr = twoMonthsLater.toISOString().split("T")[0];
-
-  const availableDates = [todayStr, twoMonthsLaterStr];
-  const availableTimes = ["9:00 AM", "10:00 AM", "2:00 PM"];
 
   // Old state variables for other modals (medcert, eprescription)
   const [consent, setConsent] = useState(false);
@@ -379,6 +432,57 @@ const PatientPortal = () => {
     setEPrescriptionType("");
   };
 
+  // Function to fetch doctors available on a specific date
+  const fetchDoctorsAvailableOnDate = useCallback(async (date: Date) => {
+    try {
+      // Format date to YYYY-MM-DD without timezone conversion
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
+      
+      console.log('Fetching doctors available on date:', dateString);
+      
+      // Get all doctors first
+      const doctorsResponse = await axiosInstance.get('/users/doctors/');
+      const allDoctors = doctorsResponse.data;
+      
+      // Filter doctors who have availability on this date
+      const availableDoctors = [];
+      
+      for (const doctor of allDoctors) {
+        try {
+          const response = await api.availability.getTimeSlots(doctor.id, dateString);
+          
+          // Check if doctor has any available slots on this date
+          if (Array.isArray(response) && response.length > 0) {
+            const availability = response[0];
+            if (availability && availability.time_slots && Array.isArray(availability.time_slots)) {
+              const availableSlots = availability.time_slots.filter(slot => 
+                !slot.is_booked && slot.is_available
+              );
+              
+              if (availableSlots.length > 0) {
+                availableDoctors.push(doctor);
+              }
+            }
+          }
+        } catch (error) {
+          console.error(`Error checking availability for doctor ${doctor.id}:`, error);
+          // Continue to next doctor if there's an error
+        }
+      }
+      
+      console.log('Available doctors on', dateString, ':', availableDoctors);
+      setFilteredDoctors(availableDoctors);
+      
+    } catch (error) {
+      console.error("Error fetching doctors available on date:", error);
+      // Fallback to all doctors if there's an error
+      setFilteredDoctors(doctors);
+    }
+  }, [doctors]);
+
   // Fetch doctors
   useEffect(() => {
     const fetchDoctors = async () => {
@@ -395,6 +499,20 @@ const PatientPortal = () => {
       fetchDoctors();
     }
   }, [openModal]);
+
+  // Fetch doctors available on selected date for date-first flow
+  useEffect(() => {
+    if (bookingPreference === "datetime" && selectedDate && openModal === "appointment") {
+      fetchDoctorsAvailableOnDate(selectedDate);
+    }
+  }, [selectedDate, bookingPreference, openModal, fetchDoctorsAvailableOnDate]);
+
+  // Fetch time slots when doctor is selected in date-first flow
+  useEffect(() => {
+    if (bookingPreference === "datetime" && selectedDate && selectedDoctor && openModal === "appointment") {
+      fetchAvailableTimeSlots(selectedDoctor.id, selectedDate);
+    }
+  }, [selectedDoctor, selectedDate, bookingPreference, openModal]);
 
   // Search patients
   const searchPatients = async (query: string) => {
@@ -469,34 +587,541 @@ const PatientPortal = () => {
     }
   };
 
-  // Generate time slots
-  const generateTimeSlots = () => {
-    const slots = [];
-    for (let hour = 9; hour <= 17; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        if (hour === 17 && minute > 0) break; // Stop at 5:00 PM
-        const time = `${hour.toString().padStart(2, "0")}:${minute
-          .toString()
-          .padStart(2, "0")}`;
-        slots.push(time);
-      }
-    }
-    return slots;
-  };
-
-  // Fetch available time slots
-  const fetchAvailableTimeSlots = async (doctorId: string, date: string) => {
+  // Fetch available time slots from doctor's actual schedule
+  const fetchAvailableTimeSlots = async (doctorId: string, date: Date) => {
     try {
-      const response = await axiosInstance.get(
-        `appointments/available-slots/`,
-        {
-          params: { doctor_id: doctorId, date },
-        }
-      );
-      setAvailableTimeSlots(response.data);
+      // Format date to YYYY-MM-DD without timezone conversion (matching chatbot)
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
+      
+      console.log('Fetching time slots for doctor:', doctorId, 'on date:', dateString);
+      
+      // Use the same API as chatbot
+      const response = await api.availability.getTimeSlots(doctorId, dateString);
+      
+      console.log('Time slots API response:', response);
+      
+      // Process the response - only use doctor's actual schedule
+      if (!Array.isArray(response) || response.length === 0) {
+        console.log('No availability data found for this doctor on this date');
+        setAvailableTimeSlots([]);
+        return;
+      }
+
+      const availability = response[0];
+      if (!availability || !availability.time_slots || !Array.isArray(availability.time_slots)) {
+        console.log('Invalid time slots format or no time slots available');
+        setAvailableTimeSlots([]);
+        return;
+      }
+      
+      // Filter out booked slots and only show available ones from doctor's schedule
+      const availableSlots = availability.time_slots.filter(slot => {
+        const isBooked = Boolean(
+          slot.is_booked === true || 
+          slot.is_booked === 1 || 
+          slot.is_booked === "true" || 
+          slot.is_booked === "1" ||
+          slot.is_booked === "True" ||
+          slot.is_booked === "TRUE" ||
+          slot.is_booked === "yes" ||
+          slot.is_booked === "YES" ||
+          slot.is_booked === "Yes"
+        );
+        
+        // Also check if slot is marked as available
+        const isAvailable = Boolean(
+          slot.is_available === true ||
+          slot.is_available === 1 ||
+          slot.is_available === "true" ||
+          slot.is_available === "1" ||
+          slot.is_available === "True" ||
+          slot.is_available === "TRUE" ||
+          slot.is_available === "yes" ||
+          slot.is_available === "YES" ||
+          slot.is_available === "Yes"
+        );
+        
+        return !isBooked && isAvailable;
+      });
+     
+      // Format time slots for display (matching chatbot format)
+      const formattedAvailableSlots = availableSlots.map(slot => {
+        const [hours, minutes] = slot.start_time.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour % 12 || 12;
+        return `${displayHour}:${minutes} ${ampm}`;
+      });
+
+      console.log('Available time slots from doctor schedule:', formattedAvailableSlots);
+      setAvailableTimeSlots(formattedAvailableSlots);
     } catch (error) {
       console.error("Error fetching time slots:", error);
-      setAvailableTimeSlots(generateTimeSlots());
+      // Don't fall back to hardcoded slots - show empty array if error
+      setAvailableTimeSlots([]);
+    }
+  };
+
+  // Create a function compatible with the DateTimePicker component
+  const getTimeSlotsForDate = useCallback(async (date: Date): Promise<string[]> => {
+    if (!selectedDoctor) {
+      console.log('No doctor selected, returning empty slots');
+      return [];
+    }
+    
+    try {
+      // Format date to YYYY-MM-DD without timezone conversion (matching chatbot)
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
+      
+      console.log('Fetching time slots for:', { doctorId: selectedDoctor.id, date: dateString });
+      
+      // Use the same API as chatbot
+      const response = await api.availability.getTimeSlots(selectedDoctor.id, dateString);
+      
+      console.log('Time slots response:', response);
+      
+      // Check if response is an array and has at least one item
+      if (!Array.isArray(response) || response.length === 0) {
+        console.log('No availability data found for this doctor on this date');
+        return [];
+      }
+
+      // Get the first availability object
+      const availability = response[0];
+      
+      // Check if availability has time_slots array
+      if (!availability || !availability.time_slots || !Array.isArray(availability.time_slots)) {
+        console.log('Invalid time slots format or no time slots available');
+        return [];
+      }
+      
+      // Filter out booked slots and only show available ones from doctor's schedule
+      const availableSlots = availability.time_slots.filter(slot => {
+        const isBooked = Boolean(
+          slot.is_booked === true || 
+          slot.is_booked === 1 || 
+          slot.is_booked === "true" || 
+          slot.is_booked === "1" ||
+          slot.is_booked === "True" ||
+          slot.is_booked === "TRUE" ||
+          slot.is_booked === "yes" ||
+          slot.is_booked === "YES" ||
+          slot.is_booked === "Yes"
+        );
+        
+        // Also check if slot is marked as available
+        const isAvailable = Boolean(
+          slot.is_available === true ||
+          slot.is_available === 1 ||
+          slot.is_available === "true" ||
+          slot.is_available === "1" ||
+          slot.is_available === "True" ||
+          slot.is_available === "TRUE" ||
+          slot.is_available === "yes" ||
+          slot.is_available === "YES" ||
+          slot.is_available === "Yes"
+        );
+        
+        return !isBooked && isAvailable;
+      });
+     
+      // Format for display (matching chatbot format)
+      const formattedAvailableSlots = availableSlots.map(slot => {
+        const [hours, minutes] = slot.start_time.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour % 12 || 12;
+        return `${displayHour}:${minutes} ${ampm}`;
+      });
+
+      console.log('Available time slots from doctor schedule:', formattedAvailableSlots);
+      return formattedAvailableSlots;
+    } catch (error) {
+      console.error("Error fetching time slots:", error);
+      // Return empty array on error - no hardcoded fallback
+      return [];
+    }
+  }, [selectedDoctor?.id]);
+
+  // Generate available dates for the next 60 days
+  const availableDates = useMemo(() => {
+    const dates: Date[] = [];
+    const today = new Date();
+    
+    for (let i = 0; i < 60; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      dates.push(date);
+    }
+    
+    return dates;
+  }, []);
+
+  // Keep the function for backward compatibility
+  const generateAvailableDates = useCallback((): Date[] => {
+    return availableDates;
+  }, [availableDates]);
+
+  // Submit forgot Patient ID request (using chatbot's lookup approach)
+  const submitForgotPatientId = async () => {
+    setForgotIdSubmitting(true);
+    
+    try {
+      // Validate required fields
+      if (!forgotIdForm.firstName.trim()) {
+        toast.error("First name is required");
+        setForgotIdSubmitting(false);
+        return;
+      }
+      if (!forgotIdForm.lastName.trim()) {
+        toast.error("Last name is required");
+        setForgotIdSubmitting(false);
+        return;
+      }
+      if (!forgotIdForm.dateOfBirth) {
+        toast.error("Date of birth is required");
+        setForgotIdSubmitting(false);
+        return;
+      }
+      if (!forgotIdForm.email.trim()) {
+        toast.error("Email is required");
+        setForgotIdSubmitting(false);
+        return;
+      }
+      if (!forgotIdForm.phone.trim()) {
+        toast.error("Phone number is required");
+        setForgotIdSubmitting(false);
+        return;
+      }
+
+      // Construct full name matching chatbot's format
+      const fullName = `${forgotIdForm.firstName} ${forgotIdForm.middleInitial || ''} ${forgotIdForm.lastName} ${forgotIdForm.suffix || ''}`.trim().replace(/\s+/g, ' ');
+
+      const requestData = {
+        full_name: fullName,
+        date_of_birth: forgotIdForm.dateOfBirth,
+        email: forgotIdForm.email.toLowerCase(),
+        phone: forgotIdForm.phone,
+        first_name: forgotIdForm.firstName,
+        last_name: forgotIdForm.lastName,
+        middle_initial: forgotIdForm.middleInitial || ''
+      };
+
+      const response = await axiosInstance.post('/patients/lookup-patient/', requestData);
+
+      console.log('[DEBUG] Full response:', response);
+      console.log('[DEBUG] Response data:', JSON.stringify(response.data, null, 2));
+      console.log('[DEBUG] Response status field:', response.data.status);
+      console.log('[DEBUG] Response patient_id field:', response.data.patient_id);
+
+      // Check if we have a patient_id in the response (regardless of status field)
+      if (response.data.patient_id) {
+        // Handle both 'match' and 'exact_match' status (chatbot uses 'match')
+        if (response.data.status === 'exact_match' || response.data.status === 'match' || !response.data.status) {
+          toast.success(`Patient ID found: ${response.data.patient_id}`);
+          setSearchQuery(response.data.patient_id);
+          setShowForgotPatientId(false);
+          setForgotIdForm({
+            firstName: "",
+            middleInitial: "",
+            lastName: "",
+            suffix: "",
+            dateOfBirth: "",
+            email: "",
+            phone: ""
+          });
+          
+          // Automatically validate the patient ID and move to next step
+          try {
+            const validation = await validatePatientId(response.data.patient_id);
+            if (validation.isValid) {
+              setSelectedPatient(validation.patient);
+              toast.success("Patient ID verified successfully!");
+              setTimeout(() => {
+                setCurrentStep(3); // Move to doctor selection step
+              }, 1000);
+            }
+          } catch (error) {
+            console.error("Error validating found patient ID:", error);
+          }
+        } else if (response.data.status === 'partial_match') {
+          toast.success(`Patient ID found: ${response.data.patient_id}`);
+          setSearchQuery(response.data.patient_id);
+          setShowForgotPatientId(false);
+          setForgotIdForm({
+            firstName: "",
+            middleInitial: "",
+            lastName: "",
+            suffix: "",
+            dateOfBirth: "",
+            email: "",
+            phone: ""
+          });
+          
+          // Automatically validate the patient ID and move to next step
+          try {
+            const validation = await validatePatientId(response.data.patient_id);
+            if (validation.isValid) {
+              setSelectedPatient(validation.patient);
+              toast.success("Patient ID verified successfully!");
+              setTimeout(() => {
+                setCurrentStep(3); // Move to doctor selection step
+              }, 1000);
+            }
+          } catch (error) {
+            console.error("Error validating found patient ID:", error);
+          }
+        } else if (response.data.status === 'suggestion') {
+          toast.error("No exact match found. Please verify your information and try again.");
+        } else if (response.data.status === 'no_match') {
+          toast.error("No matching patient found with the provided information");
+        } else {
+          toast.error("No matching patient found with the provided information");
+        }
+      } else {
+        toast.error("No matching patient found with the provided information");
+      }
+    } catch (error: any) {
+      console.error("Error looking up patient:", error);
+      if (error.response?.status === 404) {
+        toast.error("No matching patient found with the provided information");
+      } else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to lookup patient. Please try again or contact support.");
+      }
+    } finally {
+      setForgotIdSubmitting(false);
+    }
+  };
+
+  // Submit medical certificate forgot Patient ID request (same approach as appointment)
+  const submitMedCertForgotPatientId = async () => {
+    setMedCertForgotIdSubmitting(true);
+    
+    try {
+      // Validate required fields
+      if (!medCertForgotIdForm.firstName.trim()) {
+        toast.error("First name is required");
+        setMedCertForgotIdSubmitting(false);
+        return;
+      }
+      if (!medCertForgotIdForm.lastName.trim()) {
+        toast.error("Last name is required");
+        setMedCertForgotIdSubmitting(false);
+        return;
+      }
+      if (!medCertForgotIdForm.dateOfBirth) {
+        toast.error("Date of birth is required");
+        setMedCertForgotIdSubmitting(false);
+        return;
+      }
+      if (!medCertForgotIdForm.email.trim()) {
+        toast.error("Email is required");
+        setMedCertForgotIdSubmitting(false);
+        return;
+      }
+      if (!medCertForgotIdForm.phone.trim()) {
+        toast.error("Phone number is required");
+        setMedCertForgotIdSubmitting(false);
+        return;
+      }
+
+      // Construct full name matching chatbot's format
+      const fullName = `${medCertForgotIdForm.firstName} ${medCertForgotIdForm.middleInitial || ''} ${medCertForgotIdForm.lastName} ${medCertForgotIdForm.suffix || ''}`.trim().replace(/\s+/g, ' ');
+
+      const requestData = {
+        full_name: fullName,
+        date_of_birth: medCertForgotIdForm.dateOfBirth,
+        email: medCertForgotIdForm.email.toLowerCase(),
+        phone: medCertForgotIdForm.phone,
+        first_name: medCertForgotIdForm.firstName,
+        last_name: medCertForgotIdForm.lastName,
+        middle_initial: medCertForgotIdForm.middleInitial || ''
+      };
+
+      const response = await axiosInstance.post('/patients/lookup-patient/', requestData);
+
+      console.log('[DEBUG] Med Cert Patient lookup response:', response);
+
+      // Check if we have a patient_id in the response
+      if (response.data.patient_id) {
+        if (response.data.status === 'exact_match' || response.data.status === 'match' || !response.data.status) {
+          toast.success(`Patient ID found: ${response.data.patient_id}`);
+          setMedCertSearchQuery(response.data.patient_id);
+          setShowMedCertForgotPatientId(false);
+          setMedCertForgotIdForm({
+            firstName: "",
+            middleInitial: "",
+            lastName: "",
+            suffix: "",
+            dateOfBirth: "",
+            email: "",
+            phone: ""
+          });
+          
+          // Automatically validate the patient ID and proceed
+          try {
+            const validation = await validatePatientId(response.data.patient_id);
+            if (validation.isValid) {
+              setMedCertSelectedPatient(validation.patient);
+              toast.success("Patient ID verified successfully!");
+            }
+          } catch (error) {
+            console.error("Error validating found patient ID:", error);
+          }
+        } else if (response.data.status === 'partial_match') {
+          toast.success(`Patient ID found: ${response.data.patient_id}`);
+          setMedCertSearchQuery(response.data.patient_id);
+          setShowMedCertForgotPatientId(false);
+          setMedCertForgotIdForm({
+            firstName: "",
+            middleInitial: "",
+            lastName: "",
+            suffix: "",
+            dateOfBirth: "",
+            email: "",
+            phone: ""
+          });
+        } else if (response.data.status === 'suggestion') {
+          toast.error("No exact match found. Please verify your information and try again.");
+        } else if (response.data.status === 'no_match') {
+          toast.error("No matching patient found with the provided information");
+        } else {
+          toast.error("No matching patient found with the provided information");
+        }
+      } else {
+        toast.error("No matching patient found with the provided information");
+      }
+    } catch (error: any) {
+      console.error("Error looking up patient:", error);
+      if (error.response?.status === 404) {
+        toast.error("No matching patient found with the provided information");
+      } else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to lookup patient. Please try again or contact support.");
+      }
+    } finally {
+      setMedCertForgotIdSubmitting(false);
+    }
+  };
+
+  // Submit prescription forgot Patient ID request (same approach as others)
+  const submitPrescriptionForgotPatientId = async () => {
+    setPrescriptionForgotIdSubmitting(true);
+    
+    try {
+      // Validate required fields
+      if (!prescriptionForgotIdForm.firstName.trim()) {
+        toast.error("First name is required");
+        setPrescriptionForgotIdSubmitting(false);
+        return;
+      }
+      if (!prescriptionForgotIdForm.lastName.trim()) {
+        toast.error("Last name is required");
+        setPrescriptionForgotIdSubmitting(false);
+        return;
+      }
+      if (!prescriptionForgotIdForm.dateOfBirth) {
+        toast.error("Date of birth is required");
+        setPrescriptionForgotIdSubmitting(false);
+        return;
+      }
+      if (!prescriptionForgotIdForm.email.trim()) {
+        toast.error("Email is required");
+        setPrescriptionForgotIdSubmitting(false);
+        return;
+      }
+      if (!prescriptionForgotIdForm.phone.trim()) {
+        toast.error("Phone number is required");
+        setPrescriptionForgotIdSubmitting(false);
+        return;
+      }
+
+      // Construct full name matching chatbot's format
+      const fullName = `${prescriptionForgotIdForm.firstName} ${prescriptionForgotIdForm.middleInitial || ''} ${prescriptionForgotIdForm.lastName} ${prescriptionForgotIdForm.suffix || ''}`.trim().replace(/\s+/g, ' ');
+
+      const requestData = {
+        full_name: fullName,
+        date_of_birth: prescriptionForgotIdForm.dateOfBirth,
+        email: prescriptionForgotIdForm.email.toLowerCase(),
+        phone: prescriptionForgotIdForm.phone,
+        first_name: prescriptionForgotIdForm.firstName,
+        last_name: prescriptionForgotIdForm.lastName,
+        middle_initial: prescriptionForgotIdForm.middleInitial || ''
+      };
+
+      const response = await axiosInstance.post('/patients/lookup-patient/', requestData);
+
+      console.log('[DEBUG] Prescription Patient lookup response:', response);
+
+      // Check if we have a patient_id in the response
+      if (response.data.patient_id) {
+        if (response.data.status === 'exact_match' || response.data.status === 'match' || !response.data.status) {
+          toast.success(`Patient ID found: ${response.data.patient_id}`);
+          setPrescriptionSearchQuery(response.data.patient_id);
+          setShowPrescriptionForgotPatientId(false);
+          setPrescriptionForgotIdForm({
+            firstName: "",
+            middleInitial: "",
+            lastName: "",
+            suffix: "",
+            dateOfBirth: "",
+            email: "",
+            phone: ""
+          });
+          
+          // Automatically validate the patient ID and proceed
+          try {
+            const validation = await validatePatientId(response.data.patient_id);
+            if (validation.isValid) {
+              setPrescriptionSelectedPatient(validation.patient);
+              toast.success("Patient ID verified successfully!");
+            }
+          } catch (error) {
+            console.error("Error validating found patient ID:", error);
+          }
+        } else if (response.data.status === 'partial_match') {
+          toast.success(`Patient ID found: ${response.data.patient_id}`);
+          setPrescriptionSearchQuery(response.data.patient_id);
+          setShowPrescriptionForgotPatientId(false);
+          setPrescriptionForgotIdForm({
+            firstName: "",
+            middleInitial: "",
+            lastName: "",
+            suffix: "",
+            dateOfBirth: "",
+            email: "",
+            phone: ""
+          });
+        } else if (response.data.status === 'suggestion') {
+          toast.error("No exact match found. Please verify your information and try again.");
+        } else if (response.data.status === 'no_match') {
+          toast.error("No matching patient found with the provided information");
+        } else {
+          toast.error("No matching patient found with the provided information");
+        }
+      } else {
+        toast.error("No matching patient found with the provided information");
+      }
+    } catch (error: any) {
+      console.error("Error looking up patient:", error);
+      if (error.response?.status === 404) {
+        toast.error("No matching patient found with the provided information");
+      } else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to lookup patient. Please try again or contact support.");
+      }
+    } finally {
+      setPrescriptionForgotIdSubmitting(false);
     }
   };
 
@@ -509,10 +1134,23 @@ const PatientPortal = () => {
     setSelectedPatient(null);
     setSelectedDoctor(null);
     setSelectedAppointmentType("");
-    setSelectedDate("");
+    setSelectedDate(undefined);
     setAvailableTimeSlots([]);
     setSelectedTimeSlot("");
     setNotes("");
+    setBookingPreference(null);
+    setTermsAccepted(false);
+    setNoMiddleName(false);
+    setShowForgotPatientId(false);
+    setForgotIdForm({
+      firstName: "",
+      middleInitial: "",
+      lastName: "",
+      suffix: "",
+      dateOfBirth: "",
+      email: "",
+      phone: ""
+    });
     patientForm.reset();
     appointmentForm.reset();
   };
@@ -574,7 +1212,7 @@ const PatientPortal = () => {
           ? selectedPatient?.middleInitial ||
             selectedPatient?.middle_initial ||
             ""
-          : patientData.middleInitial || "",
+          : (patientData.middleName === "N/A" ? "" : patientData.middleName || ""),
         lastName: isExistingPatient
           ? selectedPatient?.lastName || selectedPatient?.last_name
           : patientData.lastName,
@@ -593,9 +1231,15 @@ const PatientPortal = () => {
         date_of_birth: isExistingPatient
           ? selectedPatient?.dateOfBirth || selectedPatient?.date_of_birth
           : patientData.dateOfBirth,
+        age: isExistingPatient
+          ? selectedPatient?.age || null
+          : patientData.age,
+        religion: isExistingPatient
+          ? selectedPatient?.religion || null
+          : patientData.religion,
         gender: isExistingPatient
-          ? selectedPatient?.gender || "prefer_not_to_say"
-          : patientData.gender,
+          ? selectedPatient?.gender || selectedPatient?.sex || "prefer_not_to_say"
+          : patientData.sex,
         address: isExistingPatient
           ? selectedPatient?.address || null
           : patientData.address,
@@ -605,7 +1249,7 @@ const PatientPortal = () => {
             "prefer_not_to_say"
           : patientData.maritalStatus || "prefer_not_to_say",
         appointment_type: selectedAppointmentType,
-        date: selectedDate,
+        date: selectedDate?.toISOString().split('T')[0] || '',
         time: formattedTime,
         doctor_id: parseInt(selectedDoctor.id),
         status: "pending",
@@ -616,8 +1260,12 @@ const PatientPortal = () => {
       // Create appointment using the same API as chatbot
       const response = await api.appointments.create(appointmentData);
 
+      // Enhanced success toast notification
       toast.success(
-        "Appointment request submitted successfully! You will receive a confirmation once approved."
+        `🎉 Appointment successfully scheduled for ${format(selectedDate, 'MMM dd, yyyy')} at ${selectedTimeSlot}! You will receive a confirmation email once approved.`,
+        {
+          duration: 5000,
+        }
       );
       handleAppointmentModalClose();
     } catch (error: any) {
@@ -655,19 +1303,72 @@ const PatientPortal = () => {
   };
 
   // Step navigation
-  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 6));
+  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 7));
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
   // Handle step navigation with validation
   const handleNextStep = async () => {
     switch (currentStep) {
       case 1:
-        if (isExistingPatient === null) {
-          toast.error("Please select if you are an existing patient");
+        if (!bookingPreference) {
+          toast.error("Please select your booking preference");
           return;
         }
         break;
       case 2:
+        // Step 2 validation based on booking preference
+        if (bookingPreference === "doctor") {
+          // Doctor-first flow: validate doctor selection
+          if (!selectedDoctor) {
+            toast.error("Please select a doctor");
+            return;
+          }
+        } else {
+          // Date-first flow: validate date selection only
+          if (!selectedDate) {
+            toast.error("Please select a date");
+            return;
+          }
+        }
+        break;
+      case 3:
+        // Step 3 validation based on booking preference
+        if (bookingPreference === "doctor") {
+          // Doctor-first flow: validate date and time selection
+          if (!selectedDate) {
+            toast.error("Please select a date");
+            return;
+          }
+          if (!selectedTimeSlot) {
+            toast.error("Please select a time");
+            return;
+          }
+        } else {
+          // Date-first flow: validate doctor and time selection
+          if (!selectedDoctor) {
+            toast.error("Please select a doctor");
+            return;
+          }
+          if (!selectedTimeSlot) {
+            toast.error("Please select a time slot");
+            return;
+          }
+        }
+        break;
+      case 4:
+        // Step 4: Patient type validation
+        if (isExistingPatient === null) {
+          toast.error("Please select if you are an existing patient");
+          return;
+        }
+        // For new patients, check if terms are accepted
+        if (!isExistingPatient && !termsAccepted) {
+          toast.error("Please accept the terms and conditions to proceed");
+          return;
+        }
+        break;
+      case 5:
+        // Step 5: Patient information validation
         if (isExistingPatient) {
           // Validate Patient ID for existing patients
           if (!searchQuery.trim()) {
@@ -682,46 +1383,73 @@ const PatientPortal = () => {
           setSelectedPatient(validation.patient);
           toast.success("Patient ID verified successfully!");
         } else {
-          // Validate form for new patients
-          const isValid = await patientForm.trigger();
-          if (!isValid) {
-            toast.error("Please fill in all required fields");
+          // Custom validation for new patients
+          const formData = patientForm.getValues();
+          
+          // Check required fields
+          if (!formData.firstName?.trim()) {
+            toast.error("First name is required");
+            return;
+          }
+          if (!noMiddleName && !formData.middleName?.trim()) {
+            toast.error("Middle name is required (or check 'No middle name')");
+            return;
+          }
+          if (!formData.lastName?.trim()) {
+            toast.error("Last name is required");
+            return;
+          }
+          if (!formData.phone?.trim()) {
+            toast.error("Contact number is required");
+            return;
+          }
+          if (formData.phone.length < 10) {
+            toast.error("Contact number must be at least 10 digits");
+            return;
+          }
+          if (!formData.sex) {
+            toast.error("Sex is required");
+            return;
+          }
+          if (!formData.email?.trim()) {
+            toast.error("Email address is required");
+            return;
+          }
+          if (!formData.dateOfBirth) {
+            toast.error("Date of birth is required");
+            return;
+          }
+          if (!formData.age?.trim()) {
+            toast.error("Age is required");
+            return;
+          }
+          if (!formData.religion?.trim()) {
+            toast.error("Religion is required");
+            return;
+          }
+          if (!formData.address?.trim()) {
+            toast.error("Home address is required");
+            return;
+          }
+          
+          // Email validation
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(formData.email)) {
+            toast.error("Please enter a valid email address");
             return;
           }
         }
         break;
-      case 3:
-        if (!selectedDoctor) {
-          toast.error("Please select a doctor");
-          return;
-        }
-        break;
-      case 4:
+      case 6:
+        // Step 6: validate appointment type (same for both flows)
         if (!selectedAppointmentType) {
           toast.error("Please select an appointment type");
-          return;
-        }
-        break;
-      case 5:
-        if (!selectedDate) {
-          toast.error("Please select a date");
-          return;
-        }
-        if (!selectedTimeSlot) {
-          toast.error("Please select a time");
           return;
         }
         break;
     }
     nextStep();
   };
-
-  // Watch for date/doctor changes to fetch time slots
-  useEffect(() => {
-    if (selectedDoctor && selectedDate) {
-      fetchAvailableTimeSlots(selectedDoctor.id, selectedDate);
-    }
-  }, [selectedDoctor, selectedDate]);
 
   // Search patients on query change
   useEffect(() => {
@@ -756,9 +1484,11 @@ const PatientPortal = () => {
 
       const formData = new FormData();
 
-      formData.append("request_type", medCertRequestType);
+      // Fixed request type as Medical Certificate
+      formData.append("request_type", "Medical Certificate");
       formData.append("patient_id", medCertSearchQuery);
       formData.append("additional_info", medCertNotes);
+      formData.append("delivery_method", medCertDeliveryMethod);
 
       // Use the validated patient data from medCertSelectedPatient
       const patient = medCertSelectedPatient;
@@ -804,8 +1534,12 @@ const PatientPortal = () => {
       );
 
       if (response.status === 200 || response.status === 201) {
+        const deliveryMessage = medCertDeliveryMethod === "pickup" 
+          ? "You will be notified when it's ready for pickup at the clinic."
+          : "A digital copy will be sent to your registered email address.";
+        
         toast.success(
-          "Your medical certificate request has been submitted successfully! Our team will review your request and contact you within 2-3 business days."
+          `Your medical certificate request has been submitted successfully! Our team will review your request and contact you within 2-3 business days. ${deliveryMessage}`
         );
         resetMedCertModal();
         setOpenModal(null);
@@ -933,6 +1667,17 @@ const PatientPortal = () => {
     setMedCertIdFrontPreview(null);
     setMedCertIdBackPreview(null);
     setMedCertNotes("");
+    setShowMedCertForgotPatientId(false);
+    setMedCertForgotIdForm({
+      firstName: "",
+      middleInitial: "",
+      lastName: "",
+      suffix: "",
+      dateOfBirth: "",
+      email: "",
+      phone: ""
+    });
+    setMedCertDeliveryMethod("pickup");
     medicalCertForm.reset();
   };
 
@@ -946,6 +1691,17 @@ const PatientPortal = () => {
     setPrescriptionIdBack(null);
     setPrescriptionIdFrontPreview(null);
     setPrescriptionIdBackPreview(null);
+    setShowPrescriptionForgotPatientId(false);
+    setPrescriptionForgotIdForm({
+      firstName: "",
+      middleInitial: "",
+      lastName: "",
+      suffix: "",
+      dateOfBirth: "",
+      email: "",
+      phone: ""
+    });
+    setPrescriptionForgotIdSubmitting(false);
     prescriptionForm.reset();
   };
 
@@ -1457,13 +2213,6 @@ const PatientPortal = () => {
       <section id="home" className="py-10 md:py-20">
         <div className="container mx-auto flex flex-col md:flex-row items-center gap-8 md:gap-12 px-4">
           <div className="flex-1 space-y-6 w-full">
-            {clinic.logo && (
-              <img
-                src={getLogoUrl(clinic.logo)}
-                alt="Clinic Logo"
-                className="h-16 mb-4"
-              />
-            )}
             <h1 className="text-4xl md:text-5xl font-bold text-[#79c942]">
               {clinic.hero_title || "Your Health Is Our Priority"}
             </h1>
@@ -2135,112 +2884,16 @@ const PatientPortal = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-2 bg-gray-900 text-white text-xs">
-        <div className="container mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2 text-center">
-            <div>
-              <h3 className="text-base font-bold mb-1 text-clinic-blue">
-                {clinic.clinic_name || "Clinic"}
-              </h3>
-              <p className="text-gray-400 text-[10px]">
-                Providing quality healthcare services since 2010. Dedicated to
-                improving the health and wellbeing of our community.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold mb-1">Quick Links</h3>
-              <ul className="space-y-0.5">
-                <li>
-                  <a
-                    href="#home"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    Home
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#about"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    About
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#services"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    Services
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#reviews"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    Reviews
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#faqs"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    FAQs
-                  </a>
-                </li>
-                <li>
-                  <button
-                    onClick={() => setShowAppointmentModal(true)}
-                    className="text-clinic-blue hover:text-white transition-colors"
-                  >
-                    Schedule Appointment
-                  </button>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold mb-1">Services</h3>
-              <ul className="space-y-0.5">
-                <li>
-                  <a
-                    href="#services"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    General Consultation
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#services"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    Specialized Care
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#services"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    Diagnostic Services
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#services"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    Preventive Care
-                  </a>
-                </li>
-              </ul>
-            </div>
+      <footer className="py-6 bg-gray-900 text-white text-sm">
+        <div className="container mx-auto px-4 text-center">
+          <div className="mb-4">
+            <p className="text-gray-300 leading-relaxed">
+              Medratrics Langgam. Providing quality healthcare services since 2010. Dedicated to improving the health and wellbeing of our community.
+            </p>
           </div>
-          <div className="border-t border-gray-800 pt-2 text-center text-gray-400 text-[10px]">
+          <div className="border-t border-gray-800 pt-4 text-center text-gray-400 text-xs">
             <p>
-              &copy; 2024 {clinic.clinic_name || "Clinic"}. All rights reserved.
+              &copy; 2024 Medratrics Langgam. All rights reserved.
             </p>
           </div>
         </div>
@@ -2441,13 +3094,13 @@ const PatientPortal = () => {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-6">
           <DialogHeader>
             <DialogTitle className="text-[#79c942] text-center text-2xl font-bold">
-              Schedule Appointment - Step {currentStep} of 6
+              Schedule Appointment - Step {currentStep} of 7
             </DialogTitle>
           </DialogHeader>
 
           {/* Progress Bar */}
           <div className="flex justify-between items-center mb-6">
-            {[1, 2, 3, 4, 5, 6].map((step) => (
+            {[1, 2, 3, 4, 5, 6, 7].map((step) => (
               <div key={step} className="flex flex-col items-center">
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
@@ -2463,20 +3116,298 @@ const PatientPortal = () => {
                   )}
                 </div>
                 <span className="text-xs mt-1 text-center">
-                  {step === 1 && "Patient Type"}
-                  {step === 2 && "Patient Info"}
-                  {step === 3 && "Doctor"}
-                  {step === 4 && "Service"}
-                  {step === 5 && "Date & Time"}
-                  {step === 6 && "Confirm"}
+                  {step === 1 && "Booking Type"}
+                  {step === 2 && (bookingPreference === "doctor" ? "Doctor" : "Date")}
+                  {step === 3 && (bookingPreference === "doctor" ? "Date & Time" : "Doctor")}
+                  {step === 4 && "Patient Type"}
+                  {step === 5 && "Patient Info"}
+                  {step === 6 && "Service"}
+                  {step === 7 && "Confirm"}
                 </span>
               </div>
             ))}
           </div>
 
           <div className="space-y-6">
-            {/* Step 1: Patient Type Selection */}
+            {/* Step 1: Booking Preference Selection */}
             {currentStep === 1 && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-center mb-4">
+                  How would you like to book your appointment?
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Button
+                    variant={bookingPreference === "doctor" ? "default" : "outline"}
+                    className={`p-6 h-auto ${
+                      bookingPreference === "doctor"
+                        ? "bg-[#79c942] hover:bg-[#68ab38]"
+                        : ""
+                    }`}
+                    onClick={() => setBookingPreference("doctor")}
+                  >
+                    <div className="text-center">
+                      <User className="w-8 h-8 mx-auto mb-2" />
+                      <div className="font-semibold">
+                        Choose Doctor First
+                      </div>
+                      <div className="text-sm opacity-75">
+                        Select your preferred doctor, then pick date & time
+                      </div>
+                    </div>
+                  </Button>
+                  <Button
+                    variant={bookingPreference === "datetime" ? "default" : "outline"}
+                    className={`p-6 h-auto ${
+                      bookingPreference === "datetime"
+                        ? "bg-[#79c942] hover:bg-[#68ab38]"
+                        : ""
+                    }`}
+                    onClick={() => setBookingPreference("datetime")}
+                  >
+                    <div className="text-center">
+                      <Calendar className="w-8 h-8 mx-auto mb-2" />
+                      <div className="font-semibold">Choose Date First</div>
+                      <div className="text-sm opacity-75">
+                        Pick your preferred date, then select available doctor
+                      </div>
+                    </div>
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Dynamic step based on booking preference - Doctor or Date/Time */}
+            {currentStep === 2 && (
+              <div className="space-y-4">
+                {bookingPreference === "doctor" ? (
+                  // Doctor Selection for doctor-first flow
+                  <>
+                    <h3 className="text-lg font-semibold text-center mb-4">
+                      Select a Doctor
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {doctors.map((doctor: any) => (
+                        <Button
+                          key={doctor.id}
+                          variant={
+                            selectedDoctor?.id === doctor.id ? "default" : "outline"
+                          }
+                          className={`p-4 h-auto text-left justify-start ${
+                            selectedDoctor?.id === doctor.id
+                              ? "bg-[#79c942] hover:bg-[#68ab38]"
+                              : ""
+                          }`}
+                          onClick={() => setSelectedDoctor(doctor)}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <Stethoscope className="w-8 h-8" />
+                            <div>
+                              <div className="font-semibold">
+                                {doctor.first_name} {doctor.last_name}
+                              </div>
+                              <div className="text-sm opacity-75">
+                                {doctor.specialization}
+                              </div>
+                            </div>
+                          </div>
+                        </Button>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  // Date Selection for date-first flow (no time selection yet)
+                  <>
+                    <h3 className="text-lg font-semibold text-center mb-4">
+                      Select Date
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                      {availableDates.slice(0, 30).map((date) => {
+                        const isSelected = selectedDate && 
+                          date.getFullYear() === selectedDate.getFullYear() &&
+                          date.getMonth() === selectedDate.getMonth() &&
+                          date.getDate() === selectedDate.getDate();
+                        
+                        return (
+                          <Button
+                            key={date.toISOString()}
+                            variant={isSelected ? "default" : "outline"}
+                            className={`p-3 h-auto text-center ${
+                              isSelected
+                                ? "bg-[#79c942] hover:bg-[#68ab38]"
+                                : ""
+                            }`}
+                            onClick={() => {
+                              setSelectedDate(date);
+                              setSelectedDoctor(null); // Reset doctor when date changes
+                              setSelectedTimeSlot(""); // Reset time slot when date changes
+                              toast.success(`Date selected: ${format(date, 'MMM dd, yyyy')}`);
+                            }}
+                          >
+                            <div>
+                              <div className="font-semibold text-sm">
+                                {format(date, 'MMM dd')}
+                              </div>
+                              <div className="text-xs opacity-75">
+                                {format(date, 'EEE')}
+                              </div>
+                            </div>
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    {selectedDate && (
+                      <div className="text-center text-sm text-gray-600 mt-4">
+                        Selected: {format(selectedDate, 'MMMM do, yyyy')}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Step 3: Dynamic step based on booking preference - Date/Time or Doctor */}
+            {currentStep === 3 && (
+              <div className="space-y-4">
+                {bookingPreference === "doctor" ? (
+                  // Date and Time Selection for doctor-first flow
+                  <>
+                    <h3 className="text-lg font-semibold text-center mb-4">
+                      Select Date and Time
+                    </h3>
+                    
+                    {selectedDoctor ? (
+                      <DateTimePicker
+                        availableDates={availableDates}
+                        selectedDate={selectedDate}
+                        selectedTime={selectedTimeSlot}
+                        getTimeSlotsForDate={getTimeSlotsForDate}
+                        onDateTimeSelect={(date: Date, time: string) => {
+                          console.log('DateTimePicker selected:', { date, time });
+                          setSelectedDate(date);
+                          setSelectedTimeSlot(time);
+                          toast.success(`Appointment scheduled for ${format(date, 'MMM dd, yyyy')} at ${time}`);
+                        }}
+                      />
+                    ) : (
+                      <div className="text-center text-gray-500 py-4">
+                        Please select a doctor first
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Additional Notes (Optional)
+                      </label>
+                      <Textarea
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="Any additional information or special requests..."
+                        rows={3}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  // Doctor Selection for date-first flow (doctors available on selected date)
+                  <>
+                    <h3 className="text-lg font-semibold text-center mb-4">
+                      Select a Doctor
+                    </h3>
+                    <div className="text-center text-sm text-gray-600 mb-4">
+                      Selected date: {selectedDate ? format(selectedDate, 'MMMM do, yyyy') : 'No date'}
+                    </div>
+                    {selectedDate ? (
+                      <>
+                        {filteredDoctors.length > 0 ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {filteredDoctors.map((doctor: any) => (
+                              <Button
+                                key={doctor.id}
+                                variant={
+                                  selectedDoctor?.id === doctor.id ? "default" : "outline"
+                                }
+                                className={`p-4 h-auto text-left justify-start ${
+                                  selectedDoctor?.id === doctor.id
+                                    ? "bg-[#79c942] hover:bg-[#68ab38]"
+                                    : ""
+                                }`}
+                                onClick={() => {
+                                  setSelectedDoctor(doctor);
+                                  setSelectedTimeSlot(""); // Reset time slot when doctor changes
+                                  toast.success(`Doctor selected: Dr. ${doctor.first_name} ${doctor.last_name}`);
+                                }}
+                              >
+                                <div className="flex items-center space-x-3">
+                                  <Stethoscope className="w-8 h-8" />
+                                  <div>
+                                    <div className="font-semibold">
+                                      Dr. {doctor.first_name} {doctor.last_name}
+                                    </div>
+                                    <div className="text-sm opacity-75">
+                                      {doctor.specialization}
+                                    </div>
+                                    <div className="text-xs text-green-600 mt-1">
+                                      Available on selected date
+                                    </div>
+                                  </div>
+                                </div>
+                              </Button>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center text-gray-500 py-8">
+                            <div className="text-lg font-medium mb-2">No doctors available</div>
+                            <div className="text-sm">
+                              No doctors have set their schedule for {format(selectedDate, 'MMMM do, yyyy')}. 
+                              Please select a different date.
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Time Slot Selection for date-first flow */}
+                        {selectedDoctor && (
+                          <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
+                            <h4 className="font-semibold text-gray-900 mb-4">
+                              Select Time Slot
+                            </h4>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                              {availableTimeSlots.map((timeSlot) => (
+                                <Button
+                                  key={timeSlot}
+                                  variant={selectedTimeSlot === timeSlot ? "default" : "outline"}
+                                  className={`p-2 text-sm ${
+                                    selectedTimeSlot === timeSlot
+                                      ? "bg-[#79c942] hover:bg-[#68ab38]"
+                                      : ""
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedTimeSlot(timeSlot);
+                                    toast.success(`Time slot selected: ${timeSlot}`);
+                                  }}
+                                >
+                                  {timeSlot}
+                                </Button>
+                              ))}
+                            </div>
+                            {availableTimeSlots.length === 0 && (
+                              <div className="text-center text-gray-500 py-4">
+                                No available time slots for this doctor on the selected date.
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="text-center text-gray-500 py-4">
+                        Please select a date first
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Step 4: Patient Type Selection */}
+            {currentStep === 4 && (
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-center mb-4">
                   Are you an existing patient?
@@ -2510,7 +3441,10 @@ const PatientPortal = () => {
                         ? "bg-[#79c942] hover:bg-[#68ab38]"
                         : ""
                     }`}
-                    onClick={() => setIsExistingPatient(false)}
+                    onClick={() => {
+                      setIsExistingPatient(false);
+                      setTermsAccepted(false); // Reset terms when switching to new patient
+                    }}
                   >
                     <div className="text-center">
                       <User className="w-8 h-8 mx-auto mb-2" />
@@ -2521,11 +3455,189 @@ const PatientPortal = () => {
                     </div>
                   </Button>
                 </div>
+
+                {/* Terms and Conditions for New Patients */}
+                {isExistingPatient === false && (
+                  <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-gray-900">
+                        Terms and Conditions
+                      </h4>
+                      <div className="text-sm text-gray-700 space-y-2">
+                        <p>
+                          Before proceeding with your appointment request, please read and accept our terms and conditions:
+                        </p>
+                        <ul className="list-disc list-inside space-y-1 ml-4">
+                          <li>Your personal information will be collected and processed for appointment scheduling and medical record purposes</li>
+                          <li>We comply with the Data Privacy Act of 2012 (RA 10173)</li>
+                          <li>Your information will be kept confidential and secure</li>
+                          <li>You have the right to access, correct, or delete your personal information</li>
+                        </ul>
+                      </div>
+                      <div className="flex items-start space-x-3">
+                        <input
+                          type="checkbox"
+                          id="terms-checkbox"
+                          checked={termsAccepted}
+                          onChange={(e) => setTermsAccepted(e.target.checked)}
+                          className="mt-1 h-4 w-4 text-[#79c942] focus:ring-[#79c942] border-gray-300 rounded"
+                        />
+                        <label htmlFor="terms-checkbox" className="text-sm text-gray-700">
+                          By checking this box, I confirm that I consent to the collection and processing of my personal information for appointment scheduling and medical record purposes, in compliance with the Data Privacy Act of 2012 (RA 10173).
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Step 2: Patient Information */}
-            {currentStep === 2 && (
+            {/* Step 5: Patient Information */}
+            {currentStep === 5 && (
+              <div className="space-y-4">
+                {bookingPreference === "doctor" ? (
+                  // Doctor Selection for doctor-first flow
+                  <>
+                    <h3 className="text-lg font-semibold text-center mb-4">
+                      Select a Doctor
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {doctors.map((doctor: any) => (
+                        <Button
+                          key={doctor.id}
+                          variant={
+                            selectedDoctor?.id === doctor.id ? "default" : "outline"
+                          }
+                          className={`p-4 h-auto text-left justify-start ${
+                            selectedDoctor?.id === doctor.id
+                              ? "bg-[#79c942] hover:bg-[#68ab38]"
+                              : ""
+                          }`}
+                          onClick={() => setSelectedDoctor(doctor)}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <Stethoscope className="w-8 h-8" />
+                            <div>
+                              <div className="font-semibold">
+                                {doctor.first_name} {doctor.last_name}
+                              </div>
+                              <div className="text-sm opacity-75">
+                                {doctor.specialization}
+                              </div>
+                            </div>
+                          </div>
+                        </Button>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  // Date and Time Selection for datetime-first flow
+                  <>
+                    <h3 className="text-lg font-semibold text-center mb-4">
+                      Select Date and Time
+                    </h3>
+                    <DateTimePicker
+                      availableDates={availableDates}
+                      selectedDate={selectedDate}
+                      selectedTime={selectedTimeSlot}
+                      getTimeSlotsForDate={() => Promise.resolve(availableTimeSlots)} // Use fetched time slots from doctor's schedule
+                      onDateTimeSelect={(date: Date, time: string) => {
+                        console.log('DateTimePicker selected:', { date, time });
+                        setSelectedDate(date);
+                        setSelectedTimeSlot(time);
+                        toast.success(`Date and time selected: ${format(date, 'MMM dd, yyyy')} at ${time}`);
+                      }}
+                    />
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Additional Notes (Optional)
+                      </label>
+                      <Textarea
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="Any additional information or special requests..."
+                        rows={3}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Step 4: Dynamic step based on booking preference - Date/Time or Doctor */}
+            {currentStep === 4 && (
+              <div className="space-y-4">
+                {bookingPreference === "doctor" ? (
+                  // Doctor Selection for doctor-first flow
+                  <>
+                    <h3 className="text-lg font-semibold text-center mb-4">
+                      Select a Doctor
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {doctors.map((doctor: any) => (
+                        <Button
+                          key={doctor.id}
+                          variant={
+                            selectedDoctor?.id === doctor.id ? "default" : "outline"
+                          }
+                          className={`p-4 h-auto text-left justify-start ${
+                            selectedDoctor?.id === doctor.id
+                              ? "bg-[#79c942] hover:bg-[#68ab38]"
+                              : ""
+                          }`}
+                          onClick={() => setSelectedDoctor(doctor)}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <Stethoscope className="w-8 h-8" />
+                            <div>
+                              <div className="font-semibold">
+                                {doctor.first_name} {doctor.last_name}
+                              </div>
+                              <div className="text-sm opacity-75">
+                                {doctor.specialization}
+                              </div>
+                            </div>
+                          </div>
+                        </Button>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  // Date and Time Selection for datetime-first flow
+                  <>
+                    <h3 className="text-lg font-semibold text-center mb-4">
+                      Select Date and Time
+                    </h3>
+                    <DateTimePicker
+                      availableDates={availableDates}
+                      selectedDate={selectedDate}
+                      selectedTime={selectedTimeSlot}
+                      getTimeSlotsForDate={getTimeSlotsForDate} // Use fetched time slots from doctor's schedule
+                      onDateTimeSelect={(date: Date, time: string) => {
+                        console.log('DateTimePicker selected:', { date, time });
+                        setSelectedDate(date);
+                        setSelectedTimeSlot(time);
+                        toast.success(`Date and time selected: ${format(date, 'MMM dd, yyyy')} at ${time}`);
+                      }}
+                    />
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Additional Notes (Optional)
+                      </label>
+                      <Textarea
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="Any additional information or special requests..."
+                        rows={3}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Step 5: Patient Information */}
+            {currentStep === 5 && (
               <div className="space-y-4">
                 {isExistingPatient ? (
                   <>
@@ -2548,7 +3660,131 @@ const PatientPortal = () => {
                           appointment receipts, medical certificates, or contact
                           the clinic
                         </div>
+                        <div className="text-center mt-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowForgotPatientId(true)}
+                            className="text-[#79c942] hover:text-[#6bb33a] text-sm font-medium underline"
+                          >
+                            Forgot Patient ID?
+                          </button>
+                        </div>
                       </div>
+
+                      {/* Forgot Patient ID Form */}
+                      {showForgotPatientId && (
+                        <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+                          <div className="space-y-4">
+                            <h4 className="font-semibold text-gray-900">
+                              Forgot Patient ID? Let's help you find it
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              Please provide the following information to lookup your Patient ID:
+                            </p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  First Name *
+                                </label>
+                                <Input
+                                  placeholder="Enter your first name"
+                                  value={forgotIdForm.firstName}
+                                  onChange={(e) => setForgotIdForm({...forgotIdForm, firstName: e.target.value})}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  Middle Initial
+                                </label>
+                                <Input
+                                  placeholder="Optional"
+                                  value={forgotIdForm.middleInitial}
+                                  onChange={(e) => setForgotIdForm({...forgotIdForm, middleInitial: e.target.value})}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  Last Name *
+                                </label>
+                                <Input
+                                  placeholder="Enter your last name"
+                                  value={forgotIdForm.lastName}
+                                  onChange={(e) => setForgotIdForm({...forgotIdForm, lastName: e.target.value})}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  Suffix
+                                </label>
+                                <Input
+                                  placeholder="Jr, Sr, III, etc."
+                                  value={forgotIdForm.suffix}
+                                  onChange={(e) => setForgotIdForm({...forgotIdForm, suffix: e.target.value})}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  Date of Birth *
+                                </label>
+                                <Input
+                                  type="date"
+                                  value={forgotIdForm.dateOfBirth}
+                                  onChange={(e) => setForgotIdForm({...forgotIdForm, dateOfBirth: e.target.value})}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  Registered Email *
+                                </label>
+                                <Input
+                                  type="email"
+                                  placeholder="Enter your registered email"
+                                  value={forgotIdForm.email}
+                                  onChange={(e) => setForgotIdForm({...forgotIdForm, email: e.target.value})}
+                                />
+                              </div>
+                              <div className="md:col-span-2">
+                                <label className="block text-sm font-medium mb-1">
+                                  Registered Phone Number *
+                                </label>
+                                <Input
+                                  placeholder="Enter your registered phone number"
+                                  value={forgotIdForm.phone}
+                                  onChange={(e) => setForgotIdForm({...forgotIdForm, phone: e.target.value})}
+                                />
+                              </div>
+                            </div>
+                            <div className="flex gap-2 justify-end">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => {
+                                  setShowForgotPatientId(false);
+                                  setForgotIdForm({
+                                    firstName: "",
+                                    middleInitial: "",
+                                    lastName: "",
+                                    suffix: "",
+                                    dateOfBirth: "",
+                                    email: "",
+                                    phone: ""
+                                  });
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                type="button"
+                                onClick={submitForgotPatientId}
+                                disabled={forgotIdSubmitting}
+                                className="bg-[#79c942] hover:bg-[#6bb33a]"
+                              >
+                                {forgotIdSubmitting ? "Looking up..." : "Find Patient ID"}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </>
                 ) : (
@@ -2570,15 +3806,38 @@ const PatientPortal = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-1">
-                          Middle Initial
+                          Middle Name *
                         </label>
-                        <Input
-                          {...patientForm.register("middleInitial")}
-                          placeholder="Optional"
-                        />
-                        {patientForm.formState.errors.middleInitial && (
+                        <div className="space-y-2">
+                          <Input
+                            {...patientForm.register("middleName")}
+                            placeholder={noMiddleName ? "No Middle Name" : "Enter middle name"}
+                            disabled={noMiddleName}
+                            className={noMiddleName ? "bg-gray-100" : ""}
+                          />
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id="no-middle-name"
+                              checked={noMiddleName}
+                              onChange={(e) => {
+                                setNoMiddleName(e.target.checked);
+                                if (e.target.checked) {
+                                  patientForm.setValue("middleName", "N/A");
+                                } else {
+                                  patientForm.setValue("middleName", "");
+                                }
+                              }}
+                              className="h-4 w-4 text-[#79c942] focus:ring-[#79c942] border-gray-300 rounded"
+                            />
+                            <label htmlFor="no-middle-name" className="text-sm text-gray-600">
+                              No middle name
+                            </label>
+                          </div>
+                        </div>
+                        {patientForm.formState.errors.middleName && (
                           <p className="text-red-500 text-sm mt-1">
-                            {patientForm.formState.errors.middleInitial.message}
+                            {patientForm.formState.errors.middleName.message}
                           </p>
                         )}
                       </div>
@@ -2609,72 +3868,6 @@ const PatientPortal = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-1">
-                          Contact Number *
-                        </label>
-                        <Input {...patientForm.register("phone")} />
-                        {patientForm.formState.errors.phone && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {patientForm.formState.errors.phone.message}
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">
-                          Gender *
-                        </label>
-                        <Select
-                          value={patientForm.watch("gender")}
-                          onValueChange={(value) =>
-                            patientForm.setValue(
-                              "gender",
-                              value as "male" | "female" | "prefer_not_to_say"
-                            )
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select gender" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="male">Male</SelectItem>
-                            <SelectItem value="female">Female</SelectItem>
-                            <SelectItem value="prefer_not_to_say">
-                              Prefer not to say
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        {patientForm.formState.errors.gender && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {patientForm.formState.errors.gender.message}
-                          </p>
-                        )}
-                      </div>
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium mb-1">
-                          Email Address *
-                        </label>
-                        <Input
-                          type="email"
-                          {...patientForm.register("email")}
-                        />
-                        {patientForm.formState.errors.email && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {patientForm.formState.errors.email.message}
-                          </p>
-                        )}
-                      </div>
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium mb-1">
-                          Address *
-                        </label>
-                        <Input {...patientForm.register("address")} />
-                        {patientForm.formState.errors.address && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {patientForm.formState.errors.address.message}
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">
                           Date of Birth *
                         </label>
                         <Input
@@ -2684,6 +3877,76 @@ const PatientPortal = () => {
                         {patientForm.formState.errors.dateOfBirth && (
                           <p className="text-red-500 text-sm mt-1">
                             {patientForm.formState.errors.dateOfBirth.message}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Age *
+                        </label>
+                        <Input 
+                          type="number"
+                          {...patientForm.register("age")}
+                          placeholder="Enter your age"
+                        />
+                        {patientForm.formState.errors.age && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {patientForm.formState.errors.age.message}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Sex *
+                        </label>
+                        <Select
+                          value={patientForm.watch("sex")}
+                          onValueChange={(value) =>
+                            patientForm.setValue(
+                              "sex",
+                              value as "male" | "female" | "prefer_not_to_say"
+                            )
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select sex" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="male">Male</SelectItem>
+                            <SelectItem value="female">Female</SelectItem>
+                            <SelectItem value="prefer_not_to_say">
+                              Prefer not to say
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {patientForm.formState.errors.sex && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {patientForm.formState.errors.sex.message}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Religion *
+                        </label>
+                        <Input 
+                          {...patientForm.register("religion")}
+                          placeholder="Enter your religion"
+                        />
+                        {patientForm.formState.errors.religion && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {patientForm.formState.errors.religion.message}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Contact Number *
+                        </label>
+                        <Input {...patientForm.register("phone")} />
+                        {patientForm.formState.errors.phone && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {patientForm.formState.errors.phone.message}
                           </p>
                         )}
                       </div>
@@ -2718,9 +3981,29 @@ const PatientPortal = () => {
                             </SelectItem>
                           </SelectContent>
                         </Select>
-                        {patientForm.formState.errors.maritalStatus && (
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium mb-1">
+                          Email Address *
+                        </label>
+                        <Input
+                          type="email"
+                          {...patientForm.register("email")}
+                        />
+                        {patientForm.formState.errors.email && (
                           <p className="text-red-500 text-sm mt-1">
-                            {patientForm.formState.errors.maritalStatus.message}
+                            {patientForm.formState.errors.email.message}
+                          </p>
+                        )}
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium mb-1">
+                          Home Address *
+                        </label>
+                        <Input {...patientForm.register("address")} />
+                        {patientForm.formState.errors.address && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {patientForm.formState.errors.address.message}
                           </p>
                         )}
                       </div>
@@ -2730,45 +4013,8 @@ const PatientPortal = () => {
               </div>
             )}
 
-            {/* Step 3: Doctor Selection */}
-            {currentStep === 3 && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-center mb-4">
-                  Select a Doctor
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {doctors.map((doctor: any) => (
-                    <Button
-                      key={doctor.id}
-                      variant={
-                        selectedDoctor?.id === doctor.id ? "default" : "outline"
-                      }
-                      className={`p-4 h-auto text-left justify-start ${
-                        selectedDoctor?.id === doctor.id
-                          ? "bg-[#79c942] hover:bg-[#68ab38]"
-                          : ""
-                      }`}
-                      onClick={() => setSelectedDoctor(doctor)}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <Stethoscope className="w-8 h-8" />
-                        <div>
-                          <div className="font-semibold">
-                            {doctor.first_name} {doctor.last_name}
-                          </div>
-                          <div className="text-sm opacity-75">
-                            {doctor.specialization}
-                          </div>
-                        </div>
-                      </div>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Step 4: Appointment Type */}
-            {currentStep === 4 && (
+            {/* Step 6: Appointment Type */}
+            {currentStep === 6 && (
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-center mb-4">
                   Select Appointment Type
@@ -2797,81 +4043,8 @@ const PatientPortal = () => {
               </div>
             )}
 
-            {/* Step 5: Date and Time Selection */}
-            {currentStep === 5 && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-center mb-4">
-                  Select Date and Time
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Select Date
-                    </label>
-                    <Input
-                      type="date"
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      min={new Date().toISOString().split("T")[0]}
-                      max={
-                        new Date(Date.now() + 60 * 24 * 60 * 60 * 1000)
-                          .toISOString()
-                          .split("T")[0]
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Select Time
-                    </label>
-                    {selectedDate && availableTimeSlots.length > 0 ? (
-                      <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
-                        {availableTimeSlots.map((slot) => (
-                          <Button
-                            key={slot}
-                            variant={
-                              selectedTimeSlot === slot ? "default" : "outline"
-                            }
-                            size="sm"
-                            className={
-                              selectedTimeSlot === slot
-                                ? "bg-[#79c942] hover:bg-[#68ab38]"
-                                : ""
-                            }
-                            onClick={() => setSelectedTimeSlot(slot)}
-                          >
-                            <Clock className="w-4 h-4 mr-1" />
-                            {slot}
-                          </Button>
-                        ))}
-                      </div>
-                    ) : selectedDate ? (
-                      <div className="text-center text-gray-500 py-4">
-                        Loading available times...
-                      </div>
-                    ) : (
-                      <div className="text-center text-gray-500 py-4">
-                        Please select a date first
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Additional Notes (Optional)
-                  </label>
-                  <Textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Any additional information or special requests..."
-                    rows={3}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Step 6: Confirmation */}
-            {currentStep === 6 && (
+            {/* Step 7: Confirmation */}
+            {currentStep === 7 && (
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-center mb-4">
                   Confirm Your Appointment
@@ -2927,7 +4100,7 @@ const PatientPortal = () => {
                         Date & Time
                       </h4>
                       <p>
-                        {selectedDate} at {selectedTimeSlot}
+                        {selectedDate ? format(selectedDate, 'MMMM do, yyyy') : 'Not selected'} at {selectedTimeSlot || 'Not selected'}
                       </p>
                     </div>
                     <div>
@@ -2974,11 +4147,16 @@ const PatientPortal = () => {
                 {currentStep === 1 ? "Cancel" : "Previous"}
               </Button>
 
-              {currentStep < 6 ? (
+              {currentStep < 7 ? (
                 <Button
                   onClick={handleNextStep}
-                  className="bg-[#79c942] hover:bg-[#68ab38] text-white"
-                  disabled={isSubmitting}
+                  className="bg-[#79c942] hover:bg-[#68ab38] text-white disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  disabled={
+                    isSubmitting || 
+                    (currentStep === 1 && !bookingPreference) ||
+                    (currentStep === 4 && isExistingPatient === false && !termsAccepted) ||
+                    (currentStep === 4 && isExistingPatient === null)
+                  }
                 >
                   Next
                   <ChevronRight className="w-4 h-4 ml-1" />
@@ -3030,7 +4208,7 @@ const PatientPortal = () => {
                   )}
                 </div>
                 <span className="text-xs mt-1 text-center">
-                  {step === 1 && "Patient ID"}
+                  {step === 1 && "Patient Info"}
                   {step === 2 && "Documents"}
                   {step === 3 && "Confirm"}
                 </span>
@@ -3039,51 +4217,216 @@ const PatientPortal = () => {
           </div>
 
           <div className="space-y-6">
-            {/* Step 1: Patient ID Input (Previously Step 2) */}
+            {/* Step 1: Patient ID Input with Forgot ID Option */}
             {medCertStep === 1 && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-center mb-4">
-                  Enter your Patient ID
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Patient ID *
-                    </label>
-                    <Input
-                      placeholder="Enter your Patient ID"
-                      value={medCertSearchQuery}
-                      onChange={(e) => setMedCertSearchQuery(e.target.value)}
-                      className="w-full"
-                    />
-                    <div className="text-xs text-gray-500 mt-1">
-                      You can find your Patient ID on your previous appointment
-                      receipts, medical certificates, or contact the clinic
+                {!showMedCertForgotPatientId ? (
+                  <>
+                    <h3 className="text-lg font-semibold text-center mb-4">
+                      Enter your Patient ID
+                    </h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Patient ID *
+                        </label>
+                        <Input
+                          placeholder="Enter your Patient ID"
+                          value={medCertSearchQuery}
+                          onChange={(e) => setMedCertSearchQuery(e.target.value)}
+                          className="w-full"
+                        />
+                        <div className="text-xs text-gray-500 mt-1">
+                          You can find your Patient ID on your previous
+                          appointment receipts, medical certificates, or contact
+                          the clinic
+                        </div>
+                        <div className="text-center mt-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowMedCertForgotPatientId(true)}
+                            className="text-[#79c942] hover:text-[#6bb33a] text-sm font-medium underline"
+                          >
+                            Forgot Patient ID?
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Forgot Patient ID Form */}
+                      {showMedCertForgotPatientId && (
+                        <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+                          <div className="space-y-4">
+                            <h4 className="font-semibold text-gray-900">
+                              Forgot Patient ID? Let's help you find it
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              Please provide the following information to lookup your Patient ID:
+                            </p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  First Name *
+                                </label>
+                                <Input
+                                  placeholder="Enter your first name"
+                                  value={medCertForgotIdForm.firstName}
+                                  onChange={(e) => setMedCertForgotIdForm({...medCertForgotIdForm, firstName: e.target.value})}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  Middle Initial
+                                </label>
+                                <Input
+                                  placeholder="Optional"
+                                  value={medCertForgotIdForm.middleInitial}
+                                  onChange={(e) => setMedCertForgotIdForm({...medCertForgotIdForm, middleInitial: e.target.value})}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  Last Name *
+                                </label>
+                                <Input
+                                  placeholder="Enter your last name"
+                                  value={medCertForgotIdForm.lastName}
+                                  onChange={(e) => setMedCertForgotIdForm({...medCertForgotIdForm, lastName: e.target.value})}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  Suffix
+                                </label>
+                                <Input
+                                  placeholder="Jr, Sr, III, etc."
+                                  value={medCertForgotIdForm.suffix}
+                                  onChange={(e) => setMedCertForgotIdForm({...medCertForgotIdForm, suffix: e.target.value})}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  Date of Birth *
+                                </label>
+                                <Input
+                                  type="date"
+                                  value={medCertForgotIdForm.dateOfBirth}
+                                  onChange={(e) => setMedCertForgotIdForm({...medCertForgotIdForm, dateOfBirth: e.target.value})}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium mb-1">
+                                  Registered Email *
+                                </label>
+                                <Input
+                                  type="email"
+                                  placeholder="Enter your registered email"
+                                  value={medCertForgotIdForm.email}
+                                  onChange={(e) => setMedCertForgotIdForm({...medCertForgotIdForm, email: e.target.value})}
+                                />
+                              </div>
+                              <div className="md:col-span-2">
+                                <label className="block text-sm font-medium mb-1">
+                                  Registered Phone Number *
+                                </label>
+                                <Input
+                                  placeholder="Enter your registered phone number"
+                                  value={medCertForgotIdForm.phone}
+                                  onChange={(e) => setMedCertForgotIdForm({...medCertForgotIdForm, phone: e.target.value})}
+                                />
+                              </div>
+                            </div>
+                            <div className="flex gap-2 justify-end">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => {
+                                  setShowMedCertForgotPatientId(false);
+                                  setMedCertForgotIdForm({
+                                    firstName: "",
+                                    middleInitial: "",
+                                    lastName: "",
+                                    suffix: "",
+                                    dateOfBirth: "",
+                                    email: "",
+                                    phone: ""
+                                  });
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                type="button"
+                                onClick={submitMedCertForgotPatientId}
+                                disabled={medCertForgotIdSubmitting}
+                                className="bg-[#79c942] hover:bg-[#6bb33a]"
+                              >
+                                {medCertForgotIdSubmitting ? "Looking up..." : "Find Patient ID"}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Delivery Method Selection */}
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          How would you like to receive your medical certificate? *
+                        </label>
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              id="pickup"
+                              value="pickup"
+                              checked={medCertDeliveryMethod === "pickup"}
+                              onChange={(e) => setMedCertDeliveryMethod(e.target.value)}
+                              className="w-4 h-4 text-[#79c942] border-gray-300 focus:ring-[#79c942]"
+                            />
+                            <label htmlFor="pickup" className="text-sm text-gray-700">
+                              Pick up at clinic
+                            </label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              id="email"
+                              value="email"
+                              checked={medCertDeliveryMethod === "email"}
+                              onChange={(e) => setMedCertDeliveryMethod(e.target.value)}
+                              className="w-4 h-4 text-[#79c942] border-gray-300 focus:ring-[#79c942]"
+                            />
+                            <label htmlFor="email" className="text-sm text-gray-700">
+                              Receive via email
+                            </label>
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {medCertDeliveryMethod === "pickup" 
+                            ? "You will be notified when your medical certificate is ready for pickup"
+                            : "Medical certificate will be sent to your registered email address"
+                          }
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Request Type
-                    </label>
-                    <Select
-                      value={medCertRequestType}
-                      onValueChange={setMedCertRequestType}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select request type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Medical Certificate">
-                          Medical Certificate
-                        </SelectItem>
-                        <SelectItem value="Medical Record">
-                          Medical Record
-                        </SelectItem>
-                        <SelectItem value="Lab Results">Lab Results</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-lg font-semibold text-center mb-4">
+                      Enter your information
+                    </h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Enter your information to create new patient
+                        </label>
+                        <div className="text-sm text-gray-600">
+                          Since you don't have a Patient ID, please provide your details
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )
+              }
               </div>
             )}
 
@@ -3177,7 +4520,13 @@ const PatientPortal = () => {
                       <h4 className="font-semibold text-gray-700">
                         Request Type
                       </h4>
-                      <p>{medCertRequestType}</p>
+                      <p>Medical Certificate</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-700">
+                        Delivery Method
+                      </h4>
+                      <p>{medCertDeliveryMethod === "pickup" ? "Pick up at clinic" : "Receive via email"}</p>
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-700">
@@ -3278,11 +4627,24 @@ const PatientPortal = () => {
                 <Button
                   onClick={async () => {
                     if (medCertStep === 1) {
+                      // Skip validation if showing forgot patient ID form
+                      if (showMedCertForgotPatientId) {
+                        toast.error("Please complete the patient lookup or go back to enter Patient ID directly");
+                        return;
+                      }
+                      
                       // Validate Patient ID
                       if (!medCertSearchQuery.trim()) {
                         toast.error("Please enter your Patient ID");
                         return;
                       }
+                      
+                      // Validate delivery method
+                      if (!medCertDeliveryMethod) {
+                        toast.error("Please select how you want to receive your medical certificate");
+                        return;
+                      }
+                      
                       const validation = await validatePatientId(
                         medCertSearchQuery
                       );
@@ -3365,28 +4727,116 @@ const PatientPortal = () => {
             {/* Step 1: Patient ID Input (Previously Step 2) */}
             {prescriptionStep === 1 && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-center mb-4">
-                  Enter your Patient ID
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Patient ID *
-                    </label>
-                    <Input
-                      placeholder="Enter your Patient ID"
-                      value={prescriptionSearchQuery}
-                      onChange={(e) =>
-                        setPrescriptionSearchQuery(e.target.value)
-                      }
-                      className="w-full"
-                    />
-                    <div className="text-xs text-gray-500 mt-1">
-                      You can find your Patient ID on your previous appointment
-                      receipts, medical certificates, or contact the clinic
+                {!showPrescriptionForgotPatientId ? (
+                  <>
+                    <h3 className="text-lg font-semibold text-center mb-4">
+                      Enter your Patient ID
+                    </h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Patient ID *
+                        </label>
+                        <Input
+                          placeholder="Enter your Patient ID"
+                          value={prescriptionSearchQuery}
+                          onChange={(e) =>
+                            setPrescriptionSearchQuery(e.target.value)
+                          }
+                          className="w-full"
+                        />
+                        <div className="text-xs text-gray-500 mt-1">
+                          You can find your Patient ID on your previous appointment
+                          receipts, medical certificates, or contact the clinic
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <Button
+                          type="button"
+                          variant="link"
+                          className="text-sm text-blue-600 hover:text-blue-800"
+                          onClick={() => setShowPrescriptionForgotPatientId(true)}
+                        >
+                          Forgot your Patient ID?
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-lg font-semibold text-center mb-4">
+                      Find Your Patient ID
+                    </h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          First Name *
+                        </label>
+                        <Input
+                          placeholder="Enter your first name"
+                          value={prescriptionForgotIdForm.firstName}
+                          onChange={(e) =>
+                            setPrescriptionForgotIdForm({
+                              ...prescriptionForgotIdForm,
+                              firstName: e.target.value,
+                            })
+                          }
+                          className="w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Last Name *
+                        </label>
+                        <Input
+                          placeholder="Enter your last name"
+                          value={prescriptionForgotIdForm.lastName}
+                          onChange={(e) =>
+                            setPrescriptionForgotIdForm({
+                              ...prescriptionForgotIdForm,
+                              lastName: e.target.value,
+                            })
+                          }
+                          className="w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Date of Birth *
+                        </label>
+                        <Input
+                          type="date"
+                          value={prescriptionForgotIdForm.dateOfBirth}
+                          onChange={(e) =>
+                            setPrescriptionForgotIdForm({
+                              ...prescriptionForgotIdForm,
+                              dateOfBirth: e.target.value,
+                            })
+                          }
+                          className="w-full"
+                        />
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button
+                          type="button"
+                          onClick={submitPrescriptionForgotPatientId}
+                          disabled={prescriptionForgotIdSubmitting}
+                          className="flex-1"
+                        >
+                          {prescriptionForgotIdSubmitting ? "Searching..." : "Find Patient ID"}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setShowPrescriptionForgotPatientId(false)}
+                          className="flex-1"
+                        >
+                          Back
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
@@ -3725,7 +5175,7 @@ const PatientPortal = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Service Card Styles */}
+      {/* Service Card and Scrollbar Styles */}
       <style>
         {`
           .service-card {
@@ -3737,6 +5187,74 @@ const PatientPortal = () => {
             background: #79c94222;
             z-index: 2;
           }
+          
+          /* Enhanced Scrollbar Styles for Popovers */
+          .overflow-y-auto, .popover-scrollable .overflow-y-auto {
+            /* Ensure smooth scrolling */
+            scroll-behavior: smooth;
+            /* Enable mouse wheel scrolling */
+            overflow-y: auto !important;
+            /* Ensure pointer events work */
+            pointer-events: auto !important;
+          }
+          
+          /* Ensure popover content can receive mouse events */
+          .popover-scrollable {
+            pointer-events: auto !important;
+          }
+          
+          /* Webkit browsers (Chrome, Safari, Edge) */
+          .overflow-y-auto::-webkit-scrollbar,
+          .popover-scrollable .overflow-y-auto::-webkit-scrollbar {
+            width: 8px;
+          }
+          
+          .overflow-y-auto::-webkit-scrollbar-track,
+          .popover-scrollable .overflow-y-auto::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+          }
+          
+          .overflow-y-auto::-webkit-scrollbar-thumb,
+          .popover-scrollable .overflow-y-auto::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            transition: background 0.2s ease;
+          }
+          
+          .overflow-y-auto::-webkit-scrollbar-thumb:hover,
+          .popover-scrollable .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+          }
+          
+          /* Firefox */
+          .overflow-y-auto,
+          .popover-scrollable .overflow-y-auto {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
+          }
+          
+          /* Ensure popovers can be scrolled with mouse wheel */
+          [data-radix-popper-content-wrapper],
+          [data-radix-popper-content-wrapper] * {
+            pointer-events: auto !important;
+          }
+          
+          /* Specific targeting for Radix UI PopoverContent */
+          [data-radix-popover-content] {
+            pointer-events: auto !important;
+          }
+          
+          [data-radix-popover-content] .overflow-y-auto {
+            pointer-events: auto !important;
+            touch-action: pan-y !important;
+          }
+          
+          /* Fix z-index for sticky headers */
+          .sticky {
+            z-index: 10;
+          }
+          
           @media (max-width: 1024px) {
             .max-w-6xl { max-width: 100vw; }
             .grid-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }

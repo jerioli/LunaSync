@@ -49,9 +49,9 @@ export const DatePopover = ({
             </span>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-64 max-w-[90vw] p-2" align="start" side="top">
-          <div className="flex flex-col gap-2 max-h-60 overflow-y-auto min-w-0">
-            <div className="text-sm font-medium text-gray-700 px-2 py-1 border-b">
+        <PopoverContent className="w-64 max-w-[95vw] p-2 popover-scrollable" align="start" side="top">
+          <div className="flex flex-col gap-2 max-h-80 overflow-y-auto min-w-0" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="text-sm font-medium text-gray-700 px-2 py-1 border-b sticky top-0 bg-white z-10">
               Available Dates
             </div>
             {availableDates.length === 0 ? (
@@ -63,7 +63,7 @@ export const DatePopover = ({
                 <Button
                   key={date.toISOString()}
                   variant={selectedDate?.toDateString() === date.toDateString() ? "default" : "ghost"}
-                  className="justify-start text-left h-auto p-2 min-w-0"
+                  className="justify-start text-left h-auto p-3 min-w-0 touch-manipulation"
                   onClick={() => handleDateSelect(date)}
                   title={date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 >

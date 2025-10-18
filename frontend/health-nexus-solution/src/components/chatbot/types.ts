@@ -13,30 +13,27 @@ export type FormField = {
   };
 };
 
-export type FAQ = {
-  id: number;
-  question: string;
-  answer: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-};
-
 export type MessageType = {
   id: string;
   sender: 'user' | 'bot';
   text: string;
-  type?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form' | 'typing' | 'datetime-picker' | 'faq-accordion';
+  type?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form' | 'typing' | 'datetime-picker' | 'date-picker' | 'time-picker' | 'faq-accordion';
   options?: { value: string; label: string; disabled?: boolean }[];
   dateSelector?: boolean;
   timeSelector?: boolean;
-  dateTimePicker?: boolean; // New combined date-time picker
+  dateTimePicker?: boolean; // Combined date-time picker (for doctor-first)
+  datePickerOnly?: boolean; // Separate date picker (for date-first step 1)
+  timePickerOnly?: boolean; // Separate time picker (for date-first step 2)
+  dateOnlyMode?: boolean; // Flag to indicate date-only selection mode
+  timeOnlyMode?: boolean; // Flag to indicate time-only selection mode
   times?: string[];
   timesDisabled?: boolean; // To disable time slots after selection
   availableDates?: Date[]; // For popover date selector
   selectedDate?: Date; // For popover date selector
   selectedTime?: string; // For popover time selector
   getTimeSlotsForDate?: (date: Date) => Promise<string[]>; // Function to get time slots for a date
+  getTimeSlotsForDoctor?: (doctorId: string, date: Date) => Promise<string[]>; // Function to get time slots for specific doctor and date
+  selectedDoctorId?: string; // Store selected doctor ID for time picker
   fileUpload?: boolean;
   fileUploadLabel?: string;
   fileUploadAccept?: string;
@@ -44,7 +41,7 @@ export type MessageType = {
   formFields?: FormField[];
   showCancelOption?: boolean; // For form cancel functionality
   isTyping?: boolean; // For typing animation
-  faqs?: FAQ[]; // For FAQ accordion display
+  faqs?: any[]; // For FAQ accordion display
 };
 
 export type Doctor = {

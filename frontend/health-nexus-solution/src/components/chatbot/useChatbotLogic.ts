@@ -5,10 +5,9 @@ import { Appointment } from '@/lib/mock-data';
 import { api, axiosInstance, Doctor, Patient } from '@/services/api';
 import { calculateAge } from '@/utils/medicalCertificateTemplate';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { AppointmentForm, FormField, MedicalRecordRequestForm, MessageType, PrescriptionRequestForm } from './types';
-import { appointmentTypes } from './utils';
 
 export const useChatbotLogic = () => {
   const { users, appointments, addAppointment, currentUser, clinicCustomization } = useClinic();
@@ -387,7 +386,7 @@ export const useChatbotLogic = () => {
     fileUpload?: boolean, 
     fileUploadLabel?: string, 
     fileUploadAccept?: string,
-    messageType?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form' | 'datetime-picker' | 'faq-accordion',
+    messageType?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form' | 'datetime-picker' | 'date-picker' | 'time-picker' | 'faq-accordion',
     formFields?: FormField[],
     availableDates?: Date[],
     selectedDate?: Date,
@@ -435,7 +434,7 @@ export const useChatbotLogic = () => {
     fileUpload?: boolean, 
     fileUploadLabel?: string, 
     fileUploadAccept?: string,
-    messageType?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form' | 'datetime-picker' | 'faq-accordion',
+    messageType?: 'text' | 'options' | 'date' | 'doctor' | 'slot' | 'form' | 'datetime-picker' | 'date-picker' | 'time-picker' | 'faq-accordion',
     formFields?: FormField[],
     availableDates?: Date[],
     selectedDate?: Date,
@@ -444,7 +443,11 @@ export const useChatbotLogic = () => {
     dateTimePicker?: boolean,
     getTimeSlotsForDate?: (date: Date) => Promise<string[]>,
     showCancelOption?: boolean,
-    faqs?: any[]
+    faqs?: any[],
+    getTimeSlotsForDoctor?: (doctorId: string, date: Date) => Promise<string[]>,
+    selectedDoctorId?: string,
+    dateOnlyMode?: boolean,
+    timeOnlyMode?: boolean
   ) => {
     // Show typing indicator
     setIsTyping(true);
@@ -469,7 +472,7 @@ export const useChatbotLogic = () => {
         const messageId = uuidv4();
         const messageKey = (options || timeSelector || dateTimePicker) ? messageId : undefined;
 
-        return [...withoutTyping, {
+        const newMessage = {
           id: messageId,
           messageKey,
           sender: 'bot' as const,
@@ -483,6 +486,10 @@ export const useChatbotLogic = () => {
           selectedDate,
           selectedTime,
           getTimeSlotsForDate,
+          getTimeSlotsForDoctor,
+          selectedDoctorId,
+          dateOnlyMode,
+          timeOnlyMode,
           fileUpload,
           fileUploadLabel,
           fileUploadAccept,
@@ -490,7 +497,14 @@ export const useChatbotLogic = () => {
           formFields,
           showCancelOption,
           faqs
-        }];
+        };
+
+        // Debug log for time-picker messages
+        if (messageType === 'time-picker') {
+          console.log('[DEBUG] Created time-picker message with doctor ID:', newMessage.selectedDoctorId);
+        }
+
+        return [...withoutTyping, newMessage];
       });
     }, typingDuration);
   };
@@ -2416,10 +2430,17 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           }, 500);
         });
       } else if (value === 'date-first') {
+        // Prevent multiple concurrent date-first flows
+        if (dateFirstFlowActive) {
+          console.log('Date-first flow already active, ignoring duplicate call');
+          return;
+        }
+
+        setDateFirstFlowActive(true);
         addMessage('user', 'I have a specific date in mind');
         
         // Show loading message while fetching available dates
-        addBotMessage('Excellent! Let me find available dates and times for you... ⏳');
+        addBotMessage('Excellent! Let me find available dates for you... ⏳');
         
         getAvailableDates().then(availableDates => {
           setTimeout(() => {
@@ -2430,17 +2451,17 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
                 setMessages([]);
                 setChatStep(0);
                 resetForms();
+                setDateFirstFlowActive(false); // Reset the flag
               }, 2000);
               return;
             }
             
-            // Use the new combined datetime picker
-            // Create a wrapper function that binds the doctor ID
-            const getTimeSlotsForSelectedDate = (date: Date) => 
-              getAvailableTimeSlotsForDoctor(appointmentForm.doctorId, date);
+            // For date-first flow, show date picker with same design as doctor-first
+            // Create a dummy function that returns empty array since we only need date selection
+            const getDummyTimeSlots = (date: Date) => Promise.resolve([]);
 
             addBotMessage( 
-              'Please select your preferred appointment date and time 📅 ⏰:', 
+              'Please select your preferred appointment date 📅:', 
               undefined, // options
               false, // dateSelector
               false, // timeSelector
@@ -2448,18 +2469,28 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
               false, // fileUpload
               undefined, // fileUploadLabel
               undefined, // fileUploadAccept
-              'datetime-picker', // messageType
+              'datetime-picker', // messageType - Use same as doctor-first for consistent design
               undefined, // formFields
               availableDates, // availableDates
               undefined, // selectedDate
               undefined, // selectedTime
               1000, // typingDuration
-              true, // dateTimePicker
-              getTimeSlotsForSelectedDate // getTimeSlotsForDate function
+              true, // dateTimePicker - Enable the picker
+              getDummyTimeSlots, // getTimeSlotsForDate - dummy function for date-first flow
+              false, // showCancelOption
+              undefined, // faqs
+              undefined, // getTimeSlotsForDoctor
+              undefined, // selectedDoctorId
+              true // dateOnlyMode - Enable date-only mode for date-first flow
             );
             setChatStep(4);
-            setIsInputDisabled(true); // Disable input when showing datetime picker
+            setIsInputDisabled(true); // Disable input when showing date picker
+            setDateFirstFlowActive(false); // Reset the flag after successful setup
           }, 500);
+        }).catch(error => {
+          console.error('Error in date-first flow:', error);
+          setDateFirstFlowActive(false); // Reset the flag on error
+          addBotMessage('Sorry, there was an error fetching available dates. Please try again.');
         });
       }
     } else if (chatStep === 3) {
@@ -2502,6 +2533,13 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     } else if (chatStep === 4) {
       // Date selected (both flows)
       const selectedDate = new Date(value);
+      
+      // Validate the date before proceeding
+      if (isNaN(selectedDate.getTime())) {
+        console.error('Invalid date value received:', value);
+        addBotMessage('Invalid date selected. Please try again.');
+        return;
+      }
      
       setIsInputDisabled(false); // Re-enable input after date selection
       addMessage('user', `I want an appointment on ${selectedDate.toLocaleDateString()}`);
@@ -2532,6 +2570,10 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
                 'Great choice! These are the times I have available: ⏰',
                 'Excellent! Here are your time options: ⏰'
               ];
+              
+              console.log('[DEBUG] Doctor-first flow: Moving to step 4.5 (time selection)');
+              console.log('[DEBUG] Available times:', times);
+              
               addBotMessage(
                 getRandomResponse(timeResponses), 
                 undefined, // options
@@ -2547,7 +2589,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
                 undefined, // selectedDate
                 undefined // selectedTime
               );
-              setChatStep(5);
+              setChatStep(4.5); // Step 4.5: Doctor-first time slot selection
               setIsInputDisabled(true); // Disable input when showing time slots
             }
           }, 500);
@@ -2596,83 +2638,121 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           });
         });
       }
-    } else if (chatMode === 'appointment' && chatStep === 5) {
-      if (!appointmentForm.doctorId) {
-        // Date first flow - doctor selected
-        const selectedDoctor = doctors.find(doctor => doctor.id.toString() === value);
-        if (selectedDoctor) {
-          setIsInputDisabled(false); // Re-enable input after doctor selection
-          addMessage('user', `I want to see Dr. ${selectedDoctor.first_name} ${selectedDoctor.last_name}`);
-          setAppointmentForm(prev => ({ ...prev, doctorId: value }));
-          
-          getAvailableTimeSlotsForDoctor(value, appointmentForm.date!).then((times) => {
-            setTimeout(() => {
-              if (times.length === 0) {
-              addBotMessage( 'I apologize, but all time slots for this doctor are already booked on the selected date. Please select a different doctor.');
-                // Get available doctors again for the same date
-                getAvailableDoctorsForDate(appointmentForm.date!).then(availableDoctors => {
-                  setTimeout(() => {
-                    const doctorOptions = availableDoctors
-                      .filter(doctor => doctor.id.toString() !== value) // Exclude the already selected doctor
-                      .map(doctor => ({
-                        label: `Dr. ${doctor.first_name} ${doctor.last_name}`,
-                        value: doctor.id.toString()
-                      }));
-                    
-                    if (doctorOptions.length > 0) {
-                   addBotMessage( 'Please select a different doctor:', doctorOptions);
-                      setChatStep(5);
-                    } else {
-                     addBotMessage( 'No other doctors are available on this date. Please select a different date.');
-                      getAvailableDates().then(availableDates => {
-                       addBotMessage( 'Please select a different date:', 
-                          availableDates.map(date => ({
-                            label: date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
-                            value: date.toISOString()
-                          }))
-                        );
-                        setChatStep(4);
-                        setIsInputDisabled(true); // Disable input when showing dates
-                      });
-                    }
-                  }, 500);
-                });
-              } else {
-               addBotMessage( 
-                  'Please select a time slot:', 
-                  undefined, // options
-                  false, // dateSelector
-                  true, // timeSelector
-                  times, // times
-                  false, // fileUpload
-                  undefined, // fileUploadLabel
-                  undefined, // fileUploadAccept
-                  'slot', // messageType
-                  undefined, // formFields
-                  undefined, // availableDates
-                  undefined, // selectedDate
-                  undefined // selectedTime
-                );
-                setChatStep(6);
-                setIsInputDisabled(true); // Disable input when showing time slots
-              }
-            }, 500);
-          });
-        }
-      } else {
-        // Time slot selected
-        addMessage('user', `I'll take the ${value} time slot`);
-        setAppointmentForm(prev => ({ ...prev, time: value }));
-        setIsInputDisabled(false); // Re-enable input after time slot selection
+    } else if (chatMode === 'appointment' && chatStep === 4.5) {
+      // Step 4.5: Doctor-first time slot selection
+      console.log('[DEBUG] Step 4.5: Doctor-first time slot selected:', value);
+      console.log('[DEBUG] Current appointmentForm before update:', appointmentForm);
+      
+      addMessage('user', `I'll take the ${value} time slot`);
+      setAppointmentForm(prev => ({ 
+        ...prev, 
+        time: value 
+      }));
+      
+      console.log('[DEBUG] Time slot set in form:', value);
+      setIsInputDisabled(false);
+      
+      setTimeout(() => {
+        const appointmentTypes = [
+          { label: 'Consultation', value: 'Consultation' },
+          { label: 'Follow-up', value: 'Follow-up' },
+          { label: 'Vaccination', value: 'Vaccination' }
+        ];
         
-        setTimeout(() => {
-          addBotMessage('Perfect! What type of appointment do you need today? 🏥', appointmentTypes);
-          setChatStep(6);
-        }, 500);
+        console.log('[DEBUG] Doctor-first flow: Moving to step 6 (appointment type selection)');
+        addBotMessage('Perfect! What type of appointment do you need today? 🏥', appointmentTypes);
+        setChatStep(6);
+        setIsInputDisabled(true);
+      }, 500);
+    } else if (chatMode === 'appointment' && chatStep === 5) {
+      // Date first flow - doctor selected (only doctor selection in step 5)
+      const selectedDoctor = doctors.find(doctor => doctor.id.toString() === value);
+      if (selectedDoctor) {
+        console.log('[DEBUG] Step 5: Date-first doctor selection:', value);
+        setIsInputDisabled(false); // Re-enable input after doctor selection
+        addMessage('user', `I want to see Dr. ${selectedDoctor.first_name} ${selectedDoctor.last_name}`);
+        setAppointmentForm(prev => ({ ...prev, doctorId: value }));
+        
+        getAvailableTimeSlotsForDoctor(value, appointmentForm.date!).then((times) => {
+          setTimeout(() => {
+            if (times.length === 0) {
+            addBotMessage( 'I apologize, but all time slots for this doctor are already booked on the selected date. Please select a different doctor.');
+              // Get available doctors again for the same date
+              getAvailableDoctorsForDate(appointmentForm.date!).then(availableDoctors => {
+                setTimeout(() => {
+                  const doctorOptions = availableDoctors
+                    .filter(doctor => doctor.id.toString() !== value) // Exclude the already selected doctor
+                    .map(doctor => ({
+                      label: `Dr. ${doctor.first_name} ${doctor.last_name}`,
+                      value: doctor.id.toString()
+                    }));
+                  
+                  if (doctorOptions.length > 0) {
+                 addBotMessage( 'Please select a different doctor:', doctorOptions);
+                    setChatStep(5);
+                  } else {
+                   addBotMessage( 'No other doctors are available on this date. Please select a different date.');
+                    getAvailableDates().then(availableDates => {
+                     addBotMessage( 'Please select a different date:', 
+                        availableDates.map(date => ({
+                          label: date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
+                          value: date.toISOString()
+                        }))
+                      );
+                      setChatStep(4);
+                      setIsInputDisabled(true); // Disable input when showing dates
+                    });
+                  }
+                }, 500);
+              });
+            } else {
+              // Create a function to get time slots for the selected doctor and date
+              const getTimeSlotsForSelectedDoctor = (date: Date) => 
+                getAvailableTimeSlotsForDoctor(value, date);
+
+              console.log('[DEBUG] Date-first flow: Creating datetime picker for time selection');
+              console.log('[DEBUG] Selected doctor ID:', value);
+              console.log('[DEBUG] Selected date:', appointmentForm.date);
+
+              addBotMessage( 
+                'Great choice! Now please select your preferred time slot ⏰:', 
+                undefined, // options
+                false, // dateSelector
+                false, // timeSelector
+                undefined, // times
+                false, // fileUpload
+                undefined, // fileUploadLabel
+                undefined, // fileUploadAccept
+                'datetime-picker', // messageType - Use same as doctor-first for consistent design
+                undefined, // formFields
+                [appointmentForm.date!], // availableDates - only the selected date
+                appointmentForm.date, // selectedDate
+                undefined, // selectedTime
+                1000, // typingDuration
+                true, // dateTimePicker
+                getTimeSlotsForSelectedDoctor, // getTimeSlotsForDate
+                false, // showCancelOption
+                undefined, // faqs
+                undefined, // getTimeSlotsForDoctor
+                undefined, // selectedDoctorId
+                false, // dateOnlyMode
+                true // timeOnlyMode - Enable time-only mode for time selection
+              );
+              
+              // Note: DateTimePicker will call handleDateTimeSelect when time is selected
+              setIsInputDisabled(true); // Disable input when showing time picker
+            }
+          }, 500);
+        });
       }
     } else if (chatMode === 'appointment' && chatStep === 6) {
+      console.log('[DEBUG] Step 6: Appointment type selected:', value);
+      console.log('[DEBUG] Current appointmentForm before update:', appointmentForm);
+      
       addMessage('user', `I need a ${value}`);
       setAppointmentForm(prev => ({ ...prev, type: value }));
+      
+      console.log('[DEBUG] Appointment type set in form:', value);
       
       setTimeout(() => {
         addBotMessage('Great choice! 👍 Now, are you a returning patient or is this your first visit with us?', [
@@ -3764,6 +3844,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     setExistingPatient(null); // Clear existing patient data when resetting
     setTempFormData({}); // Clear temporary form data when resetting
     setIsInputDisabled(false); // Ensure input is enabled when resetting
+    setDateFirstFlowActive(false); // Reset the date-first flow flag
     setAppointmentForm({
       date: undefined,
       time: '',
@@ -3931,21 +4012,51 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
     resetForms();
   };
 
-  const getAvailableDates = async () => {
+  // Add cache and loading state to prevent infinite loops
+  const [availableDatesCache, setAvailableDatesCache] = useState<Date[]>([]);
+  const [isLoadingAvailableDates, setIsLoadingAvailableDates] = useState(false);
+  const [availableDatesCacheTime, setAvailableDatesCacheTime] = useState<number>(0);
+  const [dateFirstFlowActive, setDateFirstFlowActive] = useState(false);
+
+  const getAvailableDates = useCallback(async () => {
+    // Check cache first (cache for 5 minutes)
+    const now = Date.now();
+    const cacheTimeout = 5 * 60 * 1000; // 5 minutes
+    
+    if (availableDatesCache.length > 0 && (now - availableDatesCacheTime) < cacheTimeout) {
+      console.log('Returning cached available dates');
+      return availableDatesCache;
+    }
+
+    // Prevent multiple simultaneous calls
+    if (isLoadingAvailableDates) {
+      console.log('Already loading available dates, waiting...');
+      return availableDatesCache;
+    }
+
+    setIsLoadingAvailableDates(true);
+    
     try {
       // First get doctors with availability only
       const allDoctors = await fetchDoctorsWithAvailability();
       if (!allDoctors || allDoctors.length === 0) {
         console.error('No doctors with availability found');
+        setIsLoadingAvailableDates(false);
         return [];
       }
 
+      // Limit to first 5 doctors to reduce API calls
+      const limitedDoctors = allDoctors.slice(0, 5);
+      console.log(`Checking availability for ${limitedDoctors.length} doctors (limited from ${allDoctors.length})`);
+
       const today = new Date();
       const availableDates: Date[] = [];
-      let daysToCheck = 60; // Check next 2 months to give users more options
+      let daysToCheck = 14; // Reduced from 60 to 14 days to prevent overload
+      let datesFound = 0;
+      const maxDates = 7; // Stop after finding 7 available dates
       
-      // Check each date in the next 2 months
-      for (let i = 1; i <= daysToCheck; i++) {
+      // Check each date in the next 2 weeks
+      for (let i = 1; i <= daysToCheck && datesFound < maxDates; i++) {
         const checkDate = new Date(today);
         checkDate.setDate(today.getDate() + i);
         
@@ -3960,7 +4071,8 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         // Check if any doctor has available time slots on this date
         let hasAvailableSlots = false;
         
-        for (const doctor of allDoctors) {
+        // Limit the number of doctors checked per date
+        for (const doctor of limitedDoctors) {
           try {
             const response = await api.availability.getTimeSlots(doctor.id.toString(), dateString);
             
@@ -3980,21 +4092,15 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
                     slot.is_booked === "YES" ||
                     slot.is_booked === "Yes"
                   );
-                  console.log(`Slot ${slot.start_time}: is_booked=${slot.is_booked}, filtered out=${isBooked}`);
                   return !isBooked;
                 });
                 
-                console.log(`Doctor ${doctor.id} has ${availableSlots.length} available slots on ${dateString}`);
                 if (availableSlots.length > 0) {
                   hasAvailableSlots = true;
                   console.log(`✅ Date ${dateString} has available slots with doctor ${doctor.id}`);
                   break; // Found available slots, no need to check other doctors for this date
                 }
-              } else {
-                console.log(`Doctor ${doctor.id} has no time_slots data`);
               }
-            } else {
-              console.log(`Doctor ${doctor.id} has no availability response or empty response`);
             }
           } catch (error) {
             console.error(`Error checking availability for doctor ${doctor.id} on ${dateString}:`, error);
@@ -4002,13 +4108,17 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           }
         }
         
-        console.log(`Date ${dateString}: hasAvailableSlots = ${hasAvailableSlots}`);
         if (hasAvailableSlots) {
           availableDates.push(checkDate);
+          datesFound++;
         }
       }
       
-    
+      // Cache the results
+      setAvailableDatesCache(availableDates);
+      setAvailableDatesCacheTime(now);
+      console.log(`Found ${availableDates.length} available dates, cached for 5 minutes`);
+      
       return availableDates;
     } catch (error) {
       console.error('Error getting available dates:', error);
@@ -4024,9 +4134,15 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         }
       }
       
+      // Cache the fallback results too
+      setAvailableDatesCache(fallbackDates);
+      setAvailableDatesCacheTime(now);
+      
       return fallbackDates;
+    } finally {
+      setIsLoadingAvailableDates(false);
     }
-  };
+  }, [availableDatesCache, availableDatesCacheTime, isLoadingAvailableDates]);
 
   const getAvailableDatesForDoctor = async (doctorId: string) => {
     try {
@@ -4122,7 +4238,11 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
                   return !isBooked;
                 });
                 
-               
+                // If there are available slots, return the doctor
+                if (availableSlots.length > 0) {
+                  console.log(`Doctor ${doctor.id} has ${availableSlots.length} available slots on ${dateString}`);
+                  return doctor;
+                }
               }
             } else {
               console.log(`No time slots data found for doctor ${doctor.id} on ${dateString}`);
@@ -4659,6 +4779,79 @@ Would you like to use this information or update it?`, [
     }, 500);
   };
 
+  // Handler for separate date selection (date-first flow)
+  const handleDateOnlySelect = (date: Date) => {
+    setAppointmentForm(prev => ({ ...prev, date }));
+    addMessage('user', `I'd like an appointment on ${date.toLocaleDateString()}`);
+    
+    // Continue with date-first flow - show available doctors for selected date
+    setTimeout(() => {
+      getAvailableDoctorsForDate(date).then(availableDoctors => {
+        if (!availableDoctors || availableDoctors.length === 0) {
+          addBotMessage('I apologize, but there are no doctors available on this date. Please select a different date.');
+          // Show available dates again
+          getAvailableDates().then(availableDates => {
+            addBotMessage('Please select a different date:', undefined, false, false, undefined, false, undefined, undefined, 'date-picker', undefined, availableDates);
+          });
+          return;
+        }
+
+        setTimeout(() => {
+          const doctorOptions = availableDoctors.map(doctor => ({
+            label: `Dr. ${doctor.first_name} ${doctor.last_name}`,
+            value: doctor.id.toString()
+          }));
+          
+          addBotMessage('The following doctors are available on this date:', doctorOptions);
+          setChatStep(5); // Move to doctor selection
+        }, 500);
+      }).catch(error => {
+        console.error('Error getting available doctors:', error);
+        addBotMessage('Sorry, there was an error checking doctor availability. Please try again.');
+      });
+    }, 500);
+  };
+
+  // Handler for separate time selection (after doctor is selected in date-first flow)
+  const handleTimeOnlySelect = (time: string) => {
+    console.log('[DEBUG] Step 5.5: Date-first time slot selected:', time);
+    console.log('[DEBUG] Current appointmentForm before update:', appointmentForm);
+    
+    setAppointmentForm(prev => ({ ...prev, time }));
+    addMessage('user', `I'll take the ${time} time slot`);
+    
+    console.log('[DEBUG] Time slot set in form:', time);
+    
+    // Continue to appointment type selection
+    setTimeout(() => {
+      const appointmentTypes = [
+        { label: 'Consultation', value: 'Consultation' },
+        { label: 'Follow-up', value: 'Follow-up' },
+        { label: 'Vaccination', value: 'Vaccination' }
+      ];
+      
+      console.log('[DEBUG] Date-first flow: Moving to step 6 (appointment type selection)');
+      addBotMessage('Perfect! What type of appointment do you need today? 🏥', appointmentTypes);
+      setChatStep(6);
+    }, 500);
+  };
+
+  // Handler for returning to main menu from FAQ accordion
+  const handleBackToMainMenu = () => {
+    addMessage('user', 'Back to Main Menu');
+    setChatMode(null);
+    resetForms();
+    setTimeout(() => {
+      addBotMessage("Nice to meet you! 🌟 I'm here to help you with your healthcare needs. What would you like to do today?", [
+        { label: '📅 Book an Appointment', value: 'appointment' },
+        { label: '📋 Get Medical Certificate', value: 'medicalRecord' },
+        { label: '💊 Request Prescription Refill', value: 'prescription' },
+        { label: '❓ Ask Questions (FAQ)', value: 'faq' },
+      ]);
+      setChatStep(1);
+    }, 500);
+  };
+
   return {
     messages,
     input,
@@ -4669,9 +4862,12 @@ Would you like to use this information or update it?`, [
     handleOptionSelect,
     handleDateSelect,
     handleDateTimeSelect,
+    handleDateOnlySelect,
+    handleTimeOnlySelect,
     handleFileUpload,
     handleFormSubmit,
     handleFormCancel,
+    handleBackToMainMenu,
     startChat,
     isLoadingDoctors,
     isLoadingProfanityWords,
