@@ -49,7 +49,7 @@ else:
 if PRODUCTION:
     ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else ['*']
 else:
-    ALLOWED_HOSTS = ['lunasync.site','www.lunasync.site','31.97.67.53']
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
 # Security Settings - Environment dependent
 if PRODUCTION:
