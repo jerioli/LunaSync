@@ -2,3 +2,4 @@
 .env
 # Ignore Django media files
 capstone/media/
+capstone/venv/
