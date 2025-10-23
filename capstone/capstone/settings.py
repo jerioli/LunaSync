@@ -271,8 +271,8 @@ else:
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME':'medsync',
-            'USER':'postgres',
-            'PASSWORD':'admin',
+            'USER':'lunasyncuser',
+            'PASSWORD':'lunasyncuser@2022',
             'HOST':'127.0.0.1',
             'PORT':'5432',
             'OPTIONS': {
