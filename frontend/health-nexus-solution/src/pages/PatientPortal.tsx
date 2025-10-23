@@ -215,6 +215,10 @@ const PatientPortal = () => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingTimeSlots, setIsLoadingTimeSlots] = useState(false);
+  const [doctorAvailableDates, setDoctorAvailableDates] = useState<Date[]>([]);
+  const [isLoadingDates, setIsLoadingDates] = useState(false);
+  const [doctorDatesCache, setDoctorDatesCache] = useState<{[doctorId: string]: Date[]}>({});
 
   // Booking preference: "doctor" or "datetime"
   const [bookingPreference, setBookingPreference] = useState<"doctor" | "datetime" | null>(null);
@@ -514,6 +518,20 @@ const PatientPortal = () => {
     }
   }, [selectedDoctor, selectedDate, bookingPreference, openModal]);
 
+  // Refresh time slots when navigating to step 3 (for conflict resolution)
+  useEffect(() => {
+    if (currentStep === 3 && selectedDoctor && selectedDate && openModal === "appointment") {
+      fetchAvailableTimeSlots(selectedDoctor.id, selectedDate);
+    }
+  }, [currentStep, selectedDoctor, selectedDate, openModal]);
+
+  // Fetch doctor's available dates when doctor is selected
+  useEffect(() => {
+    if (selectedDoctor && openModal === "appointment") {
+      fetchDoctorAvailableDates(selectedDoctor.id);
+    }
+  }, [selectedDoctor, openModal]);
+
   // Search patients
   const searchPatients = async (query: string) => {
     if (!query.trim()) {
@@ -589,6 +607,7 @@ const PatientPortal = () => {
 
   // Fetch available time slots from doctor's actual schedule
   const fetchAvailableTimeSlots = async (doctorId: string, date: Date) => {
+    setIsLoadingTimeSlots(true);
     try {
       // Format date to YYYY-MM-DD without timezone conversion (matching chatbot)
       const year = date.getFullYear();
@@ -617,7 +636,14 @@ const PatientPortal = () => {
         return;
       }
       
-      // Filter out booked slots and only show available ones from doctor's schedule
+      // Log all time slots before filtering
+      console.log('All time slots before filtering:', availability.time_slots.map(slot => ({
+        start: slot.start_time,
+        end: slot.end_time,
+        booked: slot.is_booked
+      })));
+      
+      // Filter out booked slots and lunch break (12:00 PM - 1:00 PM) matching Schedule.tsx logic
       const availableSlots = availability.time_slots.filter(slot => {
         const isBooked = Boolean(
           slot.is_booked === true || 
@@ -631,20 +657,18 @@ const PatientPortal = () => {
           slot.is_booked === "Yes"
         );
         
-        // Also check if slot is marked as available
-        const isAvailable = Boolean(
-          slot.is_available === true ||
-          slot.is_available === 1 ||
-          slot.is_available === "true" ||
-          slot.is_available === "1" ||
-          slot.is_available === "True" ||
-          slot.is_available === "TRUE" ||
-          slot.is_available === "yes" ||
-          slot.is_available === "YES" ||
-          slot.is_available === "Yes"
-        );
+        // Skip lunch break (12:00 PM to 1:00 PM) - same logic as Schedule.tsx
+        const [hours] = slot.start_time.split(':');
+        const hour = parseInt(hours);
+        const isLunchBreak = (hour === 12);
         
-        return !isBooked && isAvailable;
+        // Debug logging for lunch break filtering
+        if (isLunchBreak) {
+          console.log(`Filtering out lunch break slot: ${slot.start_time} - ${slot.end_time} (hour: ${hour})`);
+        }
+        
+        // Only show slots that are NOT booked AND NOT lunch break
+        return !isBooked && !isLunchBreak;
       });
      
       // Format time slots for display (matching chatbot format)
@@ -662,6 +686,8 @@ const PatientPortal = () => {
       console.error("Error fetching time slots:", error);
       // Don't fall back to hardcoded slots - show empty array if error
       setAvailableTimeSlots([]);
+    } finally {
+      setIsLoadingTimeSlots(false);
     }
   };
 
@@ -701,7 +727,7 @@ const PatientPortal = () => {
         return [];
       }
       
-      // Filter out booked slots and only show available ones from doctor's schedule
+      // Filter out booked slots and lunch break (12:00 PM - 1:00 PM) matching Schedule.tsx logic
       const availableSlots = availability.time_slots.filter(slot => {
         const isBooked = Boolean(
           slot.is_booked === true || 
@@ -715,20 +741,18 @@ const PatientPortal = () => {
           slot.is_booked === "Yes"
         );
         
-        // Also check if slot is marked as available
-        const isAvailable = Boolean(
-          slot.is_available === true ||
-          slot.is_available === 1 ||
-          slot.is_available === "true" ||
-          slot.is_available === "1" ||
-          slot.is_available === "True" ||
-          slot.is_available === "TRUE" ||
-          slot.is_available === "yes" ||
-          slot.is_available === "YES" ||
-          slot.is_available === "Yes"
-        );
+        // Skip lunch break (12:00 PM to 1:00 PM) - same logic as Schedule.tsx
+        const [hours] = slot.start_time.split(':');
+        const hour = parseInt(hours);
+        const isLunchBreak = (hour === 12);
         
-        return !isBooked && isAvailable;
+        // Debug logging for lunch break filtering
+        if (isLunchBreak) {
+          console.log(`Filtering out lunch break slot: ${slot.start_time} - ${slot.end_time} (hour: ${hour})`);
+        }
+        
+        // Only show slots that are NOT booked AND NOT lunch break
+        return !isBooked && !isLunchBreak;
       });
      
       // Format for display (matching chatbot format)
@@ -749,8 +773,71 @@ const PatientPortal = () => {
     }
   }, [selectedDoctor?.id]);
 
+  // Fetch doctor's available dates from their actual schedule
+  const fetchDoctorAvailableDates = async (doctorId: string) => {
+    // Check cache first
+    if (doctorDatesCache[doctorId]) {
+      console.log('Using cached dates for doctor:', doctorId);
+      setDoctorAvailableDates(doctorDatesCache[doctorId]);
+      return;
+    }
+
+    setIsLoadingDates(true);
+    try {
+      console.log('Fetching available dates for doctor:', doctorId);
+      
+      // Use the same API as chatbot - direct call to get doctor's available dates
+      const response = await api.availability.getAvailableDates(doctorId);
+
+      if (!response || !Array.isArray(response)) {
+        console.error('Invalid response format:', response);
+        setDoctorAvailableDates([]);
+        return;
+      }
+
+      // Convert date strings to Date objects (same as chatbot)
+      const availableDates = response.map((dateStr: string) => {
+        // Create date in Pacific Time to match chatbot
+        const date = new Date(dateStr + 'T00:00:00-08:00');
+        return date;
+      });
+
+      // Filter to only include dates within the next 2 weeks (same as chatbot)
+      const today = new Date();
+      const twoWeeksFromNow = new Date();
+      twoWeeksFromNow.setDate(today.getDate() + 14);
+      
+      const filteredDates = availableDates.filter(date => {
+        return date >= today && date <= twoWeeksFromNow;
+      });
+      
+      console.log('Doctor available dates:', filteredDates);
+      setDoctorAvailableDates(filteredDates);
+      
+      // Cache the results for this doctor
+      setDoctorDatesCache(prev => ({
+        ...prev,
+        [doctorId]: filteredDates
+      }));
+      
+    } catch (error) {
+      console.error("Error fetching doctor's available dates:", error);
+      // Fallback to empty array if error
+      setDoctorAvailableDates([]);
+    } finally {
+      setIsLoadingDates(false);
+    }
+  };
+
   // Generate available dates for the next 60 days
+  // Available dates - use doctor-specific dates when available, fallback to hardcoded
   const availableDates = useMemo(() => {
+    // If we have doctor-specific dates and a doctor is selected, use those
+    if (selectedDoctor && doctorAvailableDates.length > 0) {
+      return doctorAvailableDates;
+    }
+    
+    // Fallback to hardcoded dates (for date-first flow or when no doctor schedule)
     const dates: Date[] = [];
     const today = new Date();
     
@@ -761,7 +848,7 @@ const PatientPortal = () => {
     }
     
     return dates;
-  }, []);
+  }, [selectedDoctor, doctorAvailableDates]);
 
   // Keep the function for backward compatibility
   const generateAvailableDates = useCallback((): Date[] => {
@@ -837,21 +924,21 @@ const PatientPortal = () => {
             phone: ""
           });
           
-          // Automatically validate the patient ID and move to next step
+          // Automatically validate the patient ID
           try {
             const validation = await validatePatientId(response.data.patient_id);
             if (validation.isValid) {
               setSelectedPatient(validation.patient);
               toast.success("Patient ID verified successfully!");
-              setTimeout(() => {
-                setCurrentStep(3); // Move to doctor selection step
-              }, 1000);
             }
           } catch (error) {
             console.error("Error validating found patient ID:", error);
           }
         } else if (response.data.status === 'partial_match') {
-          toast.success(`Patient ID found: ${response.data.patient_id}`);
+          // Partial Match: Similar patient found, might be the right one
+          toast.success(`🔍 Partial Match: Found similar patient record. Patient ID: ${response.data.patient_id}. Please verify if this is correct.`, {
+            duration: 6000,
+          });
           setSearchQuery(response.data.patient_id);
           setShowForgotPatientId(false);
           setForgotIdForm({
@@ -864,23 +951,19 @@ const PatientPortal = () => {
             phone: ""
           });
           
-          // Automatically validate the patient ID and move to next step
-          try {
-            const validation = await validatePatientId(response.data.patient_id);
-            if (validation.isValid) {
-              setSelectedPatient(validation.patient);
-              toast.success("Patient ID verified successfully!");
-              setTimeout(() => {
-                setCurrentStep(3); // Move to doctor selection step
-              }, 1000);
-            }
-          } catch (error) {
-            console.error("Error validating found patient ID:", error);
-          }
+          // Don't auto-validate, let user verify manually
+        } else if (response.data.status === 'multiple_matches') {
+          // Multiple Matches: Found multiple similar patients
+          toast.error("⚠️ Multiple Matches: Found multiple patients with similar details. Could you please confirm your registered email or phone number again so I can narrow it down?", {
+            duration: 8000,
+          });
         } else if (response.data.status === 'suggestion') {
-          toast.error("No exact match found. Please verify your information and try again.");
+          toast.error("🔍 Hmm, I found a similar record. Is this you? Please reply YES or NO. If NO → show the same form again");
         } else if (response.data.status === 'no_match') {
-          toast.error("No matching patient found with the provided information");
+          // No Match: Completely no matching patient found
+          toast.error("❌ No Match: I couldn't find any patient record with those details. Please double-check your name, birthdate, email, or phone number. If the issue persists, contact the clinic for help. 📞 Provide a 'Try Again' button to reopen the form", {
+            duration: 10000,
+          });
         } else {
           toast.error("No matching patient found with the provided information");
         }
@@ -977,7 +1060,9 @@ const PatientPortal = () => {
             console.error("Error validating found patient ID:", error);
           }
         } else if (response.data.status === 'partial_match') {
-          toast.success(`Patient ID found: ${response.data.patient_id}`);
+          toast.success(`🔍 Partial Match: Found similar patient record. Patient ID: ${response.data.patient_id}. Please verify if this is correct.`, {
+            duration: 6000,
+          });
           setMedCertSearchQuery(response.data.patient_id);
           setShowMedCertForgotPatientId(false);
           setMedCertForgotIdForm({
@@ -989,10 +1074,16 @@ const PatientPortal = () => {
             email: "",
             phone: ""
           });
+        } else if (response.data.status === 'multiple_matches') {
+          toast.error("⚠️ Multiple Matches: Found multiple patients with similar details. Could you please confirm your registered email or phone number again so I can narrow it down?", {
+            duration: 8000,
+          });
         } else if (response.data.status === 'suggestion') {
-          toast.error("No exact match found. Please verify your information and try again.");
+          toast.error("🔍 Hmm, I found a similar record. Is this you? Please reply YES or NO. If NO → show the same form again");
         } else if (response.data.status === 'no_match') {
-          toast.error("No matching patient found with the provided information");
+          toast.error("❌ No Match: I couldn't find any patient record with those details. Please double-check your name, birthdate, email, or phone number. If the issue persists, contact the clinic for help.", {
+            duration: 10000,
+          });
         } else {
           toast.error("No matching patient found with the provided information");
         }
@@ -1089,7 +1180,9 @@ const PatientPortal = () => {
             console.error("Error validating found patient ID:", error);
           }
         } else if (response.data.status === 'partial_match') {
-          toast.success(`Patient ID found: ${response.data.patient_id}`);
+          toast.success(`🔍 Partial Match: Found similar patient record. Patient ID: ${response.data.patient_id}. Please verify if this is correct.`, {
+            duration: 6000,
+          });
           setPrescriptionSearchQuery(response.data.patient_id);
           setShowPrescriptionForgotPatientId(false);
           setPrescriptionForgotIdForm({
@@ -1101,10 +1194,16 @@ const PatientPortal = () => {
             email: "",
             phone: ""
           });
+        } else if (response.data.status === 'multiple_matches') {
+          toast.error("⚠️ Multiple Matches: Found multiple patients with similar details. Could you please confirm your registered email or phone number again so I can narrow it down?", {
+            duration: 8000,
+          });
         } else if (response.data.status === 'suggestion') {
-          toast.error("No exact match found. Please verify your information and try again.");
+          toast.error("🔍 Hmm, I found a similar record. Is this you? Please reply YES or NO. If NO → show the same form again");
         } else if (response.data.status === 'no_match') {
-          toast.error("No matching patient found with the provided information");
+          toast.error("❌ No Match: I couldn't find any patient record with those details. Please double-check your name, birthdate, email, or phone number. If the issue persists, contact the clinic for help.", {
+            duration: 10000,
+          });
         } else {
           toast.error("No matching patient found with the provided information");
         }
@@ -1139,6 +1238,10 @@ const PatientPortal = () => {
     setSelectedTimeSlot("");
     setNotes("");
     setBookingPreference(null);
+    setIsLoadingTimeSlots(false);
+    setDoctorAvailableDates([]);
+    setIsLoadingDates(false);
+    setDoctorDatesCache({});
     setTermsAccepted(false);
     setNoMiddleName(false);
     setShowForgotPatientId(false);
@@ -1260,11 +1363,15 @@ const PatientPortal = () => {
       // Create appointment using the same API as chatbot
       const response = await api.appointments.create(appointmentData);
 
-      // Enhanced success toast notification
+      // Enhanced success toast notification with appointment details
+      const patientName = isExistingPatient
+        ? `${selectedPatient?.firstName || selectedPatient?.first_name} ${selectedPatient?.lastName || selectedPatient?.last_name}`
+        : `${patientData.firstName} ${patientData.lastName}`;
+      
       toast.success(
-        `🎉 Appointment successfully scheduled for ${format(selectedDate, 'MMM dd, yyyy')} at ${selectedTimeSlot}! You will receive a confirmation email once approved.`,
+        `🎉 Appointment successfully scheduled!\n\nPatient: ${patientName}\nDoctor: Dr. ${selectedDoctor?.first_name} ${selectedDoctor?.last_name}\nDate: ${format(selectedDate, 'MMM dd, yyyy')} at ${selectedTimeSlot}\nType: ${selectedAppointmentType}\n\nYou will receive a confirmation email once approved.`,
         {
-          duration: 5000,
+          duration: 8000,
         }
       );
       handleAppointmentModalClose();
@@ -1285,7 +1392,12 @@ const PatientPortal = () => {
         toast.error(
           "This time slot has just been booked by another patient. Please select a different time."
         );
-        setCurrentStep(5); // Go back to date/time selection
+        // Clear the selected time slot and refresh available slots
+        setSelectedTimeSlot("");
+        if (selectedDoctor && selectedDate) {
+          await fetchAvailableTimeSlots(selectedDoctor.id, selectedDate);
+        }
+        setCurrentStep(3); // Go back to date/time selection
       } else if (error.response?.data) {
         const errorData = error.response.data;
         if (typeof errorData === "object") {
@@ -3122,7 +3234,7 @@ const PatientPortal = () => {
                   {step === 4 && "Patient Type"}
                   {step === 5 && "Patient Info"}
                   {step === 6 && "Service"}
-                  {step === 7 && "Confirm"}
+                  {step === 7 && "Summary"}
                 </span>
               </div>
             ))}
@@ -3276,35 +3388,40 @@ const PatientPortal = () => {
                     </h3>
                     
                     {selectedDoctor ? (
-                      <DateTimePicker
-                        availableDates={availableDates}
-                        selectedDate={selectedDate}
-                        selectedTime={selectedTimeSlot}
-                        getTimeSlotsForDate={getTimeSlotsForDate}
-                        onDateTimeSelect={(date: Date, time: string) => {
-                          console.log('DateTimePicker selected:', { date, time });
-                          setSelectedDate(date);
-                          setSelectedTimeSlot(time);
-                          toast.success(`Appointment scheduled for ${format(date, 'MMM dd, yyyy')} at ${time}`);
-                        }}
-                      />
+                      isLoadingDates ? (
+                        <div className="text-center text-gray-500 py-8">
+                          <div className="flex items-center justify-center space-x-2">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#79c942]"></div>
+                            <span>Loading doctor's available dates...</span>
+                          </div>
+                        </div>
+                      ) : availableDates.length === 0 && selectedDoctor ? (
+                        <div className="text-center text-gray-500 py-8">
+                          <div className="text-lg font-medium mb-2">No available dates</div>
+                          <div className="text-sm">
+                            Dr. {selectedDoctor.first_name} {selectedDoctor.last_name} has no available appointments scheduled. 
+                            Please select a different doctor or contact the clinic.
+                          </div>
+                        </div>
+                      ) : (
+                        <DateTimePicker
+                          availableDates={availableDates}
+                          selectedDate={selectedDate}
+                          selectedTime={selectedTimeSlot}
+                          getTimeSlotsForDate={getTimeSlotsForDate}
+                          onDateTimeSelect={(date: Date, time: string) => {
+                            console.log('DateTimePicker selected:', { date, time });
+                            setSelectedDate(date);
+                            setSelectedTimeSlot(time);
+                            toast.success(`Appointment scheduled for ${format(date, 'MMM dd, yyyy')} at ${time}`);
+                          }}
+                        />
+                      )
                     ) : (
                       <div className="text-center text-gray-500 py-4">
                         Please select a doctor first
                       </div>
                     )}
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        Additional Notes (Optional)
-                      </label>
-                      <Textarea
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Any additional information or special requests..."
-                        rows={3}
-                      />
-                    </div>
                   </>
                 ) : (
                   // Doctor Selection for date-first flow (doctors available on selected date)
@@ -3369,29 +3486,40 @@ const PatientPortal = () => {
                             <h4 className="font-semibold text-gray-900 mb-4">
                               Select Time Slot
                             </h4>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                              {availableTimeSlots.map((timeSlot) => (
-                                <Button
-                                  key={timeSlot}
-                                  variant={selectedTimeSlot === timeSlot ? "default" : "outline"}
-                                  className={`p-2 text-sm ${
-                                    selectedTimeSlot === timeSlot
-                                      ? "bg-[#79c942] hover:bg-[#68ab38]"
-                                      : ""
-                                  }`}
-                                  onClick={() => {
-                                    setSelectedTimeSlot(timeSlot);
-                                    toast.success(`Time slot selected: ${timeSlot}`);
-                                  }}
-                                >
-                                  {timeSlot}
-                                </Button>
-                              ))}
-                            </div>
-                            {availableTimeSlots.length === 0 && (
+                            {isLoadingTimeSlots ? (
                               <div className="text-center text-gray-500 py-4">
-                                No available time slots for this doctor on the selected date.
+                                <div className="flex items-center justify-center space-x-2">
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#79c942]"></div>
+                                  <span>Loading available time slots...</span>
+                                </div>
                               </div>
+                            ) : (
+                              <>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                                  {availableTimeSlots.map((timeSlot) => (
+                                    <Button
+                                      key={timeSlot}
+                                      variant={selectedTimeSlot === timeSlot ? "default" : "outline"}
+                                      className={`p-2 text-sm ${
+                                        selectedTimeSlot === timeSlot
+                                          ? "bg-[#79c942] hover:bg-[#68ab38]"
+                                          : ""
+                                      }`}
+                                      onClick={() => {
+                                        setSelectedTimeSlot(timeSlot);
+                                        toast.success(`Time slot selected: ${timeSlot}`);
+                                      }}
+                                    >
+                                      {timeSlot}
+                                    </Button>
+                                  ))}
+                                </div>
+                                {availableTimeSlots.length === 0 && (
+                                  <div className="text-center text-gray-500 py-4">
+                                    No available time slots for this doctor on the selected date.
+                                  </div>
+                                )}
+                              </>
                             )}
                           </div>
                         )}
@@ -3492,149 +3620,9 @@ const PatientPortal = () => {
               </div>
             )}
 
-            {/* Step 5: Patient Information */}
-            {currentStep === 5 && (
-              <div className="space-y-4">
-                {bookingPreference === "doctor" ? (
-                  // Doctor Selection for doctor-first flow
-                  <>
-                    <h3 className="text-lg font-semibold text-center mb-4">
-                      Select a Doctor
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {doctors.map((doctor: any) => (
-                        <Button
-                          key={doctor.id}
-                          variant={
-                            selectedDoctor?.id === doctor.id ? "default" : "outline"
-                          }
-                          className={`p-4 h-auto text-left justify-start ${
-                            selectedDoctor?.id === doctor.id
-                              ? "bg-[#79c942] hover:bg-[#68ab38]"
-                              : ""
-                          }`}
-                          onClick={() => setSelectedDoctor(doctor)}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <Stethoscope className="w-8 h-8" />
-                            <div>
-                              <div className="font-semibold">
-                                {doctor.first_name} {doctor.last_name}
-                              </div>
-                              <div className="text-sm opacity-75">
-                                {doctor.specialization}
-                              </div>
-                            </div>
-                          </div>
-                        </Button>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  // Date and Time Selection for datetime-first flow
-                  <>
-                    <h3 className="text-lg font-semibold text-center mb-4">
-                      Select Date and Time
-                    </h3>
-                    <DateTimePicker
-                      availableDates={availableDates}
-                      selectedDate={selectedDate}
-                      selectedTime={selectedTimeSlot}
-                      getTimeSlotsForDate={() => Promise.resolve(availableTimeSlots)} // Use fetched time slots from doctor's schedule
-                      onDateTimeSelect={(date: Date, time: string) => {
-                        console.log('DateTimePicker selected:', { date, time });
-                        setSelectedDate(date);
-                        setSelectedTimeSlot(time);
-                        toast.success(`Date and time selected: ${format(date, 'MMM dd, yyyy')} at ${time}`);
-                      }}
-                    />
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        Additional Notes (Optional)
-                      </label>
-                      <Textarea
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Any additional information or special requests..."
-                        rows={3}
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
 
-            {/* Step 4: Dynamic step based on booking preference - Date/Time or Doctor */}
-            {currentStep === 4 && (
-              <div className="space-y-4">
-                {bookingPreference === "doctor" ? (
-                  // Doctor Selection for doctor-first flow
-                  <>
-                    <h3 className="text-lg font-semibold text-center mb-4">
-                      Select a Doctor
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {doctors.map((doctor: any) => (
-                        <Button
-                          key={doctor.id}
-                          variant={
-                            selectedDoctor?.id === doctor.id ? "default" : "outline"
-                          }
-                          className={`p-4 h-auto text-left justify-start ${
-                            selectedDoctor?.id === doctor.id
-                              ? "bg-[#79c942] hover:bg-[#68ab38]"
-                              : ""
-                          }`}
-                          onClick={() => setSelectedDoctor(doctor)}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <Stethoscope className="w-8 h-8" />
-                            <div>
-                              <div className="font-semibold">
-                                {doctor.first_name} {doctor.last_name}
-                              </div>
-                              <div className="text-sm opacity-75">
-                                {doctor.specialization}
-                              </div>
-                            </div>
-                          </div>
-                        </Button>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  // Date and Time Selection for datetime-first flow
-                  <>
-                    <h3 className="text-lg font-semibold text-center mb-4">
-                      Select Date and Time
-                    </h3>
-                    <DateTimePicker
-                      availableDates={availableDates}
-                      selectedDate={selectedDate}
-                      selectedTime={selectedTimeSlot}
-                      getTimeSlotsForDate={getTimeSlotsForDate} // Use fetched time slots from doctor's schedule
-                      onDateTimeSelect={(date: Date, time: string) => {
-                        console.log('DateTimePicker selected:', { date, time });
-                        setSelectedDate(date);
-                        setSelectedTimeSlot(time);
-                        toast.success(`Date and time selected: ${format(date, 'MMM dd, yyyy')} at ${time}`);
-                      }}
-                    />
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        Additional Notes (Optional)
-                      </label>
-                      <Textarea
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Any additional information or special requests..."
-                        rows={3}
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
+
+
 
             {/* Step 5: Patient Information */}
             {currentStep === 5 && (
@@ -4043,7 +4031,7 @@ const PatientPortal = () => {
               </div>
             )}
 
-            {/* Step 7: Confirmation */}
+            {/* Step 7: Summary/Confirmation */}
             {currentStep === 7 && (
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-center mb-4">
@@ -4052,70 +4040,105 @@ const PatientPortal = () => {
                 <div className="bg-gray-50 rounded-lg p-6 space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
+                      <h4 className="font-semibold text-gray-700">Date</h4>
+                      <p>{selectedDate ? format(selectedDate, 'MM/dd/yyyy') : 'Not selected'}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-700">Time</h4>
+                      <p>{selectedTimeSlot || 'Not selected'}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-700">Doctor</h4>
+                      <p>Dr. {selectedDoctor?.first_name} {selectedDoctor?.last_name}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-700">Type</h4>
+                      <p>{selectedAppointmentType}</p>
+                    </div>
+                    <div>
                       <h4 className="font-semibold text-gray-700">Patient</h4>
                       <p>
                         {isExistingPatient
-                          ? `${
-                              selectedPatient?.firstName ||
-                              selectedPatient?.first_name
-                            } ${
-                              selectedPatient?.lastName ||
-                              selectedPatient?.last_name
-                            }`
-                          : `${patientForm.getValues(
-                              "firstName"
-                            )} ${patientForm.getValues("lastName")}`}
+                          ? `${selectedPatient?.firstName || selectedPatient?.first_name} ${selectedPatient?.middleInitial || selectedPatient?.middle_initial || ''} ${selectedPatient?.lastName || selectedPatient?.last_name}`.trim()
+                          : `${patientForm.getValues("firstName")} ${patientForm.getValues("middleName") === "N/A" ? "" : patientForm.getValues("middleName")} ${patientForm.getValues("lastName")}`.trim()
+                        }
                       </p>
                     </div>
-                    {isExistingPatient && selectedPatient && (
-                      <>
-                        <div>
-                          <h4 className="font-semibold text-gray-700">
-                            Patient ID
-                          </h4>
-                          <p>{searchQuery}</p>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-700">Email</h4>
-                          <p>{selectedPatient.email || "Not available"}</p>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-700">Phone</h4>
-                          <p>
-                            {selectedPatient.phone_number ||
-                              selectedPatient.phone ||
-                              "Not available"}
-                          </p>
-                        </div>
-                      </>
-                    )}
                     <div>
-                      <h4 className="font-semibold text-gray-700">Doctor</h4>
+                      <h4 className="font-semibold text-gray-700">Email</h4>
                       <p>
-                        {selectedDoctor?.first_name} {selectedDoctor?.last_name}
+                        {isExistingPatient
+                          ? selectedPatient?.email || "Not available"
+                          : patientForm.getValues("email")
+                        }
                       </p>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-700">
-                        Date & Time
-                      </h4>
+                      <h4 className="font-semibold text-gray-700">Phone</h4>
                       <p>
-                        {selectedDate ? format(selectedDate, 'MMMM do, yyyy') : 'Not selected'} at {selectedTimeSlot || 'Not selected'}
+                        {isExistingPatient
+                          ? selectedPatient?.phone_number || selectedPatient?.phone || "Not available"
+                          : patientForm.getValues("phone")
+                        }
                       </p>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-700">
-                        Appointment Type
-                      </h4>
-                      <p>{selectedAppointmentType}</p>
+                      <h4 className="font-semibold text-gray-700">Date of Birth</h4>
+                      <p>
+                        {isExistingPatient
+                          ? selectedPatient?.dateOfBirth || selectedPatient?.date_of_birth || "Not available"
+                          : patientForm.getValues("dateOfBirth")
+                        }
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-700">Gender</h4>
+                      <p>
+                        {(() => {
+                          const gender = isExistingPatient
+                            ? selectedPatient?.gender || selectedPatient?.sex || "Not available"
+                            : patientForm.getValues("sex");
+                          
+                          // Format the gender for better display
+                          switch(gender) {
+                            case "male": return "Male";
+                            case "female": return "Female";
+                            case "prefer_not_to_say": return "Prefer not to say";
+                            default: return gender;
+                          }
+                        })()}
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-700">Address</h4>
+                      <p>
+                        {isExistingPatient
+                          ? selectedPatient?.address || "Not available"
+                          : patientForm.getValues("address")
+                        }
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-700">Marital Status</h4>
+                      <p>
+                        {(() => {
+                          const status = isExistingPatient
+                            ? selectedPatient?.maritalStatus || selectedPatient?.marital_status || "Not available"
+                            : patientForm.getValues("maritalStatus") || "prefer_not_to_say";
+                          
+                          // Format the status for better display
+                          switch(status) {
+                            case "prefer_not_to_say": return "Prefer not to say";
+                            case "single": return "Single";
+                            case "married": return "Married";
+                            case "divorced": return "Divorced";
+                            case "widowed": return "Widowed";
+                            default: return status;
+                          }
+                        })()}
+                      </p>
                     </div>
                   </div>
-                  {notes && (
-                    <div>
-                      <h4 className="font-semibold text-gray-700">Notes</h4>
-                      <p className="text-gray-600">{notes}</p>
-                    </div>
-                  )}
                 </div>
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <div className="flex items-start space-x-2">
@@ -4153,6 +4176,7 @@ const PatientPortal = () => {
                   className="bg-[#79c942] hover:bg-[#68ab38] text-white disabled:bg-gray-400 disabled:cursor-not-allowed"
                   disabled={
                     isSubmitting || 
+                    isLoadingTimeSlots ||
                     (currentStep === 1 && !bookingPreference) ||
                     (currentStep === 4 && isExistingPatient === false && !termsAccepted) ||
                     (currentStep === 4 && isExistingPatient === null)
@@ -4165,7 +4189,7 @@ const PatientPortal = () => {
                 <Button
                   onClick={onSubmitAppointment}
                   className="bg-[#79c942] hover:bg-[#68ab38] text-white"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isLoadingTimeSlots}
                 >
                   {isSubmitting ? "Submitting..." : "Submit Request"}
                 </Button>

@@ -47,9 +47,9 @@ else:
 
 # Dynamic allowed hosts based on environment
 if PRODUCTION:
-    ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else ['*']
+    ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else ['lunasync.site','www.lunasync.site','31.97.67.53']
 else:
-    ALLOWED_HOSTS = ['lunasync.site','www.lunasync.site','31.97.67.53']
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '*']  # Allow all hosts in development
 
 # Security Settings - Environment dependent
 if PRODUCTION:
@@ -249,8 +249,8 @@ if PRODUCTION and os.environ.get('DATABASE_URL'):
                 },
             }
         }
-else:
-    # Development database configuration
+elif PRODUCTION:
+    # Production database configuration
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -261,6 +261,22 @@ else:
             'PORT':'5432',
             'OPTIONS': {
                 'sslmode': 'require',  # Enable SSL for database connections
+                'connect_timeout': 60,
+            },
+        }
+    }
+else:
+    # Development database configuration
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME':'medsync',
+            'USER':'postgres',
+            'PASSWORD':'admin',
+            'HOST':'127.0.0.1',
+            'PORT':'5432',
+            'OPTIONS': {
+                'sslmode': 'require',  # More relaxed SSL for development
                 'connect_timeout': 60,
             },
         }
