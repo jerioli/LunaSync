@@ -124,35 +124,31 @@ CORS_ALLOW_ALL_ORIGINS = False  # More secure than True
 # Environment-dependent CORS settings
 if PRODUCTION:
     # Production CORS - more restrictive
-    CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',') if os.environ.get('CORS_ALLOWED_ORIGINS') else []
-    CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if os.environ.get('CSRF_TRUSTED_ORIGINS') else []
+    CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',') if os.environ.get('CORS_ALLOWED_ORIGINS') else [
+        'https://lunasync.site',
+        'https://www.lunasync.site'
+    ]
+    CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if os.environ.get('CSRF_TRUSTED_ORIGINS') else [
+        'https://lunasync.site',
+        'https://www.lunasync.site'
+    ]
     CSRF_USE_SESSIONS = True
     CSRF_CHECK_DISABLED = False
 else:
-    # Development CORS - more permissive
+    # Development CORS - only for localhost
     CORS_ALLOWED_ORIGINS = [
-        "http://localhost:8080",  # React dev server
-        "http://localhost:8081",  # React dev server alternative port
-        "http://localhost:3000",  # React dev server alternative port
-        "http://localhost:5173",  # Vite dev server default port
-        "http://localhost:4173",  # Vite preview port
-        "http://127.0.0.1:8080",  # React dev server (IP form)
-        "http://127.0.0.1:8081",  # React dev server alternative port (IP form)
+        "http://localhost:8080",  # Frontend dev server
+        "http://localhost:5173",  # Vite dev server
+        "http://127.0.0.1:8080",  # Frontend dev server (IP form)
         "http://127.0.0.1:5173",  # Vite dev server (IP form)
-        "http://127.0.0.1:4173",  # Vite preview port (IP form)
     ]
 
     # CSRF Trusted Origins for development
     CSRF_TRUSTED_ORIGINS = [
-        "http://localhost:8080",  # React dev server
-        "http://localhost:8081",  # React dev server alternative port
-        "http://localhost:3000",  # React dev server alternative port
-        "http://localhost:5173",  # Vite dev server default port
-        "http://localhost:4173",  # Vite preview port
-        "http://127.0.0.1:8080",  # React dev server (IP form)
-        "http://127.0.0.1:8081",  # React dev server alternative port (IP form)
-        "http://127.0.0.1:5173",  # Vite dev server (IP form)
-        "http://127.0.0.1:4173",  # Vite preview port (IP form)
+        "http://localhost:8080",
+        "http://localhost:5173",
+        "http://127.0.0.1:8080",
+        "http://127.0.0.1:5173",
     ]
     
     CSRF_USE_SESSIONS = False
@@ -332,7 +328,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Domain URL for email links and media files
-DOMAIN_URL = 'http://127.0.0.1:8000'  # Change this to your production domain
+DOMAIN_URL = 'https://lunasync.site'  # Production domain
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
