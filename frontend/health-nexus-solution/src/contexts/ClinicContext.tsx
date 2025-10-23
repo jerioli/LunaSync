@@ -16,6 +16,7 @@ import { axiosInstance } from "@/services/api";
 import { medicalDocumentsAPI } from "@/services/medicalDocumentsAPI";
 import { ClinicContextType, ClinicCustomization } from "@/types/clinic";
 import { parseApiError } from "@/utils/errorHandler";
+import { ENV } from "@/config/env";
 import React, {
   createContext,
   ReactNode,
@@ -68,7 +69,7 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({
   const refreshUserData = async () => {
     try {
       console.log("[DEBUG] ClinicContext - Refreshing user data...");
-      const userResponse = await fetch("/api/auth/current-user/", {
+      const userResponse = await fetch(`${ENV.API_URL}/auth/current-user/`, {
         credentials: "include",
       });
       const userData = await userResponse.json();
@@ -149,7 +150,7 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({
           // Automatically refresh user data to get complete permissions
           try {
             console.log("[DEBUG] ClinicContext - Auto-refreshing user data...");
-            const userResponse = await fetch("/api/auth/current-user/", {
+            const userResponse = await fetch(`${ENV.API_URL}/auth/current-user/`, {
               credentials: "include",
             });
             const userData = await userResponse.json();

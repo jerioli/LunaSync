@@ -5,6 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ENV } from "@/config/env";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -134,10 +135,11 @@ const MedicalCertificateGenerator: React.FC<
   const getLogoUrl = (logo: string) => {
     if (!logo) return null;
     if (logo.startsWith("http")) return logo;
-    if (logo.startsWith("/media/")) return `http://127.0.0.1:8000${logo}`;
+    const baseUrl = ENV.API_URL.replace('/api', '');
+    if (logo.startsWith("/media/")) return `${baseUrl}${logo}`;
     if (logo.startsWith("branding/"))
-      return `http://127.0.0.1:8000/media/${logo}`;
-    return `http://127.0.0.1:8000${logo}`;
+      return `${baseUrl}/media/${logo}`;
+    return `${baseUrl}${logo}`;
   };
   const [certificateData, setCertificateData] =
     useState<MedicalCertificateData>({

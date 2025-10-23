@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import { ENV } from '@/config/env';
 
 interface EncryptionStatus {
   status: string;
@@ -65,7 +66,7 @@ export const useSecurity = () => {
   const fetchSecurityData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://127.0.0.1:8000/api/security-status/');
+      const response = await axios.get(`${ENV.API_URL}/security-status/`);
       
       if (response.data.status === 'success') {
         setSecurityData(response.data.data);

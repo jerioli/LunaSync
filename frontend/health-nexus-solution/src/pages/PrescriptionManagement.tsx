@@ -2,6 +2,7 @@ import PrescriptionApproval from "@/components/PrescriptionApproval";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ENV } from "@/config/env";
 import {
   Dialog,
   DialogContent,
@@ -166,24 +167,28 @@ const PrescriptionManagement: React.FC = () => {
     }
     // If it starts with /media/, add the base URL
     if (imagePath.startsWith("/media/")) {
-      finalUrl = `http://127.0.0.1:8000${imagePath}`;
+      const baseUrl = ENV.API_URL.replace('/api', '');
+      finalUrl = `${baseUrl}${imagePath}`;
       console.log("Starts with /media/, constructed URL:", finalUrl);
       return finalUrl;
     }
     // If it starts with medical_requests/, add the full path
     if (imagePath.startsWith("medical_requests/")) {
-      finalUrl = `http://127.0.0.1:8000/media/${imagePath}`;
+      const baseUrl = ENV.API_URL.replace('/api', '');
+      finalUrl = `${baseUrl}/media/${imagePath}`;
       console.log("Starts with medical_requests/, constructed URL:", finalUrl);
       return finalUrl;
     }
     // If it's just a filename, assume it's in medical_requests folder
     if (!imagePath.includes("/")) {
-      finalUrl = `http://127.0.0.1:8000/media/medical_requests/${imagePath}`;
+      const baseUrl = ENV.API_URL.replace('/api', '');
+      finalUrl = `${baseUrl}/media/medical_requests/${imagePath}`;
       console.log("Just filename, constructed URL:", finalUrl);
       return finalUrl;
     }
     // Otherwise, add base URL
-    finalUrl = `http://127.0.0.1:8000${
+    const baseUrl = ENV.API_URL.replace('/api', '');
+    finalUrl = `${baseUrl}${
       imagePath.startsWith("/") ? imagePath : "/" + imagePath
     }`;
     console.log("Default case, constructed URL:", finalUrl);

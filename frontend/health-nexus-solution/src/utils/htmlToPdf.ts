@@ -9,17 +9,18 @@ export const generatePrescriptionHTML = (prescription: any, patientData: any, cl
     if (!logo) return null;
     // If it's already a full URL, return as-is
     if (logo.startsWith("http")) return logo;
+    const baseUrl = ENV.API_URL.replace('/api', '');
     // If it starts with /media/, add the base URL
     if (logo.startsWith("/media/"))
-      return `http://127.0.0.1:8000${logo}`;
+      return `${baseUrl}${logo}`;
     // If it starts with branding/, add the full path
     if (logo.startsWith("branding/"))
-      return `http://127.0.0.1:8000/media/${logo}`;
+      return `${baseUrl}/media/${logo}`;
     // If it's just a filename, assume it's in branding folder
     if (!logo.includes("/"))
-      return `http://127.0.0.1:8000/media/branding/${logo}`;
+      return `${baseUrl}/media/branding/${logo}`;
     // Otherwise, add base URL
-    return `http://127.0.0.1:8000${
+    return `${baseUrl}${
       logo.startsWith("/") ? logo : "/" + logo
     }`;
   };
@@ -139,7 +140,7 @@ export const generatePrescriptionHTML = (prescription: any, patientData: any, cl
                   id;
                 return (
                   debugInfo +
-                  `<img src=\"http://127.0.0.1:8000/api/prescriptions/${qrId}/qr/\" alt=\"QR Code\" style=\"width: 80px; height: 80px; border: 1px solid #ccc; background: #fff; display: block; margin: 0 auto;\" />`
+                  `<img src=\"${ENV.API_URL}/prescriptions/${qrId}/qr/\" alt=\"QR Code\" style=\"width: 80px; height: 80px; border: 1px solid #ccc; background: #fff; display: block; margin: 0 auto;\" />`
                 );
               } else {
                 debugInfo += `<div style=\"font-size:10px;color:#c00;\">prescription: ${JSON.stringify(
