@@ -3,6 +3,39 @@
 ## Overview
 LunaSync is now configured to run in both development and production environments with automatic environment detection and appropriate security settings.
 
+## Quick Deployment Setup
+
+### Automated Setup (Recommended)
+
+**Linux/macOS:**
+```bash
+# Run the automated deployment setup script
+chmod +x setup_deployment.sh
+./setup_deployment.sh
+```
+
+**Windows:**
+```cmd
+# Run the automated deployment setup script
+setup_deployment.bat
+```
+
+This script will:
+- Run database migrations
+- Collect static files (production only)
+- Create the default superadmin account
+- Set up cache tables
+- Verify environment configuration
+
+### Default Superadmin Account
+
+The deployment creates a default superadmin account:
+- **Email:** `admin@lunasync.site`
+- **Password:** `LunaSync2024!`
+- **Role:** `superadmin` (all permissions enabled)
+
+⚠️ **Important:** Change these credentials immediately after deployment!
+
 ## Environment Detection
 The system automatically detects the environment based on:
 - Hostname (production domains vs localhost)
@@ -18,9 +51,13 @@ Set these environment variables in your production environment:
 PRODUCTION=true
 SECRET_KEY=your-super-secure-secret-key-here
 DATABASE_URL=postgresql://user:password@host:port/database
-ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
-CORS_ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
-CSRF_TRUSTED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+ALLOWED_HOSTS=lunasync.site,www.lunasync.site
+CORS_ALLOWED_ORIGINS=https://lunasync.site,https://www.lunasync.site
+CSRF_TRUSTED_ORIGINS=https://lunasync.site,https://www.lunasync.site
+
+# Superadmin Account (optional - uses defaults if not set)
+SUPERADMIN_EMAIL=admin@lunasync.site
+SUPERADMIN_PASSWORD=LunaSync2024!
 
 # Optional
 DEBUG=false  # Automatically false in production
@@ -32,16 +69,48 @@ SENTRY_DSN=your-sentry-dsn-for-error-tracking
 pip install -r requirements.txt
 ```
 
-### 3. Database Setup
+### 3. Database Setup & Superadmin Creation
 ```bash
+# Option 1: Use automated setup script (recommended)
+./setup_deployment.sh          # Linux/macOS
+setup_deployment.bat           # Windows
+
+# Option 2: Manual setup
 python manage.py migrate
 python manage.py collectstatic --noinput
+python manage.py create_superadmin
 ```
 
-### 4. Run Production Server
+### 4. Verify Setup
+```bash
+# Verify superadmin account and permissions
+python verify_superadmin.py
+```
+
+### 5. Run Production Server
 ```bash
 gunicorn capstone.wsgi:application --bind 0.0.0.0:8000
 ```
+
+## Manual Superadmin Management
+
+### Create Superadmin Account
+```bash
+# Default credentials
+python manage.py create_superadmin
+
+# Custom credentials
+python manage.py create_superadmin --email admin@yourdomain.com --password YourPassword123!
+
+# Update existing account
+python manage.py create_superadmin --force
+```
+
+### Available Management Scripts
+
+1. **setup_deployment.sh/.bat** - Complete deployment setup
+2. **verify_superadmin.py** - Verify superadmin account configuration
+3. **manage.py create_superadmin** - Django management command for superadmin creation
 
 ## Development Setup
 
