@@ -2,6 +2,7 @@
 // Uses Python backend with EXACT Google Colab algorithms for maximum accuracy
 
 import { AwsTextractBlock } from '@/types/textract';
+import { ENV } from '../config/env';
 
 // Interfaces for the result types
 export interface ExtractedWord {
@@ -41,7 +42,7 @@ export async function processLabResult(file: File): Promise<LabResultResponse> {
     const formData = new FormData();
     formData.append('document', file);
 
-    const response = await fetch('http://localhost:8000/api/textract/upload/', {
+    const response = await fetch(`${ENV.API_URL}/textract/upload/`, {
       method: 'POST',
       body: formData,
     });

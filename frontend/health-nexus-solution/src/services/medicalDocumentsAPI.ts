@@ -1,5 +1,7 @@
 // API service for medical documents
-const API_BASE_URL = 'http://localhost:8000/api/medical-documents';
+import { ENV } from '../config/env';
+
+const API_BASE_URL = `${ENV.API_URL.replace('/api', '')}/api/medical-documents`;
 
 export interface LabTestResult {
   test_name: string;

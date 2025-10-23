@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { ENV } from '@/config/env';
 import { useBranding } from '@/contexts/BrandingContext';
 import { useClinic } from '@/contexts/ClinicContext';
 import { toast } from '@/hooks/use-toast';
@@ -382,8 +383,9 @@ const Settings = () => {
   };
 
   const handleOpenSecurityDashboard = () => {
-    // Try to open the local HTML file first, fallback to external URL
-    const dashboardUrl = 'http://127.0.0.1:8000/static/encryption_test.html';
+    // Use environment-aware URL for encryption test
+    const baseUrl = ENV.API_URL.replace('/api', '');
+    const dashboardUrl = `${baseUrl}/static/encryption_test.html`;
     window.open(dashboardUrl, '_blank', 'width=1200,height=800');
   };
 

@@ -39,6 +39,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { ENV } from "@/config/env";
 import { useClinic } from "@/contexts/ClinicContext";
 import { useToast } from "@/hooks/use-toast";
 import { medicalDocumentsAPI } from "@/lib/medicalDocumentsAPI";
@@ -103,10 +104,14 @@ const PatientManagement = () => {
   const getLogoUrl = (logo: string) => {
     if (!logo) return null;
     if (logo.startsWith("http")) return logo;
-    if (logo.startsWith("/media/")) return `http://127.0.0.1:8000${logo}`;
+    
+    // Use environment-aware base URL
+    const baseUrl = ENV.API_URL.replace('/api', '');
+    
+    if (logo.startsWith("/media/")) return `${baseUrl}${logo}`;
     if (logo.startsWith("branding/"))
-      return `http://127.0.0.1:8000/media/${logo}`;
-    return `http://127.0.0.1:8000${logo}`;
+      return `${baseUrl}/media/${logo}`;
+    return `${baseUrl}${logo}`;
   };
 
   // Role-based access control
@@ -4306,9 +4311,10 @@ const PatientManagement = () => {
 
                             if (processedFileUrl) {
                               // Open the saved professional PDF directly
+                              const baseUrl = ENV.API_URL.replace('/api', '');
                               const pdfUrl = processedFileUrl.startsWith("http")
                                 ? processedFileUrl
-                                : `http://localhost:8000${processedFileUrl}`;
+                                : `${baseUrl}${processedFileUrl}`;
 
                               console.log("Opening saved PDF at:", pdfUrl);
                               window.open(pdfUrl, "_blank");

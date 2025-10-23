@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { ENV } from '@/config/env';
 import { useClinic } from '@/contexts/ClinicContext';
 import { toast } from '@/hooks/use-toast';
 import { AlertCircle, ArrowLeft, CheckCircle, Eye, FileText, Home, Minus, Plus, RotateCcw, Save, Stethoscope, User } from 'lucide-react';
@@ -978,7 +979,7 @@ const DocumentComparison: React.FC = () => {
 
       console.log('Making request to save lab result...');
       
-      const response = await fetch('http://localhost:8000/api/medical-documents/lab-results/', {
+      const response = await fetch(`${ENV.API_URL}/medical-documents/lab-results/`, {
         method: 'POST',
         body: formData,
         credentials: 'include',  // Include session cookies

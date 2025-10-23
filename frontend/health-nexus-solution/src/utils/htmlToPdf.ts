@@ -1,5 +1,6 @@
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { ENV } from '../config/env';
 
 // Template generators for different document types
 export const generatePrescriptionHTML = (prescription: any, patientData: any, clinicSettings: any, currentUser: any) => {
@@ -270,7 +271,8 @@ export const generateSOAPNoteHTML = (soapNote: any, patientData: any, clinicSett
   
   const getLogoUrl = (logoPath: string) => {
     if (!logoPath) return '';
-    return logoPath.startsWith('http') ? logoPath : `http://localhost:8000${logoPath}`;
+    const baseUrl = ENV.API_URL.replace('/api', '');
+    return logoPath.startsWith('http') ? logoPath : `${baseUrl}${logoPath}`;
   };
 
   return `
@@ -367,7 +369,8 @@ export const generateLabResultHTML = (labResult: any, patientData: any, clinicSe
   
   const getLogoUrl = (logoPath: string) => {
     if (!logoPath) return '';
-    return logoPath.startsWith('http') ? logoPath : `http://localhost:8000${logoPath}`;
+    const baseUrl = ENV.API_URL.replace('/api', '');
+    return logoPath.startsWith('http') ? logoPath : `${baseUrl}${logoPath}`;
   };
 
   return `
@@ -501,7 +504,8 @@ export const generateClinicalNoteHTML = (clinicalNote: any, patientData: any, cl
   
   const getLogoUrl = (logoPath: string) => {
     if (!logoPath) return '';
-    return logoPath.startsWith('http') ? logoPath : `http://localhost:8000${logoPath}`;
+    const baseUrl = ENV.API_URL.replace('/api', '');
+    return logoPath.startsWith('http') ? logoPath : `${baseUrl}${logoPath}`;
   };
 
   return `

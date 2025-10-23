@@ -12,13 +12,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useClinic } from "@/hooks/useClinicContext";
 // import { loginWithSession } from '@/utils/sessionManager';
+import { ENV } from "@/config/env";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-const API_BASE_URL = "http://localhost:8000/api";
+const API_BASE_URL = ENV.API_URL;
 
 const flipCardStyles = {
   wrapper: "relative w-full perspective-1000",

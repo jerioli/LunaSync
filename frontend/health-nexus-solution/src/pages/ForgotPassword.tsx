@@ -5,13 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ENV } from '@/config/env';
 import axios from 'axios';
 import { Info, Mail, Phone } from 'lucide-react';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = ENV.API_URL;
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');

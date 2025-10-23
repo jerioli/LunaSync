@@ -50,10 +50,11 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
+import { ENV } from "../config/env";
 
 // Axios instance - using same configuration as chatbot
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:8000/api",
+  baseURL: ENV.API_URL,
   withCredentials: true, // Send cookies with requests
   headers: {
     "Content-Type": "application/json",
@@ -1908,10 +1909,14 @@ const PatientPortal = () => {
   const getLogoUrl = (logo) => {
     if (!logo) return null;
     if (logo.startsWith("http")) return logo;
-    if (logo.startsWith("/media/")) return `http://127.0.0.1:8000${logo}`;
+    
+    // Use the same base URL as the API but without /api suffix for media files
+    const baseUrl = ENV.API_URL.replace('/api', '');
+    
+    if (logo.startsWith("/media/")) return `${baseUrl}${logo}`;
     if (logo.startsWith("branding/"))
-      return `http://127.0.0.1:8000/media/${logo}`;
-    return `http://127.0.0.1:8000${logo}`;
+      return `${baseUrl}/media/${logo}`;
+    return `${baseUrl}${logo}`;
   };
 
   const handleReviewSubmit = async (e) => {

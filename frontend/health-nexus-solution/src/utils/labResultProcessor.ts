@@ -1,4 +1,5 @@
 import { AwsTextractBlock, AwsTextractResponse } from "@/types/textract";
+import { ENV } from '../config/env';
 
 // AWS Textract configuration is now handled by environment variables
 // or backend configuration
@@ -1388,8 +1389,8 @@ export const processLabResult = async (imageData: File | Blob): Promise<{
   try {
     // Try multiple backend endpoints
     const endpoints = [
-      { url: 'http://localhost:8000/api/textract/upload/', fieldName: 'document' },  // Django backend
-      { url: 'http://localhost:3001/api/textract/process-lab-result', fieldName: 'file' },  // Express backend
+      { url: `${ENV.API_URL}/textract/upload/`, fieldName: 'document' },  // Django backend
+      { url: `${ENV.API_URL.replace('/api', '')}:3001/api/textract/process-lab-result`, fieldName: 'file' },  // Express backend fallback
     ];
 
     for (const endpoint of endpoints) {

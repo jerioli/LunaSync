@@ -6,13 +6,14 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ENV } from '@/config/env';
 import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
 import { ChevronLeft, ChevronRight, Clock, Eye, EyeOff, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = ENV.API_URL;
 
 
 

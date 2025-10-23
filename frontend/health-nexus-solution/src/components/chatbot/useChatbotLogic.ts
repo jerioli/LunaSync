@@ -1,3 +1,4 @@
+import { ENV } from '@/config/env';
 import { useClinic } from '@/contexts/ClinicContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
@@ -22,7 +23,7 @@ export const useChatbotLogic = () => {
   const [isInputDisabled, setIsInputDisabled] = useState(false);
   const [clinicPhone, setClinicPhone] = useState<string>('');
   
-  const API_BASE_URL = 'http://localhost:8000/api';
+  const API_BASE_URL = ENV.API_URL;
 
   // Function to fetch clinic settings
   const fetchClinicSettings = async () => {

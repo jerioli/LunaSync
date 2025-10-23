@@ -1,5 +1,6 @@
 // AWS Textract API utilities
 // This file provides utilities for checking backend health and compatibility
+import { ENV } from '../config/env';
 
 /**
  * Check backend health and connectivity
@@ -8,7 +9,7 @@
 export async function checkBackendHealth(): Promise<{ connected: boolean; backend: string }> {
   // Check Django backend first (your working backend)
   try {
-    const response = await fetch('http://localhost:8000/api/textract/health/', { 
+    const response = await fetch(`${ENV.API_URL}/textract/health/`, { 
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -30,7 +31,7 @@ export async function checkBackendHealth(): Promise<{ connected: boolean; backen
   try {
     const expressUrl = process.env.NODE_ENV === 'production' 
       ? window.location.origin 
-      : 'http://localhost:3001';
+      : `${ENV.API_URL.replace('/api', '')}:3001`;
       
     const response = await fetch(`${expressUrl}/api/health`, { 
       method: 'GET',

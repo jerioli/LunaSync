@@ -1,8 +1,9 @@
 // Session Management Utilities for Health Nexus Frontend
 import axios from 'axios';
+import { ENV } from '../config/env.ts';
 
 // Configure axios defaults for session-based authentication
-axios.defaults.baseURL = 'http://localhost:8000/api';
+axios.defaults.baseURL = ENV.API_URL;
 axios.defaults.withCredentials = true; // Important: Enable cookie handling
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 

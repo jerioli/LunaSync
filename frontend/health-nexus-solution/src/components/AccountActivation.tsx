@@ -1,3 +1,4 @@
+import { ENV } from "@/config/env";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -86,7 +87,7 @@ const AccountActivation: React.FC = () => {
   const generateCaptcha = async () => {
     setCaptchaLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/captcha/generate/', {
+      const response = await fetch(`${ENV.API_URL}/captcha/generate/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -119,7 +120,7 @@ const AccountActivation: React.FC = () => {
     try {
       console.log('Validating activation link:', { uid, token });
       const response = await fetch(
-        `http://localhost:8000/api/activate/${uid}/${token}/`,
+        `${ENV.API_URL}/activate/${uid}/${token}/`,
         {
           method: "GET",
           headers: {
@@ -158,7 +159,7 @@ const AccountActivation: React.FC = () => {
 
     setCaptchaLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/captcha/verify/', {
+      const response = await fetch(`${ENV.API_URL}/captcha/verify/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -235,7 +236,7 @@ const AccountActivation: React.FC = () => {
       }
 
       const response = await fetch(
-        `http://localhost:8000/api/activate/${uid}/${token}/`,
+        `${ENV.API_URL}/activate/${uid}/${token}/`,
         {
           method: "POST",
           headers: {
