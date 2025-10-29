@@ -1,6 +1,12 @@
 // Environment configuration - Production-first approach
 const getApiUrl = () => {
-  // Always use production API for deployed environments
+  // For production builds, always use production API
+  if (import.meta.env.PROD) {
+    console.log('🚀 Production build - using lunasync.site API');
+    return 'https://lunasync.site/api';
+  }
+  
+  // For development, check runtime environment
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     
