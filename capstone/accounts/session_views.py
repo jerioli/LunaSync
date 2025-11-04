@@ -178,36 +178,73 @@ class SessionOTPVerifyView(APIView):
 
     def post(self, request):
         try:
-            print("[DEBUG] SessionOTPVerifyView.post called")
-            print(f"[DEBUG] Request data: {request.data}")
-            print(f"[DEBUG] Session: {dict(request.session.items())}")
+            logger.info("[2FA VERIFY] SessionOTPVerifyView.post called")
+            logger.info(f"[2FA VERIFY] Request data: {request.data}")
+            logger.info(f"[2FA VERIFY] Session data: {dict(request.session.items())}")
+            
             identifier = request.data.get('identifier')
             identifier_type = request.data.get('identifier_type')
             otp = request.data.get('otp')
 
-            if not identifier or not identifier_type or not otp:
-                print("[DEBUG] Missing identifier, identifier_type, or otp")
+            # Enhanced validation logging
+            if not identifier:
+                logger.error("[2FA VERIFY] Missing identifier")
                 return Response({
                     'success': False,
-                    'error': 'identifier, identifier_type, and otp are required'
+                    'error': 'identifier is required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
+            if not identifier_type:
+                logger.error("[2FA VERIFY] Missing identifier_type")
+                return Response({
+                    'success': False,
+                    'error': 'identifier_type is required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
+            if not otp:
+                logger.error("[2FA VERIFY] Missing otp")
+                return Response({
+                    'success': False,
+                    'error': 'otp is required'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
+            logger.info(f"[2FA VERIFY] Verifying OTP for {identifier_type}: {identifier}")
+            logger.info(f"[2FA VERIFY] Received OTP: {otp}")
+
+            # Check OTP from cache
             from django.core.cache import cache
             cache_key = f"otp_{identifier}_{identifier_type}"
             stored_otp = cache.get(cache_key)
-            print(f"[DEBUG] cache_key: {cache_key}, stored_otp: {stored_otp}")
-            if not stored_otp or stored_otp != otp:
-                print("[DEBUG] Invalid or expired OTP")
+            
+            logger.info(f"[2FA VERIFY] Cache key: {cache_key}")
+            logger.info(f"[2FA VERIFY] Stored OTP: {stored_otp}")
+            logger.info(f"[2FA VERIFY] Received OTP: {otp}")
+            logger.info(f"[2FA VERIFY] OTP Match: {stored_otp == otp}")
+            
+            if not stored_otp:
+                logger.error("[2FA VERIFY] No OTP found in cache - expired or never generated")
                 return Response({
                     'success': False,
-                    'error': 'Invalid or expired OTP'
+                    'error': 'OTP expired or not found. Please request a new OTP.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
+            # Convert both to strings and strip whitespace for comparison
+            stored_otp_str = str(stored_otp).strip()
+            received_otp_str = str(otp).strip()
+            
+            if stored_otp_str != received_otp_str:
+                logger.error(f"[2FA VERIFY] OTP mismatch - stored: '{stored_otp_str}', received: '{received_otp_str}'")
+                return Response({
+                    'success': False,
+                    'error': 'Invalid OTP. Please check the code and try again.'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             # Find pending user from session
             pending_user_id = request.session.get('pending_2fa_user_id')
-            print(f"[DEBUG] pending_2fa_user_id: {pending_user_id}")
+            logger.info(f"[2FA VERIFY] Pending user ID from session: {pending_user_id}")
+            
             if not pending_user_id:
-                print("[DEBUG] No pending 2FA login found in session")
+                logger.error("[2FA VERIFY] No pending 2FA login found in session")
                 return Response({
                     'success': False,
                     'error': 'No pending 2FA login found. Please login again.'
@@ -216,14 +253,30 @@ class SessionOTPVerifyView(APIView):
             from accounts.models import CustomUser
             try:
                 user = CustomUser.objects.get(id=pending_user_id)
+                logger.info(f"[2FA VERIFY] Found user: {user.email} (ID: {user.id})")
             except CustomUser.DoesNotExist:
-                print("[DEBUG] User not found for pending_2fa_user_id")
+                logger.error(f"[2FA VERIFY] User not found for ID: {pending_user_id}")
                 return Response({
                     'success': False,
                     'error': 'User not found.'
                 }, status=status.HTTP_404_NOT_FOUND)
 
+            # Verify the identifier matches the user
+            if identifier_type == 'email' and user.email != identifier:
+                logger.error(f"[2FA VERIFY] Email mismatch - user: {user.email}, identifier: {identifier}")
+                return Response({
+                    'success': False,
+                    'error': 'Invalid request. Please login again.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            elif identifier_type == 'phone' and user.phone != identifier:
+                logger.error(f"[2FA VERIFY] Phone mismatch - user: {user.phone}, identifier: {identifier}")
+                return Response({
+                    'success': False,
+                    'error': 'Invalid request. Please login again.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
             # Clear OTP and pending state
+            logger.info(f"[2FA VERIFY] OTP verification successful - clearing cache and session data")
             cache.delete(cache_key)
             del request.session['pending_2fa_user_id']
 
@@ -233,9 +286,9 @@ class SessionOTPVerifyView(APIView):
             # Save session with error handling FIRST
             try:
                 request.session.save()
-                print(f"[DEBUG] [2FA] Session saved successfully. Session ID: {request.session.session_key}")
+                logger.info(f"[2FA VERIFY] Session saved successfully. Session ID: {request.session.session_key}")
             except Exception as e:
-                print(f"[DEBUG] [2FA] Session save error: {e}. Creating new session...")
+                logger.warning(f"[2FA VERIFY] Session save error: {e}. Creating new session...")
                 # If session save fails, create a new session
                 request.session.flush()
                 request.session.create()
@@ -254,7 +307,7 @@ class SessionOTPVerifyView(APIView):
             request.session['login_time'] = str(timezone.now())
             request.session.save()
 
-            print(f"[DEBUG] [2FA] User {user.username} logged in successfully. Session ID: {request.session.session_key}")
+            logger.info(f"[2FA VERIFY] ✅ User {user.username} logged in successfully. Session ID: {request.session.session_key}")
 
             return Response({
                 'success': True,
@@ -282,9 +335,8 @@ class SessionOTPVerifyView(APIView):
             })
 
         except Exception as e:
-            print(f"[DEBUG] 2FA OTP verify error: {str(e)}")
-            import traceback
-            traceback.print_exc()
+            logger.error(f"[2FA VERIFY] ❌ Exception during OTP verification: {str(e)}")
+            logger.exception("Full traceback for 2FA OTP verification error:")
             return Response({
                 'success': False,
                 'error': 'OTP verification failed'

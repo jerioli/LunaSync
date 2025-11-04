@@ -41,7 +41,8 @@ def generate_otp():
     import time
     counter = int(time.time()) 
     otp = hotp.at(counter)
-    return otp
+    # Ensure OTP is always returned as a string for consistent comparison
+    return str(otp).zfill(6)  # Pad with zeros if needed to ensure 6 digits
 
 @method_decorator(csrf_exempt, name='dispatch')
 class StaffCreateView(APIView):
