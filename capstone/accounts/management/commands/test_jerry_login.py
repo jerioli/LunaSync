@@ -33,14 +33,24 @@ class Command(BaseCommand):
         self.stdout.write(f"🔍 Step 1: Verifying Jerry's account...")
         
         try:
-            user = User.objects.get(email=email)
-            self.stdout.write(f"✅ User found in database:")
+            # Try finding by username first since email lookup had issues
+            user = User.objects.get(username=username)
+            self.stdout.write(f"✅ User found by username in database:")
             self.stdout.write(f"  - ID: {user.id}")
             self.stdout.write(f"  - Email: {user.email}")
             self.stdout.write(f"  - Username: {user.username}")
             self.stdout.write(f"  - Role: {getattr(user, 'role', 'Not set')}")
             self.stdout.write(f"  - Active: {user.is_active}")
             self.stdout.write(f"  - Superuser: {user.is_superuser}")
+            
+            # Verify this is indeed Jerry's account
+            if user.email != email:
+                self.stdout.write(f"⚠️  Email mismatch!")
+                self.stdout.write(f"  - Expected: {email}")
+                self.stdout.write(f"  - Found: {user.email}")
+                # Update email variable to use the actual email from database
+                email = user.email
+                self.stdout.write(f"  - Using database email: {email}")
             
             # Check permissions
             permissions = []
@@ -62,9 +72,15 @@ class Command(BaseCommand):
                     self.stdout.write(f"    {perm}")
             
         except User.DoesNotExist:
-            self.stdout.write(self.style.ERROR(f"❌ Jerry's account not found!"))
-            self.stdout.write(f"💡 Run: python manage.py create_jerry_superadmin")
-            return
+            self.stdout.write(self.style.ERROR(f"❌ Jerry's account not found by username!"))
+            # Try by email as fallback
+            try:
+                user = User.objects.get(email=email)
+                self.stdout.write(f"✅ Found by email instead:")
+                self.stdout.write(f"  - Username: {user.username}")
+            except User.DoesNotExist:
+                self.stdout.write(f"💡 Run: python manage.py create_jerry_superadmin")
+                return
         
         # Step 2: Test password authentication
         self.stdout.write(f"\n🔐 Step 2: Testing password authentication...")
