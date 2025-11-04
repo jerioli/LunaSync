@@ -102,11 +102,14 @@ class Command(BaseCommand):
         
         # Step 3a: Initial login (should trigger 2FA)
         login_data = {
-            'identifier': email,
+            'email': email,  # Use 'email' parameter instead of 'identifier'
             'password': password
         }
         
         self.stdout.write(f"📤 Sending login request to /api/auth/session-login/...")
+        self.stdout.write(f"  - email: {email}")
+        self.stdout.write(f"  - password: [HIDDEN]")
+        
         login_response = client.post(
             '/api/auth/session-login/',
             data=json.dumps(login_data),
