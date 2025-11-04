@@ -50,10 +50,18 @@ if PRODUCTION:
     ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else ['lunasync.site','www.lunasync.site','31.97.67.53']
     # Frontend URL for email links in production
     FRONTEND_URL = 'https://lunasync.site'
+    # Site configuration for production
+    SITE_ID = 1
+    SITE_DOMAIN = 'lunasync.site'
+    SITE_NAME = 'LunaSync Medical System'
 else:
     ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '*']  # Allow all hosts in development
     # Frontend URL for email links in development
     FRONTEND_URL = 'http://localhost:8080'
+    # Site configuration for development
+    SITE_ID = 1
+    SITE_DOMAIN = 'localhost:8000'
+    SITE_NAME = 'LunaSync Medical System (Dev)'
 
 # Security Settings - Environment dependent
 if PRODUCTION:
@@ -102,6 +110,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',   # ✅ Required by auth (but we won't use it)
     'django.contrib.sessions',       # ✅ Required for audit logging
     'django.contrib.staticfiles',    # ✅ Required for static files
+    'django.contrib.sites',          # ✅ Required for captcha absolute URLs
     
    
     
@@ -488,9 +497,22 @@ if PRODUCTION:
     CAPTCHA_TIMEOUT = 5  # 5 minutes
     CAPTCHA_LENGTH = 4
     CAPTCHA_FONT_SIZE = 30
+    # Force captcha to use production domain
+    USE_TZ = True
+    CAPTCHA_TEST_MODE = False
 else:
     # Development captcha settings
     CAPTCHA_IMAGE_SIZE = (120, 50)
     CAPTCHA_TIMEOUT = 5  # 5 minutes
     CAPTCHA_LENGTH = 4
     CAPTCHA_FONT_SIZE = 30
+    CAPTCHA_TEST_MODE = False
+
+# Force Django to use the correct domain for absolute URLs
+if PRODUCTION:
+    # Custom captcha URL generation
+    def get_captcha_url():
+        return 'https://lunasync.site'
+else:
+    def get_captcha_url():
+        return 'http://localhost:8000'
