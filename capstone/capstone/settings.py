@@ -308,10 +308,11 @@ else:
     }
 
 # Cache configuration for OTP storage
+# Using database cache to ensure all Gunicorn workers can access the same cache
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'cache_table',
     }
 }
 
@@ -460,7 +461,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': '/home/lunasynccapstone/LunaSync/django.log',
+            'filename': 'django.log' if not PRODUCTION else '/home/lunasynccapstone/LunaSync/django.log',
             'formatter': 'verbose',
         },
         'console': {
