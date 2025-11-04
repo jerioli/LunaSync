@@ -1415,42 +1415,50 @@ class SendOTPView(APIView):
                 except:
                     clinic_settings = None
                 
-                # Use the new email function
+                # Use the enhanced OTP email function with comprehensive debugging
+                logger.info(f"🔄 Attempting to send OTP email to {identifier}")
+                
                 from appointments.email_utils import send_otp_email
                 success, message = send_otp_email(identifier, otp, clinic_settings)
                 
                 if not success:
-                    logger.error(f"Failed to send OTP email: {message}")
+                    logger.error(f"❌ Failed to send OTP email to {identifier}: {message}")
                     return Response({
                         'success': False,
-                        'error': 'Failed to send OTP email. Please try phone instead.'
+                        'error': f'Failed to send OTP email: {message}. Please try phone instead.'
                     }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                else:
+                    logger.info(f"✅ OTP email sent successfully to {identifier}")
+                    
             elif identifier_type == 'phone':
                 # Use iProg SMS service as primary
+                logger.info(f"🔄 Attempting to send OTP SMS to {identifier}")
+                
                 from .iprog_sms_service import iprog_sms_service
                 
                 success, message, reference_id = iprog_sms_service.send_otp_sms(identifier, otp)
                 
                 if success:
-                    print(f"iProg SMS sent to {identifier}: {message}")
+                    logger.info(f"✅ iProg SMS sent to {identifier}: {message}")
                     if reference_id:
-                        print(f"iProg Reference ID: {reference_id}")
+                        logger.info(f"📋 iProg Reference ID: {reference_id}")
                 else:
-                    print(f"iProg SMS failed for {identifier}: {message}")
+                    logger.warning(f"⚠️  iProg SMS failed for {identifier}: {message}")
                     # Additional fallback to Semaphore if needed
                     try:
                         from .sms_config import SMSService
                         sms_service = SMSService()
-                        message = f'Your MedSync verification code is: {otp}. This code expires in 5 minutes.'
-                        success, result = sms_service.send_sms(identifier, message, country_code='+63')
-                        print(f"Semaphore fallback result: {result}")
+                        sms_message = f'Your MedSync verification code is: {otp}. This code expires in 5 minutes.'
+                        success, result = sms_service.send_sms(identifier, sms_message, country_code='+63')
+                        logger.info(f"📱 Semaphore fallback result: {result}")
                     except Exception as fallback_error:
-                        print(f"All SMS methods failed: {fallback_error}")
-                        print(f"FINAL FALLBACK SMS for {identifier}: {otp}")
+                        logger.error(f"❌ All SMS methods failed: {fallback_error}")
+                        logger.info(f"🔢 FINAL FALLBACK SMS for {identifier}: {otp}")
                 
         except Exception as e:
-            print(f"Failed to send OTP: {e}")
-            # For demo purposes, still return success
+            logger.error(f"❌ Failed to send OTP to {identifier}: {e}")
+            logger.exception("Full traceback for OTP sending error:")
+            # For demo purposes, still return success but log the failure
             pass
         
         return Response({

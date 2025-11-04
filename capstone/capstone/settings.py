@@ -460,5 +460,15 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
+        'otp_email': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'appointments.email_utils': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
     },
 }

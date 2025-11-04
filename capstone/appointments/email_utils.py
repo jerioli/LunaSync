@@ -502,161 +502,98 @@ Best regards,
         logger.error(f"Failed to send reminder email: {str(email_error)}")
         return False
 
-def send_otp_email(to_email, otp_code, identifier_type='email'):
+def send_otp_email(to_email, otp_code, clinic_settings=None):
     """
-    Send OTP verification email to user
+    Send OTP verification email to user with comprehensive debugging
     
     Args:
         to_email: Recipient email address
         otp_code: The OTP code to send
-        identifier_type: Type of identifier ('email' or 'phone')
+        clinic_settings: Optional clinic settings object (deprecated parameter for compatibility)
+    
+    Returns:
+        tuple: (success: bool, message: str)
     """
+    # Import the OTP debugger
     try:
-        # Fetch clinic info from the database
-        clinic = ClinicSettings.objects.first()
-        clinic_name = clinic.clinic_name if clinic else 'HealthNexus Medical Center'
-        clinic_address = clinic.address if clinic else '123 Health Avenue, Medical District'
-        clinic_phone = clinic.phone if clinic else '(123) 456-7890'
-        clinic_email = clinic.email if clinic else 'info@healthnexus.com'
+        from accounts.otp_logger import otp_email_debugger
         
-        subject = f'Verification Code - {clinic_name}'
+        # Use the comprehensive debugger for detailed logging
+        success, message, debug_details = otp_email_debugger.debug_otp_email_send(
+            to_email=to_email,
+            otp_code=otp_code,
+            identifier_type='email'
+        )
         
-        # Get clinic logo attachment
-        logo_attachment = get_logo_attachment()
-        
-        # Create logo header section
-        logo_section = ""
-        if logo_attachment:
-            logo_section = f"""
-            <div style="background: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; border: 1px solid #e0e0e0;">
-                <div style="display: inline-block;">
-                    <img src="cid:clinic_logo" alt="{clinic_name} Logo" style="max-height: 80px; max-width: 300px; height: auto; display: block; margin: 0 auto;">
-                </div>
-                <div style="margin-top: 15px; color: #6b7280; font-size: 14px;">
-                    <p style="margin: 5px 0; font-weight: 500;">{clinic_address}</p>
-                    <p style="margin: 5px 0; font-weight: 500;">{clinic_phone}</p>
-                </div>
-            </div>
-            """
+        # Log the final result for backward compatibility
+        if success:
+            logger.info(f"✅ OTP email sent successfully to {to_email}")
         else:
-            logo_section = f"""
-            <div style="background: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; border: 1px solid #e0e0e0;">
-                <h2 style="color: #2563eb; margin: 0; font-size: 24px;">{clinic_name}</h2>
-                <div style="margin-top: 15px; color: #6b7280; font-size: 14px;">
-                    <p style="margin: 5px 0; font-weight: 500;">{clinic_address}</p>
-                    <p style="margin: 5px 0; font-weight: 500;">{clinic_phone}</p>
-                </div>
-            </div>
-            """
-        
-        # Create HTML email content
-        html_content = f"""
-        <html>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto;">
-            {logo_section}
-            <div style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); padding: 30px; text-align: center; border-radius: 0;">
-                <h1 style="color: white; margin: 0; font-size: 28px;">🔐 Verification Code</h1>
-            </div>
+            logger.error(f"❌ Failed to send OTP email to {to_email}: {message}")
             
-            <div style="background: white; padding: 30px; border: 1px solid #e0e0e0;">
-                <h2 style="color: #2563eb; margin-top: 0;">Account Verification</h2>
-                <p style="font-size: 16px; margin-bottom: 25px;">
-                    Use the verification code below to complete your request:
-                </p>
-                
-                <div style="background: #f8fafc; border: 2px solid #2563eb; border-radius: 12px; padding: 30px; margin: 25px 0; text-align: center;">
-                    <p style="margin: 0 0 10px 0; color: #4b5563; font-size: 14px; font-weight: 500;">Your Verification Code:</p>
-                    <div style="font-size: 36px; font-weight: bold; color: #2563eb; letter-spacing: 8px; font-family: 'Courier New', monospace;">
+        return success, message
+        
+    except Exception as import_error:
+        # Fallback to basic logging if debugger fails to import
+        logger.error(f"Failed to import OTP debugger: {import_error}")
+        logger.info("Falling back to basic OTP email sending...")
+        
+        try:
+            # Basic email sending as fallback
+            from django.core.mail import EmailMultiAlternatives
+            from django.conf import settings
+            
+            # Get clinic info
+            try:
+                clinic = ClinicSettings.objects.first()
+                clinic_name = clinic.clinic_name if clinic else 'HealthNexus Medical Center'
+            except:
+                clinic_name = 'HealthNexus Medical Center'
+            
+            subject = f'Verification Code - {clinic_name}'
+            
+            # Simple HTML content
+            html_content = f"""
+            <html>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="padding: 30px; text-align: center; background: #2563eb; color: white;">
+                    <h1>🔐 Verification Code</h1>
+                </div>
+                <div style="padding: 30px; background: white;">
+                    <h2>Account Verification</h2>
+                    <p>Your verification code is:</p>
+                    <div style="font-size: 36px; font-weight: bold; color: #2563eb; text-align: center; padding: 20px;">
                         {otp_code}
                     </div>
+                    <p><strong>Important:</strong> This code expires in 10 minutes.</p>
                 </div>
-                
-                <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 15px; margin: 25px 0;">
-                    <p style="margin: 0; color: #92400e;">
-                        <strong>⚠️ Important:</strong> This code will expire in 10 minutes. Do not share this code with anyone.
-                    </p>
-                </div>
-                
-                <div style="background: #eff6ff; border: 1px solid #3b82f6; border-radius: 8px; padding: 15px; margin: 25px 0;">
-                    <h4 style="margin-top: 0; color: #1e40af;">🔒 Security Notice</h4>
-                    <ul style="margin: 10px 0; color: #1e40af; padding-left: 20px;">
-                        <li>Never share your verification code with anyone</li>
-                        <li>This code is only valid for 10 minutes</li>
-                        <li>If you didn't request this code, please ignore this email</li>
-                    </ul>
-                </div>
-                
-                <div style="text-align: center; margin: 30px 0;">
-                    <p style="color: #6b7280; font-size: 14px; margin-bottom: 15px;">
-                        Need help? Contact our support team:
-                    </p>
-                    <a href="mailto:{clinic_email}" 
-                       style="background: #2563eb; color: white; padding: 12px 25px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block;">
-                        📧 Contact Support
-                    </a>
-                </div>
-            </div>
+            </body>
+            </html>
+            """
             
-            <div style="background: #f9fafb; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;">
-                <p style="margin: 0; color: #6b7280; font-size: 14px;">
-                    This is an automated message from {clinic_name}
-                </p>
-                <p style="margin: 10px 0 0 0; color: #9ca3af; font-size: 12px;">
-                    Your security is our priority.
-                </p>
-            </div>
-        </body>
-        </html>
-        """
-        
-        # Create plain text version
-        plain_text_message = f"""
-Account Verification
-
-Your verification code: {otp_code}
-
-This code will expire in 10 minutes. Do not share this code with anyone.
-
-Security Notice:
-- Never share your verification code with anyone
-- This code is only valid for 10 minutes  
-- If you didn't request this code, please ignore this email
-
-For support, contact us at: {clinic_email}
-
-Best regards,
-{clinic_name} Team
-        """
-        
-        # Send email using the clinic's email configuration
-        try:
-            if not clinic or not clinic.email:
-                logger.error("No clinic email configuration found")
-                return False
-                
+            plain_text = f"Your verification code is: {otp_code}\n\nThis code expires in 10 minutes."
+            
             email = EmailMultiAlternatives(
                 subject=subject,
-                body=plain_text_message.strip(),
-                from_email=clinic.email,
+                body=plain_text,
+                from_email=settings.EMAIL_HOST_USER,
                 to=[to_email]
             )
             email.attach_alternative(html_content, "text/html")
             
-            # Try to attach logo
-            if logo_attachment:
-                email.attach(logo_attachment)
+            result = email.send()
             
-            email.send()
-            logger.info(f"OTP email sent successfully to {to_email}")
-            return True
-            
-        except Exception as send_error:
-            logger.error(f"Failed to send OTP email: {send_error}")
-            return False
-        
-    except Exception as email_error:
-        logger.error(f"Failed to create OTP email: {str(email_error)}")
-        return False
+            if result:
+                logger.info(f"✅ Fallback OTP email sent successfully to {to_email}")
+                return True, "OTP email sent successfully"
+            else:
+                logger.error(f"❌ Fallback OTP email failed for {to_email}")
+                return False, "Failed to send OTP email"
+                
+        except Exception as fallback_error:
+            error_msg = f"Both primary and fallback OTP email methods failed: {fallback_error}"
+            logger.error(error_msg)
+            return False, error_msg
 
 
 def send_notification_email_with_clinic_sender(to_email, subject, plain_content, html_content, clinic_settings):
