@@ -2024,7 +2024,7 @@ class CaptchaGenerateView(APIView):
             return Response({
                 'success': True,
                 'captcha_key': captcha_key,
-                'captcha_image_url': f'https://lunasync.site{captcha_image}',
+                'captcha_image_url': captcha_image,
             })
         except Exception as e:
             logger.error(f"Error generating captcha: {str(e)}")
