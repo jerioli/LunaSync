@@ -1,0 +1,4 @@
+2025-10-29 10:57:13,040 - root - INFO - Request: {"method": "GET", "path": "/api/auth/send-otp/", "user_id": null, "user_agent": "", "remote_addr": "127.0.0.1"}
+2025-10-29 10:57:13,043 - django.request - WARNING - Method Not Allowed: /api/auth/send-otp/
+2025-10-29 10:57:26,498 - root - INFO - Request: {"method": "GET", "path": "/api/auth/send-otp/", "user_id": null, "user_agent": "", "remote_addr": "127.0.0.1"}
+2025-10-29 10:57:26,500 - django.request - WARNING - Method Not Allowed: /api/auth/send-otp/
