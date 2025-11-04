@@ -476,3 +476,21 @@ LOGGING = {
         },
     },
 }
+
+# Django Simple Captcha Configuration
+if PRODUCTION:
+    # Production captcha settings
+    CAPTCHA_IMAGE_SIZE = (120, 50)
+    CAPTCHA_NOISE_FUNCTIONS = ('captcha.helpers.noise_arcs', 'captcha.helpers.noise_dots')
+    CAPTCHA_FILTER_FUNCTIONS = ('captcha.helpers.post_smooth',)
+    CAPTCHA_WORDS_DICTIONARY = '/usr/share/dict/words'
+    CAPTCHA_PUNCTUATION = ''',;.!?'''
+    CAPTCHA_TIMEOUT = 5  # 5 minutes
+    CAPTCHA_LENGTH = 4
+    CAPTCHA_FONT_SIZE = 30
+else:
+    # Development captcha settings
+    CAPTCHA_IMAGE_SIZE = (120, 50)
+    CAPTCHA_TIMEOUT = 5  # 5 minutes
+    CAPTCHA_LENGTH = 4
+    CAPTCHA_FONT_SIZE = 30
