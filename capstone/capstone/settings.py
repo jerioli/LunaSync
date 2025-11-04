@@ -24,7 +24,14 @@ load_dotenv(os.path.join(Path(__file__).resolve().parent.parent, '.env'))
 
 # Environment detection
 DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
-PRODUCTION = os.environ.get('PRODUCTION', 'False').lower() == 'true'
+
+# Force production mode for lunasync.site deployment
+import socket
+hostname = socket.gethostname()
+is_production_server = 'srv' in hostname.lower() or 'lunasync' in hostname.lower()
+
+# Check environment variable first, then fall back to hostname detection
+PRODUCTION = os.environ.get('PRODUCTION', 'False').lower() == 'true' or is_production_server
 
 # Encryption key for AES-256 (must be 32 bytes, base64-encoded)
 ENCRYPTION_KEY = os.environ.get('ENCRYPTION_KEY', None)
