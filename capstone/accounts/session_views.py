@@ -20,6 +20,10 @@ from .models import CustomUser
 import json
 import logging
 
+# Create logger for session views
+logger = logging.getLogger('accounts')
+import logging
+
 logger = logging.getLogger(__name__)
 
 def generate_otp():
@@ -82,6 +86,7 @@ class   SessionLoginView(APIView):
 
                 # Send OTP
                 otp_sent = False
+                logger.info(f"🔄 [2FA LOGIN] Attempting to send OTP to {identifier_type}: {identifier}")
 
                 try:
                     if identifier_type == 'email':
@@ -90,25 +95,47 @@ class   SessionLoginView(APIView):
                             clinic_settings = ClinicSettings.objects.first()
                         except:
                             clinic_settings = None
+                        
+                        logger.info(f"📧 [2FA LOGIN] Sending OTP email to {identifier}")
                         from appointments.email_utils import send_otp_email
                         otp_result = send_otp_email(identifier, otp, clinic_settings)
+                        
                         if isinstance(otp_result, tuple):
                             success, message = otp_result
                         else:
                             success, message = otp_result, ''
+                        
                         otp_sent = success
+                        
+                        if success:
+                            logger.info(f"✅ [2FA LOGIN] OTP email sent successfully to {identifier}")
+                        else:
+                            logger.error(f"❌ [2FA LOGIN] Failed to send OTP email to {identifier}: {message}")
+                            
                     elif identifier_type == 'phone':
+                        logger.info(f"📱 [2FA LOGIN] Sending OTP SMS to {identifier}")
                         from accounts.iprog_sms_service import iprog_sms_service
                         otp_result = iprog_sms_service.send_otp_sms(identifier, otp)
+                        
                         if isinstance(otp_result, tuple):
                             success, message, reference_id = otp_result
                         else:
                             success, message, reference_id = otp_result, '', None
+                        
                         otp_sent = success
+                        
+                        if success:
+                            logger.info(f"✅ [2FA LOGIN] OTP SMS sent successfully to {identifier}")
+                            if reference_id:
+                                logger.info(f"📋 [2FA LOGIN] SMS Reference ID: {reference_id}")
+                        else:
+                            logger.error(f"❌ [2FA LOGIN] Failed to send OTP SMS to {identifier}: {message}")
+                            
                 except Exception as e:
-                    print(f"[2FA OTP] Failed to send OTP: {e}")
+                    logger.error(f"❌ [2FA LOGIN] Exception while sending OTP to {identifier}: {e}")
+                    logger.exception("Full traceback for 2FA OTP sending error:")
 
-                print(f"[2FA OTP] OTP sent to {identifier_type}: {otp_sent}")
+                logger.info(f"📊 [2FA LOGIN] Final OTP sending result for {identifier_type}: {otp_sent}")
 
                 return Response({
                     'success': True,
