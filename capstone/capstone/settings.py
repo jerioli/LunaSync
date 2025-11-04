@@ -72,6 +72,15 @@ if PRODUCTION:
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+    
+    # Fix for reverse proxy (nginx) with HTTPS
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_TZ = True
+    
+    # Force Django to use HTTPS and correct domain for URL generation
+    FORCE_SCRIPT_NAME = None
+    PREPEND_WWW = False
+    SECURE_HSTS_PRELOAD = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
@@ -487,32 +496,15 @@ LOGGING = {
 }
 
 # Django Simple Captcha Configuration
+CAPTCHA_IMAGE_SIZE = (120, 50)
+CAPTCHA_TIMEOUT = 5  # 5 minutes
+CAPTCHA_LENGTH = 4
+CAPTCHA_FONT_SIZE = 30
+CAPTCHA_TEST_MODE = False
+
 if PRODUCTION:
     # Production captcha settings
-    CAPTCHA_IMAGE_SIZE = (120, 50)
     CAPTCHA_NOISE_FUNCTIONS = ('captcha.helpers.noise_arcs', 'captcha.helpers.noise_dots')
     CAPTCHA_FILTER_FUNCTIONS = ('captcha.helpers.post_smooth',)
     CAPTCHA_WORDS_DICTIONARY = '/usr/share/dict/words'
     CAPTCHA_PUNCTUATION = ''',;.!?'''
-    CAPTCHA_TIMEOUT = 5  # 5 minutes
-    CAPTCHA_LENGTH = 4
-    CAPTCHA_FONT_SIZE = 30
-    # Force captcha to use production domain
-    USE_TZ = True
-    CAPTCHA_TEST_MODE = False
-else:
-    # Development captcha settings
-    CAPTCHA_IMAGE_SIZE = (120, 50)
-    CAPTCHA_TIMEOUT = 5  # 5 minutes
-    CAPTCHA_LENGTH = 4
-    CAPTCHA_FONT_SIZE = 30
-    CAPTCHA_TEST_MODE = False
-
-# Force Django to use the correct domain for absolute URLs
-if PRODUCTION:
-    # Custom captcha URL generation
-    def get_captcha_url():
-        return 'https://lunasync.site'
-else:
-    def get_captcha_url():
-        return 'http://localhost:8000'
