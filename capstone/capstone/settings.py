@@ -515,3 +515,18 @@ if PRODUCTION:
     CAPTCHA_FILTER_FUNCTIONS = ('captcha.helpers.post_smooth',)
     CAPTCHA_WORDS_DICTIONARY = '/usr/share/dict/words'
     CAPTCHA_PUNCTUATION = ''',;.!?'''
+
+# Custom captcha URL function to force HTTPS and correct domain
+def custom_captcha_image_url(key):
+    if PRODUCTION:
+        return f"https://lunasync.site/captcha/image/{key}/"
+    else:
+        return f"http://localhost:8000/captcha/image/{key}/"
+
+# Override the default captcha image URL function
+import sys
+if 'captcha.helpers' not in sys.modules:
+    import captcha.helpers
+    captcha.helpers.captcha_image_url = custom_captcha_image_url
+else:
+    sys.modules['captcha.helpers'].captcha_image_url = custom_captcha_image_url
