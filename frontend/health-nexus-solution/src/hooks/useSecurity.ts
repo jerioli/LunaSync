@@ -1,6 +1,6 @@
+import { ENV } from '@/config/env';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
-import { ENV } from '@/config/env';
 
 interface EncryptionStatus {
   status: string;

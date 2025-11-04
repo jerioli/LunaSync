@@ -1,3 +1,4 @@
+import { ENV } from "@/config/env";
 import { defaultClinicCustomization } from "@/constants/clinicDefaults";
 import {
   Appointment,
@@ -16,7 +17,6 @@ import { axiosInstance } from "@/services/api";
 import { medicalDocumentsAPI } from "@/services/medicalDocumentsAPI";
 import { ClinicContextType, ClinicCustomization } from "@/types/clinic";
 import { parseApiError } from "@/utils/errorHandler";
-import { ENV } from "@/config/env";
 import React, {
   createContext,
   ReactNode,

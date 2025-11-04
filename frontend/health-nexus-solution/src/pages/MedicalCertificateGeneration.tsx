@@ -1,26 +1,26 @@
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
-import { ENV } from "@/config/env";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { ENV } from "@/config/env";
 import { useClinic } from "@/contexts/ClinicContext";
 import {
-  generateMedicalCertificateHTML,
-  MedicalCertificateTemplateData,
+    generateMedicalCertificateHTML,
+    MedicalCertificateTemplateData,
 } from "@/utils/medicalCertificateTemplate";
 import axios from "axios";
 import { ArrowLeft, Eye, FileText, Mail, Save } from "lucide-react";

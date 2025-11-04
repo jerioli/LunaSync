@@ -1,39 +1,39 @@
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
-import { ENV } from "@/config/env";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { ENV } from "@/config/env";
 import { useClinic } from "@/contexts/ClinicContext";
 import { Patient } from "@/lib/mock-data";
 import { axiosInstance } from "@/services/api";
 import { HTMLToPDFConverter } from "@/utils/htmlToPdf";
 import {
-  generateMedicalCertificateHTML,
-  MedicalCertificateTemplateData,
+    generateMedicalCertificateHTML,
+    MedicalCertificateTemplateData,
 } from "@/utils/medicalCertificateTemplate";
 import { formatPatientNameWithFullMiddle } from "@/utils/patientNameUtils";
 import { format } from "date-fns";
 import {
-  Download,
-  Eye,
-  FileCheck,
-  FileText,
-  Mail,
-  Save,
-  Trash2
+    Download,
+    Eye,
+    FileCheck,
+    FileText,
+    Mail,
+    Save,
+    Trash2
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
