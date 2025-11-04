@@ -48,8 +48,12 @@ else:
 # Dynamic allowed hosts based on environment
 if PRODUCTION:
     ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else ['lunasync.site','www.lunasync.site','31.97.67.53']
+    # Frontend URL for email links in production
+    FRONTEND_URL = 'https://lunasync.site'
 else:
     ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '*']  # Allow all hosts in development
+    # Frontend URL for email links in development
+    FRONTEND_URL = 'http://localhost:8080'
 
 # Security Settings - Environment dependent
 if PRODUCTION:

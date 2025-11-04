@@ -105,7 +105,11 @@ class StaffCreateView(APIView):
                     from accounts.backends import account_activation_token
                     token = account_activation_token.make_token(user)
                     uid = urlsafe_base64_encode(force_bytes(user.pk))
-                    activation_link = f"http://localhost:8080/account/activate/{uid}/{token}/"
+                    
+                    # Use proper domain for activation link
+                    from django.conf import settings
+                    frontend_url = getattr(settings, 'FRONTEND_URL', 'https://lunasync.site')
+                    activation_link = f"{frontend_url}/account/activate/{uid}/{token}/"
                     
                     # Use the clinic email sender function
                     from appointments.email_utils import send_notification_email_with_clinic_sender
@@ -887,7 +891,11 @@ class PasswordResetRequestView(APIView):
             user = User.objects.get(email=email)
             token = PasswordResetTokenGenerator().make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
-            reset_link = f"http://localhost:8080/reset-password/{uid}/{token}/"
+            
+            # Use proper domain for reset link
+            from django.conf import settings
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'https://lunasync.site')
+            reset_link = f"{frontend_url}/reset-password/{uid}/{token}/"
             
             # Get clinic settings for email branding
             try:
