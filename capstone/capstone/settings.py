@@ -19,6 +19,13 @@ import ssl
 # Fix SSL certificate verification issues for development
 ssl._create_default_https_context = ssl._create_unverified_context
 
+# Load environment variables from .env.production file
+if os.path.exists('.env.production'):
+    load_dotenv('.env.production')
+    print("✅ Loaded environment variables from .env.production")
+else:
+    print("⚠️ .env.production file not found")
+
 # Load environment variables from .env file
 load_dotenv(os.path.join(Path(__file__).resolve().parent.parent, '.env'))
 
