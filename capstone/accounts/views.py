@@ -2019,7 +2019,13 @@ class CaptchaGenerateView(APIView):
         try:
             # Generate new captcha
             captcha_key = CaptchaStore.generate_key()
+            
+            # Use the proper captcha helper to build URL
             captcha_image = captcha_image_url(captcha_key)
+            
+            # Make it absolute URL for VPS compatibility
+            if not captcha_image.startswith('http'):
+                captcha_image = request.build_absolute_uri(captcha_image)
             
             return Response({
                 'success': True,

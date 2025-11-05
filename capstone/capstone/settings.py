@@ -19,26 +19,39 @@ import ssl
 # Fix SSL certificate verification issues for development
 ssl._create_default_https_context = ssl._create_unverified_context
 
-# Load environment variables from .env.production file
-if os.path.exists('.env.production'):
-    load_dotenv('.env.production')
-    print("✅ Loaded environment variables from .env.production")
-else:
-    print("⚠️ .env.production file not found")
-
-# Load environment variables from .env file
-load_dotenv(os.path.join(Path(__file__).resolve().parent.parent, '.env'))
-
 # Environment detection
-DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
-
-# Force production mode for lunasync.site deployment
 import socket
 hostname = socket.gethostname()
 is_production_server = 'srv' in hostname.lower() or 'lunasync' in hostname.lower()
 
-# Check environment variable first, then fall back to hostname detection
-PRODUCTION = os.environ.get('PRODUCTION', 'False').lower() == 'true' or is_production_server
+# Determine environment and load appropriate config
+if is_production_server:
+    # Production server - load production environment
+    if os.path.exists('.env.production'):
+        load_dotenv('.env.production')
+        print("✅ PRODUCTION: Loaded environment variables from .env.production")
+        PRODUCTION = True
+        DEBUG = False
+    else:
+        print("⚠️ PRODUCTION: .env.production file not found")
+        PRODUCTION = True
+        DEBUG = False
+else:
+    # Development environment - load development environment
+    env_file = os.path.join(Path(__file__).resolve().parent.parent, '.env')
+    if os.path.exists(env_file):
+        load_dotenv(env_file)
+        print("✅ DEVELOPMENT: Loaded environment variables from .env")
+        PRODUCTION = os.environ.get('PRODUCTION', 'False').lower() == 'true'
+        DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
+    else:
+        print("⚠️ DEVELOPMENT: .env file not found, using defaults")
+        PRODUCTION = False
+        DEBUG = True
+
+print(f"🔧 Environment: {'PRODUCTION' if PRODUCTION else 'DEVELOPMENT'}")
+print(f"🐛 Debug Mode: {DEBUG}")
+print(f"🖥️ Hostname: {hostname}")
 
 # Encryption key for AES-256 (must be 32 bytes, base64-encoded)
 ENCRYPTION_KEY = os.environ.get('ENCRYPTION_KEY', None)
@@ -298,21 +311,42 @@ elif PRODUCTION:
         }
     }
 else:
-    # Development database configuration
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME':'medsync',
-            'USER':'lunasyncuser',
-            'PASSWORD':'lunasyncuser@2022',
-            'HOST':'127.0.0.1',
-            'PORT':'5432',
-            'OPTIONS': {
-                'sslmode': 'require',  # More relaxed SSL for development
-                'connect_timeout': 60,
-            },
+    # Development database configuration - Use SQLite for simplicity
+    # You can override this with DATABASE_URL in your .env file if you prefer PostgreSQL
+    database_url = os.environ.get('DATABASE_URL')
+    if database_url:
+        # If DATABASE_URL is provided in .env, use it (PostgreSQL)
+        try:
+            import dj_database_url
+            DATABASES = {
+                'default': dj_database_url.parse(database_url)
+            }
+        except ImportError:
+            # Fallback manual parsing
+            import urllib.parse as urlparse
+            url = urlparse.urlparse(database_url)
+            DATABASES = {
+                'default': {
+                    'ENGINE': 'django.db.backends.postgresql',
+                    'NAME': url.path[1:],
+                    'USER': url.username,
+                    'PASSWORD': url.password,
+                    'HOST': url.hostname,
+                    'PORT': url.port,
+                    'OPTIONS': {
+                        'sslmode': 'prefer',  # More relaxed SSL for development
+                        'connect_timeout': 60,
+                    },
+                }
+            }
+    else:
+        # Default to SQLite for development
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
         }
-    }
 
 # Cache configuration for OTP storage
 # Using database cache to ensure all Gunicorn workers can access the same cache
@@ -517,24 +551,27 @@ CAPTCHA_LENGTH = 4
 CAPTCHA_FONT_SIZE = 30
 CAPTCHA_TEST_MODE = False
 
+# Basic captcha settings that work across environments
+CAPTCHA_NOISE_FUNCTIONS = ('captcha.helpers.noise_arcs', 'captcha.helpers.noise_dots')
+CAPTCHA_FILTER_FUNCTIONS = ('captcha.helpers.post_smooth',)
+CAPTCHA_PUNCTUATION = ''',;.!?'''
+
+# VPS-specific captcha configuration
 if PRODUCTION:
-    # Production captcha settings
-    CAPTCHA_NOISE_FUNCTIONS = ('captcha.helpers.noise_arcs', 'captcha.helpers.noise_dots')
-    CAPTCHA_FILTER_FUNCTIONS = ('captcha.helpers.post_smooth',)
-    CAPTCHA_WORDS_DICTIONARY = '/usr/share/dict/words'
-    CAPTCHA_PUNCTUATION = ''',;.!?'''
-
-# Custom captcha URL function to force HTTPS and correct domain
-def custom_captcha_image_url(key):
-    if PRODUCTION:
-        return f"https://lunasync.site/captcha/image/{key}/"
-    else:
-        return f"http://localhost:8000/captcha/image/{key}/"
-
-# Override the default captcha image URL function
-import sys
-if 'captcha.helpers' not in sys.modules:
-    import captcha.helpers
-    captcha.helpers.captcha_image_url = custom_captcha_image_url
+    # Production captcha settings for VPS
+    CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.random_char_challenge'
+    CAPTCHA_BACKGROUND_COLOR = '#ffffff'
+    CAPTCHA_FOREGROUND_COLOR = '#000000'
+    # Ensure font path exists on VPS
+    import os
+    CAPTCHA_FONT_PATH = None  # Use system default fonts
+    # Alternative: specify a font if available
+    # CAPTCHA_FONT_PATH = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
 else:
-    sys.modules['captcha.helpers'].captcha_image_url = custom_captcha_image_url
+    # Development captcha settings
+    CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.random_char_challenge'
+    CAPTCHA_BACKGROUND_COLOR = '#ffffff'
+    CAPTCHA_FOREGROUND_COLOR = '#000000'
+
+# Use default captcha URL generation - let Django handle it properly
+# The custom URL override was causing the broken images
