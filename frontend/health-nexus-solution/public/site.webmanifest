@@ -1,0 +1,27 @@
+{
+  "name": "LUNASync - Medical Clinic Management System",
+  "short_name": "LUNASync",
+  "description": "Complete medical clinic management solution with patient management, appointment scheduling, medical records, and OCR processing capabilities.",
+  "start_url": "/portal",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#22c55e",
+  "orientation": "portrait-primary",
+  "categories": ["medical", "healthcare", "productivity", "business"],
+  "icons": [
+    {
+      "src": "/favicon_circular_new.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/logo-512.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "lang": "en",
+  "scope": "/",
+  "prefer_related_applications": false
+}

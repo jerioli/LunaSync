@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" fill="#ffffff" rx="64"/>
+  
+  <!-- Background -->
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#22c55e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16a34a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Luna crescent -->
+  <g transform="translate(180, 120)">
+    <circle cx="70" cy="70" r="65" fill="url(#logoGradient)" opacity="0.1"/>
+    <path d="M 30 70 A 40 40 0 1 1 110 70 A 25 25 0 1 0 30 70" fill="url(#logoGradient)"/>
+  </g>
+  
+  <!-- Medical cross -->
+  <g transform="translate(230, 160)">
+    <rect x="20" y="5" width="12" height="40" fill="url(#logoGradient)"/>
+    <rect x="6" y="19" width="40" height="12" fill="url(#logoGradient)"/>
+  </g>
+  
+  <!-- Sync arrows -->
+  <g transform="translate(280, 160)">
+    <path d="M 8 15 L 25 8 L 25 13 L 42 13 L 42 20 L 25 20 L 25 25 Z" fill="url(#logoGradient)"/>
+    <path d="M 42 32 L 25 39 L 25 34 L 8 34 L 8 27 L 25 27 L 25 22 Z" fill="url(#logoGradient)"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="256" y="320" font-family="Arial, sans-serif" font-size="48" font-weight="bold" text-anchor="middle" fill="#1e293b">
+    LUNA
+  </text>
+  <text x="256" y="370" font-family="Arial, sans-serif" font-size="48" font-weight="bold" text-anchor="middle" fill="#22c55e">
+    Sync
+  </text>
+</svg>
