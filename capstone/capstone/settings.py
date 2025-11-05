@@ -562,11 +562,29 @@ if PRODUCTION:
     CAPTCHA_CHALLENGE_FUNCTION = 'captcha.helpers.random_char_challenge'
     CAPTCHA_BACKGROUND_COLOR = '#ffffff'
     CAPTCHA_FOREGROUND_COLOR = '#000000'
-    # Ensure font path exists on VPS
+    # Configure font path for VPS - try common Linux font locations
     import os
-    CAPTCHA_FONT_PATH = None  # Use system default fonts
-    # Alternative: specify a font if available
-    # CAPTCHA_FONT_PATH = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+    
+    # Try multiple font paths that might exist on the VPS
+    potential_fonts = [
+        '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+        '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
+        '/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf',
+        '/usr/share/fonts/TTF/DejaVuSans.ttf',
+        '/System/Library/Fonts/Arial.ttf',  # macOS
+        '/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf',
+    ]
+    
+    CAPTCHA_FONT_PATH = None
+    for font_path in potential_fonts:
+        if os.path.exists(font_path):
+            CAPTCHA_FONT_PATH = font_path
+            break
+    
+    # If no font found, try to use a list of potential fonts
+    if CAPTCHA_FONT_PATH is None:
+        # Set a list of fonts for django-simple-captcha to try
+        CAPTCHA_FONT_PATH = potential_fonts
 else:
     # Development captcha settings
     CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.random_char_challenge'
