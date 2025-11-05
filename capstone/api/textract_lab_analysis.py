@@ -11,6 +11,7 @@ import base64
 import re
 import math
 import os
+import hashlib
 from typing import List, Dict, Any, Tuple
 from PIL import Image, ImageEnhance, ImageFilter, ImageOps, ImageDraw
 import boto3
@@ -32,6 +33,91 @@ except ImportError:
     HAS_NUMPY = False
     logger.warning("NumPy not available, using fallback methods for rotation detection")
 
+# ===== DEBUG UTILITY FUNCTIONS =====
+def debug_image_verification(image_bytes, environment="unknown"):
+    """Safely verify image properties without changing functionality"""
+    try:
+        # Calculate hash
+        image_hash = hashlib.md5(image_bytes).hexdigest()
+        
+        # Get image info
+        image = Image.open(io.BytesIO(image_bytes))
+        
+        logger.info(f"=== {environment} Image Debug ===")
+        logger.info(f"Size: {len(image_bytes)} bytes")
+        logger.info(f"MD5: {image_hash}")
+        logger.info(f"Dimensions: {image.size}")
+        logger.info(f"Mode: {image.mode}")
+        logger.info(f"Format: {image.format}")
+        
+        return image_hash
+    except Exception as e:
+        logger.error(f"Debug error: {e}")
+        return None
+
+def debug_aws_region():
+    """Safely check AWS region without changing functionality"""
+    try:
+        session = boto3.session.Session()
+        region = session.region_name
+        logger.info(f"AWS Session Region: {region}")
+        
+        # Also check environment variable
+        env_region = os.getenv('AWS_REGION', 'Not Set')
+        logger.info(f"AWS_REGION env var: {env_region}")
+        
+        return region
+    except Exception as e:
+        logger.error(f"Region debug error: {e}")
+        return None
+
+def debug_normalize_image(image_bytes):
+    """Safely create normalized image without affecting original processing"""
+    try:
+        # Create normalized version for comparison
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        normalized_image = ImageOps.exif_transpose(image)
+        
+        # Save to memory buffer (not file system)
+        output = io.BytesIO()
+        normalized_image.save(output, format='PNG', quality=100)
+        normalized_bytes = output.getvalue()
+        
+        logger.info(f"Original size: {len(image_bytes)} bytes")
+        logger.info(f"Normalized size: {len(normalized_bytes)} bytes")
+        logger.info(f"Size difference: {len(normalized_bytes) - len(image_bytes)} bytes")
+        
+        return normalized_bytes
+    except Exception as e:
+        logger.error(f"Normalization debug error: {e}")
+        return image_bytes
+
+def debug_textract_blocks(blocks, limit=3):
+    """Safely inspect first few blocks without affecting processing"""
+    try:
+        logger.info(f"=== Textract Blocks Debug (showing first {limit}) ===")
+        word_count = 0
+        
+        for block in blocks:
+            if block['BlockType'] == 'WORD' and word_count < limit:
+                bbox = block['Geometry']['BoundingBox']
+                logger.info(f"Word {word_count + 1}: '{block['Text']}'")
+                logger.info(f"  BoundingBox: Left={bbox['Left']:.6f}, Top={bbox['Top']:.6f}")
+                logger.info(f"  Width={bbox['Width']:.6f}, Height={bbox['Height']:.6f}")
+                logger.info(f"  Confidence: {block['Confidence']:.2f}")
+                word_count += 1
+                
+        logger.info(f"Total blocks: {len(blocks)}")
+        block_types = {}
+        for block in blocks:
+            block_type = block['BlockType']
+            block_types[block_type] = block_types.get(block_type, 0) + 1
+        logger.info(f"Block types: {block_types}")
+        
+    except Exception as e:
+        logger.error(f"Block debug error: {e}")
+# ===== END DEBUG UTILITY FUNCTIONS =====
+
 def get_aws_credentials():
     """Get AWS credentials from environment variables for security"""
     try:
@@ -40,8 +126,15 @@ def get_aws_credentials():
         aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
         aws_region = os.getenv('AWS_REGION', 'us-east-1')
         
+        # Enhanced logging for development/debugging
+        logger.info(f"AWS Environment Check:")
+        logger.info(f"  - AWS_ACCESS_KEY_ID: {'Set' if aws_access_key_id else 'Not Set'}")
+        logger.info(f"  - AWS_SECRET_ACCESS_KEY: {'Set (length: {})'.format(len(aws_secret_access_key)) if aws_secret_access_key else 'Not Set'}")
+        logger.info(f"  - AWS_REGION: {aws_region}")
+        
         if not aws_access_key_id or not aws_secret_access_key:
             logger.warning("AWS credentials not found in environment variables")
+            logger.warning("Please ensure AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are set in your .env file")
             return None
             
         logger.info("Using AWS credentials from environment variables")
@@ -59,10 +152,20 @@ def get_textract_client():
     """Get configured AWS Textract client"""
     credentials = get_aws_credentials()
     if not credentials:
-        raise Exception("AWS credentials not configured. Please set them in Django Admin under 'AWS Credentials'.")
+        error_msg = (
+            "AWS credentials not configured. "
+            "For localhost development: Add AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY to your .env file. "
+            "For production: Ensure credentials are set in .env.production file."
+        )
+        raise Exception(error_msg)
     
     try:
+        # Debug AWS region before creating client
+        debug_aws_region()
+        
         client = boto3.client('textract', **credentials)
+        logger.info("AWS Textract client created successfully")
+        logger.info(f"Textract client region: {client.meta.region_name}")
         return client
     except Exception as e:
         logger.error(f"Failed to create Textract client: {e}")
@@ -520,22 +623,50 @@ def preprocess_image_for_ocr(image_bytes: bytes) -> bytes:
 def extract_text_with_enhanced_textract(image_bytes: bytes) -> Tuple[str, List[Dict]]:
     """Enhanced Textract extraction with rotation correction and line-by-line detection"""
     try:
+        # Step 0: Debug image verification
+        logger.info("🔍 Starting enhanced OCR with diagnostic verification")
+        
+        # Detect environment for debug labeling
+        import socket
+        hostname = socket.gethostname().lower()
+        environment = "VPS" if 'srv' in hostname or 'lunasync' in hostname else "localhost"
+        
+        # Verify original image properties
+        original_hash = debug_image_verification(image_bytes, f"{environment}-original")
+        
         # Initialize Textract client
         textract_client = get_textract_client()
         if not textract_client:
             raise Exception("Textract client not available")
         
-        # Step 1: Preprocess image to correct rotation
-        logger.info("Preprocessing image for rotation correction")
-        processed_image_bytes = preprocess_image_for_ocr(image_bytes)
+        # Step 1: Create normalized image with EXIF handling
+        logger.info("🖼️ Creating normalized image with EXIF orientation correction")
+        normalized_image_bytes = debug_normalize_image(image_bytes)
         
-        # Step 2: Use detect_document_text for line-by-line extraction
+        # Verify normalized image
+        normalized_hash = debug_image_verification(normalized_image_bytes, f"{environment}-normalized")
+        
+        # Compare hashes
+        if original_hash and normalized_hash:
+            if original_hash == normalized_hash:
+                logger.info("✅ Image unchanged after normalization (no EXIF rotation needed)")
+            else:
+                logger.info("🔄 Image normalized (EXIF orientation corrected)")
+        
+        # Step 2: Preprocess image to correct rotation
+        logger.info("Preprocessing image for rotation correction")
+        processed_image_bytes = preprocess_image_for_ocr(normalized_image_bytes)
+        
+        # Step 3: Use detect_document_text for line-by-line extraction
         logger.info("Performing Textract OCR with line-by-line detection")
         response = textract_client.detect_document_text(
             Document={'Bytes': processed_image_bytes}
         )
         
-        # Step 3: Extract and organize text blocks by lines
+        # Step 4: Debug Textract response
+        debug_textract_blocks(response['Blocks'], limit=5)
+        
+        # Step 5: Extract and organize text blocks by lines
         lines = []
         words = []
         
@@ -1080,6 +1211,14 @@ def textract_lab_analysis(request):
         if uploaded_file:
             image_bytes = uploaded_file.read()
             logger.info(f"DEBUG: File read successfully, size: {len(image_bytes)} bytes")
+
+        # 🔍 DEBUG: Verify uploaded image properties
+        import socket
+        hostname = socket.gethostname().lower()
+        environment = "VPS" if 'srv' in hostname or 'lunasync' in hostname else "localhost"
+        
+        logger.info(f"🚀 Processing image on {environment}")
+        debug_image_verification(image_bytes, f"{environment}-uploaded")
 
         # Preprocess image for better OCR
         processed_image_bytes = preprocess_image_for_ocr(image_bytes)
