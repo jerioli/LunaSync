@@ -2953,8 +2953,8 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
               type: 'select',
               required: true,
               options: [
-                { value: 'Male', label: 'Male' },
-                { value: 'Female', label: 'Female' }
+                { value: 'male', label: 'Male' },
+                { value: 'female', label: 'Female' }
               ]
             },
             {
@@ -2977,11 +2977,11 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
               type: 'select',
               required: false,
               options: [
-                { value: 'Single', label: 'Single' },
-                { value: 'Married', label: 'Married' },
-                { value: 'Divorced', label: 'Divorced' },
-                { value: 'Widowed', label: 'Widowed' },
-                { value: 'Prefer not to say', label: 'Prefer not to say' }
+                { value: 'single', label: 'Single' },
+                { value: 'married', label: 'Married' },
+                { value: 'divorced', label: 'Divorced' },
+                { value: 'widowed', label: 'Widowed' },
+                { value: 'prefer_not_to_say', label: 'Prefer not to say' }
               ]
             }
           ],
@@ -3247,10 +3247,24 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           // Return as string, not as any other type
           return String(dateString);
         })(),
-        gender: (formDataToUse.gender || appointmentForm.gender) === 'Prefer not to say' ? 'prefer_not_to_say' : ((formDataToUse.gender || appointmentForm.gender) ? (formDataToUse.gender || appointmentForm.gender).toLowerCase() : null),
-        address: formDataToUse.address || appointmentForm.address || null,
-        religion: formDataToUse.religion || appointmentForm.religion || null,
-        marital_status: (formDataToUse.maritalStatus || appointmentForm.maritalStatus) === 'Prefer not to say' ? 'prefer_not_to_say' : ((formDataToUse.maritalStatus || appointmentForm.maritalStatus) ? (formDataToUse.maritalStatus || appointmentForm.maritalStatus).toLowerCase() : null),
+        gender: (() => {
+          const genderValue = formDataToUse.gender || appointmentForm.gender;
+          if (!genderValue) return null;
+          if (genderValue === 'Prefer not to say') return 'prefer_not_to_say';
+          return genderValue.toLowerCase();
+        })(),
+        address: (() => {
+          const addressValue = formDataToUse.address || appointmentForm.address;
+          // Return non-empty string or null, avoid empty strings
+          return (addressValue && addressValue.trim()) ? addressValue.trim() : null;
+        })(),
+        religion: (formDataToUse.religion || appointmentForm.religion || '').trim() || null,
+        marital_status: (() => {
+          const maritalValue = formDataToUse.maritalStatus || appointmentForm.maritalStatus;
+          if (!maritalValue) return null;
+          if (maritalValue === 'Prefer not to say') return 'prefer_not_to_say';
+          return maritalValue.toLowerCase();
+        })(),
         appointment_type: appointmentForm.type,
         date: formattedDate,
         time: formattedTime,
@@ -3258,6 +3272,11 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         status: 'pending',
         is_pending_confirmation: true
       };
+
+      console.log('[DEBUG] Appointment data being sent:', appointmentData);
+      console.log('[DEBUG] Gender value:', appointmentData.gender);
+      console.log('[DEBUG] Marital status value:', appointmentData.marital_status);
+      console.log('[DEBUG] Address value:', appointmentData.address);
 
       const response = await api.appointments.create(appointmentData);
      
