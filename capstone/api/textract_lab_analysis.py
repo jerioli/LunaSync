@@ -578,47 +578,52 @@ def correct_document_rotation(image_bytes: bytes, rotation_angle: float) -> byte
         logger.error(f"Error correcting document rotation: {e}")
         return image_bytes  # Return original on error
 
+# def preprocess_image_for_ocr(image_bytes: bytes) -> bytes:
+#     """Enhanced image preprocessing with rotation correction for slanted documents"""
+#     try:
+#         logger.info("Starting enhanced image preprocessing with rotation detection")
+#         
+#         # Step 1: Detect document rotation
+#         rotation_angle = detect_document_rotation(image_bytes)
+#         
+#         # Step 2: Correct rotation if significant
+#         if abs(rotation_angle) > 1.0:
+#             logger.info(f"Correcting document rotation: {rotation_angle:.2f} degrees")
+#             image_bytes = correct_document_rotation(image_bytes, rotation_angle)
+#         else:
+#             logger.info("No significant rotation detected, skipping correction")
+#         
+#         # Step 3: Additional enhancement for better OCR
+#         image = Image.open(io.BytesIO(image_bytes))
+#         
+#         # Convert to RGB if needed
+#         if image.mode not in ['RGB', 'L']:
+#             image = image.convert('RGB')
+#         
+#         # Enhance contrast for better text recognition
+#         enhancer = ImageEnhance.Contrast(image)
+#         image = enhancer.enhance(1.2)
+#         
+#         # Enhance sharpness
+#         enhancer = ImageEnhance.Sharpness(image)
+#         image = enhancer.enhance(1.1)
+#         
+#         # Save enhanced image
+#         output = io.BytesIO()
+#         image.save(output, format='PNG', quality=95)
+#         enhanced_bytes = output.getvalue()
+#         
+#         logger.info("Image preprocessing completed successfully")
+#         return enhanced_bytes
+#         
+#     except Exception as e:
+#         logger.error(f"Error in enhanced image preprocessing: {e}")
+#         return image_bytes  # Return original on any error
+
 def preprocess_image_for_ocr(image_bytes: bytes) -> bytes:
-    """Enhanced image preprocessing with rotation correction for slanted documents"""
-    try:
-        logger.info("Starting enhanced image preprocessing with rotation detection")
-        
-        # Step 1: Detect document rotation
-        rotation_angle = detect_document_rotation(image_bytes)
-        
-        # Step 2: Correct rotation if significant
-        if abs(rotation_angle) > 1.0:
-            logger.info(f"Correcting document rotation: {rotation_angle:.2f} degrees")
-            image_bytes = correct_document_rotation(image_bytes, rotation_angle)
-        else:
-            logger.info("No significant rotation detected, skipping correction")
-        
-        # Step 3: Additional enhancement for better OCR
-        image = Image.open(io.BytesIO(image_bytes))
-        
-        # Convert to RGB if needed
-        if image.mode not in ['RGB', 'L']:
-            image = image.convert('RGB')
-        
-        # Enhance contrast for better text recognition
-        enhancer = ImageEnhance.Contrast(image)
-        image = enhancer.enhance(1.2)
-        
-        # Enhance sharpness
-        enhancer = ImageEnhance.Sharpness(image)
-        image = enhancer.enhance(1.1)
-        
-        # Save enhanced image
-        output = io.BytesIO()
-        image.save(output, format='PNG', quality=95)
-        enhanced_bytes = output.getvalue()
-        
-        logger.info("Image preprocessing completed successfully")
-        return enhanced_bytes
-        
-    except Exception as e:
-        logger.error(f"Error in enhanced image preprocessing: {e}")
-        return image_bytes  # Return original on any error
+    """Simplified preprocessing - just return original image bytes"""
+    logger.info("Using simplified preprocessing (rotation detection disabled)")
+    return image_bytes
 
 def extract_text_with_enhanced_textract(image_bytes: bytes) -> Tuple[str, List[Dict]]:
     """Enhanced Textract extraction with rotation correction and line-by-line detection"""
