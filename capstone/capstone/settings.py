@@ -545,10 +545,10 @@ LOGGING = {
 }
 
 # Django Simple Captcha Configuration
-CAPTCHA_IMAGE_SIZE = (120, 50)
+CAPTCHA_IMAGE_SIZE = (140, 60)  # Slightly larger for better visibility
 CAPTCHA_TIMEOUT = 5  # 5 minutes
 CAPTCHA_LENGTH = 4
-CAPTCHA_FONT_SIZE = 30
+CAPTCHA_FONT_SIZE = 32  # Larger font for better readability
 CAPTCHA_TEST_MODE = False
 
 # Basic captcha settings that work across environments
@@ -576,6 +576,20 @@ if PRODUCTION:
     ]
     
     CAPTCHA_FONT_PATH = None
+    for font_path in potential_fonts:
+        if os.path.exists(font_path):
+            CAPTCHA_FONT_PATH = font_path
+            break
+    
+    # If no font found, try to use a list of potential fonts
+    if CAPTCHA_FONT_PATH is None:
+        # Set a list of fonts for django-simple-captcha to try
+        CAPTCHA_FONT_PATH = potential_fonts
+        
+    # Additional VPS-specific settings for better image generation
+    CAPTCHA_LETTER_ROTATION = (-20, 20)  # Slight rotation for security
+    CAPTCHA_FOREGROUND_COLOR = '#2c3e50'  # Dark blue-gray for better contrast
+    CAPTCHA_BACKGROUND_COLOR = '#ecf0f1'  # Light gray background
     for font_path in potential_fonts:
         if os.path.exists(font_path):
             CAPTCHA_FONT_PATH = font_path

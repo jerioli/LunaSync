@@ -2021,7 +2021,7 @@ class CaptchaGenerateView(APIView):
             captcha_key = CaptchaStore.generate_key()
             logger.info(f"[CAPTCHA] Generated key: {captcha_key}")
             
-            # Build captcha URL manually since the helper has namespace issues
+            # Build captcha URL manually with proper protocol detection
             from django.urls import reverse
             try:
                 # Try using the namespace
@@ -2032,10 +2032,22 @@ class CaptchaGenerateView(APIView):
                 captcha_image = f'/captcha/image/{captcha_key}/'
                 logger.info(f"[CAPTCHA] Direct URL: {captcha_image}")
             
-            # Make it absolute URL for VPS compatibility
+            # Make it absolute URL with proper HTTPS protocol for VPS
             if not captcha_image.startswith('http'):
-                captcha_image = request.build_absolute_uri(captcha_image)
-                logger.info(f"[CAPTCHA] Absolute URL: {captcha_image}")
+                # Detect if we're on VPS (production) and force HTTPS
+                if hasattr(request, 'META') and 'HTTP_HOST' in request.META:
+                    host = request.META['HTTP_HOST']
+                    if 'lunasync.site' in host:
+                        # Force HTTPS for VPS
+                        captcha_image = f'https://{host}{captcha_image}'
+                        logger.info(f"[CAPTCHA] VPS HTTPS URL: {captcha_image}")
+                    else:
+                        # Use request protocol for other environments
+                        captcha_image = request.build_absolute_uri(captcha_image)
+                        logger.info(f"[CAPTCHA] Standard absolute URL: {captcha_image}")
+                else:
+                    captcha_image = request.build_absolute_uri(captcha_image)
+                    logger.info(f"[CAPTCHA] Fallback absolute URL: {captcha_image}")
             
             return Response({
                 'success': True,
@@ -2044,6 +2056,8 @@ class CaptchaGenerateView(APIView):
             })
         except Exception as e:
             logger.error(f"Error generating captcha: {str(e)}")
+            import traceback
+            logger.error(f"Captcha generation traceback: {traceback.format_exc()}")
             return Response({
                 'success': False,
                 'error': 'Failed to generate captcha'
