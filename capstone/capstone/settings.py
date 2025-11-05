@@ -559,7 +559,7 @@ CAPTCHA_PUNCTUATION = ''',;.!?'''
 # VPS-specific captcha configuration
 if PRODUCTION:
     # Production captcha settings for VPS
-    CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.random_char_challenge'
+    CAPTCHA_CHALLENGE_FUNCTION = 'captcha.helpers.random_char_challenge'
     CAPTCHA_BACKGROUND_COLOR = '#ffffff'
     CAPTCHA_FOREGROUND_COLOR = '#000000'
     # Ensure font path exists on VPS
