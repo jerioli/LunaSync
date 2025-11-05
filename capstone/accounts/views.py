@@ -2024,9 +2024,9 @@ class CaptchaGenerateView(APIView):
             # Build captcha URL manually with proper protocol detection
             from django.urls import reverse
             try:
-                # Try using the namespace
-                captcha_image = reverse('captcha:captcha-image', args=[captcha_key])
-                logger.info(f"[CAPTCHA] Namespace URL: {captcha_image}")
+                # Use simplified URL pattern without namespace
+                captcha_image = reverse('captcha-image', args=[captcha_key])
+                logger.info(f"[CAPTCHA] Reverse URL: {captcha_image}")
             except:
                 # Fallback to direct URL construction
                 captcha_image = f'/captcha/image/{captcha_key}/'
