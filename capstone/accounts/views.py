@@ -2019,18 +2019,26 @@ class CaptchaGenerateView(APIView):
         try:
             # Generate new captcha
             captcha_key = CaptchaStore.generate_key()
+            logger.info(f"[CAPTCHA] Generated key: {captcha_key}")
             
             # Use the proper captcha helper to build URL
             captcha_image = captcha_image_url(captcha_key)
+            logger.info(f"[CAPTCHA] Helper URL: {captcha_image}")
             
             # Make it absolute URL for VPS compatibility
             if not captcha_image.startswith('http'):
                 captcha_image = request.build_absolute_uri(captcha_image)
+                logger.info(f"[CAPTCHA] Absolute URL: {captcha_image}")
+            
+            # Debug: Also try direct URL construction
+            direct_url = request.build_absolute_uri(f'/captcha/image/{captcha_key}/')
+            logger.info(f"[CAPTCHA] Direct URL: {direct_url}")
             
             return Response({
                 'success': True,
                 'captcha_key': captcha_key,
                 'captcha_image_url': captcha_image,
+                'debug_direct_url': direct_url,  # For debugging
             })
         except Exception as e:
             logger.error(f"Error generating captcha: {str(e)}")

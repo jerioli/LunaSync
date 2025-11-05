@@ -61,5 +61,12 @@ urlpatterns = [
     path('api/inventory/', include('inventory.urls')),  # Medication inventory management
 ]
 
+# Static and media files configuration
 if settings.DEBUG:
+    # Development: serve static and media files
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+else:
+    # Production: still need to serve media files for captcha images
+    # Static files are handled by nginx, but captcha images are dynamic
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
