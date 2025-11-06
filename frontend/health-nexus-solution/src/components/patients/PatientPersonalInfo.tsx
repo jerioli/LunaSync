@@ -127,6 +127,28 @@ const PatientPersonalInfo: React.FC<PatientPersonalInfoProps> = ({
               <div className="p-2 border rounded-md bg-muted/20 capitalize">{patient.gender}</div>
             )}
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="maritalStatus">Marital Status</Label>
+            {isEditing ? (
+              <select 
+                id="maritalStatus" 
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                value={patient.marital_status || 'single'}
+                onChange={(e) => onUpdate({ marital_status: e.target.value as 'single' | 'married' | 'divorced' | 'widowed' | 'prefer_not_to_say' })}
+              >
+                <option value="single">Single</option>
+                <option value="married">Married</option>
+                <option value="divorced">Divorced</option>
+                <option value="widowed">Widowed</option>
+                <option value="prefer_not_to_say">Prefer not to say</option>
+              </select>
+            ) : (
+              <div className="p-2 border rounded-md bg-muted/20 capitalize">
+                {patient.marital_status === 'prefer_not_to_say' ? 'Prefer not to say' : patient.marital_status || 'N/A'}
+              </div>
+            )}
+          </div>
           
           <div className="space-y-2">
             <Label htmlFor="email">Email Address</Label>

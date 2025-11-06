@@ -40,7 +40,7 @@ export type Patient = {
   gender: 'male' | 'female' | 'other';
   address: string;
   religion?: string;
-  marital_status?: 'single' | 'married' | 'divorced' | 'widowed'; // Use camelCase for frontend
+  marital_status?: 'single' | 'married' | 'divorced' | 'widowed' | 'prefer_not_to_say'; // Use camelCase for frontend
   medical_info?: {
       bloodType?: string;
   allergies?: string[];
