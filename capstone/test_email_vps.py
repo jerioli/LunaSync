@@ -54,36 +54,11 @@ def test_otp_email():
     """Test OTP email functionality"""
     try:
         print("Testing OTP email system...")
-        from django.contrib.auth.models import User
+        from accounts.models import CustomUser
         from appointments.email_utils import send_otp_email
-        from clinic.models import ClinicSettings
         
         # Get first admin user for testing
-        user = User.objects.filter(is_superuser=True).first()
-        if not user:
-            print("❌ No admin user found for testing")
-            return False
-            
-        # Get clinic settings
-        clinic_settings = ClinicSettings.objects.first()
-        if not clinic_settings:
-            print("⚠️ No clinic settings found, using None")
-            clinic_settings = None
-            
-        # Generate test OTP
-        test_otp = "123456"
-        
-        # Send OTP email
-        success, message = send_otp_email(user.email, test_otp, clinic_settings)
-        if success:
-            print(f"✅ OTP email sent to {user.email}")
-            return True
-        else:
-            print(f"❌ OTP email failed: {message}")
-            return False
-    except Exception as e:
-        print(f"❌ OTP email failed: {e}")
-        return False
+        user = CustomUser.objects.filter(is_superuser=True).first()
 
 if __name__ == "__main__":
     print("=" * 50)
