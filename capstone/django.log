@@ -2335,3 +2335,5 @@ INFO 2025-11-06 19:18:25,414 autoreload 14396 15356 Watching for file changes wi
 2025-11-06 19:22:13,857 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-logout/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": false}
 2025-11-06 19:22:13,862 - accounts.session_views - INFO - User 3 logged out. Session qfe1917iib7hjkcfsi69yhdqv297w67d cleared.
 2025-11-06 19:22:13,873 - django.server - INFO - "POST /api/auth/session-logout/ HTTP/1.1" 200 52
+2025-11-06 19:34:00,733 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\patients\serializer.py changed, reloading.
+INFO 2025-11-06 19:34:08,461 autoreload 19280 20096 Watching for file changes with StatReloader

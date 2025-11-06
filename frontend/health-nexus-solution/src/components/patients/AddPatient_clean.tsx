@@ -1,19 +1,18 @@
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Pencil, Trash2 } from 'lucide-react';
-import { DialogFooter, DialogTitle } from '@/components/ui/dialog';
 import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
+import { medicalDocumentsAPI } from '@/lib/medicalDocumentsAPI';
 import { parseApiError } from '@/utils/errorHandler';
+import { Pencil, Trash2 } from 'lucide-react';
 import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { medicalDocumentsAPI } from '@/lib/medicalDocumentsAPI';
 
 const AddPatient = () => {
   const navigate = useNavigate();
@@ -43,6 +42,7 @@ const AddPatient = () => {
     middle_initial: '',
     suffix: '',
     gender: '',
+    marital_status: '',
     address: '',
     dateOfBirth: '',
     email: '',
@@ -470,7 +470,7 @@ const AddPatient = () => {
         gender: form.gender.toLowerCase() as 'male' | 'female' | 'other',
         address: form.address,
         religion: form.religion || undefined,
-        marital_status: 'single' as const, // default value
+        marital_status: form.marital_status || 'single' as 'single' | 'married' | 'divorced' | 'widowed' | 'prefer_not_to_say',
         medical_info: (isDoctor || isAdmin) ? {
           medicalHistory: medicalHistory.chiefComplaint || '',
           allergies: medicalHistory.categories.allergies ? [medicalHistory.categoryDetails.allergies] : [],
@@ -655,6 +655,21 @@ const AddPatient = () => {
                     <SelectItem value="male">Male</SelectItem>
                     <SelectItem value="female">Female</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Marital Status</Label>
+                <Select value={form.marital_status} onValueChange={(value) => handleChange('marital_status', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select marital status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="single">Single</SelectItem>
+                    <SelectItem value="married">Married</SelectItem>
+                    <SelectItem value="divorced">Divorced</SelectItem>
+                    <SelectItem value="widowed">Widowed</SelectItem>
+                    <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
