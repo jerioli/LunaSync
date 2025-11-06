@@ -59,6 +59,20 @@ def test_otp_email():
         
         # Get first admin user for testing
         user = CustomUser.objects.filter(is_superuser=True).first()
+        if not user:
+            print("❌ No admin user found for testing")
+            return False
+            
+        # Generate test OTP
+        test_otp = "123456"
+        
+        # Send OTP email
+        send_otp_email(user.email, test_otp)
+        print(f"✅ OTP email sent to {user.email}")
+        return True
+    except Exception as e:
+        print(f"❌ OTP email failed: {e}")
+        return False
 
 if __name__ == "__main__":
     print("=" * 50)
