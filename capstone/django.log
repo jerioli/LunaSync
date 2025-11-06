@@ -1926,3 +1926,193 @@ rest_framework.exceptions.ParseError: JSON parse error - Expecting value: line 1
 2025-11-06 14:46:21,714 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 104
 2025-11-06 14:46:22,042 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
 2025-11-06 14:46:22,394 - django.server - INFO - "GET /api/availability/?doctor_id=3&page=1&page_size=10&ordering=-date HTTP/1.1" 200 3473
+2025-11-06 14:59:54,057 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-06 14:59:54,062 - django.request - WARNING - Unauthorized: /api/auth/current-user/
+2025-11-06 14:59:54,064 - django.server - WARNING - "GET /api/auth/current-user/ HTTP/1.1" 401 35
+2025-11-06 14:59:57,629 - django.server - INFO - "OPTIONS /api/appointments/list/ HTTP/1.1" 200 0
+2025-11-06 14:59:57,640 - django.server - INFO - "OPTIONS /api/patients/ HTTP/1.1" 200 0
+2025-11-06 14:59:57,640 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-06 14:59:57,650 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-06 14:59:57,653 - appointments.views - INFO - Starting list method...
+2025-11-06 14:59:57,668 - django.request - WARNING - Forbidden: /api/patients/
+2025-11-06 14:59:57,668 - appointments.views - INFO - Starting to fetch appointments...
+2025-11-06 14:59:57,673 - django.server - WARNING - "GET /api/patients/ HTTP/1.1" 403 58
+2025-11-06 14:59:57,894 - appointments.views - INFO - Successfully accessed database
+2025-11-06 14:59:57,916 - appointments.views - INFO - Found 1 appointments after filtering
+2025-11-06 14:59:57,992 - appointments.views - INFO - Sample appointment: id=1, status=pending, date=2025-11-07
+2025-11-06 14:59:57,998 - appointments.views - INFO - Patient: None
+2025-11-06 14:59:58,030 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-06 14:59:58,031 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-06 14:59:58,043 - appointments.views - INFO - Testing serialization with first appointment: 1
+2025-11-06 14:59:58,079 - appointments.views - INFO - Successfully serialized first appointment: {'id': 1, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Jerry Olivarez', 'patient_id': None, 'patient_email': 'jerryolivarez231@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2004-12-12', 'gender': 'male', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-07', 'time': '09:00:00', 'status': 'pending', 'created_at': '2025-11-06T13:18:22.543160+08:00', 'display_patient_name': 'Jerry Olivarez', 'display_doctor_name': ' ', 'display_time': '09:00 AM', 'display_date': 'November 07, 2025', 'doctor': 3, 'doctor_name': ' ', 'patient': None}
+2025-11-06 14:59:58,099 - appointments.views - INFO - Successfully serialized all appointments. Count: 1
+2025-11-06 14:59:58,104 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 639
+2025-11-06 15:00:01,887 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-logout/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": false}
+2025-11-06 15:00:01,909 - accounts.session_views - INFO - User None logged out. Session None cleared.
+2025-11-06 15:00:02,178 - django.server - INFO - "POST /api/auth/session-logout/ HTTP/1.1" 200 52
+2025-11-06 15:00:12,835 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-login/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-06 15:00:13,069 - django.request - WARNING - Unauthorized: /api/auth/session-login/
+2025-11-06 15:00:13,070 - django.server - WARNING - "POST /api/auth/session-login/ HTTP/1.1" 401 47
+2025-11-06 15:00:41,823 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-login/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-06 15:00:45,927 - otp_email - INFO - ================================================================================
+2025-11-06 15:00:46,846 - otp_email - INFO - ================================================================================
+2025-11-06 15:00:48,540 - otp_email - INFO - ----------------------------------------
+2025-11-06 15:00:57,047 - otp_email - ERROR - Full traceback:
+Traceback (most recent call last):
+  File "C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\otp_logger.py", line 288, in debug_otp_email_send
+    send_result = email.send()
+  File "C:\Users\smira\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\mail\message.py", line 307, in send
+    return self.get_connection(fail_silently).send_messages([self])
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "C:\Users\smira\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\mail\backends\smtp.py", line 136, in send_messages
+    sent = self._send(message)
+  File "C:\Users\smira\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\mail\backends\smtp.py", line 155, in _send
+    self.connection.sendmail(
+    ~~~~~~~~~~~~~~~~~~~~~~~~^
+        from_email, recipients, message.as_bytes(linesep="\r\n")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\smira\AppData\Local\Programs\Python\Python313\Lib\smtplib.py", line 891, in sendmail
+    (code, resp) = self.data(msg)
+                   ~~~~~~~~~^^^^^
+  File "C:\Users\smira\AppData\Local\Programs\Python\Python313\Lib\smtplib.py", line 571, in data
+    raise SMTPDataError(code, repl)
+smtplib.SMTPDataError: (550, b'5.4.5 Daily user sending limit exceeded. For more information on Gmail\n5.4.5 sending limits go to\n5.4.5  https://support.google.com/a/answer/166852 d9443c01a7336-29651045bf0sm16999235ad.48 - gsmtp')
+2025-11-06 15:00:57,063 - otp_email - INFO - ================================================================================
+2025-11-06 15:00:57,586 - otp_email - INFO - ================================================================================
+2025-11-06 15:00:58,189 - django.server - INFO - "POST /api/auth/session-login/ HTTP/1.1" 200 151
+INFO 2025-11-06 15:10:34,397 otp_logger 17952 13756 ============================================================
+INFO 2025-11-06 15:10:34,723 otp_logger 17952 13756 ============================================================
+INFO 2025-11-06 15:10:35,865 otp_logger 17952 13756 ============================================================
+INFO 2025-11-06 15:10:35,867 otp_logger 17952 13756 ================================================================================
+INFO 2025-11-06 15:10:36,010 otp_logger 17952 13756 ================================================================================
+INFO 2025-11-06 15:10:36,692 otp_logger 17952 13756 ----------------------------------------
+ERROR 2025-11-06 15:10:41,723 otp_logger 17952 13756 Full traceback:
+Traceback (most recent call last):
+  File "C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\otp_logger.py", line 288, in debug_otp_email_send
+    send_result = email.send()
+  File "C:\Users\smira\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\mail\message.py", line 307, in send
+    return self.get_connection(fail_silently).send_messages([self])
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "C:\Users\smira\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\mail\backends\smtp.py", line 136, in send_messages
+    sent = self._send(message)
+  File "C:\Users\smira\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\mail\backends\smtp.py", line 155, in _send
+    self.connection.sendmail(
+    ~~~~~~~~~~~~~~~~~~~~~~~~^
+        from_email, recipients, message.as_bytes(linesep="\r\n")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\smira\AppData\Local\Programs\Python\Python313\Lib\smtplib.py", line 891, in sendmail
+    (code, resp) = self.data(msg)
+                   ~~~~~~~~~^^^^^
+  File "C:\Users\smira\AppData\Local\Programs\Python\Python313\Lib\smtplib.py", line 571, in data
+    raise SMTPDataError(code, repl)
+smtplib.SMTPDataError: (550, b'5.4.5 Daily user sending limit exceeded. For more information on Gmail\n5.4.5 sending limits go to\n5.4.5  https://support.google.com/a/answer/166852 d9443c01a7336-29651cc1907sm17080615ad.99 - gsmtp')
+INFO 2025-11-06 15:10:41,743 otp_logger 17952 13756 ================================================================================
+INFO 2025-11-06 15:10:41,943 otp_logger 17952 13756 ================================================================================
+INFO 2025-11-06 15:12:11,522 autoreload 10944 3716 Watching for file changes with StatReloader
+2025-11-06 15:12:39,423 - django.server - INFO - "OPTIONS /api/auth/session-login/ HTTP/1.1" 200 0
+2025-11-06 15:12:39,970 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-login/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-06 15:12:45,593 - otp_email - INFO - ============================================================
+2025-11-06 15:12:45,708 - otp_email - INFO - ============================================================
+2025-11-06 15:12:47,874 - otp_email - INFO - ============================================================
+2025-11-06 15:12:47,875 - otp_email - INFO - ================================================================================
+2025-11-06 15:12:49,376 - otp_email - INFO - ================================================================================
+2025-11-06 15:12:50,006 - otp_email - INFO - ----------------------------------------
+2025-11-06 15:12:54,683 - otp_email - ERROR - Full traceback:
+Traceback (most recent call last):
+  File "C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\otp_logger.py", line 277, in debug_otp_email_send
+    from_email=settings.EMAIL_HOST_USER,
+               ^^^^^^^^
+UnboundLocalError: cannot access local variable 'settings' where it is not associated with a value
+2025-11-06 15:12:54,691 - otp_email - INFO - ================================================================================
+2025-11-06 15:12:55,612 - otp_email - INFO - ================================================================================
+2025-11-06 15:12:59,079 - django.server - INFO - "POST /api/auth/session-login/ HTTP/1.1" 200 151
+INFO 2025-11-06 15:17:07,487 autoreload 9888 12124 Watching for file changes with StatReloader
+2025-11-06 15:17:18,124 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-login/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-06 15:17:21,476 - otp_email - INFO - ============================================================
+2025-11-06 15:17:21,541 - otp_email - INFO - ============================================================
+2025-11-06 15:17:23,731 - otp_email - INFO - ============================================================
+2025-11-06 15:17:23,733 - otp_email - INFO - ================================================================================
+2025-11-06 15:17:23,742 - otp_email - INFO - STARTING OTP EMAIL SEND DEBUG SESSION
+2025-11-06 15:17:23,749 - otp_email - INFO - To: doctor@example.com
+2025-11-06 15:17:23,756 - otp_email - INFO - OTP: 937650
+2025-11-06 15:17:23,757 - otp_email - INFO - Type: email
+2025-11-06 15:17:23,759 - otp_email - INFO - ================================================================================
+2025-11-06 15:17:23,760 - otp_email - INFO - STEP 1: Validating email address
+2025-11-06 15:17:24,376 - otp_email - INFO - ----------------------------------------
+2025-11-06 15:17:28,187 - otp_email - ERROR - ERROR Unexpected error sending OTP email: cannot access local variable 'settings' where it is not associated with a value
+2025-11-06 15:17:28,188 - otp_email - ERROR - Full traceback:
+Traceback (most recent call last):
+  File "C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\otp_logger.py", line 277, in debug_otp_email_send
+    from_email=settings.EMAIL_HOST_USER,
+               ^^^^^^^^
+UnboundLocalError: cannot access local variable 'settings' where it is not associated with a value
+2025-11-06 15:17:28,193 - otp_email - INFO - ================================================================================
+2025-11-06 15:17:28,194 - otp_email - INFO - OTP EMAIL DEBUG SESSION COMPLETED
+2025-11-06 15:17:28,195 - otp_email - INFO - Steps completed: email_validation, clinic_settings, smtp_connection_test, email_content_preparation
+2025-11-06 15:17:28,196 - otp_email - INFO - Errors: 1
+2025-11-06 15:17:28,197 - otp_email - INFO - Warnings: 1
+2025-11-06 15:17:28,201 - otp_email - INFO - ================================================================================
+2025-11-06 15:17:28,447 - django.server - INFO - "POST /api/auth/session-login/ HTTP/1.1" 200 151
+INFO 2025-11-06 17:47:57,733 autoreload 17704 584 Watching for file changes with StatReloader
+2025-11-06 17:48:31,094 - django.server - INFO - "OPTIONS /api/auth/session-login/ HTTP/1.1" 200 0
+2025-11-06 17:48:31,521 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-login/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-06 17:48:34,175 - otp_email - INFO - ============================================================
+2025-11-06 17:48:34,336 - otp_email - INFO - ============================================================
+2025-11-06 17:48:35,660 - otp_email - INFO - ============================================================
+2025-11-06 17:48:35,661 - otp_email - INFO - ================================================================================
+2025-11-06 17:48:37,304 - otp_email - INFO - ================================================================================
+2025-11-06 17:48:38,040 - otp_email - INFO - ----------------------------------------
+2025-11-06 17:48:41,961 - otp_email - INFO - ================================================================================
+2025-11-06 17:48:42,647 - otp_email - INFO - ================================================================================
+2025-11-06 17:48:42,934 - django.server - INFO - "POST /api/auth/session-login/ HTTP/1.1" 200 151
+INFO 2025-11-06 18:24:38,186 autoreload 16804 10444 Watching for file changes with StatReloader
+2025-11-06 18:24:58,170 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-login/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-06 18:25:01,228 - otp_email - INFO - ============================================================
+2025-11-06 18:25:01,356 - otp_email - INFO - ============================================================
+2025-11-06 18:25:02,799 - otp_email - INFO - ============================================================
+2025-11-06 18:25:02,800 - otp_email - INFO - ================================================================================
+2025-11-06 18:25:03,542 - otp_email - INFO - ================================================================================
+2025-11-06 18:25:04,590 - otp_email - INFO - ----------------------------------------
+2025-11-06 18:25:11,213 - otp_email - INFO - ================================================================================
+2025-11-06 18:25:11,457 - otp_email - INFO - ================================================================================
+2025-11-06 18:25:11,739 - django.server - INFO - "POST /api/auth/session-login/ HTTP/1.1" 200 151
+2025-11-06 18:25:20,369 - django.server - INFO - "OPTIONS /api/auth/session-verify-otp/ HTTP/1.1" 200 0
+2025-11-06 18:25:20,907 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-verify-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-06 18:25:20,910 - accounts.session_views - INFO - [2FA VERIFY] SessionOTPVerifyView.post called
+2025-11-06 18:25:20,916 - accounts.session_views - INFO - [2FA VERIFY] Request data: {'identifier': 'doctor@example.com', 'identifier_type': 'email', 'otp': '425619'}
+2025-11-06 18:25:20,919 - accounts.session_views - INFO - [2FA VERIFY] Session data: {'pending_2fa_user_id': 3}
+2025-11-06 18:25:20,922 - accounts.session_views - INFO - [2FA VERIFY] Verifying OTP for email: doctor@example.com
+2025-11-06 18:25:20,925 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 425619
+2025-11-06 18:25:20,928 - accounts.session_views - INFO - [2FA VERIFY] Cache key: otp_doctor@example.com_email
+2025-11-06 18:25:20,930 - accounts.session_views - INFO - [2FA VERIFY] Stored OTP: 425619
+2025-11-06 18:25:20,933 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 425619
+2025-11-06 18:25:20,935 - accounts.session_views - INFO - [2FA VERIFY] OTP Match: True
+2025-11-06 18:25:20,940 - accounts.session_views - INFO - [2FA VERIFY] Pending user ID from session: 3
+2025-11-06 18:25:20,947 - accounts.session_views - INFO - [2FA VERIFY] Found user: doctor@example.com (ID: 3)
+2025-11-06 18:25:20,948 - accounts.session_views - INFO - [2FA VERIFY] OTP verification successful - clearing cache and session data
+2025-11-06 18:25:20,963 - accounts.session_views - INFO - [2FA VERIFY] Session saved successfully. Session ID: xjn1vh8nof2tmkcaqi0dro7fu35e7kmm
+2025-11-06 18:25:21,209 - django.server - INFO - "POST /api/auth/session-verify-otp/ HTTP/1.1" 200 552
+2025-11-06 18:25:21,474 - django.server - INFO - "OPTIONS /api/appointments/list/ HTTP/1.1" 200 0
+2025-11-06 18:25:21,495 - django.server - INFO - "OPTIONS /api/patients/ HTTP/1.1" 200 0
+2025-11-06 18:25:21,832 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-06 18:25:21,840 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-06 18:25:21,845 - appointments.views - INFO - Starting list method...
+2025-11-06 18:25:21,860 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1762424721.8603354, "client_ip": "127.0.0.1"}
+2025-11-06 18:25:21,862 - appointments.views - INFO - Starting to fetch appointments...
+2025-11-06 18:25:21,895 - appointments.views - INFO - Successfully accessed database
+2025-11-06 18:25:21,904 - appointments.views - INFO - Found 1 appointments after filtering
+2025-11-06 18:25:22,050 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 2
+2025-11-06 18:25:22,055 - appointments.views - INFO - Sample appointment: id=1, status=pending, date=2025-11-07
+2025-11-06 18:25:22,060 - appointments.views - INFO - Patient: None
+2025-11-06 18:25:22,079 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-06 18:25:22,086 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-06 18:25:22,105 - appointments.views - INFO - Testing serialization with first appointment: 1
+2025-11-06 18:25:22,163 - appointments.views - INFO - Successfully serialized first appointment: {'id': 1, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Jerry Olivarez', 'patient_id': None, 'patient_email': 'jerryolivarez231@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2004-12-12', 'gender': 'male', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-07', 'time': '09:00:00', 'status': 'pending', 'created_at': '2025-11-06T13:18:22.543160+08:00', 'display_patient_name': 'Jerry Olivarez', 'display_doctor_name': ' ', 'display_time': '09:00 AM', 'display_date': 'November 07, 2025', 'doctor': 3, 'doctor_name': ' ', 'patient': None}
+2025-11-06 18:25:22,182 - appointments.views - INFO - Successfully serialized all appointments. Count: 1
+2025-11-06 18:25:22,229 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 639
+2025-11-06 18:25:42,450 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\capstone\settings.py changed, reloading.
+INFO 2025-11-06 18:25:46,848 autoreload 12768 19188 Watching for file changes with StatReloader

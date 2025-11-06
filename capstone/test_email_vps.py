@@ -54,7 +54,7 @@ def test_otp_email():
     """Test OTP email functionality"""
     try:
         print("Testing OTP email system...")
-        from accounts.models import User
+        from django.contrib.auth.models import User
         from accounts.views import send_otp_email
         
         # Get first admin user for testing
