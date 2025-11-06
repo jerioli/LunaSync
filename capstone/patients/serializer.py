@@ -6,6 +6,7 @@ class PatientSerializer(SecureBaseSerializer):
     # Override JSON fields with custom encrypted JSON field
     medical_info = EncryptedJSONField(required=False, allow_null=True, default=None, allow_blank=True)
     physical_examination = EncryptedJSONField(required=False, allow_null=True, default=None, allow_blank=True)
+    
     class Meta:
         model = Patient
         fields = [
@@ -28,6 +29,61 @@ class PatientSerializer(SecureBaseSerializer):
             'registration_date',
         ]
         # Remove json_fields since we're using custom fields now
+    
+    def validate(self, data):
+        """Custom validation to check for duplicate patients"""
+        email = data.get('email')
+        phone = data.get('phone')
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
+        date_of_birth = data.get('date_of_birth')
+        
+        # Check if this is an update (instance exists) or create (no instance)
+        instance = getattr(self, 'instance', None)
+        
+        if email:
+            # Check for duplicate email
+            existing_patients = Patient.objects.all()
+            for patient in existing_patients:
+                # Skip self if updating
+                if instance and patient.id == instance.id:
+                    continue
+                    
+                if patient.email and patient.email.lower() == email.lower():
+                    raise serializers.ValidationError({
+                        'email': 'A patient with this email address already exists.'
+                    })
+        
+        if phone:
+            # Check for duplicate phone
+            existing_patients = Patient.objects.all()
+            for patient in existing_patients:
+                # Skip self if updating
+                if instance and patient.id == instance.id:
+                    continue
+                    
+                if patient.phone and patient.phone == phone:
+                    raise serializers.ValidationError({
+                        'phone': 'A patient with this phone number already exists.'
+                    })
+        
+        # Check for duplicate patient based on name and date of birth
+        if first_name and last_name and date_of_birth:
+            existing_patients = Patient.objects.all()
+            for patient in existing_patients:
+                # Skip self if updating
+                if instance and patient.id == instance.id:
+                    continue
+                    
+                if (patient.first_name and patient.last_name and patient.date_of_birth and
+                    patient.first_name.lower() == first_name.lower() and
+                    patient.last_name.lower() == last_name.lower() and
+                    patient.date_of_birth == date_of_birth):
+                    raise serializers.ValidationError({
+                        'non_field_errors': f'A patient with the name "{first_name} {last_name}" and date of birth {date_of_birth} already exists.'
+                    })
+        
+        return data
     
     def to_representation(self, instance):
         """Handle patient ID lookup as a form of authentication"""

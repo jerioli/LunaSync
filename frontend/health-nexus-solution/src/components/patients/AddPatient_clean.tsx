@@ -17,7 +17,7 @@ import { medicalDocumentsAPI } from '@/lib/medicalDocumentsAPI';
 
 const AddPatient = () => {
   const navigate = useNavigate();
-  const { addPatient, currentUser } = useClinic();
+  const { addPatient, currentUser, patients } = useClinic();
   const { toast } = useToast();
   
   // Check user role for access control
@@ -379,6 +379,55 @@ const AddPatient = () => {
       toast({
         title: 'Validation Error',
         description: 'Please enter a valid email address.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Check for duplicate patients
+    const existingEmailPatient = patients.find(patient => 
+      patient.email && patient.email.toLowerCase() === form.email.toLowerCase()
+    );
+    
+    if (existingEmailPatient) {
+      toast({
+        title: 'Duplicate Patient',
+        description: `A patient with email "${form.email}" already exists. Please use a different email address.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const existingPhonePatient = patients.find(patient => 
+      patient.phone && patient.phone === form.phone
+    );
+    
+    if (existingPhonePatient) {
+      toast({
+        title: 'Duplicate Patient',
+        description: `A patient with phone number "${form.phone}" already exists. Please use a different phone number.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Check for duplicate based on name and date of birth
+    const existingNameDatePatient = patients.find(patient => {
+      if (!patient.first_name || !patient.last_name || !patient.date_of_birth) {
+        return false;
+      }
+      
+      return (
+        patient.first_name.toLowerCase() === form.first_name.toLowerCase() &&
+        patient.last_name.toLowerCase() === form.last_name.toLowerCase() &&
+        patient.date_of_birth === form.dateOfBirth
+      );
+    });
+    
+    if (existingNameDatePatient) {
+      toast({
+        title: 'Duplicate Patient',
+        description: `A patient named "${form.first_name} ${form.last_name}" with the same date of birth (${form.dateOfBirth}) already exists. Please verify the patient information.`,
         variant: 'destructive',
       });
       return;

@@ -39,7 +39,7 @@ export function parseApiError(error: any, defaultMessage: string = 'An error occ
       const errorMessages: string[] = [];
       
       // Check for specific field errors (Django REST Framework style)
-      const fieldErrors = ['email', 'phone', 'name', 'username', 'password', 'date_of_birth', 'gender'];
+      const fieldErrors = ['email', 'phone', 'name', 'first_name', 'last_name', 'username', 'password', 'date_of_birth', 'gender'];
       
       fieldErrors.forEach(field => {
         if (errorData[field]) {
