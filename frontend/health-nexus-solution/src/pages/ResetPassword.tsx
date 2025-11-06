@@ -144,7 +144,7 @@ const ResetPassword = () => {
     >
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-[#79c942]">MDSync</h1>
+          <h1 className="text-3xl font-bold text-[#79c942]">LUNASync</h1>
           <p className="text-gray-500">Create your new password</p>
         </div>
         <Card className="w-full">

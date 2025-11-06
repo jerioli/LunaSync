@@ -207,24 +207,25 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
       : identifier.replace(/(\d{3})(\d{3})(\d{4})/, "$1-***-$3");
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-clinic-gray dark:bg-gray-900 relative">
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-clinic-blue opacity-10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-clinic-teal opacity-10 rounded-full blur-3xl" />
-      </div>
+    <div
+      className="min-h-screen flex items-center justify-center relative"
+      style={{
+        background: "linear-gradient(to bottom, #fff 0%, #79c942 300%)",
+      }}
+    >
       <div className="w-full max-w-md px-4">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-clinic-blue">MedSync</h1>
+          <h1 className="text-3xl font-bold text-[#79c942]">LUNASync</h1>
           <p className="text-gray-500">Verify Your Identity</p>
         </div>
 
         <Card className={className}>
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
               {identifierType === "email" ? (
-                <Mail className="h-6 w-6 text-blue-600" />
+                <Mail className="h-6 w-6 text-green-600" />
               ) : (
-                <Phone className="h-6 w-6 text-blue-600" />
+                <Phone className="h-6 w-6 text-green-600" />
               )}
             </div>
             <CardTitle>Enter Verification Code</CardTitle>
@@ -235,7 +236,7 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
                 {maskedIdentifier}
               </span>
               {identifierType === "phone" && (
-                <div className="text-xs text-blue-600 mt-1">
+                <div className="text-xs text-[#79c942] mt-1">
                   📱 Powered by iProg SMS for reliable delivery
                 </div>
               )}
@@ -260,7 +261,7 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
               <Button
                 onClick={handleManualVerify}
                 disabled={isVerifying || otp.length !== 6}
-                className="w-full"
+                className="w-full bg-[#79c942] hover:bg-[#68ab38] text-white transition-colors"
               >
                 {isVerifying ? "Verifying..." : "Verify Code"}
               </Button>
@@ -279,7 +280,7 @@ export const OTPVerification: React.FC<OTPVerificationProps> = ({
                 variant="ghost"
                 onClick={handleResendOTP}
                 disabled={!canResend || isResending}
-                className="text-blue-600 hover:text-blue-700"
+                className="text-[#79c942] hover:text-[#68ab38]"
               >
                 {isResending ? (
                   <>

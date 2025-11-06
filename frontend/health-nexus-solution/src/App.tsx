@@ -5,8 +5,8 @@ import { ClinicProvider, useClinic } from "./contexts/ClinicContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
-import { AppLayout } from "./components/layout/AppLayout";
 import AccountActivation from "./components/AccountActivation";
+import { AppLayout } from "./components/layout/AppLayout";
 import AddPatient from "./components/patients/AddPatient_clean";
 import Appointments from "./pages/Appointments";
 import AppointmentScheduling from "./pages/AppointmentScheduling";
@@ -26,6 +26,7 @@ import NotFound from "./pages/NotFound";
 import PatientManagement from "./pages/PatientManagement";
 import PatientPortal from "./pages/PatientPortal";
 
+import { Toaster } from "./components/ui/toaster";
 import PatientsList from "./pages/PatientsList";
 import PermissionManagement from "./pages/PermissionManagement";
 import PrescriptionManagement from "./pages/PrescriptionManagement";
@@ -37,7 +38,6 @@ import Settings from "./pages/Settings";
 import Staff from "./pages/Staff";
 import UsageReports from "./pages/UsageReports";
 import UserSettings from "./pages/UserSettings";
-import { Toaster } from "./components/ui/toaster";
 
 // PermissionGuard component for route-level permission checks
 const PermissionGuard = ({
@@ -181,7 +181,7 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="system" storageKey="health-nexus-theme">
+      <ThemeProvider defaultTheme="light" storageKey="health-nexus-theme">
         <LanguageProvider
           defaultLanguage="en"
           storageKey="health-nexus-language"

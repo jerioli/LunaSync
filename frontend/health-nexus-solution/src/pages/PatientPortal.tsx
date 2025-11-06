@@ -5,24 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
+    NavigationMenu,
+    NavigationMenuItem,
+    NavigationMenuLink,
+    NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/services/api";
@@ -30,20 +30,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { format } from "date-fns";
 import {
-  ArrowUp,
-  BotMessageSquare,
-  Calendar,
-  CheckCircle,
-  ChevronLeft,
-  ChevronRight,
-  FileText,
-  Info,
-  Monitor,
-  Moon,
-  Pill,
-  Stethoscope,
-  Sun,
-  User
+    ArrowUp,
+    BotMessageSquare,
+    Calendar,
+    CheckCircle,
+    ChevronLeft,
+    ChevronRight,
+    FileText,
+    Info,
+    Pill,
+    Stethoscope,
+    User
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -141,17 +138,11 @@ const prescriptionSchema = z.object({
 type MedicalCertFormData = z.infer<typeof medicalCertSchema>;
 type PrescriptionFormData = z.infer<typeof prescriptionSchema>;
 
-// Note: These hooks need to be implemented or imported from your theme/language context
-// For now, providing mock implementations to prevent errors
-const useTheme = () => ({
-  theme: "light" as "light" | "dark" | "system",
-  setTheme: (theme: "light" | "dark" | "system") => {},
-});
+// Note: These hooks need to be implemented or imported from your language context
 const useLanguage = () => ({ t: (key: string) => key });
 
 const PatientPortal = () => {
   const navigate = useNavigate();
-  const { theme, setTheme } = useTheme();
   const { t } = useLanguage();
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
@@ -1819,7 +1810,7 @@ const PatientPortal = () => {
   };
 
   const GREETING_TEXT =
-    "Hi! I'm Dr. MDSync, virtual assistant. What can I help you with?";
+    "Hi! I'm Luna, virtual assistant. What can I help you with?";
 
   const [greetingDisplay, setGreetingDisplay] = useState("");
   const [typing, setTyping] = useState(true);
@@ -1852,29 +1843,6 @@ const PatientPortal = () => {
       clearTimeout(repeatTimeout);
     };
   }, []);
-
-  // Theme toggle function
-  const toggleTheme = () => {
-    if (theme === "light") {
-      setTheme("dark");
-    } else if (theme === "dark") {
-      setTheme("system");
-    } else {
-      setTheme("light");
-    }
-  };
-
-  // Get theme icon
-  const getThemeIcon = () => {
-    switch (theme) {
-      case "light":
-        return <Sun className="h-4 w-4" />;
-      case "dark":
-        return <Moon className="h-4 w-4" />;
-      default:
-        return <Monitor className="h-4 w-4" />;
-    }
-  };
 
   // Move fetchClinic outside useEffect
   const fetchClinic = async () => {

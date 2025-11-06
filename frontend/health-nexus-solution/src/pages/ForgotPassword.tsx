@@ -115,7 +115,7 @@ const ForgotPassword = () => {
     <AuthCard isFlipped={isFlipped}>
       <AuthCardFront>
         <div className="text-center mb-8">
-                      <h1 className="text-3xl font-bold text-[#79c942]">MDSync</h1>
+                      <h1 className="text-3xl font-bold text-[#79c942]">LUNASync</h1>
                       <p className="text-gray-500">Recover your account</p>
                     </div>
         <Card className="w-full max-w-md">

@@ -131,8 +131,8 @@ export const OTPInput: React.FC<OTPInputProps> = ({
           onPaste={handlePaste}
           disabled={disabled}
           className={cn(
-            "w-12 h-12 text-center text-lg font-semibold",
-            error && "border-red-500 focus:border-red-500",
+            "w-12 h-12 text-center text-lg font-semibold focus-visible:ring-[#79c942] focus-visible:ring-2 focus-visible:ring-offset-2",
+            error && "border-red-500 focus:border-red-500 focus-visible:ring-red-500",
             disabled && "opacity-50 cursor-not-allowed"
           )}
           autoComplete="off"

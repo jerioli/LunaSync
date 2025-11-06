@@ -7,15 +7,13 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useClinic } from '@/contexts/ClinicContext';
-import { useTheme } from '@/contexts/ThemeContext';
 import { toast } from '@/hooks/use-toast';
 import axios from 'axios';
-import { Eye, EyeOff, Monitor, Moon, Sun } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const UserSettings = () => {
   const { currentUser, setCurrentUser } = useClinic();
-  const { theme, setTheme } = useTheme();
     // Profile settings
   const [profileData, setProfileData] = useState({
     firstName: '',
@@ -175,17 +173,6 @@ const UserSettings = () => {
     }
   };
 
-  const getThemeIcon = () => {
-    switch (theme) {
-      case 'light':
-        return <Sun className="h-4 w-4" />;
-      case 'dark':
-        return <Moon className="h-4 w-4" />;
-      default:
-        return <Monitor className="h-4 w-4" />;
-    }
-  };
-
   if (!currentUser) {
     return (
       <div className="space-y-6">
@@ -212,7 +199,6 @@ const UserSettings = () => {
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="appearance">Appearance</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           
         </TabsList>
@@ -373,52 +359,6 @@ const UserSettings = () => {
               <Button onClick={handlePasswordChange} disabled={loading}>
                 {loading ? 'Changing...' : 'Change Password'}
               </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="appearance" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Preferences</CardTitle>
-              <CardDescription>
-                Choose how the application looks and behaves for you.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label>Theme Mode</Label>
-                <Select value={theme} onValueChange={(value: 'light' | 'dark' | 'system') => setTheme(value)}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue>
-                      <div className="flex items-center gap-2">
-                        {getThemeIcon()}
-                        <span className="capitalize">{theme}</span>
-                      </div>
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="light">
-                      <div className="flex items-center gap-2">
-                        <Sun className="h-4 w-4" />
-                        Light
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="dark">
-                      <div className="flex items-center gap-2">
-                        <Moon className="h-4 w-4" />
-                        Dark
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="system">
-                      <div className="flex items-center gap-2">
-                        <Monitor className="h-4 w-4" />
-                        System
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
