@@ -164,10 +164,9 @@ export default function BulkImportModal({
           className="w-full flex flex-col flex-1 overflow-hidden"
         >
           <div className="flex-shrink-0 bg-white pb-2 px-8 border-b">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="upload">File Upload</TabsTrigger>
               <TabsTrigger value="manual">Manual Entry</TabsTrigger>
-              <TabsTrigger value="template">Download Template</TabsTrigger>
             </TabsList>
           </div>
           <div className="flex-1 overflow-y-auto pt-4">
@@ -214,47 +213,11 @@ export default function BulkImportModal({
                       Download Template
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="manual" className="space-y-4 flex-1">
-              <Card className="h-full">
-                <CardHeader>
-                  <CardTitle>Manual Bulk Entry</CardTitle>
-                  <CardDescription>
-                    Enter multiple {type} records manually using a form
-                    interface.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ManualBulkEntry
-                    type={type}
-                    onComplete={() => {
-                      setIsOpen(false);
-                      if (onUploadComplete) {
-                        onUploadComplete();
-                      }
-                    }}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="template" className="space-y-4 flex-1">
-              <Card className="h-full">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Template & Instructions
-                  </CardTitle>
-                  <CardDescription>
-                    Download the template file and learn about the required
-                    format.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <h4 className="font-medium">Required Fields:</h4>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
+                  
+                  {/* Required Fields Section */}
+                  <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
+                    <h4 className="font-medium mb-3 text-gray-900">Required Fields:</h4>
+                    <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
                       {type === "patients" ? (
                         <>
                           <div>• first_name (required)</div>
@@ -281,11 +244,28 @@ export default function BulkImportModal({
                       )}
                     </div>
                   </div>
-                  <Button onClick={downloadTemplate} className="w-full">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Download {type === "patients" ? "Patient" : "Staff"}{" "}
-                    Template
-                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="manual" className="space-y-4 flex-1">
+              <Card className="h-full">
+                <CardHeader>
+                  <CardTitle>Manual Bulk Entry</CardTitle>
+                  <CardDescription>
+                    Enter multiple {type} records manually using a form
+                    interface.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ManualBulkEntry
+                    type={type}
+                    onComplete={() => {
+                      setIsOpen(false);
+                      if (onUploadComplete) {
+                        onUploadComplete();
+                      }
+                    }}
+                  />
                 </CardContent>
               </Card>
             </TabsContent>
