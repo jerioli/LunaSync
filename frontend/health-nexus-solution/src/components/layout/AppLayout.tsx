@@ -18,7 +18,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-clinic-gray dark:bg-gray-900">
+      <div className="min-h-screen flex w-full bg-clinic-gray">
         <AppSidebar />
         <div className="flex flex-col flex-1">
           <TopBar />

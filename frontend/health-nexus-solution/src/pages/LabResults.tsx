@@ -919,12 +919,12 @@ const LabResults = () => {
                                     {result.patientName || "Unknown Patient"}
                                   </div>
                                   {hasCritical && (
-                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                       Critical
                                     </span>
                                   )}
                                   {hasAbnormal && !hasCritical && (
-                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                       Abnormal
                                     </span>
                                   )}
@@ -934,12 +934,12 @@ const LabResults = () => {
                                     {result.type}
                                   </span>
                                   {(result as any).laboratoryName && (
-                                    <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full">
+                                    <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
                                       {(result as any).laboratoryName}
                                     </span>
                                   )}
                                   {result.authorizedBy && (
-                                    <span className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full">
+                                    <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 rounded-full">
                                       Dr. {result.authorizedBy}
                                     </span>
                                   )}
@@ -1030,12 +1030,12 @@ const LabResults = () => {
                                     {result.patientName || "Unknown Patient"}
                                   </div>
                                   {hasCritical && (
-                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                       Critical
                                     </span>
                                   )}
                                   {hasAbnormal && !hasCritical && (
-                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                       Abnormal
                                     </span>
                                   )}
@@ -1045,12 +1045,12 @@ const LabResults = () => {
                                     {result.type}
                                   </span>
                                   {(result as any).laboratoryName && (
-                                    <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full">
+                                    <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
                                       {(result as any).laboratoryName}
                                     </span>
                                   )}
                                   {result.authorizedBy && (
-                                    <span className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full">
+                                    <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 rounded-full">
                                       Dr. {result.authorizedBy}
                                     </span>
                                   )}
@@ -1211,8 +1211,8 @@ const LabResults = () => {
                   <div
                     className={`flex items-center gap-2 p-3 rounded-lg ${
                       backendConnected
-                        ? "bg-green-50 dark:bg-green-900/20"
-                        : "bg-orange-50 dark:bg-orange-900/20"
+                        ? "bg-green-50"
+                        : "bg-orange-50"
                     }`}
                   >
                     <div
@@ -1223,8 +1223,8 @@ const LabResults = () => {
                     <span
                       className={`text-sm font-medium ${
                         backendConnected
-                          ? "text-green-800 dark:text-green-300"
-                          : "text-orange-800 dark:text-orange-300"
+                          ? "text-green-800"
+                          : "text-orange-800"
                       }`}
                     >
                       Backend:{" "}
@@ -1235,10 +1235,10 @@ const LabResults = () => {
                   </div>
 
                   {matchedPatientId && (
-                    <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                    <div className="bg-green-50 p-3 rounded-lg">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span className="text-sm font-medium text-green-800 dark:text-green-300">
+                        <span className="text-sm font-medium text-green-800">
                           Patient Identified:{" "}
                           {
                             patients.find((p) => p.id === matchedPatientId)
@@ -1250,10 +1250,10 @@ const LabResults = () => {
                   )}
 
                   {authorizedBy && (
-                    <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                    <div className="bg-blue-50 p-3 rounded-lg">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <span className="text-sm font-medium text-blue-800 dark:text-blue-300">
+                        <span className="text-sm font-medium text-blue-800">
                           Doctor Identified: {authorizedBy}
                         </span>
                       </div>
@@ -1261,10 +1261,10 @@ const LabResults = () => {
                   )}
 
                   {extractedTestResults.length > 0 && (
-                    <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg">
+                    <div className="bg-purple-50 p-3 rounded-lg">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                        <span className="text-sm font-medium text-purple-800 dark:text-purple-300">
+                        <span className="text-sm font-medium text-purple-800">
                           {extractedTestResults.length} Test Result(s) Extracted
                         </span>
                       </div>
@@ -1385,3 +1385,4 @@ const LabResults = () => {
 };
 
 export default LabResults;
+

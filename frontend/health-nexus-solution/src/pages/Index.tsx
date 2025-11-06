@@ -21,7 +21,7 @@ const Index = () => {
   }, [currentUser, navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-clinic-gray dark:bg-gray-900">
+    <div className="min-h-screen flex items-center justify-center bg-clinic-gray">
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4">Loading HealthNexus...</h1>
         <p className="text-xl text-gray-600">Please wait while we load your clinic management system.</p>

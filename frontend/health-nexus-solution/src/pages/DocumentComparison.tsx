@@ -2014,7 +2014,7 @@ ${editableText}`;
               <Label className="flex items-center gap-2">
                 Test Type *
                 {resultType && (
-                  <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full">
+                  <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
                     Auto-detected
                   </span>
                 )}
@@ -2039,7 +2039,7 @@ ${editableText}`;
                 <Stethoscope className="h-4 w-4" />
                 Authorized By *
                 {authorizedBy && autoDetectionResults.doctor && (
-                  <span className="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 rounded-full">
+                  <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-800 rounded-full">
                     Auto-extracted
                   </span>
                 )}
@@ -2101,3 +2101,4 @@ ${editableText}`;
 };
 
 export default DocumentComparison;
+

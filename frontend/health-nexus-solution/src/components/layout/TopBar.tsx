@@ -256,7 +256,7 @@ export const TopBar: React.FC = () => {
                                   <p className="text-sm font-medium text-foreground">
                                     New Appointment Request
                                   </p>
-                                  <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800">
+                                  <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
                                     Pending
                                   </Badge>
                                 </div>

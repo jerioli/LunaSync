@@ -733,7 +733,7 @@ const Settings = () => {
               </div>
 
               {/* Information */}
-              <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
+              <div className="bg-blue-50 p-4 rounded-lg">
                 <h4 className="font-medium mb-2">Admin Branding Control:</h4>
                 <ul className="text-sm space-y-1 text-muted-foreground">
                   <li>• Only administrators can modify application colors and branding</li>

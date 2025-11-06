@@ -2301,7 +2301,7 @@ const PatientPortal = () => {
             <h1 className="text-4xl md:text-5xl font-bold text-[#79c942]">
               {clinic.hero_title || "Your Health Is Our Priority"}
             </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-300">
+            <p className="text-lg text-gray-600">
               {clinic.hero_subtitle ||
                 `${clinic.clinic_name || t("portal.welcome")} ${t(
                   "portal.heroSubtitle"
@@ -5275,3 +5275,4 @@ const PatientPortal = () => {
 };
 
 export default PatientPortal;
+

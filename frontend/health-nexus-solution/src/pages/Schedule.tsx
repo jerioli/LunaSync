@@ -753,8 +753,8 @@ const Schedule: React.FC = () => {
                                     key={index}
                                     className={`px-2 py-1 text-xs rounded ${
                                       slot.is_booked
-                                        ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                                        : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                        ? 'bg-red-100 text-red-800'
+                                        : 'bg-green-100 text-green-800'
                                     }`}
                                   >
                                     {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
@@ -782,8 +782,8 @@ const Schedule: React.FC = () => {
                                               key={index}
                                               className={`px-2 py-1 text-xs rounded text-center ${
                                                 slot.is_booked
-                                                  ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                                                  : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                                  ? 'bg-red-100 text-red-800'
+                                                  : 'bg-green-100 text-green-800'
                                               }`}
                                             >
                                               {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
@@ -793,11 +793,11 @@ const Schedule: React.FC = () => {
                                         <div className="text-xs text-muted-foreground pt-2 border-t">
                                           <div className="flex items-center gap-4">
                                             <div className="flex items-center gap-1">
-                                              <div className="w-3 h-3 rounded bg-green-100 dark:bg-green-900"></div>
+                                              <div className="w-3 h-3 rounded bg-green-100"></div>
                                               <span>Available</span>
                                             </div>
                                             <div className="flex items-center gap-1">
-                                              <div className="w-3 h-3 rounded bg-red-100 dark:bg-red-900"></div>
+                                              <div className="w-3 h-3 rounded bg-red-100"></div>
                                               <span>Booked</span>
                                             </div>
                                           </div>
