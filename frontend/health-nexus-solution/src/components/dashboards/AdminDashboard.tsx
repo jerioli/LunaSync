@@ -177,7 +177,7 @@ const AdminDashboard = () => {
                   <XAxis dataKey="month" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="count" fill="#79c942" radius={[4, 4, 0, 0]} />
                 </ReBarChart>
               </ResponsiveContainer>
             </div>
@@ -242,7 +242,7 @@ const AdminDashboard = () => {
                 <>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <ShieldAlert className="h-5 w-5 text-accent" />
+                      <ShieldAlert className="h-5 w-5 text-[#79c942]" />
                       <span>Data Encryption</span>
                     </div>
                     <Badge 
@@ -258,7 +258,7 @@ const AdminDashboard = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <ShieldAlert className="h-5 w-5 text-accent" />
+                      <ShieldAlert className="h-5 w-5 text-[#79c942]" />
                       <span>Backup Status</span>
                     </div>
                     <Badge 
@@ -274,7 +274,7 @@ const AdminDashboard = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <ShieldAlert className="h-5 w-5 text-accent" />
+                      <ShieldAlert className="h-5 w-5 text-[#79c942]" />
                       <span>Last Security Audit</span>
                     </div>
                     <Badge 
@@ -307,21 +307,21 @@ const AdminDashboard = () => {
                 <>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <ShieldAlert className="h-5 w-5 text-accent" />
+                      <ShieldAlert className="h-5 w-5 text-[#79c942]" />
                       <span>Data Encryption</span>
                     </div>
-                    <Badge variant="outline" className="bg-accent/10 text-accent">Active</Badge>
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Active</Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <ShieldAlert className="h-5 w-5 text-accent" />
+                      <ShieldAlert className="h-5 w-5 text-[#79c942]" />
                       <span>Backup Status</span>
                     </div>
-                    <Badge variant="outline" className="bg-accent/10 text-accent">Up to date</Badge>
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Up to date</Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <ShieldAlert className="h-5 w-5 text-accent" />
+                      <ShieldAlert className="h-5 w-5 text-[#79c942]" />
                       <span>Last Security Audit</span>
                     </div>
                     <Badge variant="outline">7 days ago</Badge>
@@ -349,27 +349,27 @@ const AdminDashboard = () => {
                   <span className="text-sm">Electronic Health Records</span>
                   <span className="text-sm font-medium">65%</span>
                 </div>
-                <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
-                  <div className="bg-primary h-full rounded-full" style={{ width: '65%' }}></div>
-                </div>
+                  <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                    <div className="bg-[#79c942] h-full rounded-full" style={{ width: '65%' }}></div>
+                  </div>
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm">Appointment Scheduling</span>
                   <span className="text-sm font-medium">82%</span>
                 </div>
-                <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
-                  <div className="bg-primary h-full rounded-full" style={{ width: '82%' }}></div>
-                </div>
+                  <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                    <div className="bg-[#79c942] h-full rounded-full" style={{ width: '82%' }}></div>
+                  </div>
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm">E-Prescriptions</span>
                   <span className="text-sm font-medium">47%</span>
                 </div>
-                <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
-                  <div className="bg-primary h-full rounded-full" style={{ width: '47%' }}></div>
-                </div>
+                  <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                    <div className="bg-[#79c942] h-full rounded-full" style={{ width: '47%' }}></div>
+                  </div>
               </div>
             </div>
           </CardContent>

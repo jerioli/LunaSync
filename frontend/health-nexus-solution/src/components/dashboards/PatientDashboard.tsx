@@ -169,7 +169,7 @@ const PatientDashboard = () => {
                       </div>
                       <div className="space-y-2 mt-2">
                         {prescription.medications.map((med, index) => (
-                          <div key={index} className="bg-muted/30 p-2 rounded">
+                          <div key={index} className="bg-green-50 p-2 rounded border border-green-200">
                             <div className="font-medium">{med.name} ({med.dosage})</div>
                             <div className="text-sm text-muted-foreground">
                               {med.frequency} for {med.duration}
@@ -217,7 +217,7 @@ const PatientDashboard = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     {result.notes && (
-                      <Badge variant="outline" className="bg-muted/30">
+                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                         Has notes
                       </Badge>
                     )}
