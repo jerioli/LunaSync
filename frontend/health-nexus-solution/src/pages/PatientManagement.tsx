@@ -4413,7 +4413,7 @@ const PatientManagement = () => {
                 <Badge variant="outline" className="capitalize">
                   {patientData.gender}
                 </Badge>
-                <Badge variant="outline">ID: {patientData.id}</Badge>
+                <Badge variant="outline">ID: {patientData.patient_id || patientData.id}</Badge>
               </div>
             </div>
           </div>

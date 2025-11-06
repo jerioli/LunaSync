@@ -283,7 +283,7 @@ const PatientsList = () => {
                             {formatPatientNameWithInitial(patient) || patient.name}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            ID: {patient.id}
+                            ID: {patient.patient_id || patient.id}
                           </div>
                         </div>
                       </div>
