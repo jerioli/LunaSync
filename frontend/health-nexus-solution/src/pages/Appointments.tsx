@@ -784,7 +784,11 @@ const Appointments = () => {
               variant="outline"
               size="sm"
               className={buttonClass}
-              onClick={() => navigate(`/patients/${appointment.patientId}`)}
+              onClick={() => {
+                const patient = patients.find(p => p.id === appointment.patientId);
+                const patientIdentifier = patient?.patient_id || appointment.patientId;
+                navigate(`/patients/${patientIdentifier}`);
+              }}
             >
               View Record
             </Button>
@@ -824,7 +828,11 @@ const Appointments = () => {
               variant="outline"
               size="sm"
               className={buttonClass}
-              onClick={() => navigate(`/patients/${appointment.patientId}`)}
+              onClick={() => {
+                const patient = patients.find(p => p.id === appointment.patientId);
+                const patientIdentifier = patient?.patient_id || appointment.patientId;
+                navigate(`/patients/${patientIdentifier}`);
+              }}
             >
               View Record
             </Button>
@@ -845,7 +853,11 @@ const Appointments = () => {
               variant="outline"
               size="sm"
               className={buttonClass}
-              onClick={() => navigate(`/patients/${appointment.patientId}`)}
+              onClick={() => {
+                const patient = patients.find(p => p.id === appointment.patientId);
+                const patientIdentifier = patient?.patient_id || appointment.patientId;
+                navigate(`/patients/${patientIdentifier}`);
+              }}
             >
               View Record
             </Button>

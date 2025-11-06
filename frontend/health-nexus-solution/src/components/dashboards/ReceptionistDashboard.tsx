@@ -293,8 +293,8 @@ const ReceptionistDashboard = () => {
                               <div className="font-medium">{new Date(appointment.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
                               <div className="text-sm text-muted-foreground">{formatTime(appointment.time)}</div>
                             </div>
-                            <Button size="sm" variant="outline" onClick={() => navigate(`/patients/${patient?.id}`)}>
-                              View Patient
+                            <Button size="sm" variant="outline" onClick={() => navigate(`/patients/${patient?.patient_id || patient?.id}`)}>
+                              View Details
                             </Button>
                           </div>
                         </div>
@@ -404,7 +404,7 @@ const ReceptionistDashboard = () => {
                                    patients.find(p => String(p.id) === String(patientId)) ||
                                    patientDetails[patientId];
                     if (patient?.id) {
-                      navigate(`/patients/${patient.id}`);
+                      navigate(`/patients/${patient.patient_id || patient.id}`);
                       setIsAppointmentModalOpen(false);
                     }
                   }}

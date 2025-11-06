@@ -27,15 +27,24 @@ const GenerateMedicalCertificate: React.FC = () => {
     const fetchPatientData = async () => {
       try {
         if (patientId) {
-          // First try to get from context
-          const contextPatient = patients.find((p) => p.id === patientId);
+          // First try to get from context by patient_id, then by database id
+          let contextPatient = patients.find((p) => p.patient_id === patientId);
+          if (!contextPatient) {
+            contextPatient = patients.find((p) => p.id === patientId);
+          }
 
           if (contextPatient) {
             setPatient(contextPatient);
           } else {
-            // If not in context, fetch from API
-            const response = await axios.get(`/patients/${patientId}/`);
-            setPatient(response.data);
+            // If not in context, try API with patient_id first, then database id
+            try {
+              const response = await axios.get(`/patients/by-patient-id/${patientId}/`);
+              setPatient(response.data);
+            } catch (error) {
+              // Fallback to database id
+              const response = await axios.get(`/patients/${patientId}/`);
+              setPatient(response.data);
+            }
           }
 
           // Fetch existing certificates for this patient

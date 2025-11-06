@@ -29,6 +29,7 @@ export type User = {
 export type Patient = {
   
   id: string;
+  patient_id?: string; // Unique Patient ID for returning patients
   name: string; // Keep for backward compatibility
   first_name?: string;
   last_name?: string;

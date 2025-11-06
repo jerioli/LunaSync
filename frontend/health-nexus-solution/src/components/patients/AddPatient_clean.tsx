@@ -42,7 +42,7 @@ const AddPatient = () => {
     middle_initial: '',
     suffix: '',
     gender: '',
-    marital_status: '',
+    marital_status: '' as 'single' | 'married' | 'divorced' | 'widowed' | 'prefer_not_to_say' | '',
     address: '',
     dateOfBirth: '',
     email: '',
@@ -86,7 +86,10 @@ const AddPatient = () => {
   });
   
   const handleChange = (field: string, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev) => ({ 
+      ...prev, 
+      [field]: value as any // Use 'as any' to allow flexible typing for different field types
+    }));
   };
   
   const [medicalHistory, setMedicalHistory] = useState({
@@ -470,7 +473,7 @@ const AddPatient = () => {
         gender: form.gender.toLowerCase() as 'male' | 'female' | 'other',
         address: form.address,
         religion: form.religion || undefined,
-        marital_status: form.marital_status || 'single' as 'single' | 'married' | 'divorced' | 'widowed' | 'prefer_not_to_say',
+        marital_status: (form.marital_status || 'single') as 'single' | 'married' | 'divorced' | 'widowed' | 'prefer_not_to_say',
         medical_info: (isDoctor || isAdmin) ? {
           medicalHistory: medicalHistory.chiefComplaint || '',
           allergies: medicalHistory.categories.allergies ? [medicalHistory.categoryDetails.allergies] : [],
@@ -485,7 +488,8 @@ const AddPatient = () => {
         physical_examination: (isDoctor || isAdmin) ? physicalExamination : undefined
       };
 
-      const savedPatient = await addPatient(patientData) as any;
+      const savedPatient = await addPatient(patientData);
+      
       
       // Save clinical notes to database if any
       const clinicalNotesToSave = templates.filter(template => 
@@ -496,7 +500,7 @@ const AddPatient = () => {
         for (const noteTemplate of clinicalNotesToSave) {
           try {
             const clinicalNoteData = {
-              patient: savedPatient.id,
+              patient: Number(savedPatient.id),
               title: noteTemplate.data.title,
               description: 'Clinical Note',
               note_type: 'clinical_note',

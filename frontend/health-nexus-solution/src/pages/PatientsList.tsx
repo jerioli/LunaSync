@@ -310,7 +310,7 @@ const PatientsList = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => navigate(`/patients/${patient.id}`)}
+                        onClick={() => navigate(`/patients/${patient.patient_id || patient.id}`)}
                       >
                         <FileText className="mr-2 h-4 w-4" />
                         View Record

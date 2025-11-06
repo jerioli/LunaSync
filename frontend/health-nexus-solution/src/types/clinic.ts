@@ -37,7 +37,7 @@ export interface ClinicContextType {
   appointments: Appointment[];
   prescriptions: Prescription[];
   labResults: LabResult[];
-  addPatient: (patient: NewPatient) => Promise<void>;
+  addPatient: (patient: NewPatient) => Promise<Patient>;
   addAppointment: (appointment: Appointment) => void;
   updateAppointment: (id: string, updatedData: Partial<Appointment>) => void;
   addPrescription: (prescription: Prescription) => void;

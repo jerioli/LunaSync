@@ -582,7 +582,11 @@ const PatientManagement = () => {
 
         // Then try to get from context
         if (patients && patients.length > 0) {
-          const patient = patients.find((p) => String(p.id) === String(id));
+          // First try to find by patient_id, then fallback to database id
+          let patient = patients.find((p) => p.patient_id === id);
+          if (!patient) {
+            patient = patients.find((p) => String(p.id) === String(id));
+          }
           if (patient) {
             setPatientData(patient);
             setInitialLoadComplete(true);
@@ -596,9 +600,11 @@ const PatientManagement = () => {
         const stored = localStorage.getItem("patientsList");
         if (stored) {
           const storedPatients = JSON.parse(stored);
-          const patient = storedPatients.find(
-            (p: Patient) => String(p.id) === String(id)
-          );
+          // First try to find by patient_id, then fallback to database id
+          let patient = storedPatients.find((p: Patient) => p.patient_id === id);
+          if (!patient) {
+            patient = storedPatients.find((p: Patient) => String(p.id) === String(id));
+          }
           if (patient) {
             setPatientData(patient);
             setInitialLoadComplete(true);
@@ -609,7 +615,14 @@ const PatientManagement = () => {
         }
 
         // If still not found, try API directly
-        const response = await axiosInstance.get(`patients/${id}/`);
+        // First try with patient_id, then fallback to database id
+        let response;
+        try {
+          response = await axiosInstance.get(`patients/by-patient-id/${id}/`);
+        } catch (error) {
+          // Fallback to database id
+          response = await axiosInstance.get(`patients/${id}/`);
+        }
         if (response.data) {
           // Map backend response fields to frontend camelCase
           const mappedPatient = {
@@ -628,9 +641,11 @@ const PatientManagement = () => {
           let updated = [];
           if (stored) {
             updated = JSON.parse(stored);
-            const existingIndex = updated.findIndex(
-              (p: Patient) => String(p.id) === String(id)
-            );
+            // Find existing by patient_id or database id
+            let existingIndex = updated.findIndex((p: Patient) => p.patient_id === mappedPatient.patient_id);
+            if (existingIndex === -1) {
+              existingIndex = updated.findIndex((p: Patient) => String(p.id) === String(mappedPatient.id));
+            }
             if (existingIndex >= 0) {
               updated[existingIndex] = mappedPatient;
             } else {
@@ -3237,12 +3252,12 @@ const PatientManagement = () => {
 
   // Function to load all documents from database
   const loadAllDocuments = async () => {
-    if (!id) return;
+    if (!patientData?.id) return; // Use patientData.id instead of id parameter
 
     try {
       // Load medical certificates
       const certificatesResponse =
-        await medicalDocumentsAPI.getMedicalCertificatesByPatient(id);
+        await medicalDocumentsAPI.getMedicalCertificatesByPatient(patientData.id);
       const mappedCertificates = certificatesResponse.map((cert: any) => ({
         id: cert.id,
         type: "certificate",
@@ -3268,7 +3283,7 @@ const PatientManagement = () => {
 
       // Load prescriptions
       const prescriptionsResponse =
-        await medicalDocumentsAPI.getPrescriptionsByPatient(id);
+        await medicalDocumentsAPI.getPrescriptionsByPatient(patientData.id);
       console.log("Fetched prescriptionsResponse:", prescriptionsResponse);
       const mappedPrescriptions = prescriptionsResponse.map(
         (prescription: any) => ({
@@ -3302,7 +3317,7 @@ const PatientManagement = () => {
       setPrescriptions(mappedPrescriptions);
 
       // Load SOAP notes
-      const soapResponse = await medicalDocumentsAPI.getSOAPNotesByPatient(id);
+      const soapResponse = await medicalDocumentsAPI.getSOAPNotesByPatient(patientData.id);
       const mappedSoapNotes = soapResponse.map((soap: any) => ({
         id: soap.id,
         type: "soap",
@@ -3323,7 +3338,7 @@ const PatientManagement = () => {
 
       // Load clinical notes
       const clinicalResponse =
-        await medicalDocumentsAPI.getClinicalNotesByPatient(id);
+        await medicalDocumentsAPI.getClinicalNotesByPatient(patientData.id);
       const mappedClinicalNotes = clinicalResponse.map((note: any) => ({
         id: note.id,
         type: "blank",
@@ -3351,31 +3366,31 @@ const PatientManagement = () => {
 
   // Fallback function to load from localStorage
   const loadDocumentsFromLocalStorage = () => {
-    if (!id) return;
+    if (!patientData?.id) return; // Use patientData.id
 
     // Load certificates
-    const certificatesKey = `certificates_patient_${id}`;
+    const certificatesKey = `certificates_patient_${patientData.id}`;
     const existingCertificates = localStorage.getItem(certificatesKey);
     if (existingCertificates) {
       setCertificates(JSON.parse(existingCertificates));
     }
 
     // Load prescriptions
-    const prescriptionsKey = `prescriptions_patient_${id}`;
+    const prescriptionsKey = `prescriptions_patient_${patientData.id}`;
     const existingPrescriptions = localStorage.getItem(prescriptionsKey);
     if (existingPrescriptions) {
       setPrescriptions(JSON.parse(existingPrescriptions));
     }
 
     // Load SOAP notes
-    const soapKey = `soapnotes_patient_${id}`;
+    const soapKey = `soapnotes_patient_${patientData.id}`;
     const existingSoap = localStorage.getItem(soapKey);
     if (existingSoap) {
       setSoapNotes(JSON.parse(existingSoap));
     }
 
     // Load blank notes
-    const blankKey = `blanknotes_patient_${id}`;
+    const blankKey = `blanknotes_patient_${patientData.id}`;
     const existingBlank = localStorage.getItem(blankKey);
     if (existingBlank) {
       setBlankNotes(JSON.parse(existingBlank));
@@ -3384,15 +3399,15 @@ const PatientManagement = () => {
 
   // Function to load lab results from database
   const loadLabResults = async () => {
-    if (!id) return;
+    if (!patientData?.id) return; // Use patientData.id instead of id parameter
 
     try {
-      const results = await medicalDocumentsAPI.getLabResultsByPatient(id);
+      const results = await medicalDocumentsAPI.getLabResultsByPatient(patientData.id);
       setLabResults(results.lab_results || []);
     } catch (error) {
       console.error("Failed to load lab results:", error);
       // Fallback to localStorage for backward compatibility
-      const labKey = `labresults_patient_${id}`;
+      const labKey = `labresults_patient_${patientData.id}`; // Use database ID for localStorage key
       const existingLab = localStorage.getItem(labKey);
       if (existingLab) {
         try {
@@ -3412,7 +3427,7 @@ const PatientManagement = () => {
   useEffect(() => {
     const handleFocus = () => {
       // Reload lab results when window regains focus (when returning from Lab Results page)
-      if (id) {
+      if (patientData?.id) {
         loadLabResults();
       }
     };
@@ -3422,7 +3437,7 @@ const PatientManagement = () => {
     return () => {
       window.removeEventListener("focus", handleFocus);
     };
-  }, [id]);
+  }, [patientData?.id]); // Use patientData.id instead of id
 
   if (isLoading) {
     return (

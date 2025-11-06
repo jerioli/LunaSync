@@ -48,7 +48,7 @@ export type ClinicContextType = {
   labResults: LabResult[];
   inventory: Inventory[];
   payments: Payment[];
-  addPatient: (patient: NewPatient) => void;
+  addPatient: (patient: NewPatient) => Promise<Patient>;
   addAppointment: (appointment: Appointment) => void;
   updateAppointment: (id: string, updatedData: Partial<Appointment>) => void;
   addPrescription: (prescription: Prescription) => void;

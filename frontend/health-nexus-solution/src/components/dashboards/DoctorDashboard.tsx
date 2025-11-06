@@ -299,8 +299,8 @@ const DoctorDashboard = () => {
                                       {appointment.status === 'scheduled' ? 'Awaiting consultation' : 'Completed'}
                                     </Badge>
                                   </div>
-                                  <Button size="sm" variant="outline" onClick={() => navigate(`/patients/${patient?.id}`)}>
-                                    View Patient
+                                  <Button size="sm" variant="outline" onClick={() => navigate(`/patients/${patient?.patient_id || patient?.id}`)}>
+                                    View Record
                                   </Button>
                                 </div>
                               </div>
@@ -352,7 +352,7 @@ const DoctorDashboard = () => {
                                     <div className="font-medium">{new Date(appointment.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
                                     <div className="text-sm text-muted-foreground">{formatTime(appointment.time)}</div>
                                   </div>
-                                  <Button size="sm" variant="outline" onClick={() => navigate(`/patients/${patient?.id}`)}>
+                                  <Button size="sm" variant="outline" onClick={() => navigate(`/patients/${patient?.patient_id || patient?.id}`)}>
                                     View Patient
                                   </Button>
                                 </div>
@@ -469,7 +469,7 @@ const DoctorDashboard = () => {
                     patient = patientDetails[patientId];
                   }
                   if (patient?.id) {
-                    navigate(`/patients/${patient.id}`);
+                    navigate(`/patients/${patient.patient_id || patient.id}`);
                   }
                   setIsAppointmentModalOpen(false);
                 }}>

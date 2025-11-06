@@ -474,6 +474,48 @@ class CheckPatientByPatientIdView(APIView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
+class PatientDetailByPatientIdView(APIView):
+    """Get patient details by patient_id instead of database ID"""
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get_object(self, patient_id):
+        try:
+            return Patient.objects.get(patient_id=patient_id)
+        except Patient.DoesNotExist:
+            raise Http404
+
+    def get(self, request, patient_id):
+        # Check if user has permission to view patients
+        if not request.user.is_authenticated:
+            return Response({
+                'error': 'Authentication required',
+                'message': 'You must be logged in to view patient details'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        if not (request.user.can_manage_patients or request.user.role in ['admin', 'superadmin', 'doctor', 'receptionist']):
+            return Response({
+                'error': 'Permission denied',
+                'message': 'You do not have permission to view patient details'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        patient = self.get_object(patient_id)
+        serializer = PatientSerializer(patient, context={'request': request})
+        
+        # Log patient view
+        AuditLogger.log_patient_action(
+            user=request.user if request.user.is_authenticated else None,
+            action='READ',
+            patient_id=patient.id,
+            patient_name=patient.name,
+            description=f"Viewed patient details by patient_id: {patient_id}",
+            request=request
+        )
+        
+        return Response(serializer.data)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class DeletedPatientsView(APIView):
     """View for administrators to see and restore deleted patients"""
     authentication_classes = [CsrfExemptSessionAuthentication]
