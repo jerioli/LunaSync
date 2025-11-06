@@ -425,13 +425,13 @@ REST_FRAMEWORK = {
 
 # Email Configuration - SMTP for production emails
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-DEFAULT_FROM_EMAIL = 'jeri.olivarez@gmail.com'
+DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER', 'medratrics.langgam@gmail.com')
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
-EMAIL_HOST_USER = 'jeri.olivarez@gmail.com'
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD', 'your_new_app_password_here')  # Use environment variable
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'medratrics.langgam@gmail.com')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', 'your_new_app_password_here')  # Use environment variable
 EMAIL_TIMEOUT = 30
 
 # AWS Configuration
@@ -440,7 +440,7 @@ AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
 
 # Clinic Configuration
-CLINIC_DEFAULT_EMAIL = 'jeri.olivarez@gmail.com'  # Email to receive review notifications
+CLINIC_DEFAULT_EMAIL = os.getenv('EMAIL_HOST_USER', 'medratrics.langgam@gmail.com')  # Email to receive review notifications
 
 
 
