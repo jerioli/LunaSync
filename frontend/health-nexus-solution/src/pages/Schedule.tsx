@@ -1,4 +1,5 @@
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,11 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ENV } from '@/config/env';
 import { useClinic } from '@/contexts/ClinicContext';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
-import { ChevronLeft, ChevronRight, Clock, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { Calendar, CalendarCheck, CalendarDays, ChevronLeft, ChevronRight, Clock, Eye, EyeOff, Info, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 const API_BASE_URL = ENV.API_URL;
@@ -35,6 +37,9 @@ interface ExistingAvailability {
     start_time: string;
     end_time: string;
     is_booked: boolean;
+    is_effectively_booked?: boolean; // New field from backend
+    appointment_status?: string; // Add optional appointment status
+    appointment_id?: number; // Add optional appointment ID
   }[];
 }
 
@@ -137,6 +142,32 @@ const Schedule: React.FC = () => {
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const formattedHour = hour % 12 || 12;
     return `${formattedHour}:${minutes.padStart(2, '0')} ${ampm}`;
+  };
+
+  // Helper function to determine if a slot is effectively booked
+  const isSlotBooked = (slot: any) => {
+    // First check if backend provides is_effectively_booked
+    if (slot.is_effectively_booked !== undefined) {
+      return slot.is_effectively_booked;
+    }
+    
+    // Fallback: Consider slot booked if:
+    // 1. is_booked is true, OR
+    // 2. appointment_status is 'ongoing', 'scheduled', 'pending', or 'completed'
+    if (slot.is_booked) return true;
+    if (slot.appointment_status) {
+      const busyStatuses = ['ongoing', 'scheduled', 'pending', 'completed'];
+      return busyStatuses.includes(slot.appointment_status.toLowerCase());
+    }
+    return false;
+  };
+
+  // Helper function to get booking status display
+  const getBookingStatusDisplay = (slot: any) => {
+    if (slot.appointment_status) {
+      return slot.appointment_status.charAt(0).toUpperCase() + slot.appointment_status.slice(1);
+    }
+    return slot.is_booked ? 'Booked' : 'Available';
   };
 
   const convertDisplayTimeTo24Hour = (displayTime: string): string => {
@@ -242,11 +273,23 @@ const Schedule: React.FC = () => {
           doctor_id: doctor.id,
           page: page,
           page_size: pagination.itemsPerPage,
-          ordering: '-date' // Show newest first
+          ordering: '-date', // Show newest first
+          _t: Date.now() // Cache buster to ensure fresh data
         }
       });
 
       const data = response.data;
+      
+      // Debug logging to check booking status
+      console.log('API Response:', data);
+      if (data.results) {
+        data.results.forEach((availability: any) => {
+          console.log(`Date: ${availability.date}, Time Slots:`, availability.time_slots);
+          availability.time_slots.forEach((slot: any) => {
+            console.log(`  ${slot.start_time}-${slot.end_time}: ${slot.is_booked ? 'BOOKED' : 'AVAILABLE'}${slot.appointment_status ? ` (Status: ${slot.appointment_status})` : ''}`);
+          });
+        });
+      }
       
       // Handle both paginated and non-paginated responses
       if (data.results) {
@@ -591,7 +634,7 @@ const Schedule: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto mt-8 space-y-6">
+    <div className="max-w-6xl mx-auto mt-8 space-y-6">
       <div>
         <h1 className="text-3xl font-bold mb-1">My Schedule</h1>
         <p className="text-muted-foreground mb-6">
@@ -599,282 +642,441 @@ const Schedule: React.FC = () => {
         </p>
       </div>
 
-      {/* Schedule Generation Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Generate Schedule</CardTitle>
-          <CardDescription>Create recurring availability patterns</CardDescription>
-        </CardHeader>
-        <CardContent className="p-8">
-          <div className="flex flex-col gap-4">
-            <div className="flex gap-6 items-center">
-              <Label className="w-24">Date Range:</Label>
-              <Input
-                type="date"
-                value={startDate}
-                onChange={e => setStartDate(e.target.value)}
-                className="w-auto"
-              />
-              <span className="mx-2">to</span>
-              <Input
-                type="date"
-                value={endDate}
-                min={startDate}
-                onChange={e => setEndDate(e.target.value)}
-                className="w-auto"
-              />
-            </div>
+      <Tabs defaultValue="generate" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="generate" className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Generate Schedule
+          </TabsTrigger>
+          <TabsTrigger value="view" className="flex items-center gap-2">
+            <CalendarDays className="h-4 w-4" />
+            View Schedule
+          </TabsTrigger>
+        </TabsList>
 
-            <div className="flex gap-4 items-center">
-              <Label className="w-24">Recurring Days:</Label>
-              <Select value={recurringDays} onValueChange={setRecurringDays}>
-                <SelectTrigger className="w-48">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Weekdays">Weekdays</SelectItem>
-                  <SelectItem value="Weekends">Weekends</SelectItem>
-                  <SelectItem value="Monday">Monday</SelectItem>
-                  <SelectItem value="Tuesday">Tuesday</SelectItem>
-                  <SelectItem value="Wednesday">Wednesday</SelectItem>
-                  <SelectItem value="Thursday">Thursday</SelectItem>
-                  <SelectItem value="Friday">Friday</SelectItem>
-                  <SelectItem value="Saturday">Saturday</SelectItem>
-                  <SelectItem value="Sunday">Sunday</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        {/* Tab 1: Generate Schedule */}
+        <TabsContent value="generate" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Generate Schedule
+              </CardTitle>
+              <CardDescription>Create recurring availability patterns</CardDescription>
+            </CardHeader>
+            <CardContent className="p-8">
+              <div className="flex flex-col gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Date Range</h3>
+                    <div className="flex gap-4 items-center">
+                      <div className="flex flex-col gap-2">
+                        <Label htmlFor="startDate">From</Label>
+                        <Input
+                          id="startDate"
+                          type="date"
+                          value={startDate}
+                          onChange={e => setStartDate(e.target.value)}
+                          className="w-full"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Label htmlFor="endDate">To</Label>
+                        <Input
+                          id="endDate"
+                          type="date"
+                          value={endDate}
+                          min={startDate}
+                          onChange={e => setEndDate(e.target.value)}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-            <div className="flex gap-4 items-center">
-              <Label className="w-24">Start Time:</Label>
-              <Input 
-                type="time" 
-                value={startTime}
-                onChange={e => setStartTime(e.target.value)}
-                className="w-auto"
-              />
-              
-              <Label className="ml-4">End Time:</Label>
-              <Input 
-                type="time"
-                value={endTime}
-                min={startTime}
-                onChange={e => {
-                  if (startTime && e.target.value < startTime) {
-                    toast({
-                      title: 'Invalid time range',
-                      description: 'End time must be after start time.'
-                    });
-                    return;
-                  }
-                  setEndTime(e.target.value);
-                }}
-                className="w-auto"
-              />
-              
-              <Button 
-                onClick={handleGenerateSlots}
-                className="ml-4"
-              >
-                Auto-fill Slots
-              </Button>
-              
-              <Button 
-                variant="secondary"
-                onClick={savePattern}
-                disabled={isLoading}
-              >
-                Save Pattern
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Time Range</h3>
+                    <div className="flex gap-4 items-center">
+                      <div className="flex flex-col gap-2">
+                        <Label htmlFor="startTime">Start Time</Label>
+                        <Input 
+                          id="startTime"
+                          type="time" 
+                          value={startTime}
+                          onChange={e => setStartTime(e.target.value)}
+                          className="w-full"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Label htmlFor="endTime">End Time</Label>
+                        <Input 
+                          id="endTime"
+                          type="time"
+                          value={endTime}
+                          min={startTime}
+                          onChange={e => {
+                            if (startTime && e.target.value < startTime) {
+                              toast({
+                                title: 'Invalid time range',
+                                description: 'End time must be after start time.'
+                              });
+                              return;
+                            }
+                            setEndTime(e.target.value);
+                          }}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-      {/* Existing Availability Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Existing Availability
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowExistingAvailability(!showExistingAvailability)}
-            >
-              {showExistingAvailability ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              {showExistingAvailability ? 'Hide' : 'Show'} ({pagination.totalItems})
-            </Button>
-          </CardTitle>
-          <CardDescription>
-            View and manage your existing availability slots
-          </CardDescription>
-        </CardHeader>
-        
-        {showExistingAvailability && (
-          <CardContent>
-            {isLoadingExisting ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Recurring Pattern</h3>
+                  <div className="flex gap-4 items-center">
+                    <Label htmlFor="recurringDays" className="min-w-fit">Days:</Label>
+                    <Select value={recurringDays} onValueChange={setRecurringDays}>
+                      <SelectTrigger className="w-full max-w-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Weekdays">Weekdays (Mon-Fri)</SelectItem>
+                        <SelectItem value="Weekends">Weekends (Sat-Sun)</SelectItem>
+                        <SelectItem value="Monday">Monday</SelectItem>
+                        <SelectItem value="Tuesday">Tuesday</SelectItem>
+                        <SelectItem value="Wednesday">Wednesday</SelectItem>
+                        <SelectItem value="Thursday">Thursday</SelectItem>
+                        <SelectItem value="Friday">Friday</SelectItem>
+                        <SelectItem value="Saturday">Saturday</SelectItem>
+                        <SelectItem value="Sunday">Sunday</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t">
+                  <Button 
+                    onClick={handleGenerateSlots}
+                    className="flex items-center gap-2"
+                    size="lg"
+                  >
+                    <CalendarCheck className="h-4 w-4" />
+                    Preview Slots
+                  </Button>
+                  
+                  <Button 
+                    variant="secondary"
+                    onClick={savePattern}
+                    disabled={isLoading}
+                    className="flex items-center gap-2"
+                    size="lg"
+                  >
+                    {isLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Clock className="h-4 w-4" />
+                        Save Schedule
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* Preview Generated Slots */}
+                {scheduleSlots.length > 0 && (
+                  <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <h4 className="font-semibold text-blue-900 mb-2">
+                      Preview: {scheduleSlots.length} slots generated
+                    </h4>
+                    <p className="text-blue-700 text-sm">
+                      Slots will be created with 20-minute intervals, excluding lunch break (12:00 PM - 1:00 PM).
+                      Click "Save Schedule" to confirm and create these slots.
+                    </p>
+                  </div>
+                )}
               </div>
-            ) : existingAvailability.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No existing availability found
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab 2: View Schedule */}
+        <TabsContent value="view" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <CalendarDays className="h-5 w-5" />
+                    Schedule Overview
+                  </CardTitle>
+                  <CardDescription>View and manage your existing availability</CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant={showExistingAvailability ? "default" : "secondary"}>
+                    {pagination.totalItems} slots
+                  </Badge>
+                  {showExistingAvailability && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        toast({
+                          title: "Refreshing schedule...",
+                          description: "Loading latest booking information"
+                        });
+                        loadExistingAvailability(pagination.currentPage);
+                      }}
+                      disabled={isLoadingExisting}
+                      className="flex items-center gap-2"
+                    >
+                      <RefreshCw className={`h-4 w-4 ${isLoadingExisting ? 'animate-spin' : ''}`} />
+                      Refresh
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setShowExistingAvailability(!showExistingAvailability);
+                      if (!showExistingAvailability) {
+                        loadExistingAvailability(1);
+                      }
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    {showExistingAvailability ? (
+                      <>
+                        <EyeOff className="h-4 w-4" />
+                        Hide
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="h-4 w-4" />
+                        Load Schedule
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
-            ) : (
-              <>
-                <div className="border rounded-lg overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Time Slots</TableHead>
-                        <TableHead>Booked/Total</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {existingAvailability.map((availability) => {
-                        const bookedSlots = availability.time_slots.filter(slot => slot.is_booked).length;
-                        const totalSlots = availability.time_slots.length;
-                        
-                        return (
-                          <TableRow key={availability.id}>
-                            <TableCell className="font-medium">
-                              {new Date(availability.date).toLocaleDateString()}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex flex-wrap gap-1">
-                                {availability.time_slots.slice(0, 3).map((slot, index) => (
-                                  <span
-                                    key={index}
-                                    className={`px-2 py-1 text-xs rounded ${
-                                      slot.is_booked
-                                        ? 'bg-red-100 text-red-800'
-                                        : 'bg-green-100 text-green-800'
-                                    }`}
-                                  >
-                                    {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
-                                  </span>
-                                ))}
-                                {availability.time_slots.length > 3 && (
-                                  <Popover>
-                                    <PopoverTrigger asChild>
-                                      <Button 
-                                        variant="ghost" 
-                                        size="sm" 
-                                        className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
-                                      >
-                                        +{availability.time_slots.length - 3} more
-                                      </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-80">
-                                      <div className="space-y-2">
-                                        <h4 className="font-medium text-sm">
-                                          All Time Slots ({availability.time_slots.length})
-                                        </h4>
-                                        <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
-                                          {availability.time_slots.map((slot, index) => (
-                                            <span
-                                              key={index}
-                                              className={`px-2 py-1 text-xs rounded text-center ${
-                                                slot.is_booked
-                                                  ? 'bg-red-100 text-red-800'
-                                                  : 'bg-green-100 text-green-800'
-                                              }`}
+            </CardHeader>
+            
+            {showExistingAvailability && (
+              <CardContent>
+                {isLoadingExisting ? (
+                  <div className="flex justify-center items-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-current"></div>
+                  </div>
+                ) : existingAvailability.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Calendar className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                    <p className="text-lg font-medium mb-2">No availability slots found</p>
+                    <p className="text-sm">Create your first schedule using the Generate tab</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Enhanced Table with better styling */}
+                    <div className="rounded-lg border overflow-hidden">
+                      <Table>
+                        <TableHeader className="bg-muted/50">
+                          <TableRow>
+                            <TableHead className="font-semibold">Date</TableHead>
+                            <TableHead className="font-semibold">Day</TableHead>
+                            <TableHead className="font-semibold">Time Slots <span className="text-xs text-muted-foreground">(click to view)</span></TableHead>
+                            <TableHead className="font-semibold">Status</TableHead>
+                            <TableHead className="font-semibold text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {existingAvailability.map((availability) => {
+                            const date = new Date(availability.date);
+                            const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                            const formattedDate = date.toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric',
+                              year: 'numeric'
+                            });
+                            
+                            const bookedSlots = availability.time_slots.filter(slot => isSlotBooked(slot)).length;
+                            const totalSlots = availability.time_slots.length;
+                            
+                            return (
+                              <TableRow key={availability.id} className="hover:bg-muted/30">
+                                <TableCell className="font-medium">{formattedDate}</TableCell>
+                                <TableCell>
+                                  <Badge variant="outline" className="capitalize">
+                                    {dayName}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="font-mono text-sm">
+                                  <div className="flex items-center gap-2">
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <Button 
+                                          variant="outline" 
+                                          size="sm"
+                                          className="h-8 px-3 hover:bg-muted/50 hover:border-primary/40 transition-all cursor-pointer"
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            <span className="font-medium">{totalSlots} slots</span>
+                                            <Badge 
+                                              variant={bookedSlots > 0 ? "destructive" : "default"} 
+                                              className="text-xs"
                                             >
-                                              {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
-                                            </span>
-                                          ))}
-                                        </div>
-                                        <div className="text-xs text-muted-foreground pt-2 border-t">
-                                          <div className="flex items-center gap-4">
-                                            <div className="flex items-center gap-1">
-                                              <div className="w-3 h-3 rounded bg-green-100"></div>
-                                              <span>Available</span>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                              <div className="w-3 h-3 rounded bg-red-100"></div>
-                                              <span>Booked</span>
+                                              {bookedSlots}/{totalSlots}
+                                            </Badge>
+                                            <Info className="h-3 w-3 opacity-60" />
+                                          </div>
+                                        </Button>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-80 p-4" align="start">
+                                        <div className="space-y-3">
+                                          <div className="flex items-center justify-between">
+                                            <h4 className="font-semibold text-sm">
+                                              Time Slots - {formattedDate}
+                                            </h4>
+                                            <Badge variant="outline" className="text-xs">
+                                              {totalSlots} total
+                                            </Badge>
+                                          </div>
+                                          
+                                          <div className="max-h-64 overflow-y-auto space-y-1">
+                                            {availability.time_slots.map((slot, index) => (
+                                              <div
+                                                key={index}
+                                                className={`flex items-center justify-between p-2 rounded-md border ${
+                                                  isSlotBooked(slot)
+                                                    ? 'bg-red-50 border-red-200'
+                                                    : 'bg-green-50 border-green-200'
+                                                }`}
+                                              >
+                                                <div className="flex items-center gap-2">
+                                                  <div className={`w-2 h-2 rounded-full ${
+                                                    isSlotBooked(slot) ? 'bg-red-500' : 'bg-green-500'
+                                                  }`} />
+                                                  <span className="text-sm font-mono">
+                                                    {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
+                                                  </span>
+                                                </div>
+                                                <Badge 
+                                                  variant={isSlotBooked(slot) ? "destructive" : "default"}
+                                                  className="text-xs"
+                                                >
+                                                  {getBookingStatusDisplay(slot)}
+                                                </Badge>
+                                              </div>
+                                            ))}
+                                          </div>
+                                          
+                                          <div className="pt-2 border-t">
+                                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                              <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-1">
+                                                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                                  <span>Available ({totalSlots - bookedSlots})</span>
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                  <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                                                  <span>Booked ({bookedSlots})</span>
+                                                </div>
+                                              </div>
                                             </div>
                                           </div>
                                         </div>
-                                      </div>
-                                    </PopoverContent>
-                                  </Popover>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <span className={bookedSlots > 0 ? 'text-orange-600' : 'text-green-600'}>
-                                {bookedSlots}/{totalSlots}
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              <span className={availability.is_available ? 'text-green-600' : 'text-red-600'}>
-                                {availability.is_available ? 'Available' : 'Unavailable'}
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => deleteAvailability(availability.id)}
-                                disabled={bookedSlots > 0}
-                                title={bookedSlots > 0 ? "Cannot delete availability with booked slots" : "Delete availability"}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
+                                      </PopoverContent>
+                                    </Popover>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge 
+                                    variant={availability.is_available ? 'default' : 'secondary'}
+                                    className="capitalize"
+                                  >
+                                    {availability.is_available ? 'Available' : 'Unavailable'}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <div className="flex items-center justify-end gap-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => deleteAvailability(availability.id)}
+                                      disabled={bookedSlots > 0}
+                                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                      title={bookedSlots > 0 ? "Cannot delete availability with booked slots" : "Delete availability"}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
 
-                {/* Pagination Controls */}
-                {pagination.totalPages > 1 && (
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="text-sm text-muted-foreground">
-                      Showing {((pagination.currentPage - 1) * pagination.itemsPerPage) + 1} to{' '}
-                      {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)} of{' '}
-                      {pagination.totalItems} entries
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => loadExistingAvailability(pagination.currentPage - 1)}
-                        disabled={pagination.currentPage === 1 || isLoadingExisting}
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                        Previous
-                      </Button>
-                      <span className="text-sm">
-                        Page {pagination.currentPage} of {pagination.totalPages}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => loadExistingAvailability(pagination.currentPage + 1)}
-                        disabled={pagination.currentPage === pagination.totalPages || isLoadingExisting}
-                      >
-                        Next
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    {/* Enhanced Pagination */}
+                    {pagination.totalPages > 1 && (
+                      <div className="flex items-center justify-between pt-4 border-t">
+                        <div className="text-sm text-muted-foreground">
+                          Showing {((pagination.currentPage - 1) * pagination.itemsPerPage) + 1} to {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)} of {pagination.totalItems} slots
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => loadExistingAvailability(pagination.currentPage - 1)}
+                            disabled={pagination.currentPage <= 1}
+                            className="flex items-center gap-1"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                            Previous
+                          </Button>
+                          
+                          <div className="flex items-center gap-1">
+                            {[...Array(Math.min(5, pagination.totalPages))].map((_, i) => {
+                              const pageNum = Math.max(1, pagination.currentPage - 2) + i;
+                              if (pageNum <= pagination.totalPages) {
+                                return (
+                                  <Button
+                                    key={pageNum}
+                                    variant={pageNum === pagination.currentPage ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => loadExistingAvailability(pageNum)}
+                                    className="w-8 h-8 p-0"
+                                  >
+                                    {pageNum}
+                                  </Button>
+                                );
+                              }
+                              return null;
+                            })}
+                          </div>
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => loadExistingAvailability(pagination.currentPage + 1)}
+                            disabled={pagination.currentPage >= pagination.totalPages}
+                            className="flex items-center gap-1"
+                          >
+                            Next
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
-              </>
+              </CardContent>
             )}
-          </CardContent>
-        )}
-      </Card>
-
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

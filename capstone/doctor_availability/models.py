@@ -46,3 +46,31 @@ class TimeSlot(models.Model):
 
     def __str__(self):
         return f"{self.start_time} - {self.end_time}"
+    
+    def get_appointment_status(self):
+        """Get the status of appointment in this time slot"""
+        from appointments.models import Appointment
+        
+        try:
+            appointment = Appointment.objects.filter(
+                doctor=self.availability.doctor,
+                date=self.availability.date,
+                time=self.start_time
+            ).first()
+            
+            return appointment.status if appointment else None
+        except Exception:
+            return None
+    
+    def is_effectively_booked(self):
+        """Check if this slot is effectively booked (including ongoing appointments)"""
+        if self.is_booked:
+            return True
+            
+        appointment_status = self.get_appointment_status()
+        if appointment_status:
+            # Consider these statuses as "booked"
+            busy_statuses = ['pending', 'scheduled', 'ongoing', 'completed']
+            return appointment_status in busy_statuses
+            
+        return False
