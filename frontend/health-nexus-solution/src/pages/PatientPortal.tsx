@@ -45,7 +45,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { ENV } from "../config/env";
 
@@ -488,7 +488,11 @@ const PatientPortal = () => {
         setDoctors(response.data);
       } catch (error) {
         console.error("Error fetching doctors:", error);
-        toast.error("Failed to load doctors");
+        toast({
+          title: "Error",
+          description: "Failed to load doctors",
+          variant: "destructive",
+        });
       }
     };
 
@@ -855,27 +859,47 @@ const PatientPortal = () => {
     try {
       // Validate required fields
       if (!forgotIdForm.firstName.trim()) {
-        toast.error("First name is required");
+        toast({
+          title: "Error",
+          description: "First name is required",
+          variant: "destructive",
+        });
         setForgotIdSubmitting(false);
         return;
       }
       if (!forgotIdForm.lastName.trim()) {
-        toast.error("Last name is required");
+        toast({
+          title: "Error",
+          description: "Last name is required",
+          variant: "destructive",
+        });
         setForgotIdSubmitting(false);
         return;
       }
       if (!forgotIdForm.dateOfBirth) {
-        toast.error("Date of birth is required");
+        toast({
+          title: "Error",
+          description: "Date of birth is required",
+          variant: "destructive",
+        });
         setForgotIdSubmitting(false);
         return;
       }
       if (!forgotIdForm.email.trim()) {
-        toast.error("Email is required");
+        toast({
+          title: "Error",
+          description: "Email is required",
+          variant: "destructive",
+        });
         setForgotIdSubmitting(false);
         return;
       }
       if (!forgotIdForm.phone.trim()) {
-        toast.error("Phone number is required");
+        toast({
+          title: "Error",
+          description: "Phone number is required",
+          variant: "destructive",
+        });
         setForgotIdSubmitting(false);
         return;
       }
@@ -904,7 +928,10 @@ const PatientPortal = () => {
       if (response.data.patient_id) {
         // Handle both 'match' and 'exact_match' status (chatbot uses 'match')
         if (response.data.status === 'exact_match' || response.data.status === 'match' || !response.data.status) {
-          toast.success(`Patient ID found: ${response.data.patient_id}`);
+          toast({
+            title: "Success",
+            description: `Patient ID found: ${response.data.patient_id}`,
+          });
           setSearchQuery(response.data.patient_id);
           setShowForgotPatientId(false);
           setForgotIdForm({
@@ -922,14 +949,19 @@ const PatientPortal = () => {
             const validation = await validatePatientId(response.data.patient_id);
             if (validation.isValid) {
               setSelectedPatient(validation.patient);
-              toast.success("Patient ID verified successfully!");
+              toast({
+                title: "✅ Patient Verified",
+                description: "Patient ID verified successfully!",
+              });
             }
           } catch (error) {
             console.error("Error validating found patient ID:", error);
           }
         } else if (response.data.status === 'partial_match') {
           // Partial Match: Similar patient found, might be the right one
-          toast.success(`🔍 Partial Match: Found similar patient record. Patient ID: ${response.data.patient_id}. Please verify if this is correct.`, {
+          toast({
+            title: "🔍 Partial Match",
+            description: `Found similar patient record. Patient ID: ${response.data.patient_id}. Please verify if this is correct.`,
             duration: 6000,
           });
           setSearchQuery(response.data.patient_id);
@@ -947,30 +979,60 @@ const PatientPortal = () => {
           // Don't auto-validate, let user verify manually
         } else if (response.data.status === 'multiple_matches') {
           // Multiple Matches: Found multiple similar patients
-          toast.error("⚠️ Multiple Matches: Found multiple patients with similar details. Could you please confirm your registered email or phone number again so I can narrow it down?", {
+          toast({
+            title: "⚠️ Multiple Matches",
+            description: "Found multiple patients with similar details. Could you please confirm your registered email or phone number again so I can narrow it down?",
+            variant: "destructive",
             duration: 8000,
           });
         } else if (response.data.status === 'suggestion') {
-          toast.error("🔍 Hmm, I found a similar record. Is this you? Please reply YES or NO. If NO → show the same form again");
+          toast({
+            title: "🔍 Suggestion",
+            description: "Hmm, I found a similar record. Is this you? Please reply YES or NO. If NO → show the same form again",
+            variant: "destructive",
+          });
         } else if (response.data.status === 'no_match') {
           // No Match: Completely no matching patient found
-          toast.error("❌ No Match: I couldn't find any patient record with those details. Please double-check your name, birthdate, email, or phone number. If the issue persists, contact the clinic for help. 📞 Provide a 'Try Again' button to reopen the form", {
+          toast({
+            title: "❌ No Match",
+            description: "I couldn't find any patient record with those details. Please double-check your name, birthdate, email, or phone number. If the issue persists, contact the clinic for help. 📞 Provide a 'Try Again' button to reopen the form",
+            variant: "destructive",
             duration: 10000,
           });
         } else {
-          toast.error("No matching patient found with the provided information");
+          toast({
+            title: "Error",
+            description: "No matching patient found with the provided information",
+            variant: "destructive",
+          });
         }
       } else {
-        toast.error("No matching patient found with the provided information");
+        toast({
+          title: "Error",
+          description: "No matching patient found with the provided information",
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
       console.error("Error looking up patient:", error);
       if (error.response?.status === 404) {
-        toast.error("No matching patient found with the provided information");
+        toast({
+          title: "Error",
+          description: "No matching patient found with the provided information",
+          variant: "destructive",
+        });
       } else if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
+        toast({
+          title: "Error",
+          description: error.response.data.message,
+          variant: "destructive",
+        });
       } else {
-        toast.error("Failed to lookup patient. Please try again or contact support.");
+        toast({
+          title: "Error",
+          description: "Failed to lookup patient. Please try again or contact support.",
+          variant: "destructive",
+        });
       }
     } finally {
       setForgotIdSubmitting(false);
@@ -984,27 +1046,47 @@ const PatientPortal = () => {
     try {
       // Validate required fields
       if (!medCertForgotIdForm.firstName.trim()) {
-        toast.error("First name is required");
+        toast({
+          title: "Error",
+          description: "First name is required",
+          variant: "destructive",
+        });
         setMedCertForgotIdSubmitting(false);
         return;
       }
       if (!medCertForgotIdForm.lastName.trim()) {
-        toast.error("Last name is required");
+        toast({
+          title: "Error",
+          description: "Last name is required",
+          variant: "destructive",
+        });
         setMedCertForgotIdSubmitting(false);
         return;
       }
       if (!medCertForgotIdForm.dateOfBirth) {
-        toast.error("Date of birth is required");
+        toast({
+          title: "Error",
+          description: "Date of birth is required",
+          variant: "destructive",
+        });
         setMedCertForgotIdSubmitting(false);
         return;
       }
       if (!medCertForgotIdForm.email.trim()) {
-        toast.error("Email is required");
+        toast({
+          title: "Error",
+          description: "Email is required",
+          variant: "destructive",
+        });
         setMedCertForgotIdSubmitting(false);
         return;
       }
       if (!medCertForgotIdForm.phone.trim()) {
-        toast.error("Phone number is required");
+        toast({
+          title: "Error",
+          description: "Phone number is required",
+          variant: "destructive",
+        });
         setMedCertForgotIdSubmitting(false);
         return;
       }
@@ -1029,7 +1111,10 @@ const PatientPortal = () => {
       // Check if we have a patient_id in the response
       if (response.data.patient_id) {
         if (response.data.status === 'exact_match' || response.data.status === 'match' || !response.data.status) {
-          toast.success(`Patient ID found: ${response.data.patient_id}`);
+          toast({
+            title: "Success",
+            description: `Patient ID found: ${response.data.patient_id}`,
+          });
           setMedCertSearchQuery(response.data.patient_id);
           setShowMedCertForgotPatientId(false);
           setMedCertForgotIdForm({
@@ -1047,13 +1132,18 @@ const PatientPortal = () => {
             const validation = await validatePatientId(response.data.patient_id);
             if (validation.isValid) {
               setMedCertSelectedPatient(validation.patient);
-              toast.success("Patient ID verified successfully!");
+              toast({
+                title: "✅ Patient Verified",
+                description: "Patient ID verified successfully!",
+              });
             }
           } catch (error) {
             console.error("Error validating found patient ID:", error);
           }
         } else if (response.data.status === 'partial_match') {
-          toast.success(`🔍 Partial Match: Found similar patient record. Patient ID: ${response.data.patient_id}. Please verify if this is correct.`, {
+          toast({
+            title: "🔍 Partial Match",
+            description: `Found similar patient record. Patient ID: ${response.data.patient_id}. Please verify if this is correct.`,
             duration: 6000,
           });
           setMedCertSearchQuery(response.data.patient_id);
@@ -1068,29 +1158,59 @@ const PatientPortal = () => {
             phone: ""
           });
         } else if (response.data.status === 'multiple_matches') {
-          toast.error("⚠️ Multiple Matches: Found multiple patients with similar details. Could you please confirm your registered email or phone number again so I can narrow it down?", {
+          toast({
+            title: "⚠️ Multiple Matches",
+            description: "Found multiple patients with similar details. Could you please confirm your registered email or phone number again so I can narrow it down?",
+            variant: "destructive",
             duration: 8000,
           });
         } else if (response.data.status === 'suggestion') {
-          toast.error("🔍 Hmm, I found a similar record. Is this you? Please reply YES or NO. If NO → show the same form again");
+          toast({
+            title: "🔍 Suggestion",
+            description: "Hmm, I found a similar record. Is this you? Please reply YES or NO. If NO → show the same form again",
+            variant: "destructive",
+          });
         } else if (response.data.status === 'no_match') {
-          toast.error("❌ No Match: I couldn't find any patient record with those details. Please double-check your name, birthdate, email, or phone number. If the issue persists, contact the clinic for help.", {
+          toast({
+            title: "❌ No Match",
+            description: "I couldn't find any patient record with those details. Please double-check your name, birthdate, email, or phone number. If the issue persists, contact the clinic for help.",
+            variant: "destructive",
             duration: 10000,
           });
         } else {
-          toast.error("No matching patient found with the provided information");
+          toast({
+            title: "Error",
+            description: "No matching patient found with the provided information",
+            variant: "destructive",
+          });
         }
       } else {
-        toast.error("No matching patient found with the provided information");
+        toast({
+          title: "Error",
+          description: "No matching patient found with the provided information",
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
       console.error("Error looking up patient:", error);
       if (error.response?.status === 404) {
-        toast.error("No matching patient found with the provided information");
+        toast({
+          title: "Error",
+          description: "No matching patient found with the provided information",
+          variant: "destructive",
+        });
       } else if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
+        toast({
+          title: "Error",
+          description: error.response.data.message,
+          variant: "destructive",
+        });
       } else {
-        toast.error("Failed to lookup patient. Please try again or contact support.");
+        toast({
+          title: "Error",
+          description: "Failed to lookup patient. Please try again or contact support.",
+          variant: "destructive",
+        });
       }
     } finally {
       setMedCertForgotIdSubmitting(false);
@@ -1104,27 +1224,47 @@ const PatientPortal = () => {
     try {
       // Validate required fields
       if (!prescriptionForgotIdForm.firstName.trim()) {
-        toast.error("First name is required");
+        toast({
+          title: "Error",
+          description: "First name is required",
+          variant: "destructive",
+        });
         setPrescriptionForgotIdSubmitting(false);
         return;
       }
       if (!prescriptionForgotIdForm.lastName.trim()) {
-        toast.error("Last name is required");
+        toast({
+          title: "Error",
+          description: "Last name is required",
+          variant: "destructive",
+        });
         setPrescriptionForgotIdSubmitting(false);
         return;
       }
       if (!prescriptionForgotIdForm.dateOfBirth) {
-        toast.error("Date of birth is required");
+        toast({
+          title: "Error",
+          description: "Date of birth is required",
+          variant: "destructive",
+        });
         setPrescriptionForgotIdSubmitting(false);
         return;
       }
       if (!prescriptionForgotIdForm.email.trim()) {
-        toast.error("Email is required");
+        toast({
+          title: "Error",
+          description: "Email is required",
+          variant: "destructive",
+        });
         setPrescriptionForgotIdSubmitting(false);
         return;
       }
       if (!prescriptionForgotIdForm.phone.trim()) {
-        toast.error("Phone number is required");
+        toast({
+          title: "Error",
+          description: "Phone number is required",
+          variant: "destructive",
+        });
         setPrescriptionForgotIdSubmitting(false);
         return;
       }
@@ -1149,7 +1289,10 @@ const PatientPortal = () => {
       // Check if we have a patient_id in the response
       if (response.data.patient_id) {
         if (response.data.status === 'exact_match' || response.data.status === 'match' || !response.data.status) {
-          toast.success(`Patient ID found: ${response.data.patient_id}`);
+          toast({
+            title: "Success",
+            description: `Patient ID found: ${response.data.patient_id}`,
+          });
           setPrescriptionSearchQuery(response.data.patient_id);
           setShowPrescriptionForgotPatientId(false);
           setPrescriptionForgotIdForm({
@@ -1167,13 +1310,18 @@ const PatientPortal = () => {
             const validation = await validatePatientId(response.data.patient_id);
             if (validation.isValid) {
               setPrescriptionSelectedPatient(validation.patient);
-              toast.success("Patient ID verified successfully!");
+              toast({
+                title: "✅ Patient Verified",
+                description: "Patient ID verified successfully!",
+              });
             }
           } catch (error) {
             console.error("Error validating found patient ID:", error);
           }
         } else if (response.data.status === 'partial_match') {
-          toast.success(`🔍 Partial Match: Found similar patient record. Patient ID: ${response.data.patient_id}. Please verify if this is correct.`, {
+          toast({
+            title: "🔍 Partial Match",
+            description: `Found similar patient record. Patient ID: ${response.data.patient_id}. Please verify if this is correct.`,
             duration: 6000,
           });
           setPrescriptionSearchQuery(response.data.patient_id);
@@ -1188,29 +1336,59 @@ const PatientPortal = () => {
             phone: ""
           });
         } else if (response.data.status === 'multiple_matches') {
-          toast.error("⚠️ Multiple Matches: Found multiple patients with similar details. Could you please confirm your registered email or phone number again so I can narrow it down?", {
+          toast({
+            title: "⚠️ Multiple Matches",
+            description: "Found multiple patients with similar details. Could you please confirm your registered email or phone number again so I can narrow it down?",
+            variant: "destructive",
             duration: 8000,
           });
         } else if (response.data.status === 'suggestion') {
-          toast.error("🔍 Hmm, I found a similar record. Is this you? Please reply YES or NO. If NO → show the same form again");
+          toast({
+            title: "🔍 Suggestion",
+            description: "Hmm, I found a similar record. Is this you? Please reply YES or NO. If NO → show the same form again",
+            variant: "destructive",
+          });
         } else if (response.data.status === 'no_match') {
-          toast.error("❌ No Match: I couldn't find any patient record with those details. Please double-check your name, birthdate, email, or phone number. If the issue persists, contact the clinic for help.", {
+          toast({
+            title: "❌ No Match",
+            description: "I couldn't find any patient record with those details. Please double-check your name, birthdate, email, or phone number. If the issue persists, contact the clinic for help.",
+            variant: "destructive",
             duration: 10000,
           });
         } else {
-          toast.error("No matching patient found with the provided information");
+          toast({
+            title: "Error",
+            description: "No matching patient found with the provided information",
+            variant: "destructive",
+          });
         }
       } else {
-        toast.error("No matching patient found with the provided information");
+        toast({
+          title: "Error",
+          description: "No matching patient found with the provided information",
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
       console.error("Error looking up patient:", error);
       if (error.response?.status === 404) {
-        toast.error("No matching patient found with the provided information");
+        toast({
+          title: "Error",
+          description: "No matching patient found with the provided information",
+          variant: "destructive",
+        });
       } else if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
+        toast({
+          title: "Error",
+          description: error.response.data.message,
+          variant: "destructive",
+        });
       } else {
-        toast.error("Failed to lookup patient. Please try again or contact support.");
+        toast({
+          title: "Error",
+          description: "Failed to lookup patient. Please try again or contact support.",
+          variant: "destructive",
+        });
       }
     } finally {
       setPrescriptionForgotIdSubmitting(false);
@@ -1260,13 +1438,19 @@ const PatientPortal = () => {
   // Submit appointment - using same approach as chatbot
   const onSubmitAppointment = async () => {
     setIsSubmitting(true);
+    
+    console.log('Starting appointment submission...');
 
     try {
       // Validate patient form if new patient
       if (!isExistingPatient) {
         const isValidPatient = await patientForm.trigger();
         if (!isValidPatient) {
-          toast.error("Please fill in all required patient information");
+          toast({
+            title: "Incomplete Information",
+            description: "Please fill in all required patient information",
+            variant: "destructive",
+          });
           setCurrentStep(2);
           setIsSubmitting(false);
           return;
@@ -1355,19 +1539,24 @@ const PatientPortal = () => {
 
       // Create appointment using the same API as chatbot
       const response = await api.appointments.create(appointmentData);
+      
+      console.log('Appointment created successfully:', response);
 
       // Enhanced success toast notification with appointment details
       const patientName = isExistingPatient
         ? `${selectedPatient?.firstName || selectedPatient?.first_name} ${selectedPatient?.lastName || selectedPatient?.last_name}`
         : `${patientData.firstName} ${patientData.lastName}`;
       
-      toast.success(
-        `🎉 Appointment successfully scheduled!\n\nPatient: ${patientName}\nDoctor: Dr. ${selectedDoctor?.first_name} ${selectedDoctor?.last_name}\nDate: ${format(selectedDate, 'MMM dd, yyyy')} at ${selectedTimeSlot}\nType: ${selectedAppointmentType}\n\nYou will receive a confirmation email once approved.`,
-        {
-          duration: 8000,
-        }
-      );
-      handleAppointmentModalClose();
+      // Success toast with simple confirmation
+      toast({
+        title: "🎉 Appointment Successfully Scheduled!",
+        description: "You will receive a confirmation email once approved.",
+      });
+      
+      // Add a small delay before closing modal to ensure toast is visible
+      setTimeout(() => {
+        handleAppointmentModalClose();
+      }, 500);
     } catch (error: any) {
       console.error("Error submitting appointment:", error);
 
@@ -1382,9 +1571,11 @@ const PatientPortal = () => {
             (error.response.data.message &&
               error.response.data.message.includes("already booked"))))
       ) {
-        toast.error(
-          "This time slot has just been booked by another patient. Please select a different time."
-        );
+        toast({
+          title: "Time Slot Conflict",
+          description: "This time slot has just been booked by another patient. Please select a different time.",
+          variant: "destructive",
+        });
         // Clear the selected time slot and refresh available slots
         setSelectedTimeSlot("");
         if (selectedDoctor && selectedDate) {
@@ -1395,12 +1586,24 @@ const PatientPortal = () => {
         const errorData = error.response.data;
         if (typeof errorData === "object") {
           const firstError = Object.values(errorData)[0];
-          toast.error(Array.isArray(firstError) ? firstError[0] : firstError);
+          toast({
+            title: "Submission Error",
+            description: Array.isArray(firstError) ? firstError[0] : firstError,
+            variant: "destructive",
+          });
         } else {
-          toast.error(errorData);
+          toast({
+            title: "Submission Error",
+            description: errorData,
+            variant: "destructive",
+          });
         }
       } else {
-        toast.error("Failed to submit appointment request. Please try again.");
+        toast({
+          title: "Submission Failed",
+          description: "Failed to submit appointment request. Please try again.",
+          variant: "destructive",
+        });
       }
     } finally {
       setIsSubmitting(false);
@@ -1416,7 +1619,11 @@ const PatientPortal = () => {
     switch (currentStep) {
       case 1:
         if (!bookingPreference) {
-          toast.error("Please select your booking preference");
+          toast({
+            title: "Selection Required",
+            description: "Please select your booking preference",
+            variant: "destructive",
+          });
           return;
         }
         break;
@@ -1425,13 +1632,21 @@ const PatientPortal = () => {
         if (bookingPreference === "doctor") {
           // Doctor-first flow: validate doctor selection
           if (!selectedDoctor) {
-            toast.error("Please select a doctor");
+            toast({
+              title: "Selection Required",
+              description: "Please select a doctor",
+              variant: "destructive",
+            });
             return;
           }
         } else {
           // Date-first flow: validate date selection only
           if (!selectedDate) {
-            toast.error("Please select a date");
+            toast({
+              title: "Selection Required",
+              description: "Please select a date",
+              variant: "destructive",
+            });
             return;
           }
         }
@@ -1441,21 +1656,37 @@ const PatientPortal = () => {
         if (bookingPreference === "doctor") {
           // Doctor-first flow: validate date and time selection
           if (!selectedDate) {
-            toast.error("Please select a date");
+            toast({
+              title: "Selection Required",
+              description: "Please select a date",
+              variant: "destructive",
+            });
             return;
           }
           if (!selectedTimeSlot) {
-            toast.error("Please select a time");
+            toast({
+              title: "Selection Required",
+              description: "Please select a time",
+              variant: "destructive",
+            });
             return;
           }
         } else {
           // Date-first flow: validate doctor and time selection
           if (!selectedDoctor) {
-            toast.error("Please select a doctor");
+            toast({
+              title: "Selection Required",
+              description: "Please select a doctor",
+              variant: "destructive",
+            });
             return;
           }
           if (!selectedTimeSlot) {
-            toast.error("Please select a time slot");
+            toast({
+              title: "Selection Required",
+              description: "Please select a time slot",
+              variant: "destructive",
+            });
             return;
           }
         }
@@ -1463,12 +1694,20 @@ const PatientPortal = () => {
       case 4:
         // Step 4: Patient type validation
         if (isExistingPatient === null) {
-          toast.error("Please select if you are an existing patient");
+          toast({
+            title: "Selection Required",
+            description: "Please select if you are an existing patient",
+            variant: "destructive",
+          });
           return;
         }
         // For new patients, check if terms are accepted
         if (!isExistingPatient && !termsAccepted) {
-          toast.error("Please accept the terms and conditions to proceed");
+          toast({
+            title: "Agreement Required",
+            description: "Please accept the terms and conditions to proceed",
+            variant: "destructive",
+          });
           return;
         }
         break;
@@ -1477,70 +1716,129 @@ const PatientPortal = () => {
         if (isExistingPatient) {
           // Validate Patient ID for existing patients
           if (!searchQuery.trim()) {
-            toast.error("Please enter your Patient ID");
+            toast({
+              title: "Input Required",
+              description: "Please enter your Patient ID",
+              variant: "destructive",
+            });
             return;
           }
           const validation = await validatePatientId(searchQuery);
           if (!validation.isValid) {
-            toast.error(validation.error);
+            toast({
+              title: "Validation Error",
+              description: validation.error,
+              variant: "destructive",
+            });
             return;
           }
           setSelectedPatient(validation.patient);
-          toast.success("Patient ID verified successfully!");
+          toast({
+            title: "✅ Patient Verified",
+            description: "Patient ID verified successfully!",
+          });
         } else {
           // Custom validation for new patients
           const formData = patientForm.getValues();
           
           // Check required fields
           if (!formData.firstName?.trim()) {
-            toast.error("First name is required");
+            toast({
+              title: "Required Field",
+              description: "First name is required",
+              variant: "destructive",
+            });
             return;
           }
           if (!noMiddleName && !formData.middleName?.trim()) {
-            toast.error("Middle name is required (or check 'No middle name')");
+            toast({
+              title: "Required Field",
+              description: "Middle name is required (or check 'No middle name')",
+              variant: "destructive",
+            });
             return;
           }
           if (!formData.lastName?.trim()) {
-            toast.error("Last name is required");
+            toast({
+              title: "Required Field",
+              description: "Last name is required",
+              variant: "destructive",
+            });
             return;
           }
           if (!formData.phone?.trim()) {
-            toast.error("Contact number is required");
+            toast({
+              title: "Required Field",
+              description: "Contact number is required",
+              variant: "destructive",
+            });
             return;
           }
           if (formData.phone.length < 10) {
-            toast.error("Contact number must be at least 10 digits");
+            toast({
+              title: "Invalid Input",
+              description: "Contact number must be at least 10 digits",
+              variant: "destructive",
+            });
             return;
           }
           if (!formData.sex) {
-            toast.error("Sex is required");
+            toast({
+              title: "Required Field",
+              description: "Sex is required",
+              variant: "destructive",
+            });
             return;
           }
           if (!formData.email?.trim()) {
-            toast.error("Email address is required");
+            toast({
+              title: "Required Field",
+              description: "Email address is required",
+              variant: "destructive",
+            });
             return;
           }
           if (!formData.dateOfBirth) {
-            toast.error("Date of birth is required");
+            toast({
+              title: "Required Field",
+              description: "Date of birth is required",
+              variant: "destructive",
+            });
             return;
           }
           if (!formData.age?.trim()) {
-            toast.error("Age is required");
+            toast({
+              title: "Required Field",
+              description: "Age is required",
+              variant: "destructive",
+            });
             return;
           }
           if (!formData.religion?.trim()) {
-            toast.error("Religion is required");
+            toast({
+              title: "Required Field",
+              description: "Religion is required",
+              variant: "destructive",
+            });
             return;
           }
           if (!formData.address?.trim()) {
-            toast.error("Home address is required");
+            toast({
+              title: "Required Field",
+              description: "Home address is required",
+              variant: "destructive",
+            });
             return;
           }
           
           // Email validation
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (!emailRegex.test(formData.email)) {
-            toast.error("Please enter a valid email address");
+            toast({
+              title: "Invalid Email",
+              description: "Please enter a valid email address",
+              variant: "destructive",
+            });
             return;
           }
         }
@@ -1548,7 +1846,11 @@ const PatientPortal = () => {
       case 6:
         // Step 6: validate appointment type (same for both flows)
         if (!selectedAppointmentType) {
-          toast.error("Please select an appointment type");
+          toast({
+            title: "Selection Required",
+            description: "Please select an appointment type",
+            variant: "destructive",
+          });
           return;
         }
         break;
@@ -1572,16 +1874,22 @@ const PatientPortal = () => {
 
     try {
       if (!medCertSearchQuery.trim()) {
-        toast.error("Please enter your Patient ID");
+        toast({
+          title: "Input Required",
+          description: "Please enter your Patient ID",
+          variant: "destructive",
+        });
         setMedCertStep(1);
         setMedCertSubmitting(false);
         return;
       }
 
       if (!medCertSelectedPatient) {
-        toast.error(
-          "Patient information not found. Please verify your Patient ID again."
-        );
+        toast({
+          title: "Patient Not Found",
+          description: "Patient information not found. Please verify your Patient ID again.",
+          variant: "destructive",
+        });
         setMedCertStep(1);
         setMedCertSubmitting(false);
         return;
@@ -1643,9 +1951,10 @@ const PatientPortal = () => {
           ? "You will be notified when it's ready for pickup at the clinic."
           : "A digital copy will be sent to your registered email address.";
         
-        toast.success(
-          `Your medical certificate request has been submitted successfully! Our team will review your request and contact you within 2-3 business days. ${deliveryMessage}`
-        );
+        toast({
+          title: "🎉 Medical Certificate Request Submitted!",
+          description: `Your medical certificate request has been submitted successfully! Our team will review your request and contact you within 2-3 business days. ${deliveryMessage}`,
+        });
         resetMedCertModal();
         setOpenModal(null);
       } else {
@@ -1653,9 +1962,11 @@ const PatientPortal = () => {
       }
     } catch (error: any) {
       console.error("Error submitting medical record request:", error);
-      toast.error(
-        "Sorry, there was an error submitting your request. Please try again or contact us directly."
-      );
+      toast({
+        title: "Submission Failed",
+        description: "Sorry, there was an error submitting your request. Please try again or contact us directly.",
+        variant: "destructive",
+      });
     } finally {
       setMedCertSubmitting(false);
     }
@@ -1667,16 +1978,22 @@ const PatientPortal = () => {
 
     try {
       if (!prescriptionSearchQuery.trim()) {
-        toast.error("Please enter your Patient ID");
+        toast({
+          title: "Input Required",
+          description: "Please enter your Patient ID",
+          variant: "destructive",
+        });
         setPrescriptionStep(1);
         setPrescriptionSubmitting(false);
         return;
       }
 
       if (!prescriptionSelectedPatient) {
-        toast.error(
-          "Patient information not found. Please verify your Patient ID again."
-        );
+        toast({
+          title: "Patient Not Found",
+          description: "Patient information not found. Please verify your Patient ID again.",
+          variant: "destructive",
+        });
         setPrescriptionStep(1);
         setPrescriptionSubmitting(false);
         return;
@@ -1741,9 +2058,10 @@ const PatientPortal = () => {
       );
 
       if (response.status === 200 || response.status === 201) {
-        toast.success(
-          "Your prescription request has been submitted successfully! Our team will review your request and contact you within 2-3 business days."
-        );
+        toast({
+          title: "🎉 Prescription Request Submitted!",
+          description: "Your prescription request has been submitted successfully! Our team will review your request and contact you within 2-3 business days.",
+        });
         resetPrescriptionModal();
         setOpenModal(null);
       } else {
@@ -1751,9 +2069,11 @@ const PatientPortal = () => {
       }
     } catch (error: any) {
       console.error("Error submitting prescription request:", error);
-      toast.error(
-        "Sorry, there was an error submitting your request. Please try again or contact us directly."
-      );
+      toast({
+        title: "Submission Failed",
+        description: "Sorry, there was an error submitting your request. Please try again or contact us directly.",
+        variant: "destructive",
+      });
     } finally {
       setPrescriptionSubmitting(false);
     }
@@ -3326,7 +3646,10 @@ const PatientPortal = () => {
                               setSelectedDate(date);
                               setSelectedDoctor(null); // Reset doctor when date changes
                               setSelectedTimeSlot(""); // Reset time slot when date changes
-                              toast.success(`Date selected: ${format(date, 'MMM dd, yyyy')}`);
+                              toast({
+                                title: "Date Selected",
+                                description: `Date selected: ${format(date, 'MMM dd, yyyy')}`,
+                              });
                             }}
                           >
                             <div>
@@ -3387,7 +3710,10 @@ const PatientPortal = () => {
                             console.log('DateTimePicker selected:', { date, time });
                             setSelectedDate(date);
                             setSelectedTimeSlot(time);
-                            toast.success(`Appointment scheduled for ${format(date, 'MMM dd, yyyy')} at ${time}`);
+                            toast({
+                              title: "Appointment Scheduled",
+                              description: `Appointment scheduled for ${format(date, 'MMM dd, yyyy')} at ${time}`,
+                            });
                           }}
                         />
                       )
@@ -3424,7 +3750,10 @@ const PatientPortal = () => {
                                 onClick={() => {
                                   setSelectedDoctor(doctor);
                                   setSelectedTimeSlot(""); // Reset time slot when doctor changes
-                                  toast.success(`Doctor selected: Dr. ${doctor.first_name} ${doctor.last_name}`);
+                                  toast({
+                                    title: "Doctor Selected",
+                                    description: `Doctor selected: Dr. ${doctor.first_name} ${doctor.last_name}`,
+                                  });
                                 }}
                               >
                                 <div className="flex items-center space-x-3">
@@ -3481,7 +3810,10 @@ const PatientPortal = () => {
                                       }`}
                                       onClick={() => {
                                         setSelectedTimeSlot(timeSlot);
-                                        toast.success(`Time slot selected: ${timeSlot}`);
+                                        toast({
+                                          title: "Time Selected",
+                                          description: `Time slot selected: ${timeSlot}`,
+                                        });
                                       }}
                                     >
                                       {timeSlot}
@@ -4627,19 +4959,31 @@ const PatientPortal = () => {
                     if (medCertStep === 1) {
                       // Skip validation if showing forgot patient ID form
                       if (showMedCertForgotPatientId) {
-                        toast.error("Please complete the patient lookup or go back to enter Patient ID directly");
+                        toast({
+                          title: "Form Incomplete",
+                          description: "Please complete the patient lookup or go back to enter Patient ID directly",
+                          variant: "destructive",
+                        });
                         return;
                       }
                       
                       // Validate Patient ID
                       if (!medCertSearchQuery.trim()) {
-                        toast.error("Please enter your Patient ID");
+                        toast({
+                          title: "Input Required",
+                          description: "Please enter your Patient ID",
+                          variant: "destructive",
+                        });
                         return;
                       }
                       
                       // Validate delivery method
                       if (!medCertDeliveryMethod) {
-                        toast.error("Please select how you want to receive your medical certificate");
+                        toast({
+                          title: "Selection Required",
+                          description: "Please select how you want to receive your medical certificate",
+                          variant: "destructive",
+                        });
                         return;
                       }
                       
@@ -4647,14 +4991,25 @@ const PatientPortal = () => {
                         medCertSearchQuery
                       );
                       if (!validation.isValid) {
-                        toast.error(validation.error);
+                        toast({
+                          title: "Validation Error",
+                          description: validation.error,
+                          variant: "destructive",
+                        });
                         return;
                       }
                       setMedCertSelectedPatient(validation.patient);
-                      toast.success("Patient ID verified successfully!");
+                      toast({
+                        title: "✅ Patient Verified",
+                        description: "Patient ID verified successfully!",
+                      });
                     }
                     if (medCertStep === 2 && !medCertIdFront) {
-                      toast.error("Please upload your ID");
+                      toast({
+                        title: "Upload Required",
+                        description: "Please upload your ID",
+                        variant: "destructive",
+                      });
                       return;
                     }
                     setMedCertStep((prev) => prev + 1);
@@ -5119,18 +5474,29 @@ const PatientPortal = () => {
                     if (prescriptionStep === 1) {
                       // Validate Patient ID
                       if (!prescriptionSearchQuery.trim()) {
-                        toast.error("Please enter your Patient ID");
+                        toast({
+                          title: "Input Required",
+                          description: "Please enter your Patient ID",
+                          variant: "destructive",
+                        });
                         return;
                       }
                       const validation = await validatePatientId(
                         prescriptionSearchQuery
                       );
                       if (!validation.isValid) {
-                        toast.error(validation.error);
+                        toast({
+                          title: "Validation Error",
+                          description: validation.error,
+                          variant: "destructive",
+                        });
                         return;
                       }
                       setPrescriptionSelectedPatient(validation.patient);
-                      toast.success("Patient ID verified successfully!");
+                      toast({
+                        title: "✅ Patient Verified",
+                        description: "Patient ID verified successfully!",
+                      });
                     }
                     if (prescriptionStep === 2) {
                       const medicationFields = [
@@ -5143,12 +5509,20 @@ const PatientPortal = () => {
                         (field) => !prescriptionForm.getValues(field as any)
                       );
                       if (hasEmptyField) {
-                        toast.error("Please fill in all medication details");
+                        toast({
+                          title: "Required Fields",
+                          description: "Please fill in all medication details",
+                          variant: "destructive",
+                        });
                         return;
                       }
                     }
                     if (prescriptionStep === 3 && !prescriptionIdFront) {
-                      toast.error("Please upload your ID");
+                      toast({
+                        title: "Upload Required",
+                        description: "Please upload your ID",
+                        variant: "destructive",
+                      });
                       return;
                     }
                     setPrescriptionStep((prev) => prev + 1);
