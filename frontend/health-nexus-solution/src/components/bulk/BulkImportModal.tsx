@@ -28,7 +28,7 @@ import { useToast } from "@/components/ui/use-toast";
 import axios from "axios";
 // Import sessionManager to ensure global axios configuration is applied
 import "@/utils/sessionManager";
-import { FileText, Upload, UserPlus, Users } from "lucide-react";
+import { Upload, UserPlus, Users } from "lucide-react";
 import React, { useState } from "react";
 
 interface BulkImportModalProps {
@@ -109,9 +109,10 @@ export default function BulkImportModal({
             "email",
             "phone",
             "date_of_birth",
-            "gender",
-            "address",
+            "sex",
+            "home_address",
             "marital_status",
+            "religion",
           ]
         : [
             "first_name",
@@ -127,7 +128,7 @@ export default function BulkImportModal({
       headers.join(",") +
       "\n" +
       (type === "patients"
-        ? `John,Doe,M,Jr,john.doe@email.com,+1234567890,${currentDate},male,"123 Main St",single\nJane,Smith,,,jane.smith@email.com,+0987654321,${currentDate},female,"456 Oak Ave",married\nAaron,Lowe III,,,aaron.lowe@email.com,+1122334455,${currentDate},male,,single`
+        ? `John,Doe,M,Jr,john.doe@email.com,+1234567890,${currentDate},male,"123 Main St",single,Roman Catholic\nJane,Smith,,,jane.smith@email.com,+0987654321,${currentDate},female,"456 Oak Ave",married,Christian\nAaron,Lowe III,,,aaron.lowe@email.com,+1122334455,${currentDate},male,,single,Islam`
         : "Jane,Smith,jane.smith@hospital.com,+1234567890,doctor,cardiology,MD12345\nJohn,Doe,john.doe@hospital.com,+0987654321,nurse,emergency,RN67890\nSarah,Johnson,sarah.johnson@hospital.com,+5566778899,receptionist,,");
 
     const blob = new Blob([csvContent], { type: "text/csv" });
@@ -142,7 +143,7 @@ export default function BulkImportModal({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" className="gap-2 hover:bg-gray-100 hover:border-gray-400 active:bg-gray-200 active:scale-[0.97] transition-all duration-150">
           <UserPlus className="h-4 w-4" />
           Bulk Add {type === "patients" ? "Patients" : "Staff"}
         </Button>
@@ -205,11 +206,15 @@ export default function BulkImportModal({
                     <Button
                       onClick={() => uploadFile && handleFileUpload(uploadFile)}
                       disabled={!uploadFile || isUploading}
-                      className="flex-1"
+                      className="flex-1 hover:opacity-90 active:opacity-80 hover:scale-[0.99] active:scale-[0.97] transition-all duration-150"
                     >
                       {isUploading ? "Uploading..." : "Upload & Import"}
                     </Button>
-                    <Button variant="outline" onClick={downloadTemplate}>
+                    <Button 
+                      variant="outline" 
+                      onClick={downloadTemplate}
+                      className="hover:bg-gray-100 hover:border-gray-400 active:bg-gray-200 active:scale-[0.97] transition-all duration-150"
+                    >
                       Download Template
                     </Button>
                   </div>
@@ -227,9 +232,10 @@ export default function BulkImportModal({
                           <div>• email (required, unique)</div>
                           <div>• phone (required)</div>
                           <div>• date_of_birth (YYYY-MM-DD)</div>
-                          <div>• gender (male/female/other)</div>
-                          <div>• address (optional)</div>
+                          <div>• sex (male/female/other)</div>
+                          <div>• home_address (optional)</div>
                           <div>• marital_status (optional)</div>
+                          <div>• religion (optional)</div>
                         </>
                       ) : (
                         <>
@@ -302,6 +308,7 @@ function ManualBulkEntry({
           gender: "other",
           address: "",
           marital_status: "single",
+          religion: "",
         }
       : {
           first_name: "",
@@ -374,6 +381,7 @@ function ManualBulkEntry({
                 variant="outline"
                 size="sm"
                 onClick={() => removeEntry(index)}
+                className="hover:bg-red-50 hover:text-red-600 hover:border-red-400 active:bg-red-100 active:scale-[0.97] transition-all duration-150"
               >
                 Remove
               </Button>
@@ -456,7 +464,7 @@ function ManualBulkEntry({
                   />
                 </div>
                 <div>
-                  <Label>Gender</Label>
+                  <Label>Sex</Label>
                   <Select
                     value={entry.gender}
                     onValueChange={(value) =>
@@ -464,7 +472,7 @@ function ManualBulkEntry({
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select gender" />
+                      <SelectValue placeholder="Select sex" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="male">Male</SelectItem>
@@ -492,14 +500,24 @@ function ManualBulkEntry({
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <Label>Religion</Label>
+                  <Input
+                    value={entry.religion}
+                    onChange={(e) =>
+                      updateEntry(index, "religion", e.target.value)
+                    }
+                    placeholder="Religion"
+                  />
+                </div>
                 <div className="col-span-2">
-                  <Label>Address</Label>
+                  <Label>Home Address</Label>
                   <Textarea
                     value={entry.address}
                     onChange={(e) =>
                       updateEntry(index, "address", e.target.value)
                     }
-                    placeholder="Full address"
+                    placeholder="Full home address"
                   />
                 </div>
               </>
@@ -589,13 +607,17 @@ function ManualBulkEntry({
       ))}
 
       <div className="flex gap-2">
-        <Button variant="outline" onClick={addEntry}>
+        <Button 
+          variant="outline" 
+          onClick={addEntry}
+          className="hover:bg-green-50 hover:text-green-700 hover:border-green-400 active:bg-green-100 active:scale-[0.97] transition-all duration-150"
+        >
           Add Another Entry
         </Button>
         <Button
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="flex-1"
+          className="flex-1 hover:opacity-90 active:opacity-80 hover:scale-[0.99] active:scale-[0.97] transition-all duration-150"
         >
           {isSubmitting ? "Creating..." : `Create ${entries.length} ${type}`}
         </Button>

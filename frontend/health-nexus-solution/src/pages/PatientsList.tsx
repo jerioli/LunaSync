@@ -1,7 +1,7 @@
 import BulkImportModal from "@/components/bulk/BulkImportModal";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -149,7 +149,7 @@ const PatientsList = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Patients</h1>
+        <h1 className="text-3xl font-bold">Patient Records</h1>
         <div className="flex gap-2">
           {canUseBulkImport && (
             <BulkImportModal
@@ -170,7 +170,7 @@ const PatientsList = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Patient Records</CardTitle>
+            
               <p className="text-sm text-muted-foreground mt-1">
                 Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{" "}
                 {totalItems} patients
@@ -220,7 +220,7 @@ const PatientsList = () => {
                     className="h-auto p-0 font-semibold hover:bg-transparent"
                     onClick={() => handleSort("name")}
                   >
-                    Patient
+                    Name
                     {renderSortIcon("name")}
                   </Button>
                 </TableHead>
@@ -230,7 +230,7 @@ const PatientsList = () => {
                     className="h-auto p-0 font-semibold hover:bg-transparent"
                     onClick={() => handleSort("gender")}
                   >
-                    Gender
+                    Sex
                     {renderSortIcon("gender")}
                   </Button>
                 </TableHead>
@@ -260,7 +260,7 @@ const PatientsList = () => {
                     className="h-auto p-0 font-semibold hover:bg-transparent"
                     onClick={() => handleSort("marital_status")}
                   >
-                    Civil Status
+                    Marital Status
                     {renderSortIcon("marital_status")}
                   </Button>
                 </TableHead>

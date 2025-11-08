@@ -720,7 +720,7 @@ const MedicalCertificateManagement: React.FC = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Medical Certificate Requests</CardTitle>
+              
               <p className="text-sm text-muted-foreground mt-1">
                 Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{" "}
                 {totalItems} medical certificate requests

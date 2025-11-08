@@ -699,7 +699,7 @@ const AppointmentScheduling: React.FC = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="gender">Gender</Label>
+                    <Label htmlFor="gender">Sex</Label>
                     <RadioGroup
                       value={formData.gender}
                       onValueChange={(value) => handleSelectChange('gender', value)}
@@ -819,7 +819,7 @@ const AppointmentScheduling: React.FC = () => {
                           <dd className="mt-1">{formData.dateOfBirth}</dd>
                         </div>
                         <div className="mt-3">
-                          <dt className="font-medium text-gray-500">Gender</dt>
+                          <dt className="font-medium text-gray-500">Sex</dt>
                           <dd className="mt-1">{formData.gender}</dd>
                         </div>
                       </dl>

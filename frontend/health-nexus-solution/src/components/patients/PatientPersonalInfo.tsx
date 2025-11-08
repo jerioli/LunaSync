@@ -111,7 +111,7 @@ const PatientPersonalInfo: React.FC<PatientPersonalInfoProps> = ({
             )}
           </div>
             <div className="space-y-2">
-            <Label htmlFor="gender">Gender</Label>
+            <Label htmlFor="gender">Sex</Label>
             {isEditing ? (
               <select 
                 id="gender" 
@@ -192,12 +192,13 @@ const PatientPersonalInfo: React.FC<PatientPersonalInfoProps> = ({
           </div>
           
           <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="address">Home Address</Label>
             {isEditing ? (
               <Textarea 
                 id="address" 
                 value={patient.address || ''} 
                 onChange={(e) => onUpdate({ address: e.target.value })}
+                placeholder="Enter full home address"
               />
             ) : (
               <div className="p-2 border rounded-md bg-muted/20">{patient.address}</div>

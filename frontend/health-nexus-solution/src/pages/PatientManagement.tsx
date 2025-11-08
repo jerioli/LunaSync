@@ -5,36 +5,36 @@ import PatientMedicalInfo from "@/components/patients/PatientMedicalInfo";
 import PatientPersonalInfo from "@/components/patients/PatientPersonalInfo";
 import PatientPhysicalExamination from "@/components/patients/PatientPhysicalExamination";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -48,29 +48,29 @@ import { axiosInstance } from "@/services/api";
 import { type LabResult as APILabResult } from "@/services/medicalDocumentsAPI";
 import { parseApiError } from "@/utils/errorHandler";
 import {
-  HTMLToPDFConverter,
-  generateClinicalNoteHTML,
-  generatePrescriptionHTML,
-  generateSOAPNoteHTML
+    HTMLToPDFConverter,
+    generateClinicalNoteHTML,
+    generatePrescriptionHTML,
+    generateSOAPNoteHTML
 } from "@/utils/htmlToPdf";
 import { formatPatientNameWithFullMiddle } from "@/utils/patientNameUtils";
 import { format } from "date-fns";
 import {
-  ArrowLeft,
-  Edit,
-  Eye,
-  File,
-  FileText,
-  Heart,
-  Pencil,
-  Plus,
-  Printer,
-  Save,
-  Stethoscope,
-  TestTube,
-  Trash2,
-  Upload,
-  User,
+    ArrowLeft,
+    Edit,
+    Eye,
+    File,
+    FileText,
+    Heart,
+    Pencil,
+    Plus,
+    Printer,
+    Save,
+    Stethoscope,
+    TestTube,
+    Trash2,
+    Upload,
+    User,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -1876,7 +1876,7 @@ const PatientManagement = () => {
                 )
               : "N/A"
           } years</span>
-          <span><strong>Gender:</strong> ${
+          <span><strong>Sex:</strong> ${
             patientData.gender || "Not specified"
           }</span>
         </div>
@@ -1911,7 +1911,7 @@ const PatientManagement = () => {
               </div>
               <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 8px;">
                 <div><strong>Email:</strong> ${patientData.email}</div>
-                <div><strong>Address:</strong> ${
+                <div><strong>Home Address:</strong> ${
                   patientData.address || "N/A"
                 }</div>
                 <div><strong>Religion:</strong> ${
@@ -2507,7 +2507,7 @@ const PatientManagement = () => {
                 new Date(patientData.date_of_birth).getFullYear()
               : "N/A"
           } years</span>
-          <span><strong>Gender:</strong> ${patientData.gender}</span>
+          <span><strong>Sex:</strong> ${patientData.gender}</span>
           <span><strong>Date:</strong> ${format(new Date(), "PPP")}</span>
         </div>
       </div>
@@ -2533,7 +2533,7 @@ const PatientManagement = () => {
               }</span>
             </div>
             <div class="info-item">
-              <span class="info-label">Gender:</span>
+              <span class="info-label">Sex:</span>
               <span class="capitalize">${patientData.gender}</span>
             </div>
             <div class="info-item">
@@ -2545,7 +2545,7 @@ const PatientManagement = () => {
               <span>${patientData.email}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">Address:</span>
+              <span class="info-label">Home Address:</span>
               <span>${patientData.address || "N/A"}</span>
             </div>
             <div class="info-item">
@@ -3693,7 +3693,7 @@ const PatientManagement = () => {
                   years
                 </div>
                 <div>
-                  <span className="font-medium">Gender:</span>{" "}
+                  <span className="font-medium">Sex:</span>{" "}
                   <span className="capitalize">{patientData.gender}</span>
                 </div>
                 <div>

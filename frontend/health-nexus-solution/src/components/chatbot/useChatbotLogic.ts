@@ -1125,8 +1125,8 @@ export const useChatbotLogic = () => {
               Email: ${appointmentForm.email}
               Phone: ${appointmentForm.phone}
               Date of Birth: ${appointmentForm.dateOfBirth}
-              Gender: ${appointmentForm.gender}
-              Address: ${appointmentForm.address}
+              Sex: ${appointmentForm.gender}
+              Home Address: ${appointmentForm.address}
               Marital Status: ${appointmentForm.maritalStatus}
               Notes: ${appointmentForm.notes || 'None'}
             `;
@@ -2012,7 +2012,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         setAppointmentForm(prev => ({ ...prev, gender: value }));
         
         setTimeout(() => {
-          addBotMessage( 'Please enter your address:');
+          addBotMessage( 'Please enter your home address:');
           setChatStep(12);
         }, 500);
       } else if (chatStep === 13) {

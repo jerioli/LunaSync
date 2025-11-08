@@ -4398,7 +4398,7 @@ const PatientPortal = () => {
                       </p>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-700">Gender</h4>
+                      <h4 className="font-semibold text-gray-700">Sex</h4>
                       <p>
                         {(() => {
                           const gender = isExistingPatient

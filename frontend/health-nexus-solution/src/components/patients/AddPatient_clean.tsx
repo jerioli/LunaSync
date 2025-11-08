@@ -51,6 +51,7 @@ const AddPatient = () => {
   });
   
   const [loading, setLoading] = useState(false);
+  const [noMiddleName, setNoMiddleName] = useState(false);
   
   // New state for templates and forms
   const [showForm, setShowForm] = useState(false);
@@ -370,7 +371,7 @@ const AddPatient = () => {
     if (!form.first_name || !form.last_name || !form.email || !form.phone || !form.dateOfBirth || !form.gender) {
       toast({
         title: 'Validation Error',
-        description: 'Please fill in all required fields (First Name, Last Name, Email, Phone, Date of Birth, Gender).',
+        description: 'Please fill in all required fields (First Name, Last Name, Email, Phone, Date of Birth, Sex).',
         variant: 'destructive',
       });
       return;
@@ -625,12 +626,34 @@ const AddPatient = () => {
                 />
               </div>
               <div>
-                <Label>Middle Initial</Label>
+                <div className="flex items-center justify-between mb-2">
+                  <Label>Middle Name</Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="noMiddleName"
+                      checked={noMiddleName}
+                      onChange={(e) => {
+                        setNoMiddleName(e.target.checked);
+                        if (e.target.checked) {
+                          handleChange('middle_initial', 'N/A');
+                        } else {
+                          handleChange('middle_initial', '');
+                        }
+                      }}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    <label htmlFor="noMiddleName" className="text-sm text-gray-600">
+                      No middle name
+                    </label>
+                  </div>
+                </div>
                 <Input 
-                  placeholder="M." 
-                  value={form.middle_initial} 
+                  placeholder="Enter middle name" 
+                  value={noMiddleName ? 'N/A' : form.middle_initial} 
                   onChange={(e) => handleChange('middle_initial', e.target.value)}
-                  maxLength={5}
+                  disabled={noMiddleName}
+                  className={noMiddleName ? 'bg-gray-100' : ''}
                 />
               </div>
               <div>
@@ -650,10 +673,10 @@ const AddPatient = () => {
                 </Select>
               </div>
               <div>
-                <Label>Gender <span className="text-red-500">*</span></Label>
+                <Label>Sex <span className="text-red-500">*</span></Label>
                 <Select value={form.gender} onValueChange={(value) => handleChange('gender', value)}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select gender" />
+                    <SelectValue placeholder="Select sex" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="male">Male</SelectItem>
@@ -678,8 +701,8 @@ const AddPatient = () => {
                 </Select>
               </div>
               <div>
-                <Label>Address</Label>
-                <Input placeholder="Input your address" value={form.address} onChange={(e) => handleChange('address', e.target.value)} />
+                <Label>Home Address</Label>
+                <Input placeholder="Input your home address" value={form.address} onChange={(e) => handleChange('address', e.target.value)} />
               </div>
               <div>
                 <Label htmlFor="dateOfBirth">Date of Birth <span className="text-red-500">*</span></Label>

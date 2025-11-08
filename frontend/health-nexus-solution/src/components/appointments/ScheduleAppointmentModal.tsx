@@ -45,7 +45,7 @@ const newPatientSchema = z.object({
   dateOfBirth: z.date({
     required_error: "Date of birth is required",
   }),
-  gender: z.string().min(1, "Gender is required"),
+  gender: z.string().min(1, "Sex is required"),
   maritalStatus: z.string().optional(),
 });
 
@@ -1106,11 +1106,11 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
               name="newPatient.gender"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Gender *</FormLabel>
+                  <FormLabel>Sex *</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select gender" />
+                        <SelectValue placeholder="Select sex" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -1145,9 +1145,9 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
             name="newPatient.address"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Address *</FormLabel>
+                <FormLabel>Home Address *</FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Enter full address" {...field} />
+                  <Textarea placeholder="Enter full home address" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -1521,9 +1521,9 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                   ].filter(part => part && part.trim()).join(' ')}</p>
                   <p><strong>Email:</strong> {formValues.newPatient.email}</p>
                   <p><strong>Phone:</strong> {formValues.newPatient.contactNumber}</p>
-                  <p><strong>Address:</strong> {formValues.newPatient.address}</p>
+                  <p><strong>Home Address:</strong> {formValues.newPatient.address}</p>
                   <p><strong>Date of Birth:</strong> {formValues.newPatient.dateOfBirth ? format(formValues.newPatient.dateOfBirth, 'MMMM d, yyyy') : 'N/A'}</p>
-                  <p><strong>Gender:</strong> {formValues.newPatient.gender}</p>
+                  <p><strong>Sex:</strong> {formValues.newPatient.gender}</p>
                   {formValues.newPatient.maritalStatus && (
                     <p><strong>Marital Status:</strong> {formValues.newPatient.maritalStatus}</p>
                   )}
