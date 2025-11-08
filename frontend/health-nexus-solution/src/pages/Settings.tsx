@@ -28,7 +28,8 @@ const Settings = () => {
     zip: '',
     phone: '',
     email: '',
-    website: ''
+    website: '',
+    googleMapsUrl: ''
   });
   const [hero, setHero] = useState({ title: '', subtitle: '' });
   const [about, setAbout] = useState({ title: '', text: '' });
@@ -76,6 +77,7 @@ const Settings = () => {
     phone?: string;
     email?: string;
     website?: string;
+    google_maps_embed_url?: string;
     hero_title?: string;
     hero_subtitle?: string;
     about_title?: string;
@@ -106,7 +108,8 @@ const Settings = () => {
             zip: res.data.zip || '',
             phone: res.data.phone || '',
             email: res.data.email || '',
-            website: res.data.website || ''
+            website: res.data.website || '',
+            googleMapsUrl: res.data.google_maps_embed_url || ''
           });
           setHero({
             title: res.data.hero_title || '',
@@ -166,7 +169,8 @@ const Settings = () => {
         zip: generalSettings.zip,
         phone: generalSettings.phone,
         email: generalSettings.email,
-        website: generalSettings.website
+        website: generalSettings.website,
+        google_maps_embed_url: generalSettings.googleMapsUrl
       });
       toast({
         title: 'Settings Saved',
@@ -474,6 +478,20 @@ const Settings = () => {
                     onChange={(e) => setGeneralSettings({...generalSettings, website: e.target.value})}
                     disabled={!isEditing}
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="googleMapsUrl">Google Maps Embed URL</Label>
+                  <Input 
+                    id="googleMapsUrl" 
+                    value={generalSettings.googleMapsUrl}
+                    onChange={(e) => setGeneralSettings({...generalSettings, googleMapsUrl: e.target.value})}
+                    disabled={!isEditing}
+                    placeholder="https://www.google.com/maps/embed?pb=..."
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Get embed URL from Google Maps: Search your location → Share → Embed a map → Copy HTML iframe src URL
+                  </p>
                 </div>
                 
                 <Separator />

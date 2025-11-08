@@ -165,6 +165,7 @@ const PatientPortal = () => {
     logo: "",
     healthcare_professionals_image: "",
     clinic_building_image: "",
+    google_maps_embed_url: "",
   });
   const [loading, setLoading] = useState(true);
   const [reviewForm, setReviewForm] = useState({
@@ -2450,7 +2451,7 @@ const PatientPortal = () => {
               <CardHeader>
                 <CardTitle className="text-[#79c942] flex items-center gap-2">
                   <Pill className="h-5 w-5" />
-                  Request E-Prescription
+                  Request Refill Prescription
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -2461,7 +2462,7 @@ const PatientPortal = () => {
                   className="w-full bg-[#79c942] hover:bg-[#68ab38] text-white font-bold transition-colors"
                   onClick={() => setOpenModal("eprescription")}
                 >
-                  Request E-Prescription
+                  Request Refill Prescription
                 </Button>
               </CardContent>
             </Card>
@@ -2865,14 +2866,14 @@ const PatientPortal = () => {
               </div>
               <div className="w-full h-48 rounded overflow-hidden border mb-2">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!4v1751955711488!6m8!1m7!1sIi6uy9JxNnmbSDI1hq2OpQ!2m2!1d14.32452455175477!2d121.0129429156632!3f200.80705806525316!4f-2.215198390680669!5f2.5769253873367934"
+                  src={clinic.google_maps_embed_url || "https://www.google.com/maps/embed?pb=!4v1751955711488!6m8!1m7!1sIi6uy9JxNnmbSDI1hq2OpQ!2m2!1d14.32452455175477!2d121.0129429156632!3f200.80705806525316!4f-2.215198390680669!5f2.5769253873367934"}
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}
                   allowFullScreen
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
-                  title="Clinic 360 Location"
+                  title="Clinic Location"
                 />
               </div>
               <div className="text-center text-sm text-gray-700 font-medium">

@@ -18,6 +18,7 @@ class ClinicSettings(models.Model):
     about_title = models.CharField(max_length=255, default="About Our Clinic")
     about_text = models.TextField(default="Founded in 2010, HealthNexus has grown to become one of the leading healthcare providers in the region. Our mission is to deliver accessible, high-quality healthcare services in a compassionate environment.")
     services = models.JSONField(default=list, blank=True)  # List of service dicts: title, description, details
+    google_maps_embed_url = models.URLField(max_length=1000, blank=True, null=True, help_text="Google Maps embed URL for the clinic location")
 
     class Meta:
         db_table = 'clinic_settings'
