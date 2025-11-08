@@ -127,8 +127,8 @@ else:
 
 # Session Security
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Store sessions in database
-SESSION_COOKIE_AGE = 1800  # 30 minutes
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_AGE = 14400  # 4 hours
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_DOMAIN = None     # Allow for localhost development
 SESSION_SAVE_EVERY_REQUEST = True  # Update session on every request
 SESSION_COOKIE_NAME = 'sessionid'  # Default session cookie name
