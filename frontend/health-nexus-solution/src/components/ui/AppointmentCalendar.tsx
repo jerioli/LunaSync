@@ -83,16 +83,16 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
   // Get status color based on appointment status
   const getStatusColor = (status: string) => {
     const colors = {
-      'scheduled': 'bg-blue-500 hover:bg-blue-600',
-      'pending': 'bg-yellow-500 hover:bg-yellow-600',
-      'ongoing': 'bg-orange-500 hover:bg-orange-600',
-      'completed': 'bg-green-500 hover:bg-green-600',
-      'cancelled': 'bg-red-500 hover:bg-red-600',
-      'no-show': 'bg-gray-500 hover:bg-gray-600',
-      'upcoming': 'bg-blue-500 hover:bg-blue-600',
-      'follow-up': 'bg-purple-500 hover:bg-purple-600'
+      'pending': 'bg-[#FFC107] hover:bg-[#FFB300] text-gray-800',      // Amber/Yellow
+      'upcoming': 'bg-[#2196F3] hover:bg-[#1976D2] text-white',        // Blue
+      'scheduled': 'bg-[#2196F3] hover:bg-[#1976D2] text-white',       // Blue (same as upcoming)
+      'ongoing': 'bg-[#4CAF50] hover:bg-[#388E3C] text-white',         // Green
+      'completed': 'bg-[#673AB7] hover:bg-[#512DA8] text-white',       // Purple/Indigo
+      'follow-up': 'bg-[#FF9800] hover:bg-[#F57C00] text-white',       // Orange
+      'cancelled': 'bg-[#F44336] hover:bg-[#D32F2F] text-white',       // Red
+      'no-show': 'bg-gray-500 hover:bg-gray-600 text-white',           // Gray (fallback)
     };
-    return colors[status] || 'bg-gray-400 hover:bg-gray-500';
+    return colors[status] || 'bg-gray-400 hover:bg-gray-500 text-white';
   };
 
   // Get patient name
@@ -219,20 +219,16 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
         {/* Legend */}
         <div className="mt-6 flex flex-wrap gap-4 justify-center">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-blue-500 rounded"></div>
-            <span className="text-xs text-gray-600">Scheduled</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-yellow-500 rounded"></div>
+            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#FFC107' }}></div>
             <span className="text-xs text-gray-600">Pending</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-orange-500 rounded"></div>
-            <span className="text-xs text-gray-600">Ongoing</span>
+            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#2196F3' }}></div>
+            <span className="text-xs text-gray-600">Upcoming</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-purple-500 rounded"></div>
-            <span className="text-xs text-gray-600">Follow-up</span>
+            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#4CAF50' }}></div>
+            <span className="text-xs text-gray-600">Ongoing</span>
           </div>
         </div>
       </CardContent>

@@ -1,15 +1,13 @@
 
 import AppointmentCalendar from '@/components/ui/AppointmentCalendar';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useClinic } from '@/contexts/ClinicContext';
 import { axiosInstance } from '@/services/api';
 import { getPatientNameFromAppointment } from '@/utils/patientNameUtils';
-import { Bell, CalendarDays, Calendar as CalendarIcon, Clock, FileText, List, Users } from 'lucide-react';
+import { Bell, Calendar as CalendarIcon, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -190,228 +188,89 @@ const DoctorDashboard = () => {
         <p className="text-muted-foreground">Welcome back. Here's an overview of today's schedule.</p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalPatients}</div>
-            <p className="text-xs text-muted-foreground">+2 new this week</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Today's Appointments</CardTitle>
-            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalTodaysAppointments}</div>
-            <p className="text-xs text-muted-foreground">
-              {todaysAppointments.filter(a => a.status === 'scheduled').length} awaiting consultation
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Follow-ups</CardTitle>
-            <Bell className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{upcomingFollowUps.length}</div>
-            <p className="text-xs text-muted-foreground">Upcoming this week</p>
-          </CardContent>
-        </Card>
+      {/* Main Layout: Stats on Left, Calendar on Right */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Left Side - Stats Cards (Vertical Layout) */}
+        <div className="lg:col-span-1 space-y-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Registered Patients</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalPatients}</div>
+              <p className="text-xs text-muted-foreground">Total in system</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Today's Appointments</CardTitle>
+              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalTodaysAppointments}</div>
+              <p className="text-xs text-muted-foreground">
+                {todaysAppointments.filter(a => a.status === 'scheduled').length} scheduled
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Upcoming Appointments</CardTitle>
+              <Bell className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{upcomingAppointments.length}</div>
+              <p className="text-xs text-muted-foreground">Next 7 days</p>
+            </CardContent>
+          </Card>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Document Requests</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">Awaiting your approval</p>
-          </CardContent>
-        </Card>
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="col-span-1 lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Schedule Management</CardTitle>
-            <CardDescription>View and manage your appointments</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Tabs defaultValue="list" className="w-full">
-              <TabsList className="grid grid-cols-2 w-full">
-                <TabsTrigger value="list" className="flex items-center gap-2">
-                  <List className="h-4 w-4" />
-                  List View
-                </TabsTrigger>
-                <TabsTrigger value="calendar" className="flex items-center gap-2">
-                  <CalendarDays className="h-4 w-4" />
-                  Calendar View
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="list" className="space-y-6 p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Today's Appointments</CardTitle>
-                      <CardDescription>Your scheduled consultations for today</CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <div className="divide-y">
-                        {todaysAppointments.length > 0 ? (
-                          todaysAppointments.map((appointment) => {
-                            const patientId = appointment.patientId || appointment.patient;
-                            let patient = patients.find(p => String(p.id) === String(patientId));
-                            if (!patient && patientDetails[patientId]) {
-                              patient = patientDetails[patientId];
-                            }
-                            const consultationType = appointment.appointment_type || appointment.type || 'Consultation';
-                            const patientName = getPatientName(patientId, appointment);
-                            return (
-                              <div key={appointment.id} className="flex items-center justify-between p-4">
-                                <div className="flex items-center gap-3">
-                                  <Avatar>
-                                    <AvatarFallback>{patientName.charAt(0)}</AvatarFallback>
-                                  </Avatar>
-                                  <div>
-                                    <div className="font-medium">{patientName}</div>
-                                    <div className="text-sm text-muted-foreground">{consultationType}</div>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                  <div className="text-right">
-                                    <div className="flex items-center gap-1">
-                                      <Clock className="h-3 w-3" />
-                                      <span className="text-sm">{formatTime(appointment.time)}</span>
-                                    </div>
-                                    <Badge 
-                                      variant={appointment.status === 'scheduled' ? 'outline' : 'secondary'}
-                                      className="mt-1"
-                                    >
-                                      {appointment.status === 'scheduled' ? 'Awaiting consultation' : 'Completed'}
-                                    </Badge>
-                                  </div>
-                                  <Button size="sm" variant="outline" onClick={() => navigate(`/patients/${patient?.patient_id || patient?.id}`)}>
-                                    View Record
-                                  </Button>
-                                </div>
-                              </div>
-                            );
-                          })
-                        ) : (
-                          <div className="py-8 text-center text-muted-foreground">
-                            No appointments scheduled for today
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                    <CardFooter className="border-t bg-muted/50 px-6 py-3">
-                      <Button variant="ghost" className="w-full" onClick={() => navigate('/appointments')}>
-                        View all appointments
-                      </Button>
-                    </CardFooter>
-                  </Card>
+        {/* Right Side - Calendar */}
+        <div className="lg:col-span-3">
+          <Card>
+            <CardHeader>
+              <CardTitle>Appointment Calendar</CardTitle>
+              <CardDescription>View and manage your appointment schedule</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AppointmentCalendar
+                appointments={appointmentsForDoctor.filter(appointment => {
+                  // Debug: Log appointment details
+                  console.log('Calendar filter - Appointment:', {
+                    id: appointment.id,
+                    status: appointment.status,
+                    date: appointment.date,
+                    time: appointment.time,
+                    patient: appointment.patient || appointment.patientId
+                  });
                   
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Upcoming Appointments</CardTitle>
-                      <CardDescription>Your next scheduled appointments</CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <div className="divide-y">
-                        {upcomingAppointments.length > 0 ? (
-                          upcomingAppointments.map((appointment) => {
-                            const patientId = appointment.patientId || appointment.patient;
-                            let patient = patients.find(p => String(p.id) === String(patientId));
-                            if (!patient && patientDetails[patientId]) {
-                              patient = patientDetails[patientId];
-                            }
-                            const consultationType = appointment.type || appointment.appointment_type || 'Consultation';
-                            const patientName = getPatientName(patientId, appointment);
-                            return (
-                              <div key={appointment.id} className="flex items-center justify-between p-4">
-                                <div className="flex items-center gap-3">
-                                  <Avatar>
-                                    <AvatarFallback>{patientName.charAt(0)}</AvatarFallback>
-                                  </Avatar>
-                                  <div>
-                                    <div className="font-medium">{patientName}</div>
-                                    <div className="text-sm text-muted-foreground">{consultationType}</div>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                  <div className="text-right">
-                                    <div className="font-medium">{new Date(appointment.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                                    <div className="text-sm text-muted-foreground">{formatTime(appointment.time)}</div>
-                                  </div>
-                                  <Button size="sm" variant="outline" onClick={() => navigate(`/patients/${patient?.patient_id || patient?.id}`)}>
-                                    View Patient
-                                  </Button>
-                                </div>
-                              </div>
-                            );
-                          })
-                        ) : (
-                          <div className="py-8 text-center text-muted-foreground">
-                            No upcoming appointments
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                    <CardFooter className="border-t bg-muted/50 px-6 py-3">
-                      <Button variant="ghost" className="w-full" onClick={() => navigate('/appointments')}>
-                        View all appointments
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="calendar" className="space-y-6">
-                <AppointmentCalendar
-                  appointments={appointmentsForDoctor.filter(appointment => {
-                    // Debug: Log appointment details
-                    console.log('Calendar filter - Appointment:', {
-                      id: appointment.id,
-                      status: appointment.status,
-                      date: appointment.date,
-                      time: appointment.time,
-                      patient: appointment.patient || appointment.patientId
-                    });
-                    
-                    // Explicitly include scheduled appointments
-                    const status = appointment.status?.toLowerCase() || '';
-                    
-                    // Always include scheduled appointments
-                    if (status === 'scheduled') {
-                      console.log('Including scheduled appointment:', appointment.id);
-                      return true;
-                    }
-                    
-                    // Exclude completed, cancelled, and pending
-                    const excludedStatuses = ['completed', 'cancelled', 'pending'];
-                    const shouldInclude = !excludedStatuses.includes(status);
-                    
-                    console.log('Should include appointment:', shouldInclude, 'Status:', appointment.status, 'Lowercase status:', status);
-                    return shouldInclude;
-                  })}
-                  onAppointmentClick={handleAppointmentClick}
-                  onDateClick={handleDateClick}
-                  patientDetails={patientDetails}
-                  patients={patients}
-                />
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+                  // Explicitly include scheduled appointments
+                  const status = appointment.status?.toLowerCase() || '';
+                  
+                  // Always include scheduled appointments
+                  if (status === 'scheduled') {
+                    console.log('Including scheduled appointment:', appointment.id);
+                    return true;
+                  }
+                  
+                  // Exclude completed, cancelled, and pending
+                  const excludedStatuses = ['completed', 'cancelled', 'pending'];
+                  const shouldInclude = !excludedStatuses.includes(status);
+                  
+                  console.log('Should include appointment:', shouldInclude, 'Status:', appointment.status, 'Lowercase status:', status);
+                  return shouldInclude;
+                })}
+                onAppointmentClick={handleAppointmentClick}
+                onDateClick={handleDateClick}
+                patientDetails={patientDetails}
+                patients={patients}
+              />
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Appointment Details Modal */}
