@@ -171,12 +171,12 @@ export const AppSidebar = () => {
   return (
     <Sidebar key={permissionKey} collapsible="icon" className="[&[data-state=collapsed]]:w-16">
       <SidebarHeader className={cn("flex flex-col items-center gap-2", open ? "p-4" : "p-3")}>
-        <div className={cn("text-xl font-bold text-[#79c942] transition-all duration-200", open ? "opacity-100 h-auto" : "opacity-0 h-0 overflow-hidden")}>LUNASync</div>
+        <div className={cn("text-xl font-bold text-[#79c942] transition-all duration-200", open ? "opacity-100 h-auto mb-2" : "opacity-0 h-6 overflow-hidden mb-0")}>LUNASync</div>
         <Link
           to="/user-settings"
           className={cn(
-            "flex items-center gap-2 mt-2 cursor-pointer hover:bg-gray-100 rounded p-2 transition-all duration-200",
-            open ? "w-fit" : "w-12 h-12 justify-center"
+            "flex items-center gap-2 cursor-pointer hover:bg-gray-100 rounded p-2 transition-all duration-200",
+            open ? "w-fit mt-0" : "w-12 h-12 justify-center mt-2"
           )}
           title="Go to Settings"
         >
@@ -192,14 +192,14 @@ export const AppSidebar = () => {
           </div>
         </Link>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className={cn("transition-all duration-200", open ? "pt-0" : "pt-4")}>
         <SidebarGroup>
           <SidebarGroupLabel className={cn("transition-all duration-200", open ? "opacity-100 h-auto" : "opacity-0 h-0 overflow-hidden")}>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
+          <SidebarGroupContent className={cn("transition-all duration-200", open ? "mt-0" : "mt-2")}>
             <SidebarMenu>
               {menuItems.map((item) =>
                 item.subItems ? (
-                  <SidebarMenuItem key={item.title}>
+                  <SidebarMenuItem key={item.title} className={cn("transition-all duration-200", !open && "mb-2")}>
                     {/* When sidebar is collapsed, show dropdown menu */}
                     {!open ? (
                       <DropdownMenu>
@@ -267,7 +267,7 @@ export const AppSidebar = () => {
                     )}
                   </SidebarMenuItem>
                 ) : (
-                  <SidebarMenuItem key={item.title}>
+                  <SidebarMenuItem key={item.title} className={cn("transition-all duration-200", !open && "mb-2")}>
                     <SidebarMenuButton asChild>
                       <Link
                         to={item.path}
