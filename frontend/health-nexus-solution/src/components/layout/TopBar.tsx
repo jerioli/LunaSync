@@ -33,6 +33,43 @@ export const TopBar: React.FC = () => {
   const [hasMoreNotifications, setHasMoreNotifications] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const NOTIFICATIONS_PER_PAGE = 10;
+  
+  // Real-time clock state for Philippine time
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update clock every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Format time for Philippine timezone (UTC+8)
+  const formatPhilippineTime = () => {
+    const phTime = new Intl.DateTimeFormat('en-PH', {
+      timeZone: 'Asia/Manila',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    }).format(currentTime);
+    
+    return phTime;
+  };
+
+  // Format date for Philippine timezone
+  const formatPhilippineDate = () => {
+    const phDate = new Intl.DateTimeFormat('en-PH', {
+      timeZone: 'Asia/Manila',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    }).format(currentTime);
+    
+    return phDate;
+  };
 
   // Load read notifications from localStorage on component mount
   useEffect(() => {
@@ -473,6 +510,16 @@ export const TopBar: React.FC = () => {
 
         {/* Right side - Actions */}
         <div className="flex items-center gap-2 sm:gap-4">
+          {/* Philippine Time Clock */}
+          <div className="hidden sm:flex flex-col items-end mr-2 text-sm">
+            <div className="font-semibold text-gray-700" style={{ color: colors.primaryColor }}>
+              {formatPhilippineTime()}
+            </div>
+            <div className="text-xs text-gray-500">
+              {formatPhilippineDate()}
+            </div>
+          </div>
+
           <div className="relative notification-dropdown">
             {/* Notification button with dynamic primary color */}
             <Button 

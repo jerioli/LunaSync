@@ -89,6 +89,11 @@ export const AppSidebar = () => {
         ? { title: "Schedule", icon: Calendar, path: "/schedule" }
         : null,
 
+      // Scheduler - only for receptionists and admins
+      ["receptionist", "admin"].includes(currentUser.role)
+        ? { title: "Scheduler", icon: Calendar, path: "/receptionist-scheduler" }
+        : null,
+
       // Lab Results - Only for doctors and admins (not superadmin, not receptionist)
       ["doctor", "admin"].includes(currentUser.role)
         ? { title: "Lab Results", icon: Image, path: "/lab-results" }

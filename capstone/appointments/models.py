@@ -111,8 +111,8 @@ class Appointment(models.Model):
                     ).first()
                     
                     if time_slot:
-                        # Mark as booked if appointment is active (pending or scheduled)
-                        should_be_booked = self.status in ['pending', 'scheduled']
+                        # Mark as booked if appointment is active (pending, scheduled, or ongoing)
+                        should_be_booked = self.status in ['pending', 'scheduled', 'ongoing']
                         
                         if time_slot.is_booked != should_be_booked:
                             time_slot.is_booked = should_be_booked

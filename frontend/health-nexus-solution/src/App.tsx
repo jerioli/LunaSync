@@ -8,6 +8,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import AccountActivation from "./components/AccountActivation";
 import { AppLayout } from "./components/layout/AppLayout";
 import AddPatient from "./components/patients/AddPatient_clean";
+import ReceptionistScheduler from "./components/scheduling/ReceptionistScheduler";
 import Appointments from "./pages/Appointments";
 import AppointmentScheduling from "./pages/AppointmentScheduling";
 import AuditLogs from "./pages/AuditLogs";
@@ -330,6 +331,18 @@ const App = () => {
                       <ProtectedRoute>
                         <AppLayout>
                           <Schedule />
+                        </AppLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Receptionist scheduler route */}
+                  <Route
+                    path="/receptionist-scheduler"
+                    element={
+                      <ProtectedRoute>
+                        <AppLayout>
+                          <ReceptionistScheduler />
                         </AppLayout>
                       </ProtectedRoute>
                     }
