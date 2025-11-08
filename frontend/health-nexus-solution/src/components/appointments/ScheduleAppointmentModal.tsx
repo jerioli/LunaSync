@@ -93,10 +93,9 @@ type AppointmentFormValues = z.infer<typeof appointmentSchema>;
 const STEPS = [
   { id: 0, title: "Patient Selection", icon: User, description: "Select or create patient" },
   { id: 1, title: "Doctor & Type", icon: Stethoscope, description: "Choose doctor and appointment type" },
-  { id: 2, title: "Select Date", icon: CalendarIcon, description: "Pick appointment date" },
-  { id: 3, title: "Select Time", icon: Clock, description: "Choose available time slot" },
-  { id: 4, title: "Notes", icon: FileText, description: "Add additional information" },
-  { id: 5, title: "Confirmation", icon: User, description: "Review and confirm details" },
+  { id: 2, title: "Date & Time", icon: CalendarIcon, description: "Pick appointment date and time" },
+  { id: 3, title: "Notes", icon: FileText, description: "Add additional information" },
+  { id: 4, title: "Confirmation", icon: User, description: "Review and confirm details" },
 ];
 
 interface NewAppointmentModalProps {
@@ -344,6 +343,41 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
       
       console.log('Formatted date string:', dateString);
       
+      // Fetch existing appointments for this doctor on this date
+      let bookedTimeSlots: string[] = [];
+      try {
+        const appointmentsResponse = await axiosInstance.get('/appointments/', {
+          params: {
+            doctor_id: doctorId,
+            appointment_date: dateString,
+            status: 'upcoming,ongoing' // Only upcoming and ongoing appointments block slots
+          }
+        });
+        
+        console.log('Existing appointments response:', appointmentsResponse.data);
+        
+        // Extract booked time slots from appointments
+        if (Array.isArray(appointmentsResponse.data)) {
+          bookedTimeSlots = appointmentsResponse.data
+            .filter(apt => apt.appointment_time) // Only include appointments with time
+            .map(apt => {
+              // Convert appointment time to match the format used in time slots
+              // If appointment_time is already in HH:MM format, use it directly
+              const timeStr = apt.appointment_time;
+              if (timeStr && timeStr.includes(':')) {
+                return timeStr;
+              }
+              return null;
+            })
+            .filter(time => time !== null);
+          
+          console.log('Booked time slots from appointments:', bookedTimeSlots);
+        }
+      } catch (appointmentError) {
+        console.error('Error fetching appointments:', appointmentError);
+        // Continue even if appointment fetch fails - we'll rely on is_booked from availability
+      }
+      
       // Use the same API endpoint as the chatbot
       const response = await axiosInstance.get(`/availability/`, {
         params: {
@@ -380,12 +414,52 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
       
       console.log('Raw time slots:', availability.time_slots);
      
-      // Filter out booked slots (same as chatbot logic)
+      // Log all time slots before filtering (same as chatbot)
+      console.log('All time slots before filtering:', availability.time_slots.map(slot => ({
+        start: slot.start_time,
+        end: slot.end_time,
+        booked: slot.is_booked
+      })));
+      
+      // Filter out booked slots and lunch break (12:00 PM - 1:00 PM) matching chatbot logic
       const availableSlots = availability.time_slots.filter(slot => {
-        return !slot.is_booked && slot.start_time && slot.end_time;
+        // Check if slot is marked as booked in the availability data
+        const isBookedInAvailability = Boolean(
+          slot.is_booked === true || 
+          slot.is_booked === 1 || 
+          slot.is_booked === "true" || 
+          slot.is_booked === "1" ||
+          slot.is_booked === "True" ||
+          slot.is_booked === "TRUE" ||
+          slot.is_booked === "yes" ||
+          slot.is_booked === "YES" ||
+          slot.is_booked === "Yes"
+        );
+        
+        // Also check if this time slot has an existing appointment
+        const isBookedByAppointment = bookedTimeSlots.includes(slot.start_time);
+        
+        const isBooked = isBookedInAvailability || isBookedByAppointment;
+        
+        if (isBookedByAppointment) {
+          console.log(`Time slot ${slot.start_time} is booked by an existing appointment`);
+        }
+        
+        // Skip lunch break (12:00 PM to 1:00 PM) - same logic as chatbot
+        const [hours] = slot.start_time.split(':');
+        const hour = parseInt(hours);
+        const isLunchBreak = (hour === 12);
+        
+        // Debug logging for lunch break filtering
+        if (isLunchBreak) {
+          console.log(`Filtering out lunch break slot: ${slot.start_time} - ${slot.end_time} (hour: ${hour})`);
+        }
+        
+        // Only show slots that are NOT booked AND NOT lunch break
+        return !isBooked && !isLunchBreak && slot.start_time && slot.end_time;
       });
       
-      console.log('Available (unbooked) slots:', availableSlots);
+      console.log('Available (unbooked) slots after filtering:', availableSlots);
      
       // Format for display (same as chatbot logic)
       const formattedSlots = availableSlots.map(slot => {
@@ -1160,14 +1234,14 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
             render={({ field }) => (
               <FormItem className="flex flex-col">
                 <FormLabel>Date of Birth *</FormLabel>
-                <div className="border rounded-md p-2">
+                <div className="border rounded-md p-2 max-w-xs">
                   <Calendar
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
                     disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
                     initialFocus
-                    className="mx-auto"
+                    className="mx-auto scale-90"
                   />
                 </div>
                 <FormMessage />
@@ -1362,6 +1436,125 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
           </FormItem>
         )}
       />
+    </div>
+  );
+
+  const renderDateAndTimeSelection = () => (
+    <div className="space-y-6">
+      {/* Date Selection with Popover */}
+      <FormField
+        control={form.control}
+        name="date"
+        render={({ field }) => (
+          <FormItem className="flex flex-col">
+            <FormLabel>Select Date *</FormLabel>
+            <Popover>
+              <PopoverTrigger asChild>
+                <FormControl>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full pl-3 text-left font-normal",
+                      !field.value && "text-muted-foreground"
+                    )}
+                  >
+                    {field.value ? (
+                      format(field.value, "PPP")
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                </FormControl>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={field.value}
+                  onSelect={field.onChange}
+                  disabled={(date) => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const compareDate = new Date(date);
+                    compareDate.setHours(0, 0, 0, 0);
+                    return compareDate < today;
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            <FormDescription>
+              Choose your preferred appointment date
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* Time Selection with Popover */}
+      {selectedDate && (
+        <FormField
+          control={form.control}
+          name="time"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Select Time Slot *</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value ? (
+                        field.value
+                      ) : (
+                        <span>Pick a time slot</span>
+                      )}
+                      <Clock className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <div className="max-h-[300px] overflow-y-auto p-4">
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="grid grid-cols-2 gap-2"
+                    >
+                      {availableTimeSlots.map((slot) => (
+                        <div key={slot.value} className="flex items-center space-x-2">
+                          <Card className={`p-2 cursor-pointer transition-all hover:shadow-md w-full ${
+                            field.value === slot.value ? 'ring-2 ring-primary bg-primary/5' : ''
+                          }`}>
+                            <RadioGroupItem value={slot.value} id={slot.value} className="sr-only" />
+                            <label 
+                              htmlFor={slot.value} 
+                              className="text-sm font-medium cursor-pointer w-full block text-center"
+                            >
+                              {slot.label}
+                            </label>
+                          </Card>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                </PopoverContent>
+              </Popover>
+              <FormDescription>
+                {availableTimeSlots.length > 0 
+                  ? `${availableTimeSlots.length} available time slots for ${format(selectedDate, 'MMMM d, yyyy')}`
+                  : 'No available time slots for this date'
+                }
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
     </div>
   );
 
@@ -1647,10 +1840,9 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
             <div className="min-h-[400px]">
               {currentStep === 0 && renderPatientSelection()}
               {currentStep === 1 && renderDoctorAndType()}
-              {currentStep === 2 && renderDateSelection()}
-              {currentStep === 3 && renderTimeSelection()}
-              {currentStep === 4 && renderNotes()}
-              {currentStep === 5 && renderConfirmation()}
+              {currentStep === 2 && renderDateAndTimeSelection()}
+              {currentStep === 3 && renderNotes()}
+              {currentStep === 4 && renderConfirmation()}
             </div>
 
             {/* Navigation Footer */}

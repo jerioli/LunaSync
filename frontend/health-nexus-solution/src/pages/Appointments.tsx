@@ -3,22 +3,23 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
 } from "@/components/ui/pagination";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useBranding } from "@/contexts/BrandingContext";
 import { useClinic } from "@/hooks/useClinicContext";
 import { axiosInstance } from "@/services/api";
 import { getPatientNameFromAppointment } from "@/utils/patientNameUtils";
@@ -29,6 +30,7 @@ import { toast } from "sonner";
 
 const Appointments = () => {
   const { currentUser, patients, users } = useClinic();
+  const { colors } = useBranding();
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [activeTab, setActiveTab] = useState("pending");
@@ -962,15 +964,69 @@ const Appointments = () => {
               }`}
             >
               {canManageAppointments && (
-                <TabsTrigger value="pending">Pending</TabsTrigger>
+                <TabsTrigger 
+                  value="pending" 
+                  className="hover:bg-primary/10 transition-colors"
+                  style={{
+                    backgroundColor: activeTab === 'pending' ? colors.primaryColor : undefined,
+                    color: activeTab === 'pending' ? 'white' : undefined
+                  }}
+                >
+                  Pending
+                </TabsTrigger>
               )}
-              <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-              <TabsTrigger value="ongoing">Ongoing</TabsTrigger>
-              <TabsTrigger value="completed">Completed</TabsTrigger>
+              <TabsTrigger 
+                value="upcoming" 
+                className="hover:bg-primary/10 transition-colors"
+                style={{
+                  backgroundColor: activeTab === 'upcoming' ? colors.primaryColor : undefined,
+                  color: activeTab === 'upcoming' ? 'white' : undefined
+                }}
+              >
+                Upcoming
+              </TabsTrigger>
+              <TabsTrigger 
+                value="ongoing" 
+                className="hover:bg-primary/10 transition-colors"
+                style={{
+                  backgroundColor: activeTab === 'ongoing' ? colors.primaryColor : undefined,
+                  color: activeTab === 'ongoing' ? 'white' : undefined
+                }}
+              >
+                Ongoing
+              </TabsTrigger>
+              <TabsTrigger 
+                value="completed" 
+                className="hover:bg-primary/10 transition-colors"
+                style={{
+                  backgroundColor: activeTab === 'completed' ? colors.primaryColor : undefined,
+                  color: activeTab === 'completed' ? 'white' : undefined
+                }}
+              >
+                Completed
+              </TabsTrigger>
               {canManageAppointments && (
-                <TabsTrigger value="followup">Follow-up</TabsTrigger>
+                <TabsTrigger 
+                  value="followup" 
+                  className="hover:bg-primary/10 transition-colors"
+                  style={{
+                    backgroundColor: activeTab === 'followup' ? colors.primaryColor : undefined,
+                    color: activeTab === 'followup' ? 'white' : undefined
+                  }}
+                >
+                  Follow-up
+                </TabsTrigger>
               )}
-              <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
+              <TabsTrigger 
+                value="cancelled" 
+                className="hover:bg-primary/10 transition-colors"
+                style={{
+                  backgroundColor: activeTab === 'cancelled' ? colors.primaryColor : undefined,
+                  color: activeTab === 'cancelled' ? 'white' : undefined
+                }}
+              >
+                Cancelled
+              </TabsTrigger>
             </TabsList>
 
             {canManageAppointments && (
@@ -1023,6 +1079,12 @@ const Appointments = () => {
                                 {getPatientName(
                                   appointment.patientId,
                                   appointment
+                                )}
+                                {/* Show "New Patient" badge for first-time patients from portal/chatbot */}
+                                {appointment.patient_name && !appointment.patientId && (
+                                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                    New Patient
+                                  </span>
                                 )}
                               </TableCell>
                               <TableCell>

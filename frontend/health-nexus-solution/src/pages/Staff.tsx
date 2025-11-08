@@ -6,56 +6,55 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useBranding } from "@/contexts/BrandingContext";
 import { useClinic } from "@/contexts/ClinicContext";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Admin,
-  api,
-  axiosInstance,
-  Doctor,
-  Receptionist,
-  StaffMember,
+    Admin,
+    api,
+    axiosInstance,
+    Doctor,
+    Receptionist,
+    StaffMember,
 } from "@/services/api";
 import {
-  ArrowUpDown,
-  CheckSquare,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronUp,
-  Edit,
-  Eye,
-  Mail,
-  Phone,
-  Search,
-  UserPlus,
+    ArrowUpDown,
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    ChevronUp,
+    Edit,
+    Eye,
+    Mail,
+    Phone,
+    Search,
+    UserPlus
 } from "lucide-react";
 
 export type Role =
@@ -70,6 +69,7 @@ type SortDirection = "asc" | "desc";
 
 const StaffPage = () => {
   const { currentUser } = useClinic();
+  const { colors } = useBranding();
   const { toast } = useToast();
   const [staff, setStaff] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -886,11 +886,47 @@ const StaffPage = () => {
             currentUser?.role === "superadmin" ? "grid-cols-4" : "grid-cols-3"
           }`}
         >
-          <TabsTrigger value="doctors">Doctors</TabsTrigger>
-          <TabsTrigger value="receptionists">Receptionists</TabsTrigger>
-          <TabsTrigger value="admins">Administrators</TabsTrigger>
+          <TabsTrigger 
+            value="doctors"
+            className="transition-colors"
+            style={{
+              backgroundColor: currentTab === 'doctors' ? colors.primaryColor : undefined,
+              color: currentTab === 'doctors' ? 'white' : undefined
+            }}
+          >
+            Doctors
+          </TabsTrigger>
+          <TabsTrigger 
+            value="receptionists"
+            className="transition-colors"
+            style={{
+              backgroundColor: currentTab === 'receptionists' ? colors.primaryColor : undefined,
+              color: currentTab === 'receptionists' ? 'white' : undefined
+            }}
+          >
+            Receptionists
+          </TabsTrigger>
+          <TabsTrigger 
+            value="admins"
+            className="transition-colors"
+            style={{
+              backgroundColor: currentTab === 'admins' ? colors.primaryColor : undefined,
+              color: currentTab === 'admins' ? 'white' : undefined
+            }}
+          >
+            Administrators
+          </TabsTrigger>
           {currentUser?.role === "superadmin" && (
-            <TabsTrigger value="superadmins">Super Admins</TabsTrigger>
+            <TabsTrigger 
+              value="superadmins"
+              className="transition-colors"
+              style={{
+                backgroundColor: currentTab === 'superadmins' ? colors.primaryColor : undefined,
+                color: currentTab === 'superadmins' ? 'white' : undefined
+              }}
+            >
+              Super Admins
+            </TabsTrigger>
           )}
         </TabsList>
 
