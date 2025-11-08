@@ -2,7 +2,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { BrandingProvider } from "./contexts/BrandingContext";
 import { ClinicProvider, useClinic } from "./contexts/ClinicContext";
-import { LanguageProvider } from "./contexts/LanguageContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
 import AccountActivation from "./components/AccountActivation";
@@ -183,15 +182,11 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="health-nexus-theme">
-        <LanguageProvider
-          defaultLanguage="en"
-          storageKey="health-nexus-language"
-        >
-          <BrandingProvider>
-            <ClinicProvider>
-              <Toaster />
-              <BrowserRouter>
-                <Routes>
+        <BrandingProvider>
+          <ClinicProvider>
+            <Toaster />
+            <BrowserRouter>
+              <Routes>
                   {/* Initial landing/routing page */}
                   <Route path="/index" element={<Index />} />
 
@@ -537,7 +532,6 @@ const App = () => {
               </BrowserRouter>
             </ClinicProvider>
           </BrandingProvider>
-        </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

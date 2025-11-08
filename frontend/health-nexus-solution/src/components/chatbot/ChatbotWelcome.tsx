@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button';
-import { useLanguage } from '@/contexts/LanguageContext';
 import { Stethoscope } from 'lucide-react';
 
 interface ChatbotWelcomeProps {
@@ -7,8 +6,6 @@ interface ChatbotWelcomeProps {
 }
 
 export const ChatbotWelcome = ({ onStartChat }: ChatbotWelcomeProps) => {
-  const { t } = useLanguage();
-  
   return (
     <div className="p-6 text-center">
       <div className="flex justify-center mb-4">
@@ -16,7 +13,7 @@ export const ChatbotWelcome = ({ onStartChat }: ChatbotWelcomeProps) => {
       </div>
       <h2 className="text-xl font-semibold mb-2">Hi! I'm Luna.</h2>
       <p className="mb-4 text-gray-600">
-        {t('chatbot.greeting')}
+        Your AI Health Assistant. I'm here to help you with health information and guide you through our services.
       </p>
       <Button onClick={onStartChat} className="bg-[#79c942] hover:bg-[#6bb33a] text-white transition-colors">
         Start Consultation

@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ChatInputProps {
   input: string;
@@ -17,12 +16,10 @@ export const ChatInput = ({
   placeholder,
   isInputDisabled = false
 }: ChatInputProps) => {
-  const { t } = useLanguage();
-  
   return (
     <div className="flex w-full gap-2">
       <Input
-        placeholder={placeholder || t('chatbot.typeMessage')}
+        placeholder={placeholder || 'Type your message...'}
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && !isInputDisabled && handleSendMessage()}

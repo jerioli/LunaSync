@@ -138,12 +138,8 @@ const prescriptionSchema = z.object({
 type MedicalCertFormData = z.infer<typeof medicalCertSchema>;
 type PrescriptionFormData = z.infer<typeof prescriptionSchema>;
 
-// Note: These hooks need to be implemented or imported from your language context
-const useLanguage = () => ({ t: (key: string) => key });
-
 const PatientPortal = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [clinic, setClinic] = useState({
@@ -2624,9 +2620,7 @@ const PatientPortal = () => {
             </h1>
             <p className="text-lg text-gray-600">
               {clinic.hero_subtitle ||
-                `${clinic.clinic_name || t("portal.welcome")} ${t(
-                  "portal.heroSubtitle"
-                )}`}
+                `${clinic.clinic_name || "Welcome"} - Your Trusted Healthcare Partner`}
             </p>
             {/* Remove the flex container with two buttons and only leave the content div empty */}
           </div>
