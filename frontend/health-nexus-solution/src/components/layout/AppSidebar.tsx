@@ -1,5 +1,11 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
@@ -48,7 +54,7 @@ export const AppSidebar = () => {
   const [openDocMgmt, setOpenDocMgmt] = React.useState(false);
   const { currentUser, setCurrentUser } = useClinic();
   const location = useLocation();
-  const { setOpenMobile } = useSidebar();
+  const { setOpenMobile, state, open } = useSidebar();
 
   if (!currentUser) return null;
 
@@ -163,19 +169,22 @@ export const AppSidebar = () => {
     setOpenMobile(false); // Close sidebar on menu click
   };
   return (
-    <Sidebar key={permissionKey}>
-      <SidebarHeader className="flex flex-col items-center gap-2 p-4">
-        <div className="text-xl font-bold text-[#79c942]">LUNASync</div>
+    <Sidebar key={permissionKey} collapsible="icon" className="[&[data-state=collapsed]]:w-16">
+      <SidebarHeader className={cn("flex flex-col items-center gap-2", open ? "p-4" : "p-3")}>
+        <div className={cn("text-xl font-bold text-[#79c942] transition-all duration-200", open ? "opacity-100 h-auto" : "opacity-0 h-0 overflow-hidden")}>LUNASync</div>
         <Link
           to="/user-settings"
-          className="flex items-center gap-2 mt-2 cursor-pointer hover:bg-gray-100 rounded p-2 w-fit"
+          className={cn(
+            "flex items-center gap-2 mt-2 cursor-pointer hover:bg-gray-100 rounded p-2 transition-all duration-200",
+            open ? "w-fit" : "w-12 h-12 justify-center"
+          )}
           title="Go to Settings"
         >
-          <Avatar>
+          <Avatar className={cn("transition-all duration-200", open ? "" : "w-8 h-8")}>
             <AvatarImage src={currentUser.image} alt={currentUser.name} />
             <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
           </Avatar>
-          <div>
+          <div className={cn("transition-all duration-200", open ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden")}>
             <div className="font-medium">{currentUser.name}</div>
             <div className="text-xs text-muted-foreground capitalize">
               {currentUser.role}
@@ -185,43 +194,76 @@ export const AppSidebar = () => {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel className={cn("transition-all duration-200", open ? "opacity-100 h-auto" : "opacity-0 h-0 overflow-hidden")}>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) =>
                 item.subItems ? (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      className="flex items-center gap-2"
-                      onClick={() => setOpenDocMgmt((v) => !v)}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      <span>{item.title}</span>
-                      <span className="ml-auto">{openDocMgmt ? "▲" : "▼"}</span>
-                    </SidebarMenuButton>
-                    {/* Sub-menu for document management */}
-                    {openDocMgmt && (
-                      <div className="ml-8">
-                        {item.subItems.map((sub) => (
-                          <SidebarMenuItem key={sub.title}>
-                            <SidebarMenuButton asChild>
+                    {/* When sidebar is collapsed, show dropdown menu */}
+                    {!open ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <SidebarMenuButton
+                            className="flex items-center gap-2 w-full justify-center h-12"
+                            title={item.title}
+                          >
+                            <item.icon className="h-5 w-5 flex-shrink-0" />
+                          </SidebarMenuButton>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent side="right" align="start" className="ml-2">
+                          {item.subItems.map((sub) => (
+                            <DropdownMenuItem key={sub.title} asChild>
                               <Link
                                 to={sub.path}
-                                className={cn(
-                                  "flex items-center gap-2 hover:bg-[#79c942] hover:text-black",
-                                  location.pathname === sub.path
-                                    ? "bg-[#79c942] text-black"
-                                    : ""
-                                )}
+                                className="flex items-center gap-2 cursor-pointer"
                                 onClick={handleMenuClick}
                               >
-                                <sub.icon className="h-5 w-5" />
+                                <sub.icon className="h-4 w-4" />
                                 <span>{sub.title}</span>
                               </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        ))}
-                      </div>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                      /* When sidebar is expanded, show normal accordion */
+                      <>
+                        <SidebarMenuButton
+                          className="flex items-center gap-2 w-full transition-all duration-200"
+                          onClick={() => setOpenDocMgmt((v) => !v)}
+                          title={item.title}
+                        >
+                          <item.icon className="h-5 w-5 flex-shrink-0" />
+                          <span className="transition-all duration-200 opacity-100 w-auto">{item.title}</span>
+                          <span className="ml-auto transition-all duration-200 opacity-100 w-auto">{openDocMgmt ? "▲" : "▼"}</span>
+                        </SidebarMenuButton>
+                        {/* Sub-menu for document management */}
+                        {openDocMgmt && (
+                          <div className="ml-8">
+                            {item.subItems.map((sub) => (
+                              <SidebarMenuItem key={sub.title}>
+                                <SidebarMenuButton asChild>
+                                  <Link
+                                    to={sub.path}
+                                    className={cn(
+                                      "flex items-center gap-2 hover:bg-[#79c942] hover:text-black",
+                                      location.pathname === sub.path
+                                        ? "bg-[#79c942] text-black"
+                                        : ""
+                                    )}
+                                    onClick={handleMenuClick}
+                                    title={sub.title}
+                                  >
+                                    <sub.icon className="h-5 w-5 flex-shrink-0" />
+                                    <span>{sub.title}</span>
+                                  </Link>
+                                </SidebarMenuButton>
+                              </SidebarMenuItem>
+                            ))}
+                          </div>
+                        )}
+                      </>
                     )}
                   </SidebarMenuItem>
                 ) : (
@@ -230,15 +272,17 @@ export const AppSidebar = () => {
                       <Link
                         to={item.path}
                         className={cn(
-                          "flex items-center gap-2 hover:bg-[#79c942] hover:text-black",
+                          "flex items-center gap-2 hover:bg-[#79c942] hover:text-black w-full transition-all duration-200",
                           location.pathname === item.path
                             ? "bg-[#79c942] text-black"
-                            : ""
+                            : "",
+                          !open && "justify-center h-12"
                         )}
                         onClick={handleMenuClick}
+                        title={!open ? item.title : undefined}
                       >
-                        <item.icon className="h-5 w-5" />
-                        <span>{item.title}</span>
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        <span className={cn("transition-all duration-200", open ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden")}>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

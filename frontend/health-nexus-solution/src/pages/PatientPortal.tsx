@@ -5,47 +5,47 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
-    NavigationMenu,
-    NavigationMenuItem,
-    NavigationMenuLink,
-    NavigationMenuList,
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/hooks/use-toast";
 import { api } from "@/services/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { format } from "date-fns";
 import {
-    ArrowUp,
-    BotMessageSquare,
-    Calendar,
-    CheckCircle,
-    ChevronLeft,
-    ChevronRight,
-    FileText,
-    Info,
-    Pill,
-    Stethoscope,
-    User
+  ArrowUp,
+  BotMessageSquare,
+  Calendar,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Info,
+  Pill,
+  Stethoscope,
+  User
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { toast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { ENV } from "../config/env";
 
