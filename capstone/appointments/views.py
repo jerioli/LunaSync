@@ -677,3 +677,48 @@ class AvailableTimeSlotsView(APIView):
             return Response({
                 'error': 'Internal server error'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class AppointmentDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def delete(self, request, appointment_id):
+        try:
+            logger.info(f"Attempting to delete appointment with ID: {appointment_id}")
+            
+            # Check if appointment exists
+            try:
+                appointment = Appointment.objects.get(id=appointment_id)
+            except Appointment.DoesNotExist:
+                logger.warning(f"Appointment with ID {appointment_id} not found")
+                return Response({
+                    'error': 'Appointment not found'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            # Check if user has permission to delete
+            # Only admin and receptionist can delete appointments
+            if not (hasattr(request.user, 'role') and request.user.role in ['admin', 'receptionist']):
+                logger.warning(f"User {request.user.id} attempted to delete appointment without permission")
+                return Response({
+                    'error': 'Permission denied. Only admin and receptionist can delete appointments.'
+                }, status=status.HTTP_403_FORBIDDEN)
+            
+            # Log appointment details before deletion
+            logger.info(f"Deleting appointment: ID={appointment.id}, Patient={appointment.patient}, Date={appointment.date}, Status={appointment.status}")
+            
+            # Delete the appointment from database
+            appointment.delete()
+            
+            logger.info(f"Successfully deleted appointment with ID: {appointment_id}")
+            
+            return Response({
+                'message': 'Appointment successfully deleted',
+                'deleted_id': appointment_id
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error deleting appointment {appointment_id}: {str(e)}")
+            logger.error(traceback.format_exc())
+            return Response({
+                'error': 'Internal server error while deleting appointment'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

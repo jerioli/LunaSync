@@ -1378,7 +1378,13 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                 mode="single"
                 selected={field.value}
                 onSelect={field.onChange}
-                disabled={(date) => date < new Date()}
+                disabled={(date) => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0); // Reset time to start of day
+                  const compareDate = new Date(date);
+                  compareDate.setHours(0, 0, 0, 0); // Reset time to start of day
+                  return compareDate < today; // Only disable dates before today
+                }}
                 initialFocus
                 className="mx-auto"
               />

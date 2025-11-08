@@ -3,20 +3,20 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
 } from "@/components/ui/pagination";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useClinic } from "@/hooks/useClinicContext";
@@ -55,60 +55,13 @@ const Appointments = () => {
     );
     const now = new Date();
 
-    // Add a grace period of 30 minutes before marking as no-show
-    const gracePeriodMs = 30 * 60 * 1000; // 30 minutes in milliseconds
+    // Add a grace period of 2 hours before marking as overdue
+    // This prevents immediate deletion of recently scheduled appointments
+    const gracePeriodMs = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
     const overdueTime = appointmentDateTime.getTime() + gracePeriodMs;
 
+    // Only consider appointments overdue if they're more than 2 hours past their scheduled time
     return now.getTime() > overdueTime;
-  };
-
-  // Helper function to automatically delete overdue appointments
-  const checkAndDeleteOverdueAppointments = async (appointmentsList) => {
-    const overdueAppointments = appointmentsList.filter((appointment) => {
-      const isOverdue = isAppointmentOverdue(
-        appointment.date,
-        appointment.time
-      );
-      const shouldDelete =
-        isOverdue &&
-        (appointment.status === "pending" ||
-          appointment.status === "scheduled" ||
-          appointment.status === "ongoing");
-
-      if (shouldDelete) {
-        console.log(
-          `Appointment ${appointment.id} is overdue and will be deleted`
-        );
-      }
-
-      return shouldDelete;
-    });
-
-    // Delete overdue appointments
-    for (const appointment of overdueAppointments) {
-      try {
-        console.log(`Auto-deleting overdue appointment ${appointment.id}`);
-        await axiosInstance.delete(`appointments/delete/${appointment.id}/`);
-
-        // Remove from local state immediately
-        setAppointments((prev) =>
-          prev.filter((appt) => appt.id !== appointment.id)
-        );
-
-        console.log(`Successfully deleted appointment ${appointment.id}`);
-      } catch (error) {
-        console.error(
-          `Failed to delete overdue appointment ${appointment.id}:`,
-          error
-        );
-        // If API doesn't have delete endpoint, just remove from local state
-        setAppointments((prev) =>
-          prev.filter((appt) => appt.id !== appointment.id)
-        );
-      }
-    }
-
-    return overdueAppointments.length;
   };
 
   // Helper function to check if appointment can be completed (must be today's date)
@@ -258,24 +211,78 @@ const Appointments = () => {
       console.log("Pending appointments:", pendingAppointments);
 
       const mappedAppointments = mapAppointments(response.data);
-      setAppointments(mappedAppointments);
+      console.log("Mapped appointments:", mappedAppointments);
+      console.log("Mapped appointments with details:", mappedAppointments.map(apt => ({
+        id: apt.id,
+        date: apt.date,
+        time: apt.time,
+        status: apt.status,
+        patientName: apt.patient_name || apt.display_patient_name
+      })));
 
-      // Check for overdue appointments and delete them automatically
+      // Check for overdue appointments and delete them BEFORE setting state
       // Only do this if user can manage appointments (receptionist/admin)
       if (canManageAppointments) {
         console.log("Checking for overdue appointments...");
-        const overdueCount = await checkAndDeleteOverdueAppointments(
-          mappedAppointments
+        
+        // Identify overdue appointments that need to be deleted
+        const overdueAppointments = mappedAppointments.filter((appointment) => {
+          const isOverdue = isAppointmentOverdue(appointment.date, appointment.time);
+          
+          // Only delete appointments that are:
+          // 1. Truly overdue (past their time + grace period)
+          // 2. In pending or ongoing status (not scheduled appointments)
+          // 3. Not from today (to avoid deleting same-day appointments)
+          const appointmentDate = new Date(appointment.date);
+          const today = new Date();
+          const isFromToday = appointmentDate.toDateString() === today.toDateString();
+          
+          const shouldDelete = isOverdue && 
+            !isFromToday && // Don't delete today's appointments
+            (appointment.status === "pending" || appointment.status === "ongoing"); // Only delete pending/ongoing, not scheduled
+          
+          if (shouldDelete) {
+            console.log(`Appointment ${appointment.id} is overdue and will be deleted - Date: ${appointment.date}, Time: ${appointment.time}, Status: ${appointment.status}`);
+          }
+          
+          return shouldDelete;
+        });
+
+        // Delete overdue appointments from backend
+        const deletionPromises = overdueAppointments.map(async (appointment) => {
+          try {
+            console.log(`Auto-deleting overdue appointment ${appointment.id}`);
+            await axiosInstance.delete(`appointments/delete/${appointment.id}/`);
+            console.log(`Successfully deleted appointment ${appointment.id}`);
+            return appointment.id;
+          } catch (error) {
+            console.error(`Failed to delete overdue appointment ${appointment.id}:`, error);
+            // Return the ID anyway so we can filter it from local state
+            return appointment.id;
+          }
+        });
+
+        // Wait for all deletions to complete
+        const deletedIds = await Promise.all(deletionPromises);
+        
+        // Filter out deleted appointments from the mapped appointments
+        const validAppointments = mappedAppointments.filter(
+          appointment => !deletedIds.includes(appointment.id)
         );
-        if (overdueCount > 0) {
-          console.log(
-            `${overdueCount} overdue appointments were automatically deleted`
-          );
-          // Show a toast notification to inform the user
+
+        // Set state with only valid (non-overdue) appointments
+        setAppointments(validAppointments);
+
+        // Show notification if any appointments were deleted
+        if (overdueAppointments.length > 0) {
+          console.log(`${overdueAppointments.length} overdue appointments were automatically deleted`);
           toast.info(
-            `${overdueCount} overdue appointment(s) were automatically deleted`
+            `${overdueAppointments.length} overdue appointment(s) were automatically deleted`
           );
         }
+      } else {
+        // If user can't manage appointments, just set the appointments as-is
+        setAppointments(mappedAppointments);
       }
     } catch (error) {
       console.error("Error fetching appointments:", error);
@@ -290,15 +297,54 @@ const Appointments = () => {
     if (canManageAppointments) {
       const intervalId = setInterval(async () => {
         console.log("Periodic check for overdue appointments...");
-        const overdueCount = await checkAndDeleteOverdueAppointments(
-          appointments
-        );
-        if (overdueCount > 0) {
-          console.log(
-            `Periodic check: ${overdueCount} overdue appointments deleted`
+        
+        // Get current appointments from state
+        const currentAppointments = appointments;
+        
+        // Identify overdue appointments that need to be deleted
+        const overdueAppointments = currentAppointments.filter((appointment) => {
+          const isOverdue = isAppointmentOverdue(appointment.date, appointment.time);
+          
+          // Only delete appointments that are:
+          // 1. Truly overdue (past their time + grace period)
+          // 2. In pending or ongoing status (not scheduled appointments)
+          // 3. Not from today (to avoid deleting same-day appointments)
+          const appointmentDate = new Date(appointment.date);
+          const today = new Date();
+          const isFromToday = appointmentDate.toDateString() === today.toDateString();
+          
+          const shouldDelete = isOverdue && 
+            !isFromToday && // Don't delete today's appointments
+            (appointment.status === "pending" || appointment.status === "ongoing"); // Only delete pending/ongoing, not scheduled
+          
+          return shouldDelete;
+        });
+
+        if (overdueAppointments.length > 0) {
+          // Delete overdue appointments from backend
+          const deletionPromises = overdueAppointments.map(async (appointment) => {
+            try {
+              console.log(`Periodic deletion of overdue appointment ${appointment.id}`);
+              await axiosInstance.delete(`appointments/delete/${appointment.id}/`);
+              console.log(`Successfully deleted appointment ${appointment.id}`);
+              return appointment.id;
+            } catch (error) {
+              console.error(`Failed to delete overdue appointment ${appointment.id}:`, error);
+              return appointment.id; // Return ID anyway to remove from local state
+            }
+          });
+
+          // Wait for all deletions and update local state immediately
+          const deletedIds = await Promise.all(deletionPromises);
+          
+          setAppointments(prev => 
+            prev.filter(appointment => !deletedIds.includes(appointment.id))
           );
-          // Refresh appointments to get updated data
-          fetchAppointments();
+
+          console.log(`Periodic check: ${overdueAppointments.length} overdue appointments deleted`);
+          toast.info(
+            `${overdueAppointments.length} overdue appointment(s) were automatically deleted`
+          );
         }
       }, 5 * 60 * 1000); // Check every 5 minutes
 
