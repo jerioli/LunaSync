@@ -40,6 +40,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ENV } from "@/config/env";
+import { useBranding } from "@/contexts/BrandingContext";
 import { useClinic } from "@/contexts/ClinicContext";
 import { useToast } from "@/hooks/use-toast";
 import { medicalDocumentsAPI } from "@/lib/medicalDocumentsAPI";
@@ -86,6 +87,7 @@ const PatientManagement = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { colors } = useBranding();
   const {
     patients,
     updatePatient,
@@ -4498,23 +4500,58 @@ const PatientManagement = () => {
         className="w-full"
       >
         <TabsList className="mb-4 grid w-full grid-cols-5">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="overview" 
+            className="flex items-center gap-2 transition-colors"
+            style={{
+              backgroundColor: activeTab === 'overview' ? colors.primaryColor : undefined,
+              color: activeTab === 'overview' ? 'white' : undefined
+            }}
+          >
             <User className="h-4 w-4" />
             Overview
           </TabsTrigger>
-          <TabsTrigger value="personal" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="personal" 
+            className="flex items-center gap-2 transition-colors"
+            style={{
+              backgroundColor: activeTab === 'personal' ? colors.primaryColor : undefined,
+              color: activeTab === 'personal' ? 'white' : undefined
+            }}
+          >
             <User className="h-4 w-4" />
             Personal Info
           </TabsTrigger>
-          <TabsTrigger value="physical" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="physical" 
+            className="flex items-center gap-2 transition-colors"
+            style={{
+              backgroundColor: activeTab === 'physical' ? colors.primaryColor : undefined,
+              color: activeTab === 'physical' ? 'white' : undefined
+            }}
+          >
             <Stethoscope className="h-4 w-4" />
             Physical Exam
           </TabsTrigger>
-          <TabsTrigger value="medical" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="medical" 
+            className="flex items-center gap-2 transition-colors"
+            style={{
+              backgroundColor: activeTab === 'medical' ? colors.primaryColor : undefined,
+              color: activeTab === 'medical' ? 'white' : undefined
+            }}
+          >
             <Heart className="h-4 w-4" />
             Medical Info
           </TabsTrigger>
-          <TabsTrigger value="documents" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="documents" 
+            className="flex items-center gap-2 transition-colors"
+            style={{
+              backgroundColor: activeTab === 'documents' ? colors.primaryColor : undefined,
+              color: activeTab === 'documents' ? 'white' : undefined
+            }}
+          >
             <FileText className="h-4 w-4" />
             Documents
           </TabsTrigger>

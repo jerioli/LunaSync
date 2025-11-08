@@ -17,6 +17,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useBranding } from "@/contexts/BrandingContext";
 import { useClinic } from "@/contexts/ClinicContext";
 import { cn } from "@/lib/utils";
 import {
@@ -53,6 +54,7 @@ interface MenuItem {
 export const AppSidebar = () => {
   const [openDocMgmt, setOpenDocMgmt] = React.useState(false);
   const { currentUser, setCurrentUser } = useClinic();
+  const { colors } = useBranding();
   const location = useLocation();
   const { setOpenMobile, state, open } = useSidebar();
 
@@ -252,11 +254,27 @@ export const AppSidebar = () => {
                                   <Link
                                     to={sub.path}
                                     className={cn(
-                                      "flex items-center gap-2 hover:bg-[#79c942] hover:text-black",
+                                      "flex items-center gap-2 hover:text-white",
                                       location.pathname === sub.path
-                                        ? "bg-[#79c942] text-black"
+                                        ? "text-white"
                                         : ""
                                     )}
+                                    style={{
+                                      backgroundColor: location.pathname === sub.path ? colors.primaryColor : undefined,
+                                      ...(location.pathname !== sub.path && {
+                                        transition: 'background-color 0.2s'
+                                      })
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      if (location.pathname !== sub.path) {
+                                        e.currentTarget.style.backgroundColor = colors.primaryColor;
+                                      }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      if (location.pathname !== sub.path) {
+                                        e.currentTarget.style.backgroundColor = '';
+                                      }
+                                    }}
                                     onClick={handleMenuClick}
                                     title={sub.title}
                                   >
@@ -277,12 +295,28 @@ export const AppSidebar = () => {
                       <Link
                         to={item.path}
                         className={cn(
-                          "flex items-center gap-2 hover:bg-[#79c942] hover:text-black w-full transition-all duration-200",
+                          "flex items-center gap-2 hover:text-white w-full transition-all duration-200",
                           location.pathname === item.path
-                            ? "bg-[#79c942] text-black"
+                            ? "text-white"
                             : "",
                           !open && "justify-center h-12"
                         )}
+                        style={{
+                          backgroundColor: location.pathname === item.path ? colors.primaryColor : undefined,
+                          ...(location.pathname !== item.path && {
+                            transition: 'background-color 0.2s'
+                          })
+                        }}
+                        onMouseEnter={(e) => {
+                          if (location.pathname !== item.path) {
+                            e.currentTarget.style.backgroundColor = colors.primaryColor;
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (location.pathname !== item.path) {
+                            e.currentTarget.style.backgroundColor = '';
+                          }
+                        }}
                         onClick={handleMenuClick}
                         title={!open ? item.title : undefined}
                       >

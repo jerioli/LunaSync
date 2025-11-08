@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useBranding } from '@/contexts/BrandingContext';
 import { useClinic } from '@/contexts/ClinicContext';
 import { toast } from '@/hooks/use-toast';
 import axios from 'axios';
@@ -14,6 +15,8 @@ import { useEffect, useState } from 'react';
 
 const UserSettings = () => {
   const { currentUser, setCurrentUser } = useClinic();
+  const { colors } = useBranding();
+  const [activeTab, setActiveTab] = useState('profile');
     // Profile settings
   const [profileData, setProfileData] = useState({
     firstName: '',
@@ -195,11 +198,38 @@ const UserSettings = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="profile" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger 
+            value="profile"
+            className="transition-colors"
+            style={{
+              backgroundColor: activeTab === 'profile' ? colors.primaryColor : undefined,
+              color: activeTab === 'profile' ? 'white' : undefined
+            }}
+          >
+            Profile
+          </TabsTrigger>
+          <TabsTrigger 
+            value="security"
+            className="transition-colors"
+            style={{
+              backgroundColor: activeTab === 'security' ? colors.primaryColor : undefined,
+              color: activeTab === 'security' ? 'white' : undefined
+            }}
+          >
+            Security
+          </TabsTrigger>
+          <TabsTrigger 
+            value="notifications"
+            className="transition-colors"
+            style={{
+              backgroundColor: activeTab === 'notifications' ? colors.primaryColor : undefined,
+              color: activeTab === 'notifications' ? 'white' : undefined
+            }}
+          >
+            Notifications
+          </TabsTrigger>
           
         </TabsList>
 

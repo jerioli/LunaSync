@@ -57,6 +57,7 @@ const Settings = () => {
   const [isEditingHero, setIsEditingHero] = useState(false);
   const [isEditingAbout, setIsEditingAbout] = useState(false);
   const [isEditingServices, setIsEditingServices] = useState(false);
+  const [activeTab, setActiveTab] = useState('general');
   
   // Temporary color state for preview before applying
   const [tempColors, setTempColors] = useState(colors);
@@ -410,15 +411,69 @@ const Settings = () => {
         </p>
       </div>
       
-      <Tabs defaultValue="general">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="branding">Branding</TabsTrigger>
-          <TabsTrigger value="appointments">Appointments</TabsTrigger>
-          <TabsTrigger value="faqs">FAQs</TabsTrigger>
-          <TabsTrigger value="homepage">Homepage</TabsTrigger>
+          <TabsTrigger 
+            value="general"
+            className="transition-colors"
+            style={{
+              backgroundColor: activeTab === 'general' ? colors.primaryColor : undefined,
+              color: activeTab === 'general' ? 'white' : undefined
+            }}
+          >
+            General
+          </TabsTrigger>
+          <TabsTrigger 
+            value="branding"
+            className="transition-colors"
+            style={{
+              backgroundColor: activeTab === 'branding' ? colors.primaryColor : undefined,
+              color: activeTab === 'branding' ? 'white' : undefined
+            }}
+          >
+            Branding
+          </TabsTrigger>
+          <TabsTrigger 
+            value="appointments"
+            className="transition-colors"
+            style={{
+              backgroundColor: activeTab === 'appointments' ? colors.primaryColor : undefined,
+              color: activeTab === 'appointments' ? 'white' : undefined
+            }}
+          >
+            Appointments
+          </TabsTrigger>
+          <TabsTrigger 
+            value="faqs"
+            className="transition-colors"
+            style={{
+              backgroundColor: activeTab === 'faqs' ? colors.primaryColor : undefined,
+              color: activeTab === 'faqs' ? 'white' : undefined
+            }}
+          >
+            FAQs
+          </TabsTrigger>
+          <TabsTrigger 
+            value="homepage"
+            className="transition-colors"
+            style={{
+              backgroundColor: activeTab === 'homepage' ? colors.primaryColor : undefined,
+              color: activeTab === 'homepage' ? 'white' : undefined
+            }}
+          >
+            Homepage
+          </TabsTrigger>
          
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger 
+            value="notifications"
+            className="transition-colors"
+            style={{
+              backgroundColor: activeTab === 'notifications' ? colors.primaryColor : undefined,
+              color: activeTab === 'notifications' ? 'white' : undefined
+            }}
+          >
+            Notifications
+          </TabsTrigger>
          
           
         </TabsList>

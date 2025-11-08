@@ -25,6 +25,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import { useBranding } from "@/contexts/BrandingContext";
 import axios from "axios";
 // Import sessionManager to ensure global axios configuration is applied
 import "@/utils/sessionManager";
@@ -43,7 +44,9 @@ export default function BulkImportModal({
   const [isOpen, setIsOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState("upload");
   const { toast } = useToast();
+  const { colors } = useBranding();
 
   const handleFileUpload = async (file: File) => {
     setIsUploading(true);
@@ -162,12 +165,31 @@ export default function BulkImportModal({
         </DialogHeader>
         <Tabs
           defaultValue="upload"
+          onValueChange={setActiveTab}
           className="w-full flex flex-col flex-1 overflow-hidden"
         >
           <div className="flex-shrink-0 bg-white pb-2 px-8 border-b">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="upload">File Upload</TabsTrigger>
-              <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+              <TabsTrigger 
+                value="upload" 
+                className="transition-colors"
+                style={{
+                  backgroundColor: activeTab === 'upload' ? colors.primaryColor : undefined,
+                  color: activeTab === 'upload' ? 'white' : undefined
+                }}
+              >
+                File Upload
+              </TabsTrigger>
+              <TabsTrigger 
+                value="manual" 
+                className="transition-colors"
+                style={{
+                  backgroundColor: activeTab === 'manual' ? colors.primaryColor : undefined,
+                  color: activeTab === 'manual' ? 'white' : undefined
+                }}
+              >
+                Manual Entry
+              </TabsTrigger>
             </TabsList>
           </div>
           <div className="flex-1 overflow-y-auto pt-4">

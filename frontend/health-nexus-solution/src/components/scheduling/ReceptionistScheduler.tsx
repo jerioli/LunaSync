@@ -18,7 +18,7 @@ interface TimeSlot {
   id: number;
   start_time: string;
   end_time: string;
-  is_booked: boolean;
+  is_booked: boolean | number | string; // Can be boolean, number (0/1), or string ("true"/"false", "yes"/"no", etc.)
   appointment_id?: number;
   patient_name?: string;
   patient_gender?: string;
@@ -122,28 +122,235 @@ const ReceptionistScheduler: React.FC = () => {
   const fetchDayAvailability = async (date: Date) => {
     setIsLoading(true);
     try {
-      const dateStr = date.toISOString().slice(0, 10);
+      // Format date to YYYY-MM-DD without timezone conversion (same as chatbot)
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      
       const availability: Record<number, DoctorAvailability> = {};
       const timeSlotSet = new Set<string>();
 
       console.log(`Fetching availability for ${dateStr}`);
+      console.log(`Current selected date in scheduler:`, selectedDate);
+      console.log(`Formatted date string being used:`, dateStr);
 
       // Fetch availability for each doctor on this date
       for (const doctor of doctors) {
         try {
           console.log(`Fetching availability for doctor ${doctor.id} (${doctor.first_name} ${doctor.last_name})`);
           
+          // Fetch existing appointments for this doctor on this date
+          const appointmentsByTime: Record<string, any> = {};
+          
+          try {
+            // Fetch all appointments for this doctor on this date (don't filter by status in API)
+            const appointmentsResponse = await axiosInstance.get('/appointments/', {
+              params: {
+                doctor_id: doctor.id.toString(),
+                date: dateStr,  // Use 'date' parameter (not appointment_date)
+                _t: Date.now() // Cache busting parameter
+              }
+            });
+            
+            console.log(`Appointments response for doctor ${doctor.id}:`, appointmentsResponse.data);
+            
+            // Store appointments by time slot - filter for pending, scheduled and ongoing status on frontend
+            if (Array.isArray(appointmentsResponse.data)) {
+              console.log(`All appointments for doctor ${doctor.id} before filtering:`, appointmentsResponse.data);
+              
+              // Check each appointment and log its fields
+              appointmentsResponse.data.forEach(apt => {
+                console.log(`Appointment ${apt.id} fields:`, {
+                  id: apt.id,
+                  time: apt.time,
+                  appointment_time: apt.appointment_time,
+                  status: apt.status,
+                  date: apt.date,
+                  patient_name: apt.patient_name,
+                  display_patient_name: apt.display_patient_name
+                });
+              });
+              
+              const filteredAppointments = appointmentsResponse.data
+                .filter(apt => apt.appointment_time || apt.time) // Check both appointment_time and time fields
+                .filter(apt => {
+                  const shouldInclude = apt.status === 'pending' || apt.status === 'scheduled' || apt.status === 'ongoing';
+                  console.log(`Appointment ${apt.id}: status=${apt.status}, time=${apt.appointment_time || apt.time}, include=${shouldInclude}`);
+                  return shouldInclude;
+                }); // Include pending, scheduled (upcoming) and ongoing
+              
+              console.log(`Filtered appointments for doctor ${doctor.id}:`, filteredAppointments);
+              
+              filteredAppointments.forEach(apt => {
+                const timeStr = apt.appointment_time || apt.time; // Use whichever field has the time
+                if (timeStr && timeStr.includes(':')) {
+                  appointmentsByTime[timeStr] = {
+                    patient_name: apt.patient_name || apt.display_patient_name || `${apt.patient?.first_name || ''} ${apt.patient?.last_name || ''}`.trim() || 'Patient',
+                    patient_gender: apt.patient?.gender || apt.patient_gender || apt.gender || '',
+                    appointment_id: apt.id,
+                    status: apt.status
+                  };
+                  console.log(`Added appointment to time slot ${timeStr}:`, appointmentsByTime[timeStr]);
+                }
+              });
+              
+              console.log(`Booked time slots for doctor ${doctor.id}:`, Object.keys(appointmentsByTime));
+              console.log(`Appointment details for doctor ${doctor.id}:`, appointmentsByTime);
+            }
+          } catch (appointmentError) {
+            console.error(`Error fetching appointments for doctor ${doctor.id}:`, appointmentError);
+            // Continue even if appointment fetch fails - we'll rely on is_booked from availability
+          }
+          
           const response = await axiosInstance.get(`/availability/`, {
             params: {
               doctor_id: doctor.id.toString(),
-              date: dateStr
+              date: dateStr,
+              _t: Date.now() // Cache busting parameter - same as chatbot
             }
           });
           
-          console.log(`Availability response for doctor ${doctor.id}:`, response.data);
+          console.log(`Time slots API response for doctor ${doctor.id}:`, response.data);
 
           if (Array.isArray(response.data) && response.data.length > 0) {
             const availabilityData = response.data[0];
+            
+            // Check if availability has time_slots array (same as ScheduleAppointmentModal)
+            if (!availabilityData || !availabilityData.time_slots || !Array.isArray(availabilityData.time_slots)) {
+              console.log(`No time slots in availability for doctor ${doctor.id}:`, availabilityData);
+              console.log(`Doctor ${doctor.id} availability data structure:`, JSON.stringify(availabilityData, null, 2));
+              
+              // Create slots only from existing appointments, don't generate standard schedule
+              if (Object.keys(appointmentsByTime).length > 0) {
+                console.log(`Creating slots from appointments only for doctor ${doctor.id}`);
+                const appointmentTimeSlots: TimeSlot[] = Object.keys(appointmentsByTime).map((timeStr, index) => {
+                  const appointment = appointmentsByTime[timeStr];
+                  return {
+                    id: index + 1,
+                    start_time: timeStr,
+                    end_time: timeStr,
+                    is_booked: true,
+                    patient_name: appointment.patient_name,
+                    patient_gender: appointment.patient_gender,
+                    appointment_id: appointment.appointment_id
+                  };
+                });
+                
+                availability[doctor.id] = {
+                  doctor_id: doctor.id,
+                  doctor_name: `Dr. ${doctor.first_name} ${doctor.last_name}`,
+                  doctor_specialization: doctor.specialization,
+                  date: dateStr,
+                  is_available: true,
+                  time_slots: appointmentTimeSlots
+                };
+                
+                // Add appointment time slots to the set
+                appointmentTimeSlots.forEach(slot => {
+                  timeSlotSet.add(slot.start_time);
+                });
+                
+                console.log(`Created ${appointmentTimeSlots.length} time slots from appointments for doctor ${doctor.id}`);
+              } else {
+                // No schedule and no appointments - show as not available
+                availability[doctor.id] = {
+                  doctor_id: doctor.id,
+                  doctor_name: `Dr. ${doctor.first_name} ${doctor.last_name}`,
+                  doctor_specialization: doctor.specialization,
+                  date: dateStr,
+                  is_available: false,
+                  time_slots: []
+                };
+              }
+              continue;
+            }
+            
+            console.log(`Raw time slots for doctor ${doctor.id}:`, availabilityData.time_slots);
+            
+            // Log all time slots before filtering (same as ScheduleAppointmentModal)
+            console.log(`All time slots before filtering for doctor ${doctor.id}:`, availabilityData.time_slots.map((slot: TimeSlot) => ({
+              start: slot.start_time,
+              end: slot.end_time,
+              booked: slot.is_booked
+            })));
+            
+            // Process time slots - map through all and mark booked ones
+            let filteredTimeSlots: TimeSlot[] = [];
+            if (availabilityData.time_slots && Array.isArray(availabilityData.time_slots)) {
+              filteredTimeSlots = availabilityData.time_slots.map((slot: TimeSlot) => {
+                // Check if slot is marked as booked in the availability data (same as ScheduleAppointmentModal)
+                const isBookedValue = slot.is_booked as any;
+                const isBookedInAvailability = Boolean(
+                  isBookedValue === true || 
+                  isBookedValue === 1 || 
+                  isBookedValue === "true" || 
+                  isBookedValue === "1" ||
+                  isBookedValue === "True" ||
+                  isBookedValue === "TRUE" ||
+                  isBookedValue === "yes" ||
+                  isBookedValue === "YES" ||
+                  isBookedValue === "Yes"
+                );
+                
+                // Also check if this time slot has an existing appointment (same as ScheduleAppointmentModal)
+                const isBookedByAppointment = Object.keys(appointmentsByTime).includes(slot.start_time);
+                
+                // Mark as booked if either source indicates it
+                const isBooked = isBookedInAvailability || isBookedByAppointment;
+                
+                if (isBooked) {
+                  slot.is_booked = true;
+                  
+                  // If booked by appointment, populate patient details
+                  if (isBookedByAppointment && appointmentsByTime[slot.start_time]) {
+                    const appointment = appointmentsByTime[slot.start_time];
+                    // Mark with patient info if status is pending, scheduled or ongoing
+                    if (appointment.status === 'pending' || appointment.status === 'scheduled' || appointment.status === 'ongoing') {
+                      slot.patient_name = appointment.patient_name;
+                      slot.patient_gender = appointment.patient_gender;
+                      slot.appointment_id = appointment.appointment_id;
+                      console.log(`Time slot ${slot.start_time} is booked by appointment (${appointment.status}):`, appointment);
+                    }
+                  }
+                }
+                
+                return slot;
+              }).filter((slot: TimeSlot) => {
+                // Skip lunch break (12:00 PM to 1:00 PM) - same logic as ScheduleAppointmentModal
+                const [hours] = slot.start_time.split(':');
+                const hour = parseInt(hours);
+                const isLunchBreak = (hour === 12);
+                
+                if (isLunchBreak) {
+                  console.log(`Filtering out lunch break slot for doctor ${doctor.id}: ${slot.start_time} - ${slot.end_time}`);
+                }
+                
+                // Include all slots that are NOT lunch break (we want to show booked slots too in the scheduler)
+                return !isLunchBreak;
+              });
+              
+              // Log after filtering (same as ScheduleAppointmentModal) - but note we keep ALL slots including booked ones
+              console.log(`Available (unbooked) slots after filtering for doctor ${doctor.id}:`, 
+                filteredTimeSlots.filter(slot => !slot.is_booked).map(slot => ({
+                  start: slot.start_time,
+                  end: slot.end_time,
+                  booked: slot.is_booked
+                }))
+              );
+              
+              // Also log booked slots separately
+              console.log(`Booked slots for doctor ${doctor.id}:`, 
+                filteredTimeSlots.filter(slot => slot.is_booked).map(slot => ({
+                  start: slot.start_time,
+                  end: slot.end_time,
+                  patient: slot.patient_name,
+                  gender: slot.patient_gender
+                }))
+              );
+            }
+            
+            console.log(`Filtered time slots for doctor ${doctor.id}:`, filteredTimeSlots);
             
             availability[doctor.id] = {
               doctor_id: doctor.id,
@@ -151,24 +358,56 @@ const ReceptionistScheduler: React.FC = () => {
               doctor_specialization: doctor.specialization,
               date: dateStr,
               is_available: availabilityData.is_available || false,
-              time_slots: availabilityData.time_slots || []
+              time_slots: filteredTimeSlots
             };
             
             // Collect all unique time slots
-            if (availabilityData.time_slots) {
-              availabilityData.time_slots.forEach((slot: TimeSlot) => {
+            filteredTimeSlots.forEach((slot: TimeSlot) => {
+              timeSlotSet.add(slot.start_time);
+            });
+          } else {
+            // No availability data returned - only show appointments if they exist
+            if (Object.keys(appointmentsByTime).length > 0) {
+              console.log(`No availability data but found appointments for doctor ${doctor.id}, creating slots from appointments only`);
+              const appointmentTimeSlots: TimeSlot[] = Object.keys(appointmentsByTime).map((timeStr, index) => {
+                const appointment = appointmentsByTime[timeStr];
+                return {
+                  id: index + 1,
+                  start_time: timeStr,
+                  end_time: timeStr,
+                  is_booked: true,
+                  patient_name: appointment.patient_name,
+                  patient_gender: appointment.patient_gender,
+                  appointment_id: appointment.appointment_id
+                };
+              });
+              
+              availability[doctor.id] = {
+                doctor_id: doctor.id,
+                doctor_name: `Dr. ${doctor.first_name} ${doctor.last_name}`,
+                doctor_specialization: doctor.specialization,
+                date: dateStr,
+                is_available: true,
+                time_slots: appointmentTimeSlots
+              };
+              
+              // Add appointment time slots to the set
+              appointmentTimeSlots.forEach(slot => {
                 timeSlotSet.add(slot.start_time);
               });
+              
+              console.log(`Created ${appointmentTimeSlots.length} time slots from appointments for doctor ${doctor.id}`);
+            } else {
+              // No availability data and no appointments - show as not available
+              availability[doctor.id] = {
+                doctor_id: doctor.id,
+                doctor_name: `Dr. ${doctor.first_name} ${doctor.last_name}`,
+                doctor_specialization: doctor.specialization,
+                date: dateStr,
+                is_available: false,
+                time_slots: []
+              };
             }
-          } else {
-            availability[doctor.id] = {
-              doctor_id: doctor.id,
-              doctor_name: `Dr. ${doctor.first_name} ${doctor.last_name}`,
-              doctor_specialization: doctor.specialization,
-              date: dateStr,
-              is_available: false,
-              time_slots: []
-            };
           }
         } catch (error: any) {
           console.error(`Error fetching availability for doctor ${doctor.id}:`, error);
@@ -185,12 +424,20 @@ const ReceptionistScheduler: React.FC = () => {
 
       // Sort time slots chronologically
       const sortedTimeSlots = Array.from(timeSlotSet).sort();
+      console.log(`Final sorted time slots for all doctors:`, sortedTimeSlots);
+      console.log(`Total unique time slots found:`, sortedTimeSlots.length);
       setAllTimeSlots(sortedTimeSlots);
 
       setDayData({
         date,
         dateStr,
         availability
+      });
+
+      // Log final availability summary
+      console.log(`Final availability summary for ${dateStr}:`);
+      Object.values(availability).forEach(doctorAvail => {
+        console.log(`- ${doctorAvail.doctor_name}: ${doctorAvail.time_slots.length} time slots, is_available: ${doctorAvail.is_available}`);
       });
 
     } catch (error) {
@@ -382,10 +629,25 @@ const ReceptionistScheduler: React.FC = () => {
                     });
                   })()
                 ) : (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <p>No time slots available for this date</p>
-                    <p className="text-sm mt-2">Doctors need to set up their schedules</p>
-                  </div>
+                  // Check if there are any appointments across all doctors
+                  (() => {
+                    const hasAnyAppointments = Object.values(dayData.availability).some(doctorAvail => 
+                      doctorAvail.time_slots.length > 0 && doctorAvail.time_slots.some(slot => slot.is_booked)
+                    );
+                    
+                    if (hasAnyAppointments) {
+                      // Don't show any message - there are appointments but no regular schedule
+                      return null;
+                    } else {
+                      // No appointments and no schedule - show message
+                      return (
+                        <div className="text-center py-12 text-muted-foreground">
+                          <p>No schedules or appointments for this date</p>
+                          <p className="text-sm mt-2">Doctors need to set up their schedules</p>
+                        </div>
+                      );
+                    }
+                  })()
                 )}
               </div>
 
