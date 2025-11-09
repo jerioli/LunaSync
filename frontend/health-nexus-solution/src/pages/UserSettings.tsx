@@ -17,7 +17,9 @@ const UserSettings = () => {
   const { currentUser, setCurrentUser } = useClinic();
   const { colors } = useBranding();
   const [activeTab, setActiveTab] = useState('profile');
-    // Profile settings
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  
+  // Profile settings
   const [profileData, setProfileData] = useState({
     firstName: '',
     lastName: '',
@@ -63,6 +65,17 @@ const UserSettings = () => {
   const handleProfileUpdate = async () => {
     if (!currentUser) return;
 
+    // Validate required fields
+    if (!profileData.firstName.trim() || !profileData.lastName.trim() || 
+        !profileData.email.trim() || !profileData.phone.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "All fields are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await axios.patch(`/users/${currentUser.id}/`, {
@@ -85,6 +98,9 @@ const UserSettings = () => {
         phone: profileData.phone,
       });
 
+      // Disable editing mode after successful save
+      setIsEditingProfile(false);
+
       toast({
         title: "Profile Updated",
         description: "Your profile information has been updated successfully.",
@@ -101,8 +117,31 @@ const UserSettings = () => {
     }
   };
 
+  const handleCancelEdit = () => {
+    // Reset to original values
+    if (currentUser) {
+      setProfileData({
+        firstName: currentUser.first_name || (currentUser.name ? currentUser.name.split(' ')[0] : '') || '',
+        lastName: currentUser.last_name || (currentUser.name ? currentUser.name.split(' ').slice(1).join(' ') : '') || '',
+        email: currentUser.email || '',
+        phone: currentUser.phone || '',
+      });
+    }
+    setIsEditingProfile(false);
+  };
+
   const handlePasswordChange = async () => {
     if (!currentUser) return;
+
+    // Validate required fields
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      toast({
+        title: "Validation Error",
+        description: "All password fields are required.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast({
@@ -244,51 +283,80 @@ const UserSettings = () => {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
+                  <Label htmlFor="firstName">First Name <span className="text-red-500">*</span></Label>
                   <Input
                     id="firstName"
                     value={profileData.firstName}
                     onChange={(e) =>
                       setProfileData({ ...profileData, firstName: e.target.value })
                     }
+                    disabled={!isEditingProfile}
+                    required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
+                  <Label htmlFor="lastName">Last Name <span className="text-red-500">*</span></Label>
                   <Input
                     id="lastName"
                     value={profileData.lastName}
                     onChange={(e) =>
                       setProfileData({ ...profileData, lastName: e.target.value })
                     }
+                    disabled={!isEditingProfile}
+                    required
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={profileData.email}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, email: e.target.value })
-                  }
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={profileData.email}
+                    onChange={(e) =>
+                      setProfileData({ ...profileData, email: e.target.value })
+                    }
+                    disabled={!isEditingProfile}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={profileData.phone}
+                    onChange={(e) =>
+                      setProfileData({ ...profileData, phone: e.target.value })
+                    }
+                    disabled={!isEditingProfile}
+                    required
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={profileData.phone}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, phone: e.target.value })
-                  }
-                />
-              </div>
-              <Button onClick={handleProfileUpdate} disabled={loading}>
-                {loading ? 'Updating...' : 'Update Profile'}
-              </Button>
+              
+              {!isEditingProfile ? (
+                <Button onClick={() => setIsEditingProfile(true)}>
+                  Edit
+                </Button>
+              ) : (
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleCancelEdit}
+                    disabled={loading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleProfileUpdate} 
+                    disabled={loading}
+                  >
+                    {loading ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -303,7 +371,7 @@ const UserSettings = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="currentPassword">Current Password</Label>
+                <Label htmlFor="currentPassword">Current Password <span className="text-red-500">*</span></Label>
                 <div className="relative">
                   <Input
                     id="currentPassword"
@@ -312,6 +380,7 @@ const UserSettings = () => {
                     onChange={(e) =>
                       setPasswordData({ ...passwordData, currentPassword: e.target.value })
                     }
+                    required
                   />
                   <Button
                     type="button"
@@ -331,7 +400,7 @@ const UserSettings = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="newPassword">New Password</Label>
+                <Label htmlFor="newPassword">New Password <span className="text-red-500">*</span></Label>
                 <div className="relative">
                   <Input
                     id="newPassword"
@@ -340,6 +409,7 @@ const UserSettings = () => {
                     onChange={(e) =>
                       setPasswordData({ ...passwordData, newPassword: e.target.value })
                     }
+                    required
                   />
                   <Button
                     type="button"
@@ -359,7 +429,7 @@ const UserSettings = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                <Label htmlFor="confirmPassword">Confirm New Password <span className="text-red-500">*</span></Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -368,6 +438,7 @@ const UserSettings = () => {
                     onChange={(e) =>
                       setPasswordData({ ...passwordData, confirmPassword: e.target.value })
                     }
+                    required
                   />
                   <Button
                     type="button"

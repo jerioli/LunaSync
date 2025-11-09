@@ -2,10 +2,8 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ENV } from '@/config/env';
@@ -88,6 +86,14 @@ const Schedule: React.FC = () => {
   const [endTime, setEndTime] = useState('17:00');
   const [scheduleSlots, setScheduleSlots] = useState<ScheduleSlot[]>([]);
   const [recurringDays, setRecurringDays] = useState<string>('Weekdays');
+  
+  // Calendar view state
+  const [viewDate, setViewDate] = useState(new Date());
+  const [startCalendarOpen, setStartCalendarOpen] = useState(false);
+  const [endCalendarOpen, setEndCalendarOpen] = useState(false);
+  const [startTimeOpen, setStartTimeOpen] = useState(false);
+  const [endTimeOpen, setEndTimeOpen] = useState(false);
+  const [allDay, setAllDay] = useState(false);
 
   // Existing availability management with pagination
   const [existingAvailability, setExistingAvailability] = useState<ExistingAvailability[]>([]);
@@ -99,6 +105,33 @@ const Schedule: React.FC = () => {
   });
   const [isLoadingExisting, setIsLoadingExisting] = useState(false);
   const [showExistingAvailability, setShowExistingAvailability] = useState(false);
+
+  // Calendar helper functions
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    return { daysInMonth, startingDayOfWeek, year, month };
+  };
+
+  const generateTimeSlots = () => {
+    const slots = [];
+    // Start from 8:00 AM (hour 8) to 6:00 PM (hour 18)
+    for (let hour = 8; hour <= 18; hour++) {
+      for (let minute = 0; minute < 60; minute += 20) {
+        const timeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+        slots.push(timeStr);
+      }
+    }
+    return slots;
+  };
+
+  const timeSlots = generateTimeSlots();
+
 
   const generateScheduleSlots = (date: string, start: string, end: string): ScheduleSlot[] => {
     const slots: ScheduleSlot[] = [];
@@ -666,93 +699,390 @@ const Schedule: React.FC = () => {
             </CardHeader>
             <CardContent className="p-8">
               <div className="flex flex-col gap-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Date Range Section */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Date Range</h3>
-                    <div className="flex gap-4 items-center">
-                      <div className="flex flex-col gap-2">
-                        <Label htmlFor="startDate">From</Label>
-                        <Input
-                          id="startDate"
-                          type="date"
-                          value={startDate}
-                          onChange={e => setStartDate(e.target.value)}
-                          className="w-full"
-                        />
+                    <div className="flex gap-4">
+                      {/* Start Date Picker */}
+                      <div className="flex-1 space-y-2">
+                        <Label className="text-sm text-muted-foreground">Select a day</Label>
+                        <Popover open={startCalendarOpen} onOpenChange={setStartCalendarOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-between text-left font-normal bg-gray-50 hover:bg-gray-100 border-gray-200"
+                            >
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-blue-500" />
+                                <span className="text-sm">
+                                  {new Date(startDate).toLocaleDateString('en-US', { 
+                                    day: '2-digit',
+                                    month: '2-digit', 
+                                    year: 'numeric' 
+                                  })}
+                                </span>
+                              </div>
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80 p-0" align="start">
+                            <div className="p-4">
+                              {/* Calendar Header */}
+                              <div className="flex items-center justify-between mb-4">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1))}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <ChevronLeft className="h-4 w-4" />
+                                </Button>
+                                <div className="font-semibold">
+                                  {viewDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1))}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <ChevronRight className="h-4 w-4" />
+                                </Button>
+                              </div>
+
+                              {/* Calendar Grid */}
+                              <div className="space-y-2">
+                                {/* Day headers */}
+                                <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-muted-foreground mb-2">
+                                  <div>M</div>
+                                  <div>T</div>
+                                  <div>W</div>
+                                  <div>T</div>
+                                  <div>F</div>
+                                  <div>S</div>
+                                  <div>S</div>
+                                </div>
+
+                                {/* Calendar days */}
+                                <div className="grid grid-cols-7 gap-1">
+                                  {(() => {
+                                    const { daysInMonth, startingDayOfWeek, year, month } = getDaysInMonth(viewDate);
+                                    const days = [];
+                                    
+                                    // Adjust starting day (Sunday = 0, but we want Monday = 0)
+                                    const adjustedStart = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
+                                    
+                                    // Empty cells before first day
+                                    for (let i = 0; i < adjustedStart; i++) {
+                                      days.push(<div key={`empty-${i}`} className="h-8" />);
+                                    }
+                                    
+                                    // Actual days
+                                    for (let day = 1; day <= daysInMonth; day++) {
+                                      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                                      const isSelected = dateStr === startDate;
+                                      const isToday = dateStr === todayStr;
+                                      
+                                      days.push(
+                                        <Button
+                                          key={day}
+                                          variant="ghost"
+                                          className={`h-8 w-8 p-0 font-normal ${
+                                            isSelected
+                                              ? 'bg-blue-500 text-white hover:bg-blue-600'
+                                              : isToday
+                                              ? 'bg-blue-100 text-blue-600'
+                                              : 'hover:bg-gray-100'
+                                          }`}
+                                          onClick={() => {
+                                            setStartDate(dateStr);
+                                            setStartCalendarOpen(false);
+                                          }}
+                                        >
+                                          {day}
+                                        </Button>
+                                      );
+                                    }
+                                    
+                                    return days;
+                                  })()}
+                                </div>
+                              </div>
+
+                              {/* Action buttons */}
+                              <div className="flex gap-2 mt-4 pt-4 border-t">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex-1"
+                                  onClick={() => setStartCalendarOpen(false)}
+                                >
+                                  Remove
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  className="flex-1 bg-blue-500 hover:bg-blue-600"
+                                  onClick={() => setStartCalendarOpen(false)}
+                                >
+                                  Done
+                                </Button>
+                              </div>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       </div>
-                      <div className="flex flex-col gap-2">
-                        <Label htmlFor="endDate">To</Label>
-                        <Input
-                          id="endDate"
-                          type="date"
-                          value={endDate}
-                          min={startDate}
-                          onChange={e => setEndDate(e.target.value)}
-                          className="w-full"
-                        />
+
+                      {/* End Date Picker */}
+                      <div className="flex-1 space-y-2">
+                        <Label className="text-sm text-muted-foreground">End with</Label>
+                        <Popover open={endCalendarOpen} onOpenChange={setEndCalendarOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-between text-left font-normal bg-gray-50 hover:bg-gray-100 border-gray-200"
+                            >
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-blue-500" />
+                                <span className="text-sm">
+                                  {new Date(endDate).toLocaleDateString('en-US', { 
+                                    day: '2-digit',
+                                    month: '2-digit', 
+                                    year: 'numeric' 
+                                  })}
+                                </span>
+                              </div>
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80 p-0" align="start">
+                            <div className="p-4">
+                              {/* Calendar Header */}
+                              <div className="flex items-center justify-between mb-4">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1))}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <ChevronLeft className="h-4 w-4" />
+                                </Button>
+                                <div className="font-semibold">
+                                  {viewDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1))}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <ChevronRight className="h-4 w-4" />
+                                </Button>
+                              </div>
+
+                              {/* Calendar Grid */}
+                              <div className="space-y-2">
+                                <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-muted-foreground mb-2">
+                                  <div>M</div>
+                                  <div>T</div>
+                                  <div>W</div>
+                                  <div>T</div>
+                                  <div>F</div>
+                                  <div>S</div>
+                                  <div>S</div>
+                                </div>
+
+                                <div className="grid grid-cols-7 gap-1">
+                                  {(() => {
+                                    const { daysInMonth, startingDayOfWeek, year, month } = getDaysInMonth(viewDate);
+                                    const days = [];
+                                    const adjustedStart = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
+                                    
+                                    for (let i = 0; i < adjustedStart; i++) {
+                                      days.push(<div key={`empty-${i}`} className="h-8" />);
+                                    }
+                                    
+                                    for (let day = 1; day <= daysInMonth; day++) {
+                                      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                                      const isSelected = dateStr === endDate;
+                                      const isToday = dateStr === todayStr;
+                                      
+                                      days.push(
+                                        <Button
+                                          key={day}
+                                          variant="ghost"
+                                          className={`h-8 w-8 p-0 font-normal ${
+                                            isSelected
+                                              ? 'bg-blue-500 text-white hover:bg-blue-600'
+                                              : isToday
+                                              ? 'bg-blue-100 text-blue-600'
+                                              : 'hover:bg-gray-100'
+                                          }`}
+                                          onClick={() => {
+                                            setEndDate(dateStr);
+                                            setEndCalendarOpen(false);
+                                          }}
+                                        >
+                                          {day}
+                                        </Button>
+                                      );
+                                    }
+                                    
+                                    return days;
+                                  })()}
+                                </div>
+                              </div>
+
+                              <div className="flex gap-2 mt-4 pt-4 border-t">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex-1"
+                                  onClick={() => setEndCalendarOpen(false)}
+                                >
+                                  Remove
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  className="flex-1 bg-blue-500 hover:bg-blue-600"
+                                  onClick={() => setEndCalendarOpen(false)}
+                                >
+                                  Done
+                                </Button>
+                              </div>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     </div>
                   </div>
 
+                  {/* Time Range Section */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Time Range</h3>
-                    <div className="flex gap-4 items-center">
-                      <div className="flex flex-col gap-2">
-                        <Label htmlFor="startTime">Start Time</Label>
-                        <Input 
-                          id="startTime"
-                          type="time" 
-                          value={startTime}
-                          onChange={e => setStartTime(e.target.value)}
-                          className="w-full"
-                        />
+                    
+                    {/* All day checkbox - single for both times */}
+                    <div className="flex items-center gap-2 pb-2">
+                      <input
+                        type="checkbox"
+                        id="allDay"
+                        checked={allDay}
+                        onChange={(e) => setAllDay(e.target.checked)}
+                        className="rounded border-gray-300"
+                      />
+                      <Label htmlFor="allDay" className="text-sm cursor-pointer">
+                        All day
+                      </Label>
+                    </div>
+
+                    <div className="flex gap-4">
+                      {/* Start Time Picker */}
+                      <div className="flex-1 space-y-2">
+                        <Label className="text-sm text-muted-foreground">Start time</Label>
+                        <Popover open={startTimeOpen} onOpenChange={setStartTimeOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-between text-left font-normal bg-gray-50 hover:bg-gray-100 border-gray-200"
+                              disabled={allDay}
+                            >
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-blue-500" />
+                                <span className="text-sm font-semibold">
+                                  {formatTime(startTime)}
+                                </span>
+                              </div>
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64 p-0" align="start">
+                            <div className="p-3">
+                              {/* Time slots list */}
+                              <div className="max-h-64 overflow-y-auto space-y-1">
+                                {timeSlots.map((time) => {
+                                  const isSelected = time === startTime;
+                                  return (
+                                    <button
+                                      key={time}
+                                      onClick={() => {
+                                        setStartTime(time);
+                                        setStartTimeOpen(false);
+                                      }}
+                                      className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                                        isSelected
+                                          ? 'bg-blue-500 text-white font-medium'
+                                          : 'hover:bg-gray-100 text-gray-700'
+                                      }`}
+                                    >
+                                      {formatTime(time)}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       </div>
-                      <div className="flex flex-col gap-2">
-                        <Label htmlFor="endTime">End Time</Label>
-                        <Input 
-                          id="endTime"
-                          type="time"
-                          value={endTime}
-                          min={startTime}
-                          onChange={e => {
-                            if (startTime && e.target.value < startTime) {
-                              toast({
-                                title: 'Invalid time range',
-                                description: 'End time must be after start time.'
-                              });
-                              return;
-                            }
-                            setEndTime(e.target.value);
-                          }}
-                          className="w-full"
-                        />
+
+                      {/* End Time Picker */}
+                      <div className="flex-1 space-y-2">
+                        <Label className="text-sm text-muted-foreground">End with</Label>
+                        <Popover open={endTimeOpen} onOpenChange={setEndTimeOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-between text-left font-normal bg-gray-50 hover:bg-gray-100 border-gray-200"
+                              disabled={allDay}
+                            >
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-blue-500" />
+                                <span className="text-sm font-semibold">
+                                  {formatTime(endTime)}
+                                </span>
+                              </div>
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64 p-0" align="start">
+                            <div className="p-3">
+                              <div className="max-h-64 overflow-y-auto space-y-1">
+                                {timeSlots.map((time) => {
+                                  const isSelected = time === endTime;
+                                  return (
+                                    <button
+                                      key={time}
+                                      onClick={() => {
+                                        if (time < startTime) {
+                                          toast({
+                                            title: 'Invalid time range',
+                                            description: 'End time must be after start time.',
+                                            variant: 'destructive'
+                                          });
+                                          return;
+                                        }
+                                        setEndTime(time);
+                                        setEndTimeOpen(false);
+                                      }}
+                                      className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                                        isSelected
+                                          ? 'bg-blue-500 text-white font-medium'
+                                          : 'hover:bg-gray-100 text-gray-700'
+                                      }`}
+                                    >
+                                      {formatTime(time)}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Recurring Pattern</h3>
-                  <div className="flex gap-4 items-center">
-                    <Label htmlFor="recurringDays" className="min-w-fit">Days:</Label>
-                    <Select value={recurringDays} onValueChange={setRecurringDays}>
-                      <SelectTrigger className="w-full max-w-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Weekdays">Weekdays (Mon-Fri)</SelectItem>
-                        <SelectItem value="Weekends">Weekends (Sat-Sun)</SelectItem>
-                        <SelectItem value="Monday">Monday</SelectItem>
-                        <SelectItem value="Tuesday">Tuesday</SelectItem>
-                        <SelectItem value="Wednesday">Wednesday</SelectItem>
-                        <SelectItem value="Thursday">Thursday</SelectItem>
-                        <SelectItem value="Friday">Friday</SelectItem>
-                        <SelectItem value="Saturday">Saturday</SelectItem>
-                        <SelectItem value="Sunday">Sunday</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                {/* Recurring Pattern Section - REMOVED */}
 
                 <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t">
                   <Button 
