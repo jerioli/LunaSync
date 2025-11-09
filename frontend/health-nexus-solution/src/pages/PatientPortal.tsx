@@ -2590,9 +2590,13 @@ const PatientPortal = () => {
         </div>
         <button
           onClick={() => setIsChatbotOpen(!isChatbotOpen)}
-          className="bg-[#79c942] text-white p-3 rounded-full shadow-lg hover:bg-[#6bb33a] transition-colors order-2"
+          className="transition-transform hover:scale-110 order-2"
         >
-          <BotMessageSquare className="h-6 w-6" />
+          <img 
+            src="/gif.webp" 
+            alt="Chat Assistant" 
+            className="w-20 h-20 object-contain"
+          />
         </button>
       </div>
       <style>
