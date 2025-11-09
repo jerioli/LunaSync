@@ -5,6 +5,7 @@ from .models import Appointment
 from .serializer import AppointmentSerializer
 from rest_framework.generics import ListAPIView
 from patients.models import Patient
+from clinic.models import ClinicSettings
 import json
 import traceback
 import logging
@@ -105,6 +106,61 @@ class AppointmentCreateView(APIView):
             try:
                 appointment = serializer.save()
                 logger.info(f"Appointment created successfully: {appointment.id}")
+                
+                # Check if SMS confirmation is requested
+                confirmation_method = request.data.get('confirmation_method', 'email')
+                # Get phone from request data (works for both pending and confirmed appointments)
+                patient_phone = request.data.get('patient_phone')
+                
+                if confirmation_method == 'sms' and patient_phone:
+                    try:
+                        from accounts.iprog_sms_service import iprog_sms_service
+                        
+                        # Get clinic name from settings
+                        clinic_settings = ClinicSettings.objects.first()
+                        clinic_name = clinic_settings.clinic_name
+                        
+                        # Format appointment details
+                        appointment_date = appointment.date.strftime('%B %d, %Y')
+                        appointment_time = appointment.time.strftime('%I:%M %p')
+                        doctor_name = appointment.doctor.get_full_name() or appointment.doctor.username
+                        
+                        # Get patient name from request data or patient object
+                        if appointment.patient:
+                            patient_name = appointment.patient.name
+                        else:
+                            # For pending appointments, construct name from request data
+                            first_name = request.data.get('firstName', '')
+                            last_name = request.data.get('lastName', '')
+                            patient_name = f"{first_name} {last_name}".strip() or "Patient"
+                        
+                        # Create concise SMS message
+                        sms_message = f"""Appointment Confirmed
+
+Patient: {patient_name}
+Date: {appointment_date}
+Time: {appointment_time}
+Doctor: {doctor_name}
+Type: {appointment.appointment_type}
+
+{clinic_name}"""
+                        
+                        # Send SMS
+                        success, message, reference_id = iprog_sms_service.send_sms(
+                            patient_phone,
+                            sms_message
+                        )
+                        
+                        if success:
+                            logger.info(f"SMS confirmation sent to {patient_phone}")
+                            if reference_id:
+                                logger.info(f"SMS Reference ID: {reference_id}")
+                        else:
+                            logger.warning(f"Failed to send SMS confirmation: {message}")
+                    except Exception as sms_error:
+                        logger.error(f"Error sending SMS confirmation: {sms_error}")
+                        # Don't fail the appointment creation if SMS fails
+                
                 # Return the serialized appointment data
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             except ValidationError as ve:

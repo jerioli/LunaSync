@@ -128,6 +128,71 @@ MedSync Healthcare"""
             logger.error(f"iProg SMS failed for {phone_number}: {e}")
             return self._fallback_sms(phone_number, otp_code, str(e))
     
+    def send_sms(self, phone_number, message, country_code='+63'):
+        """
+        Send a generic SMS message via iProg SMS API
+        
+        Args:
+            phone_number (str): Phone number to send SMS to
+            message (str): SMS message content
+            country_code (str): Country code (default: +63 for Philippines)
+            
+        Returns:
+            tuple: (success: bool, message: str, message_id: str or None)
+        """
+        if not self.is_configured:
+            return self._fallback_general_sms(phone_number, message)
+        
+        try:
+            formatted_phone = self.format_phone_number(phone_number, country_code)
+            
+            # Prepare API payload (JSON format)
+            payload = {
+                'api_token': self.api_token,
+                'phone_number': formatted_phone,
+                'message': message,
+                'sms_provider': int(self.sms_provider)
+            }
+            
+            logger.info(f"[SMS] Sending to: {phone_number} → {formatted_phone}")
+            
+            # Send SMS via iProg API (JSON POST)
+            headers = {'Content-Type': 'application/json'}
+            response = requests.post(self.api_url, json=payload, headers=headers, timeout=30)
+            
+            logger.info(f"[SMS] Response Status: {response.status_code}")
+            
+            if response.status_code == 200:
+                try:
+                    response_data = response.json()
+                    
+                    if response_data.get('status') == 200:
+                        message_id = response_data.get('message_id', 'iprog_sent')
+                        success_message = response_data.get('message', 'SMS sent successfully')
+                        logger.info(f"[SMS] Success! Message ID: {message_id}")
+                        return True, success_message, message_id
+                    else:
+                        error_msg = response_data.get('message', 'Unknown error')
+                        logger.error(f"[SMS] API error: {error_msg}")
+                        return self._fallback_general_sms(phone_number, message, f"API error: {error_msg}")
+                        
+                except ValueError as json_error:
+                    logger.error(f"[SMS] Invalid JSON response: {json_error}")
+                    return self._fallback_general_sms(phone_number, message, "Invalid JSON response")
+            else:
+                logger.error(f"[SMS] HTTP error: {response.status_code}")
+                return self._fallback_general_sms(phone_number, message, f"HTTP {response.status_code}")
+            
+        except requests.exceptions.Timeout:
+            logger.error(f"[SMS] Timeout for {phone_number}")
+            return self._fallback_general_sms(phone_number, message, "Timeout")
+        except requests.exceptions.ConnectionError:
+            logger.error(f"[SMS] Connection error for {phone_number}")
+            return self._fallback_general_sms(phone_number, message, "Connection error")
+        except Exception as e:
+            logger.error(f"[SMS] Failed for {phone_number}: {e}")
+            return self._fallback_general_sms(phone_number, message, str(e))
+    
     def _fallback_sms(self, phone_number, otp_code, error_reason="iProg not configured"):
         """Fallback method when iProg is not available"""
         logger.warning(f"Using fallback SMS method for {phone_number} - Reason: {error_reason}")
@@ -136,6 +201,17 @@ MedSync Healthcare"""
 📱 To: {phone_number}
 🔐 OTP Code: {otp_code}
 ⏰ Expires in: 5 minutes
+❌ iProg Error: {error_reason}
+        """)
+        return True, f"SMS sent via fallback method (iProg error: {error_reason})", None
+    
+    def _fallback_general_sms(self, phone_number, message, error_reason="iProg not configured"):
+        """Fallback method for general SMS when iProg is not available"""
+        logger.warning(f"[SMS] Fallback for {phone_number} - Reason: {error_reason}")
+        print(f"""
+🔔 SMS FALLBACK - DEVELOPMENT MODE
+📱 To: {phone_number}
+📩 Message: {message}
 ❌ iProg Error: {error_reason}
         """)
         return True, f"SMS sent via fallback method (iProg error: {error_reason})", None

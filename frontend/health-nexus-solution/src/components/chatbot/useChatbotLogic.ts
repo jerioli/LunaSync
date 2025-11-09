@@ -1994,14 +1994,14 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       setAppointmentForm(prev => ({ ...prev, confirmationMethod: 'sms' }));
       
       setTimeout(() => {
-        showAppointmentSummary();
+        showAppointmentSummary('sms');
       }, 500);
     } else if (value === 'confirmation-email') {
       addMessage('user', 'Email');
       setAppointmentForm(prev => ({ ...prev, confirmationMethod: 'email' }));
       
       setTimeout(() => {
-        showAppointmentSummary();
+        showAppointmentSummary('email');
       }, 500);
     } else if (chatMode === 'appointment') {
       if (chatStep === 11) {
@@ -3197,6 +3197,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         patient_id: appointmentForm.patient_id || null, // Include Patient ID for returning patients
         patient_email: formDataToUse.email || appointmentForm.email,
         patient_phone: formDataToUse.phone || appointmentForm.phone,
+        confirmation_method: appointmentForm.confirmationMethod || 'email', // Add confirmation method
         date_of_birth: (() => {
           const dobValue = formDataToUse.dateOfBirth || appointmentForm.dateOfBirth;
           console.log(`[DEBUG] Processing date_of_birth - dobValue:`, dobValue, 'type:', typeof dobValue);
@@ -4757,7 +4758,7 @@ Would you like to use this information or update it?`, [
     }, 500);
   };
 
-  const showAppointmentSummary = () => {
+  const showAppointmentSummary = (confirmMethod?: 'sms' | 'email') => {
     addBotMessage('Thank you! Here is a summary of your appointment booking:');
     
     setTimeout(() => {
@@ -4765,6 +4766,9 @@ Would you like to use this information or update it?`, [
       const doctorName = selectedDoctor 
         ? `Dr. ${selectedDoctor.first_name} ${selectedDoctor.last_name}`
         : 'Selected Doctor';
+      
+      // Use the passed confirmMethod parameter if provided, otherwise fall back to appointmentForm
+      const confirmationMethod = confirmMethod || appointmentForm.confirmationMethod;
       
       const appointmentDetails = `
 📅 Date: ${appointmentForm.date?.toLocaleDateString()}
@@ -4781,7 +4785,7 @@ Would you like to use this information or update it?`, [
 🏠 Address: ${appointmentForm.address}
 💒 Marital Status: ${appointmentForm.maritalStatus || 'Not specified'}
 📝 Notes: ${appointmentForm.notes || 'None'}
-📬 Confirmation: ${appointmentForm.confirmationMethod === 'sms' ? 'Text Message' : 'Email'}
+📬 Confirmation: ${confirmationMethod === 'sms' ? 'Text Message' : 'Email'}
       `.trim();
 
       addBotMessage(appointmentDetails);
