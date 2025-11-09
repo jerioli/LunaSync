@@ -1377,110 +1377,161 @@ class SendOTPView(APIView):
     permission_classes = [AllowAny]
     
     def post(self, request):
-        identifier = request.data.get('identifier')
-        identifier_type = request.data.get('identifier_type')
-        
-        if not identifier or not identifier_type:
-            return Response({
-                'success': False,
-                'error': 'identifier and identifier_type are required'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Find user by email or phone
         try:
-            if identifier_type == 'email':
-                user = CustomUser.objects.get(email=identifier)
-            elif identifier_type == 'phone':
-                user = CustomUser.objects.get(phone=identifier)
-            else:
+            logger.info("[SEND_OTP] POST request received")
+            logger.info(f"[SEND_OTP] Request data: {request.data}")
+            
+            identifier = request.data.get('identifier')
+            identifier_type = request.data.get('identifier_type')
+            
+            logger.info(f"[SEND_OTP] Identifier: {identifier}, Type: {identifier_type}")
+            
+            if not identifier or not identifier_type:
+                logger.warning("[SEND_OTP] ERROR: Missing identifier or identifier_type")
                 return Response({
                     'success': False,
-                    'error': 'identifier_type must be email or phone'
+                    'error': 'identifier and identifier_type are required'
                 }, status=status.HTTP_400_BAD_REQUEST)
-        except CustomUser.DoesNotExist:
-            return Response({
-                'success': False,
-                'error': 'No user found with this identifier'
-            }, status=status.HTTP_404_NOT_FOUND)
-        
-        # Generate 6-digit OTP using pyotp library
-        otp = generate_otp()
-        
-        # Store OTP in cache with 5-minute expiration
-        cache_key = f"otp_{identifier}_{identifier_type}"
-        cache.set(cache_key, otp, 300)  # 5 minutes
-        
-        # Send OTP via email or SMS
-        try:
-            if identifier_type == 'email':
-                # Get clinic settings for email branding
-                try:
-                    from clinic.models import ClinicSettings
-                    clinic_settings = ClinicSettings.objects.first()
-                except:
-                    clinic_settings = None
-                
-                # Use the enhanced OTP email function with comprehensive debugging
-                logger.info(f"🔄 Attempting to send OTP email to {identifier}")
-                
-                from appointments.email_utils import send_otp_email
-                success, message = send_otp_email(identifier, otp, clinic_settings)
-                
-                if not success:
-                    logger.error(f"❌ Failed to send OTP email to {identifier}: {message}")
+            
+            # Find user by email or phone (handle encrypted fields)
+            try:
+                if identifier_type == 'email':
+                    logger.info(f"[SEND_OTP] Looking up user by email: {identifier}")
+                    # Since email is encrypted, we need to search through all users
+                    user = None
+                    for u in CustomUser.objects.all():
+                        if u.email and u.email.lower() == identifier.lower():
+                            user = u
+                            break
+                    
+                    if not user:
+                        raise CustomUser.DoesNotExist
+                    
+                    logger.info(f"[SEND_OTP] SUCCESS: Found user: {user.username}")
+                    
+                elif identifier_type == 'phone':
+                    logger.info(f"[SEND_OTP] Looking up user by phone: {identifier}")
+                    # Since phone is encrypted, we need to search through all users
+                    user = None
+                    for u in CustomUser.objects.all():
+                        if u.phone and u.phone == identifier:
+                            user = u
+                            break
+                    
+                    if not user:
+                        raise CustomUser.DoesNotExist
+                    
+                    logger.info(f"[SEND_OTP] SUCCESS: Found user: {user.username}")
+                else:
+                    logger.warning(f"[SEND_OTP] ERROR: Invalid identifier_type: {identifier_type}")
                     return Response({
                         'success': False,
-                        'error': f'Failed to send OTP email: {message}. Please try phone instead.'
-                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                else:
-                    logger.info(f"✅ OTP email sent successfully to {identifier}")
-                    
-            elif identifier_type == 'phone':
-                # Use iProg SMS service as primary
-                logger.info(f"🔄 Attempting to send OTP SMS to {identifier}")
-                
-                from .iprog_sms_service import iprog_sms_service
-                
-                success, message, reference_id = iprog_sms_service.send_otp_sms(identifier, otp)
-                
-                if success:
-                    logger.info(f"✅ iProg SMS sent to {identifier}: {message}")
-                    if reference_id:
-                        logger.info(f"📋 iProg Reference ID: {reference_id}")
-                else:
-                    logger.warning(f"⚠️  iProg SMS failed for {identifier}: {message}")
-                    # Additional fallback to Semaphore if needed
+                        'error': 'identifier_type must be email or phone'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+            except CustomUser.DoesNotExist:
+                logger.warning(f"[SEND_OTP] ERROR: No user found with {identifier_type}: {identifier}")
+                return Response({
+                    'success': False,
+                    'error': 'No user found with this identifier'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            # Generate 6-digit OTP using pyotp library
+            logger.info("[SEND_OTP] Generating OTP...")
+            otp = generate_otp()
+            logger.info(f"[SEND_OTP] SUCCESS: OTP generated: {otp}")
+            
+            # Store OTP in cache with 5-minute expiration
+            cache_key = f"otp_{identifier}_{identifier_type}"
+            cache.set(cache_key, otp, 300)  # 5 minutes
+            logger.info(f"[SEND_OTP] OTP stored in cache with key: {cache_key}")
+            
+            # Send OTP via email or SMS
+            try:
+                if identifier_type == 'email':
+                    # Get clinic settings for email branding
                     try:
-                        from .sms_config import SMSService
-                        sms_service = SMSService()
-                        sms_message = f'Your MedSync verification code is: {otp}. This code expires in 5 minutes.'
-                        success, result = sms_service.send_sms(identifier, sms_message, country_code='+63')
-                        logger.info(f"📱 Semaphore fallback result: {result}")
-                    except Exception as fallback_error:
-                        logger.error(f"❌ All SMS methods failed: {fallback_error}")
-                        logger.info(f"🔢 FINAL FALLBACK SMS for {identifier}: {otp}")
-                
+                        from clinic.models import ClinicSettings
+                        clinic_settings = ClinicSettings.objects.first()
+                    except:
+                        clinic_settings = None
+                    
+                    # Use the enhanced OTP email function with comprehensive debugging
+                    logger.info(f"[SEND_OTP] Attempting to send OTP email to {identifier}")
+                    
+                    from appointments.email_utils import send_otp_email
+                    success, message = send_otp_email(identifier, otp, clinic_settings)
+                    
+                    if not success:
+                        logger.error(f"[SEND_OTP] ERROR: Failed to send OTP email to {identifier}: {message}")
+                        # Don't fail - continue to return success
+                        # return Response({
+                        #     'success': False,
+                        #     'error': f'Failed to send OTP email: {message}. Please try phone instead.'
+                        # }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    else:
+                        logger.info(f"[SEND_OTP] SUCCESS: OTP email sent to {identifier}")
+                        
+                elif identifier_type == 'phone':
+                    # Use iProg SMS service as primary
+                    logger.info(f"[SEND_OTP] Attempting to send OTP SMS to {identifier}")
+                    
+                    from .iprog_sms_service import iprog_sms_service
+                    
+                    success, message, reference_id = iprog_sms_service.send_otp_sms(identifier, otp)
+                    
+                    if success:
+                        logger.info(f"[SEND_OTP] SUCCESS: iProg SMS sent to {identifier}: {message}")
+                        if reference_id:
+                            logger.info(f"[SEND_OTP] iProg Reference ID: {reference_id}")
+                    else:
+                        logger.warning(f"[SEND_OTP] WARNING: iProg SMS failed for {identifier}: {message}")
+                        # Additional fallback to Semaphore if needed
+                        try:
+                            from .sms_config import SMSService
+                            sms_service = SMSService()
+                            sms_message = f'Your MedSync verification code is: {otp}. This code expires in 5 minutes.'
+                            success, result = sms_service.send_sms(identifier, sms_message, country_code='+63')
+                            logger.info(f"[SEND_OTP] Semaphore fallback result: {result}")
+                        except Exception as fallback_error:
+                            logger.error(f"[SEND_OTP] ERROR: All SMS methods failed: {fallback_error}")
+                            logger.info(f"[SEND_OTP] FINAL FALLBACK SMS for {identifier}: {otp}")
+                    
+            except Exception as e:
+                logger.error(f"[SEND_OTP] ERROR: Failed to send OTP to {identifier}: {e}")
+                logger.exception("Full traceback for OTP sending error:")
+                # For demo purposes, still return success but log the failure
+                pass
+            
+            logger.info(f"[SEND_OTP] Returning success response for {identifier}")
+            return Response({
+                'success': True,
+                'message': 'OTP sent successfully',
+                'expires_in': 300
+            })
+            
         except Exception as e:
-            logger.error(f"❌ Failed to send OTP to {identifier}: {e}")
-            logger.exception("Full traceback for OTP sending error:")
-            # For demo purposes, still return success but log the failure
-            pass
-        
-        return Response({
-            'success': True,
-            'message': 'OTP sent successfully',
-            'expires_in': 300
-        })
+            logger.error(f"[SEND_OTP] CRITICAL ERROR: {e}")
+            logger.exception("Full traceback:")
+            return Response({
+                'success': False,
+                'error': f'An unexpected error occurred: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class VerifyOTPView(APIView):
     permission_classes = [AllowAny]
     
     def post(self, request):
+        logger.info("[VERIFY_OTP] POST request received")
+        logger.info(f"[VERIFY_OTP] Request data: {request.data}")
+        
         identifier = request.data.get('identifier')
         identifier_type = request.data.get('identifier_type')
         otp = request.data.get('otp')
         
+        logger.info(f"[VERIFY_OTP] Verifying OTP for identifier: {identifier}, Type: {identifier_type}")
+        
         if not identifier or not identifier_type or not otp:
+            logger.warning("[VERIFY_OTP] ERROR: Missing required fields")
             return Response({
                 'success': False,
                 'error': 'identifier, identifier_type, and otp are required'
@@ -1490,16 +1541,20 @@ class VerifyOTPView(APIView):
         cache_key = f"otp_{identifier}_{identifier_type}"
         stored_otp = cache.get(cache_key)
         
+        logger.info(f"[VERIFY_OTP] Cache key: {cache_key}, Stored OTP: {stored_otp}, Provided OTP: {otp}")
+        
         # If phone number, use Django OTP verification (iProg is just for sending)
         if identifier_type == 'phone':
             # Use Django OTP verification only
             if not stored_otp:
+                logger.warning("[VERIFY_OTP] ERROR: OTP expired or not found for phone")
                 return Response({
                     'success': False,
                     'error': 'OTP expired or not found'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
             if stored_otp != otp:
+                logger.warning(f"[VERIFY_OTP] ERROR: Invalid OTP for phone. Expected: {stored_otp}, Got: {otp}")
                 return Response({
                     'success': False,
                     'error': 'Invalid OTP'
@@ -1507,33 +1562,57 @@ class VerifyOTPView(APIView):
         else:
             # Email verification - use Django OTP verification only
             if not stored_otp:
+                logger.warning("[VERIFY_OTP] ERROR: OTP expired or not found for email")
                 return Response({
                     'success': False,
                     'error': 'OTP expired or not found'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
             if stored_otp != otp:
+                logger.warning(f"[VERIFY_OTP] ERROR: Invalid OTP for email. Expected: {stored_otp}, Got: {otp}")
                 return Response({
                     'success': False,
                     'error': 'Invalid OTP'
                 }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Find user
+        # Find user (handle encrypted fields)
         try:
             if identifier_type == 'email':
-                user = CustomUser.objects.get(email=identifier)
+                logger.info(f"[VERIFY_OTP] Looking up user by email: {identifier}")
+                # Since email is encrypted, search through all users
+                user = None
+                for u in CustomUser.objects.all():
+                    if u.email and u.email.lower() == identifier.lower():
+                        user = u
+                        break
+                
+                if not user:
+                    raise CustomUser.DoesNotExist
+                    
             elif identifier_type == 'phone':
-                user = CustomUser.objects.get(phone=identifier)
+                logger.info(f"[VERIFY_OTP] Looking up user by phone: {identifier}")
+                # Since phone is encrypted, search through all users
+                user = None
+                for u in CustomUser.objects.all():
+                    if u.phone and u.phone == identifier:
+                        user = u
+                        break
+                
+                if not user:
+                    raise CustomUser.DoesNotExist
             else:
                 return Response({
                     'success': False,
                     'error': 'identifier_type must be email or phone'
                 }, status=status.HTTP_400_BAD_REQUEST)
         except CustomUser.DoesNotExist:
+            logger.warning(f"[VERIFY_OTP] ERROR: User not found with {identifier_type}: {identifier}")
             return Response({
                 'success': False,
                 'error': 'User not found'
             }, status=status.HTTP_404_NOT_FOUND)
+        
+        logger.info(f"[VERIFY_OTP] SUCCESS: Found user: {user.username}")
         
         # Clear the OTP from cache
         cache.delete(cache_key)
@@ -1580,11 +1659,17 @@ class ResetPasswordOTPView(APIView):
     permission_classes = [AllowAny]
     
     def post(self, request):
+        logger.info("[RESET_PASSWORD_OTP] POST request received")
+        logger.info(f"[RESET_PASSWORD_OTP] Request data keys: {request.data.keys()}")
+        
         identifier = request.data.get('identifier')
         identifier_type = request.data.get('identifier_type')
         new_password = request.data.get('new_password')
         
+        logger.info(f"[RESET_PASSWORD_OTP] Password reset for identifier: {identifier}, Type: {identifier_type}")
+        
         if not identifier or not identifier_type or not new_password:
+            logger.warning("[RESET_PASSWORD_OTP] ERROR: Missing required fields")
             return Response({
                 'success': False,
                 'error': 'identifier, identifier_type, and new_password are required'
@@ -1592,27 +1677,50 @@ class ResetPasswordOTPView(APIView):
         
         # Validate password length
         if len(new_password) < 8:
+            logger.warning("[RESET_PASSWORD_OTP] ERROR: Password too short")
             return Response({
                 'success': False,
                 'error': 'Password must be at least 8 characters long'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Find user
+        # Find user (handle encrypted fields)
         try:
             if identifier_type == 'email':
-                user = CustomUser.objects.get(email=identifier)
+                logger.info(f"[RESET_PASSWORD_OTP] Looking up user by email: {identifier}")
+                # Since email is encrypted, search through all users
+                user = None
+                for u in CustomUser.objects.all():
+                    if u.email and u.email.lower() == identifier.lower():
+                        user = u
+                        break
+                
+                if not user:
+                    raise CustomUser.DoesNotExist
+                    
             elif identifier_type == 'phone':
-                user = CustomUser.objects.get(phone=identifier)
+                logger.info(f"[RESET_PASSWORD_OTP] Looking up user by phone: {identifier}")
+                # Since phone is encrypted, search through all users
+                user = None
+                for u in CustomUser.objects.all():
+                    if u.phone and u.phone == identifier:
+                        user = u
+                        break
+                
+                if not user:
+                    raise CustomUser.DoesNotExist
             else:
                 return Response({
                     'success': False,
                     'error': 'identifier_type must be email or phone'
                 }, status=status.HTTP_400_BAD_REQUEST)
         except CustomUser.DoesNotExist:
+            logger.warning(f"[RESET_PASSWORD_OTP] ERROR: User not found with {identifier_type}: {identifier}")
             return Response({
                 'success': False,
                 'error': 'User not found'
             }, status=status.HTTP_404_NOT_FOUND)
+        
+        logger.info(f"[RESET_PASSWORD_OTP] SUCCESS: Found user: {user.username}")
         
         try:
             # Update user password

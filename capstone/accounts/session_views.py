@@ -239,27 +239,49 @@ class SessionOTPVerifyView(APIView):
                     'error': 'Invalid OTP. Please check the code and try again.'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Find pending user from session
+            # Find pending user from session OR find user by identifier (for forgot password flow)
             pending_user_id = request.session.get('pending_2fa_user_id')
             logger.info(f"[2FA VERIFY] Pending user ID from session: {pending_user_id}")
             
-            if not pending_user_id:
-                logger.error("[2FA VERIFY] No pending 2FA login found in session")
-                return Response({
-                    'success': False,
-                    'error': 'No pending 2FA login found. Please login again.'
-                }, status=status.HTTP_400_BAD_REQUEST)
-
             from accounts.models import CustomUser
-            try:
-                user = CustomUser.objects.get(id=pending_user_id)
-                logger.info(f"[2FA VERIFY] Found user: {user.email} (ID: {user.id})")
-            except CustomUser.DoesNotExist:
-                logger.error(f"[2FA VERIFY] User not found for ID: {pending_user_id}")
-                return Response({
-                    'success': False,
-                    'error': 'User not found.'
-                }, status=status.HTTP_404_NOT_FOUND)
+            user = None
+            
+            if pending_user_id:
+                # Login flow: Get user from session
+                try:
+                    user = CustomUser.objects.get(id=pending_user_id)
+                    logger.info(f"[2FA VERIFY] Found user from session: {user.email} (ID: {user.id})")
+                except CustomUser.DoesNotExist:
+                    logger.error(f"[2FA VERIFY] User not found for ID: {pending_user_id}")
+                    return Response({
+                        'success': False,
+                        'error': 'User not found.'
+                    }, status=status.HTTP_404_NOT_FOUND)
+            else:
+                # Forgot password flow: Find user by identifier (handle encrypted fields)
+                logger.info(f"[2FA VERIFY] No pending user in session - searching by {identifier_type}: {identifier}")
+                
+                if identifier_type == 'email':
+                    # Search through all users for matching email (encrypted field)
+                    for u in CustomUser.objects.all():
+                        if u.email and u.email.lower() == identifier.lower():
+                            user = u
+                            logger.info(f"[2FA VERIFY] Found user by email: {user.username}")
+                            break
+                elif identifier_type == 'phone':
+                    # Search through all users for matching phone (encrypted field)
+                    for u in CustomUser.objects.all():
+                        if u.phone and u.phone == identifier:
+                            user = u
+                            logger.info(f"[2FA VERIFY] Found user by phone: {user.username}")
+                            break
+                
+                if not user:
+                    logger.error(f"[2FA VERIFY] User not found with {identifier_type}: {identifier}")
+                    return Response({
+                        'success': False,
+                        'error': 'User not found.'
+                    }, status=status.HTTP_404_NOT_FOUND)
 
             # Verify the identifier matches the user
             if identifier_type == 'email' and user.email != identifier:
@@ -278,7 +300,11 @@ class SessionOTPVerifyView(APIView):
             # Clear OTP and pending state
             logger.info(f"[2FA VERIFY] OTP verification successful - clearing cache and session data")
             cache.delete(cache_key)
-            del request.session['pending_2fa_user_id']
+            
+            # Only clear pending_2fa_user_id if it exists (login flow)
+            if 'pending_2fa_user_id' in request.session:
+                del request.session['pending_2fa_user_id']
+                logger.info(f"[2FA VERIFY] Cleared pending_2fa_user_id from session")
 
             # Clear any existing sessions for this user
             self.clear_user_sessions(user)

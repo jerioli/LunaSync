@@ -17487,3 +17487,631 @@ INFO 2025-11-09 03:15:50,702 autoreload 12824 12488 Watching for file changes wi
 INFO 2025-11-09 03:16:10,229 autoreload 21060 22544 Watching for file changes with StatReloader
 2025-11-09 03:16:30,858 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\capstone\settings.py changed, reloading.
 INFO 2025-11-09 03:16:34,024 autoreload 12480 5088 Watching for file changes with StatReloader
+2025-11-09 03:24:24,148 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\views.py changed, reloading.
+INFO 2025-11-09 03:24:31,445 autoreload 13000 12512 Watching for file changes with StatReloader
+2025-11-09 03:24:58,437 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 03:24:58,438 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 03:24:58,500 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 496
+2025-11-09 03:24:58,503 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 908
+2025-11-09 03:24:58,792 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 03:24:58,803 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 2
+2025-11-09 03:25:02,801 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-logout/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": false}
+2025-11-09 03:25:03,289 - accounts.session_views - INFO - User 4 logged out. Session f7nl4b4gsu4oymwmy01xhvbt0a6izqsc cleared.
+2025-11-09 03:25:03,338 - django.server - INFO - "POST /api/auth/session-logout/ HTTP/1.1" 200 52
+2025-11-09 03:25:24,992 - django.server - INFO - "OPTIONS /api/auth/send-otp/ HTTP/1.1" 200 0
+2025-11-09 03:25:24,995 - root - INFO - Request: {"method": "POST", "path": "/api/auth/send-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 03:25:25,176 - django.request - WARNING - Not Found: /api/auth/send-otp/
+2025-11-09 03:25:25,177 - django.server - WARNING - "POST /api/auth/send-otp/ HTTP/1.1" 404 62
+2025-11-09 03:25:48,020 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-login/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 03:25:51,567 - otp_email - INFO - ============================================================
+2025-11-09 03:25:51,619 - otp_email - INFO - ============================================================
+2025-11-09 03:25:53,793 - otp_email - INFO - ============================================================
+2025-11-09 03:25:53,794 - otp_email - INFO - ================================================================================
+2025-11-09 03:25:54,056 - otp_email - INFO - ================================================================================
+2025-11-09 03:25:54,412 - otp_email - INFO - ----------------------------------------
+2025-11-09 03:26:03,808 - otp_email - INFO - ================================================================================
+2025-11-09 03:26:03,931 - otp_email - INFO - ================================================================================
+2025-11-09 03:26:04,889 - django.server - INFO - "POST /api/auth/session-login/ HTTP/1.1" 200 151
+2025-11-09 03:26:10,671 - root - INFO - Request: {"method": "POST", "path": "/api/auth/send-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 03:26:10,719 - django.request - WARNING - Not Found: /api/auth/send-otp/
+2025-11-09 03:26:10,720 - django.server - WARNING - "POST /api/auth/send-otp/ HTTP/1.1" 404 62
+2025-11-09 03:34:16,441 - root - INFO - Request: {"method": "GET", "path": "/api/auth/send-otp/", "user_id": null, "user_agent": "python-requests/2.32.4", "remote_addr": "127.0.0.1"}
+2025-11-09 03:34:16,459 - django.request - WARNING - Method Not Allowed: /api/auth/send-otp/
+2025-11-09 03:34:16,461 - django.server - WARNING - "GET /api/auth/send-otp/ HTTP/1.1" 405 40
+2025-11-09 03:36:56,717 - root - INFO - Request: {"method": "GET", "path": "/api/auth/send-otp/", "user_id": null, "user_agent": "python-requests/2.32.4", "remote_addr": "127.0.0.1"}
+2025-11-09 03:36:56,719 - django.request - WARNING - Method Not Allowed: /api/auth/send-otp/
+2025-11-09 03:36:56,720 - django.server - WARNING - "GET /api/auth/send-otp/ HTTP/1.1" 405 40
+2025-11-09 03:39:45,027 - root - INFO - Request: {"method": "POST", "path": "/api/auth/send-otp/", "user_id": null, "user_agent": "python-requests/2.32.4", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 03:39:45,456 - django.request - WARNING - Not Found: /api/auth/send-otp/
+2025-11-09 03:39:45,462 - django.server - WARNING - "POST /api/auth/send-otp/ HTTP/1.1" 404 62
+2025-11-09 03:40:21,620 - root - INFO - Request: {"method": "POST", "path": "/api/auth/send-otp/", "user_id": null, "user_agent": "python-requests/2.32.4", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 03:40:21,930 - django.request - WARNING - Not Found: /api/auth/send-otp/
+2025-11-09 03:40:21,932 - django.server - WARNING - "POST /api/auth/send-otp/ HTTP/1.1" 404 62
+INFO 2025-11-09 11:14:07,097 autoreload 5852 11668 Watching for file changes with StatReloader
+2025-11-09 11:15:55,355 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:15:55,422 - django.request - WARNING - Unauthorized: /api/auth/current-user/
+2025-11-09 11:15:55,426 - django.server - WARNING - "GET /api/auth/current-user/ HTTP/1.1" 401 35
+2025-11-09 11:15:59,455 - django.server - INFO - "OPTIONS /api/appointments/list/ HTTP/1.1" 200 0
+2025-11-09 11:15:59,456 - django.server - INFO - "OPTIONS /api/patients/ HTTP/1.1" 200 0
+2025-11-09 11:15:59,461 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:15:59,470 - django.request - WARNING - Forbidden: /api/patients/
+2025-11-09 11:15:59,462 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:15:59,474 - django.server - WARNING - "GET /api/patients/ HTTP/1.1" 403 58
+2025-11-09 11:15:59,473 - appointments.views - INFO - Starting list method...
+2025-11-09 11:15:59,475 - appointments.views - INFO - Starting to fetch appointments...
+2025-11-09 11:15:59,746 - appointments.views - INFO - Successfully accessed database
+2025-11-09 11:15:59,751 - appointments.views - INFO - Found 6 appointments after filtering
+2025-11-09 11:16:00,015 - appointments.views - INFO - Sample appointment: id=4, status=ongoing, date=2025-11-10
+2025-11-09 11:16:00,019 - appointments.views - INFO - Patient: Mary Joy C. Olivarez
+2025-11-09 11:16:00,020 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:16:00,023 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:16:00,026 - appointments.views - INFO - Sample appointment: id=8, status=cancelled, date=2025-11-09
+2025-11-09 11:16:00,030 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2025-11-09 11:16:00,032 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:16:00,034 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:16:00,035 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-09
+2025-11-09 11:16:00,037 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2025-11-09 11:16:00,038 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:16:00,039 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:16:00,053 - appointments.views - INFO - Testing serialization with first appointment: 4
+2025-11-09 11:16:00,099 - appointments.views - INFO - Successfully serialized first appointment: {'id': 4, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Mary Joy C Olivarez', 'patient_id': 'P-20251108-0218', 'patient_email': 'joy.olivarez@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2014-06-07', 'gender': 'female', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-10', 'time': '09:00:00', 'status': 'ongoing', 'created_at': '2025-11-08T17:43:01.834463+08:00', 'display_patient_name': 'Mary Joy C. Olivarez', 'display_doctor_name': 'Jerry Oli', 'display_time': '09:00 AM', 'display_date': 'November 10, 2025', 'doctor': 3, 'doctor_name': 'Jerry Oli', 'patient': 2}
+2025-11-09 11:16:00,120 - appointments.views - INFO - Successfully serialized all appointments. Count: 6
+2025-11-09 11:16:00,123 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 4010
+2025-11-09 11:16:01,870 - django.server - INFO - "OPTIONS /api/patients/3/ HTTP/1.1" 200 0
+2025-11-09 11:16:01,875 - root - INFO - Request: {"method": "GET", "path": "/api/patients/3/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:16:01,879 - django.request - WARNING - Forbidden: /api/patients/3/
+2025-11-09 11:16:01,906 - django.server - WARNING - "GET /api/patients/3/ HTTP/1.1" 403 58
+2025-11-09 11:16:09,064 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-logout/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": false}
+2025-11-09 11:16:09,077 - accounts.session_views - INFO - User None logged out. Session None cleared.
+2025-11-09 11:16:09,379 - django.server - INFO - "POST /api/auth/session-logout/ HTTP/1.1" 200 52
+2025-11-09 11:16:14,711 - django.server - INFO - "OPTIONS /api/auth/send-otp/ HTTP/1.1" 200 0
+2025-11-09 11:16:14,713 - root - INFO - Request: {"method": "POST", "path": "/api/auth/send-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:16:15,301 - django.request - WARNING - Not Found: /api/auth/send-otp/
+2025-11-09 11:16:15,303 - django.server - WARNING - "POST /api/auth/send-otp/ HTTP/1.1" 404 62
+2025-11-09 11:17:16,325 - django.server - INFO - "OPTIONS /api/auth/session-login/ HTTP/1.1" 200 0
+2025-11-09 11:17:16,645 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-login/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:17:18,692 - otp_email - INFO - ============================================================
+2025-11-09 11:17:18,783 - otp_email - INFO - ============================================================
+2025-11-09 11:17:19,440 - otp_email - INFO - ============================================================
+2025-11-09 11:17:19,440 - otp_email - INFO - ================================================================================
+2025-11-09 11:17:19,615 - otp_email - INFO - ================================================================================
+2025-11-09 11:17:19,877 - otp_email - INFO - ----------------------------------------
+2025-11-09 11:17:25,711 - otp_email - INFO - ================================================================================
+2025-11-09 11:17:25,893 - otp_email - INFO - ================================================================================
+2025-11-09 11:17:26,276 - django.server - INFO - "POST /api/auth/session-login/ HTTP/1.1" 200 157
+2025-11-09 11:17:51,530 - django.server - INFO - "OPTIONS /api/auth/session-verify-otp/ HTTP/1.1" 200 0
+2025-11-09 11:17:51,721 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-verify-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:17:51,724 - accounts.session_views - INFO - [2FA VERIFY] SessionOTPVerifyView.post called
+2025-11-09 11:17:51,725 - accounts.session_views - INFO - [2FA VERIFY] Request data: {'identifier': 'receptionist@example.com', 'identifier_type': 'email', 'otp': '219855'}
+2025-11-09 11:17:51,725 - accounts.session_views - INFO - [2FA VERIFY] Session data: {'pending_2fa_user_id': 4}
+2025-11-09 11:17:51,728 - accounts.session_views - INFO - [2FA VERIFY] Verifying OTP for email: receptionist@example.com
+2025-11-09 11:17:51,732 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 219855
+2025-11-09 11:17:51,745 - accounts.session_views - INFO - [2FA VERIFY] Cache key: otp_receptionist@example.com_email
+2025-11-09 11:17:51,750 - accounts.session_views - INFO - [2FA VERIFY] Stored OTP: 219855
+2025-11-09 11:17:51,757 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 219855
+2025-11-09 11:17:51,759 - accounts.session_views - INFO - [2FA VERIFY] OTP Match: True
+2025-11-09 11:17:51,760 - accounts.session_views - INFO - [2FA VERIFY] Pending user ID from session: 4
+2025-11-09 11:17:51,766 - accounts.session_views - INFO - [2FA VERIFY] Found user: receptionist@example.com (ID: 4)
+2025-11-09 11:17:51,774 - accounts.session_views - INFO - [2FA VERIFY] OTP verification successful - clearing cache and session data
+2025-11-09 11:17:51,782 - accounts.session_views - INFO - [2FA VERIFY] Session saved successfully. Session ID: hoqtmrq88ievzapw1prohkh1errvl2qq
+2025-11-09 11:17:51,862 - django.server - INFO - "POST /api/auth/session-verify-otp/ HTTP/1.1" 200 573
+2025-11-09 11:17:52,349 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:17:52,353 - appointments.views - INFO - Starting list method...
+2025-11-09 11:17:52,355 - appointments.views - INFO - Starting to fetch appointments...
+2025-11-09 11:17:52,359 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:17:52,361 - appointments.views - INFO - Successfully accessed database
+2025-11-09 11:17:52,364 - security_audit - INFO - Data access: {"user_id": 4, "username": "receptionist", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1762658272.3646824, "client_ip": "127.0.0.1"}
+2025-11-09 11:17:52,367 - appointments.views - INFO - Found 6 appointments after filtering
+2025-11-09 11:17:52,387 - appointments.views - INFO - Sample appointment: id=4, status=ongoing, date=2025-11-10
+2025-11-09 11:17:52,391 - appointments.views - INFO - Patient: Mary Joy C. Olivarez
+2025-11-09 11:17:52,392 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:17:52,393 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:17:52,395 - appointments.views - INFO - Sample appointment: id=8, status=cancelled, date=2025-11-09
+2025-11-09 11:17:52,397 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2025-11-09 11:17:52,405 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:17:52,410 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1903
+2025-11-09 11:17:52,407 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:17:52,411 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-09
+2025-11-09 11:17:52,414 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2025-11-09 11:17:52,416 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:17:52,424 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:17:52,435 - appointments.views - INFO - Testing serialization with first appointment: 4
+2025-11-09 11:17:52,445 - appointments.views - INFO - Successfully serialized first appointment: {'id': 4, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Mary Joy C Olivarez', 'patient_id': 'P-20251108-0218', 'patient_email': 'joy.olivarez@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2014-06-07', 'gender': 'female', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-10', 'time': '09:00:00', 'status': 'ongoing', 'created_at': '2025-11-08T17:43:01.834463+08:00', 'display_patient_name': 'Mary Joy C. Olivarez', 'display_doctor_name': 'Jerry Oli', 'display_time': '09:00 AM', 'display_date': 'November 10, 2025', 'doctor': 3, 'doctor_name': 'Jerry Oli', 'patient': 2}
+2025-11-09 11:17:52,466 - appointments.views - INFO - Successfully serialized all appointments. Count: 6
+2025-11-09 11:17:52,475 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 4010
+2025-11-09 11:17:52,688 - root - INFO - Request: {"method": "GET", "path": "/api/patients/3/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:17:52,689 - security_audit - INFO - Data access: {"user_id": 4, "username": "receptionist", "action": "GET", "endpoint": "/api/patients/3/", "timestamp": 1762658272.6896994, "client_ip": "127.0.0.1"}
+2025-11-09 11:17:52,710 - django.server - INFO - "GET /api/patients/3/ HTTP/1.1" 200 400
+2025-11-09 11:18:01,937 - django.server - INFO - "OPTIONS /api/doctors/ HTTP/1.1" 200 0
+2025-11-09 11:18:02,243 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:18:02,277 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 121
+2025-11-09 11:18:02,307 - django.server - INFO - "OPTIONS /api/appointments/?doctor_id=3&date=2025-11-09&_t=1762658282291 HTTP/1.1" 200 0
+2025-11-09 11:18:02,588 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:18:02,591 - appointments.views - INFO - Starting list method...
+2025-11-09 11:18:02,592 - appointments.views - INFO - Starting to fetch appointments...
+2025-11-09 11:18:02,596 - appointments.views - INFO - Successfully accessed database
+2025-11-09 11:18:02,600 - appointments.views - INFO - Filtering by doctor_id: 3
+2025-11-09 11:18:02,613 - appointments.views - INFO - Filtering by date: 2025-11-09
+2025-11-09 11:18:02,626 - appointments.views - INFO - Found 4 appointments after filtering
+2025-11-09 11:18:02,645 - appointments.views - INFO - Sample appointment: id=7, status=cancelled, date=2025-11-09
+2025-11-09 11:18:02,646 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2025-11-09 11:18:02,649 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:18:02,656 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:18:02,658 - appointments.views - INFO - Sample appointment: id=8, status=cancelled, date=2025-11-09
+2025-11-09 11:18:02,664 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2025-11-09 11:18:02,666 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:18:02,667 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:18:02,673 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-09
+2025-11-09 11:18:02,682 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2025-11-09 11:18:02,689 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:18:02,690 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:18:02,700 - appointments.views - INFO - Testing serialization with first appointment: 6
+2025-11-09 11:18:02,710 - appointments.views - INFO - Successfully serialized first appointment: {'id': 6, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Rose C Olivarez', 'patient_id': 'P-20251108-2174', 'patient_email': 'rose@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '1972-12-04', 'gender': 'female', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'married', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-09', 'time': '11:00:00', 'status': 'scheduled', 'created_at': '2025-11-08T18:25:48.861904+08:00', 'display_patient_name': 'Rose C. Olivarez', 'display_doctor_name': 'Jerry Oli', 'display_time': '11:00 AM', 'display_date': 'November 09, 2025', 'doctor': 3, 'doctor_name': 'Jerry Oli', 'patient': 3}
+2025-11-09 11:18:02,740 - appointments.views - INFO - Successfully serialized all appointments. Count: 4
+2025-11-09 11:18:02,749 - django.server - INFO - "GET /api/appointments/?doctor_id=3&date=2025-11-09&_t=1762658282291 HTTP/1.1" 200 2665
+2025-11-09 11:18:02,770 - django.server - INFO - "OPTIONS /api/availability/?doctor_id=3&date=2025-11-09&_t=1762658282765 HTTP/1.1" 200 0
+2025-11-09 11:18:02,998 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:18:03,293 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2025-11-09&_t=1762658282765 HTTP/1.1" 200 3481
+2025-11-09 11:18:07,363 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:18:07,368 - security_audit - INFO - Data access: {"user_id": 4, "username": "receptionist", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1762658287.3678033, "client_ip": "127.0.0.1"}
+2025-11-09 11:18:07,377 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:18:07,397 - appointments.views - INFO - Starting list method...
+2025-11-09 11:18:07,425 - appointments.views - INFO - Starting to fetch appointments...
+2025-11-09 11:18:07,434 - appointments.views - INFO - Successfully accessed database
+2025-11-09 11:18:07,454 - appointments.views - INFO - Found 6 appointments after filtering
+2025-11-09 11:18:07,466 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1903
+2025-11-09 11:18:07,487 - appointments.views - INFO - Sample appointment: id=4, status=ongoing, date=2025-11-10
+2025-11-09 11:18:07,494 - appointments.views - INFO - Patient: Mary Joy C. Olivarez
+2025-11-09 11:18:07,509 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:18:07,512 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:18:07,514 - appointments.views - INFO - Sample appointment: id=8, status=cancelled, date=2025-11-09
+2025-11-09 11:18:07,523 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2025-11-09 11:18:07,527 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:18:07,529 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:18:07,530 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-09
+2025-11-09 11:18:07,533 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2025-11-09 11:18:07,542 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:18:07,543 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:18:07,558 - appointments.views - INFO - Testing serialization with first appointment: 4
+2025-11-09 11:18:07,562 - appointments.views - INFO - Successfully serialized first appointment: {'id': 4, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Mary Joy C Olivarez', 'patient_id': 'P-20251108-0218', 'patient_email': 'joy.olivarez@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2014-06-07', 'gender': 'female', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-10', 'time': '09:00:00', 'status': 'ongoing', 'created_at': '2025-11-08T17:43:01.834463+08:00', 'display_patient_name': 'Mary Joy C. Olivarez', 'display_doctor_name': 'Jerry Oli', 'display_time': '09:00 AM', 'display_date': 'November 10, 2025', 'doctor': 3, 'doctor_name': 'Jerry Oli', 'patient': 2}
+2025-11-09 11:18:07,594 - appointments.views - INFO - Successfully serialized all appointments. Count: 6
+2025-11-09 11:18:07,603 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 4010
+2025-11-09 11:18:11,366 - django.server - INFO - "OPTIONS /api/users/4/ HTTP/1.1" 200 0
+2025-11-09 11:18:11,613 - root - INFO - Request: {"method": "PATCH", "path": "/api/users/4/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:18:11,639 - django.server - INFO - "PATCH /api/users/4/ HTTP/1.1" 200 203
+2025-11-09 11:18:33,192 - root - INFO - Request: {"method": "PATCH", "path": "/api/users/4/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:18:33,222 - django.server - INFO - "PATCH /api/users/4/ HTTP/1.1" 200 203
+2025-11-09 11:18:39,692 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-logout/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": false}
+2025-11-09 11:18:39,696 - accounts.session_views - INFO - User 4 logged out. Session 6iwhzj74wcj0o9ugedhh01syqdguj4qi cleared.
+2025-11-09 11:18:39,709 - django.server - INFO - "POST /api/auth/session-logout/ HTTP/1.1" 200 52
+2025-11-09 11:18:46,785 - root - INFO - Request: {"method": "POST", "path": "/api/auth/send-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:18:46,990 - django.request - WARNING - Not Found: /api/auth/send-otp/
+2025-11-09 11:18:46,991 - django.server - WARNING - "POST /api/auth/send-otp/ HTTP/1.1" 404 62
+2025-11-09 11:20:20,354 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\urls.py changed, reloading.
+INFO 2025-11-09 11:20:24,987 autoreload 6572 3488 Watching for file changes with StatReloader
+2025-11-09 11:21:00,276 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\urls.py changed, reloading.
+INFO 2025-11-09 11:21:05,598 autoreload 13656 13112 Watching for file changes with StatReloader
+2025-11-09 11:24:17,680 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\views.py changed, reloading.
+INFO 2025-11-09 11:24:22,127 autoreload 17332 14352 Watching for file changes with StatReloader
+2025-11-09 11:24:37,326 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\views.py changed, reloading.
+INFO 2025-11-09 11:24:41,097 autoreload 21432 9308 Watching for file changes with StatReloader
+2025-11-09 11:24:47,861 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\views.py changed, reloading.
+INFO 2025-11-09 11:24:51,094 autoreload 15832 12872 Watching for file changes with StatReloader
+2025-11-09 11:25:05,474 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\views.py changed, reloading.
+INFO 2025-11-09 11:25:08,734 autoreload 21840 22708 Watching for file changes with StatReloader
+2025-11-09 11:25:18,980 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\views.py changed, reloading.
+INFO 2025-11-09 11:25:22,303 autoreload 21580 21028 Watching for file changes with StatReloader
+2025-11-09 11:25:30,539 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\views.py changed, reloading.
+INFO 2025-11-09 11:25:34,230 autoreload 9608 7244 Watching for file changes with StatReloader
+2025-11-09 11:26:50,943 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\views.py changed, reloading.
+INFO 2025-11-09 11:26:55,867 autoreload 12416 1516 Watching for file changes with StatReloader
+2025-11-09 11:30:06,901 - root - INFO - Request: {"method": "POST", "path": "/api/auth/send-otp/", "user_id": null, "user_agent": "", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:30:09,527 - django.request - WARNING - Not Found: /api/auth/send-otp/
+2025-11-09 11:30:15,758 - root - INFO - Request: {"method": "POST", "path": "/api/auth/send-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:30:16,200 - django.request - WARNING - Not Found: /api/auth/send-otp/
+2025-11-09 11:30:16,203 - django.server - WARNING - "POST /api/auth/send-otp/ HTTP/1.1" 404 62
+2025-11-09 11:32:39,829 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\views.py changed, reloading.
+INFO 2025-11-09 11:32:44,612 autoreload 2972 8676 Watching for file changes with StatReloader
+2025-11-09 11:32:55,148 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\views.py changed, reloading.
+INFO 2025-11-09 11:32:58,511 autoreload 15704 20376 Watching for file changes with StatReloader
+2025-11-09 11:33:37,546 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\views.py changed, reloading.
+INFO 2025-11-09 11:33:41,146 autoreload 224 15012 Watching for file changes with StatReloader
+2025-11-09 11:34:03,616 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\views.py changed, reloading.
+INFO 2025-11-09 11:34:07,048 autoreload 21792 18232 Watching for file changes with StatReloader
+2025-11-09 11:34:29,208 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\views.py changed, reloading.
+INFO 2025-11-09 11:34:32,437 autoreload 18532 6880 Watching for file changes with StatReloader
+2025-11-09 11:36:08,913 - root - INFO - Request: {"method": "POST", "path": "/api/auth/send-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:36:08,930 - accounts.views - INFO - [SEND_OTP] POST request received
+2025-11-09 11:36:08,931 - accounts.views - INFO - [SEND_OTP] Request data: {'identifier': 'jeri.olivarez@gmail.com', 'identifier_type': 'email'}
+2025-11-09 11:36:08,935 - accounts.views - INFO - [SEND_OTP] Identifier: jeri.olivarez@gmail.com, Type: email
+2025-11-09 11:36:08,936 - accounts.views - INFO - [SEND_OTP] Looking up user by email: jeri.olivarez@gmail.com
+2025-11-09 11:36:09,087 - accounts.views - WARNING - [SEND_OTP] ERROR: No user found with email: jeri.olivarez@gmail.com
+2025-11-09 11:36:09,090 - django.request - WARNING - Not Found: /api/auth/send-otp/
+2025-11-09 11:36:09,091 - django.server - WARNING - "POST /api/auth/send-otp/ HTTP/1.1" 404 62
+2025-11-09 11:39:00,099 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-login/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:39:01,749 - otp_email - INFO - ============================================================
+2025-11-09 11:39:01,840 - otp_email - INFO - ============================================================
+2025-11-09 11:39:02,629 - otp_email - INFO - ============================================================
+2025-11-09 11:39:02,630 - otp_email - INFO - ================================================================================
+2025-11-09 11:39:03,012 - otp_email - INFO - ================================================================================
+2025-11-09 11:39:03,586 - otp_email - INFO - ----------------------------------------
+2025-11-09 11:39:10,374 - otp_email - INFO - ================================================================================
+2025-11-09 11:39:10,450 - otp_email - INFO - ================================================================================
+2025-11-09 11:39:10,587 - django.server - INFO - "POST /api/auth/session-login/ HTTP/1.1" 200 156
+2025-11-09 11:39:15,300 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-verify-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:39:15,303 - accounts.session_views - INFO - [2FA VERIFY] SessionOTPVerifyView.post called
+2025-11-09 11:39:15,305 - accounts.session_views - INFO - [2FA VERIFY] Request data: {'identifier': 'jeri.olivarez@gmail.com', 'identifier_type': 'email', 'otp': '270091'}
+2025-11-09 11:39:15,307 - accounts.session_views - INFO - [2FA VERIFY] Session data: {'pending_2fa_user_id': 4}
+2025-11-09 11:39:15,309 - accounts.session_views - INFO - [2FA VERIFY] Verifying OTP for email: jeri.olivarez@gmail.com
+2025-11-09 11:39:15,311 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 270091
+2025-11-09 11:39:15,316 - accounts.session_views - INFO - [2FA VERIFY] Cache key: otp_jeri.olivarez@gmail.com_email
+2025-11-09 11:39:15,317 - accounts.session_views - INFO - [2FA VERIFY] Stored OTP: 270091
+2025-11-09 11:39:15,318 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 270091
+2025-11-09 11:39:15,322 - accounts.session_views - INFO - [2FA VERIFY] OTP Match: True
+2025-11-09 11:39:15,323 - accounts.session_views - INFO - [2FA VERIFY] Pending user ID from session: 4
+2025-11-09 11:39:15,331 - accounts.session_views - INFO - [2FA VERIFY] Found user: jeri.olivarez@gmail.com (ID: 4)
+2025-11-09 11:39:15,332 - accounts.session_views - INFO - [2FA VERIFY] OTP verification successful - clearing cache and session data
+2025-11-09 11:39:15,342 - accounts.session_views - INFO - [2FA VERIFY] Session saved successfully. Session ID: 8xtlbkwa4qiq5s5stz3prg7egdwoa52t
+2025-11-09 11:39:15,437 - django.server - INFO - "POST /api/auth/session-verify-otp/ HTTP/1.1" 200 572
+2025-11-09 11:39:15,876 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:39:15,882 - appointments.views - INFO - Starting list method...
+2025-11-09 11:39:15,883 - appointments.views - INFO - Starting to fetch appointments...
+2025-11-09 11:39:15,891 - appointments.views - INFO - Successfully accessed database
+2025-11-09 11:39:15,904 - appointments.views - INFO - Found 6 appointments after filtering
+2025-11-09 11:39:15,922 - appointments.views - INFO - Sample appointment: id=4, status=ongoing, date=2025-11-10
+2025-11-09 11:39:15,927 - appointments.views - INFO - Patient: Mary Joy C. Olivarez
+2025-11-09 11:39:15,928 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:39:15,930 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:39:15,932 - appointments.views - INFO - Sample appointment: id=8, status=cancelled, date=2025-11-09
+2025-11-09 11:39:15,935 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2025-11-09 11:39:15,936 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:39:15,937 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:39:15,942 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-09
+2025-11-09 11:39:15,945 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2025-11-09 11:39:15,946 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:39:15,949 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:39:15,964 - appointments.views - INFO - Testing serialization with first appointment: 4
+2025-11-09 11:39:15,980 - appointments.views - INFO - Successfully serialized first appointment: {'id': 4, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Mary Joy C Olivarez', 'patient_id': 'P-20251108-0218', 'patient_email': 'joy.olivarez@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2014-06-07', 'gender': 'female', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-10', 'time': '09:00:00', 'status': 'ongoing', 'created_at': '2025-11-08T17:43:01.834463+08:00', 'display_patient_name': 'Mary Joy C. Olivarez', 'display_doctor_name': 'Jerry Oli', 'display_time': '09:00 AM', 'display_date': 'November 10, 2025', 'doctor': 3, 'doctor_name': 'Jerry Oli', 'patient': 2}
+2025-11-09 11:39:16,005 - appointments.views - INFO - Successfully serialized all appointments. Count: 6
+2025-11-09 11:39:16,017 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 4010
+2025-11-09 11:39:16,077 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:39:16,081 - security_audit - INFO - Data access: {"user_id": 4, "username": "receptionist", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1762659556.081586, "client_ip": "127.0.0.1"}
+2025-11-09 11:39:16,141 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1903
+2025-11-09 11:39:16,338 - root - INFO - Request: {"method": "GET", "path": "/api/patients/3/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:39:16,340 - security_audit - INFO - Data access: {"user_id": 4, "username": "receptionist", "action": "GET", "endpoint": "/api/patients/3/", "timestamp": 1762659556.340839, "client_ip": "127.0.0.1"}
+2025-11-09 11:39:16,363 - django.server - INFO - "GET /api/patients/3/ HTTP/1.1" 200 400
+2025-11-09 11:39:16,571 - root - INFO - Request: {"method": "GET", "path": "/api/patients/3/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:39:16,580 - security_audit - INFO - Data access: {"user_id": 4, "username": "receptionist", "action": "GET", "endpoint": "/api/patients/3/", "timestamp": 1762659556.5802653, "client_ip": "127.0.0.1"}
+2025-11-09 11:39:16,615 - django.server - INFO - "GET /api/patients/3/ HTTP/1.1" 200 400
+2025-11-09 11:39:27,916 - root - INFO - Request: {"method": "PATCH", "path": "/api/users/4/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:39:27,945 - django.server - INFO - "PATCH /api/users/4/ HTTP/1.1" 200 220
+2025-11-09 11:40:19,235 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\views.py changed, reloading.
+INFO 2025-11-09 11:40:23,268 autoreload 3468 5628 Watching for file changes with StatReloader
+2025-11-09 11:41:02,257 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\views.py changed, reloading.
+INFO 2025-11-09 11:41:05,778 autoreload 596 188 Watching for file changes with StatReloader
+2025-11-09 11:41:38,996 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\views.py changed, reloading.
+INFO 2025-11-09 11:41:43,225 autoreload 10116 17884 Watching for file changes with StatReloader
+2025-11-09 11:44:53,892 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-logout/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": false}
+2025-11-09 11:44:53,906 - accounts.session_views - INFO - User 4 logged out. Session liw4z1nc9mzsmlb98q6n4rmnuh50cljn cleared.
+2025-11-09 11:44:53,916 - django.server - INFO - "POST /api/auth/session-logout/ HTTP/1.1" 200 52
+2025-11-09 11:44:58,928 - root - INFO - Request: {"method": "POST", "path": "/api/auth/send-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:44:58,931 - accounts.views - INFO - [SEND_OTP] POST request received
+2025-11-09 11:44:58,933 - accounts.views - INFO - [SEND_OTP] Request data: {'identifier': 'jeri.olivarez@gmail.com', 'identifier_type': 'email'}
+2025-11-09 11:44:58,935 - accounts.views - INFO - [SEND_OTP] Identifier: jeri.olivarez@gmail.com, Type: email
+2025-11-09 11:44:58,937 - accounts.views - INFO - [SEND_OTP] Looking up user by email: jeri.olivarez@gmail.com
+2025-11-09 11:44:59,065 - accounts.views - INFO - [SEND_OTP] SUCCESS: Found user: testuser
+2025-11-09 11:44:59,065 - accounts.views - INFO - [SEND_OTP] Generating OTP...
+2025-11-09 11:44:59,066 - accounts.views - INFO - [SEND_OTP] SUCCESS: OTP generated: 746981
+2025-11-09 11:44:59,075 - accounts.views - INFO - [SEND_OTP] OTP stored in cache with key: otp_jeri.olivarez@gmail.com_email
+2025-11-09 11:44:59,081 - accounts.views - INFO - [SEND_OTP] Attempting to send OTP email to jeri.olivarez@gmail.com
+2025-11-09 11:44:59,083 - otp_email - INFO - ============================================================
+2025-11-09 11:44:59,150 - otp_email - INFO - ============================================================
+2025-11-09 11:44:59,540 - otp_email - INFO - ============================================================
+2025-11-09 11:44:59,541 - otp_email - INFO - ================================================================================
+2025-11-09 11:44:59,694 - otp_email - INFO - ================================================================================
+2025-11-09 11:44:59,914 - otp_email - INFO - ----------------------------------------
+2025-11-09 11:45:06,142 - otp_email - INFO - ================================================================================
+2025-11-09 11:45:06,244 - otp_email - INFO - ================================================================================
+2025-11-09 11:45:06,296 - accounts.views - INFO - [SEND_OTP] SUCCESS: OTP email sent to jeri.olivarez@gmail.com
+2025-11-09 11:45:06,297 - accounts.views - INFO - [SEND_OTP] Returning success response for jeri.olivarez@gmail.com
+2025-11-09 11:45:06,299 - django.server - INFO - "POST /api/auth/send-otp/ HTTP/1.1" 200 67
+2025-11-09 11:45:24,792 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-verify-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:45:24,805 - accounts.session_views - INFO - [2FA VERIFY] SessionOTPVerifyView.post called
+2025-11-09 11:45:24,821 - accounts.session_views - INFO - [2FA VERIFY] Request data: {'identifier': 'jeri.olivarez@gmail.com', 'identifier_type': 'email', 'otp': '270091'}
+2025-11-09 11:45:24,827 - accounts.session_views - INFO - [2FA VERIFY] Session data: {}
+2025-11-09 11:45:24,827 - accounts.session_views - INFO - [2FA VERIFY] Verifying OTP for email: jeri.olivarez@gmail.com
+2025-11-09 11:45:24,828 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 270091
+2025-11-09 11:45:24,943 - accounts.session_views - INFO - [2FA VERIFY] Cache key: otp_jeri.olivarez@gmail.com_email
+2025-11-09 11:45:24,944 - accounts.session_views - INFO - [2FA VERIFY] Stored OTP: 746981
+2025-11-09 11:45:24,944 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 270091
+2025-11-09 11:45:24,945 - accounts.session_views - INFO - [2FA VERIFY] OTP Match: False
+2025-11-09 11:45:24,945 - accounts.session_views - ERROR - [2FA VERIFY] OTP mismatch - stored: '746981', received: '270091'
+2025-11-09 11:45:24,948 - django.request - WARNING - Bad Request: /api/auth/session-verify-otp/
+2025-11-09 11:45:24,949 - django.server - WARNING - "POST /api/auth/session-verify-otp/ HTTP/1.1" 400 77
+2025-11-09 11:47:20,460 - root - INFO - Request: {"method": "POST", "path": "/api/auth/send-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:47:20,498 - accounts.views - INFO - [SEND_OTP] POST request received
+2025-11-09 11:47:20,562 - accounts.views - INFO - [SEND_OTP] Request data: {'identifier': 'jeri.olivarez@gmail.com', 'identifier_type': 'email'}
+2025-11-09 11:47:20,604 - accounts.views - INFO - [SEND_OTP] Identifier: jeri.olivarez@gmail.com, Type: email
+2025-11-09 11:47:20,658 - accounts.views - INFO - [SEND_OTP] Looking up user by email: jeri.olivarez@gmail.com
+2025-11-09 11:47:21,330 - accounts.views - INFO - [SEND_OTP] SUCCESS: Found user: testuser
+2025-11-09 11:47:21,331 - accounts.views - INFO - [SEND_OTP] Generating OTP...
+2025-11-09 11:47:21,332 - accounts.views - INFO - [SEND_OTP] SUCCESS: OTP generated: 710208
+2025-11-09 11:47:21,344 - accounts.views - INFO - [SEND_OTP] OTP stored in cache with key: otp_jeri.olivarez@gmail.com_email
+2025-11-09 11:47:21,349 - accounts.views - INFO - [SEND_OTP] Attempting to send OTP email to jeri.olivarez@gmail.com
+2025-11-09 11:47:21,350 - otp_email - INFO - ================================================================================
+2025-11-09 11:47:21,581 - otp_email - INFO - ================================================================================
+2025-11-09 11:47:21,865 - otp_email - INFO - ----------------------------------------
+2025-11-09 11:47:28,093 - otp_email - INFO - ================================================================================
+2025-11-09 11:47:28,196 - otp_email - INFO - ================================================================================
+2025-11-09 11:47:28,238 - accounts.views - INFO - [SEND_OTP] SUCCESS: OTP email sent to jeri.olivarez@gmail.com
+2025-11-09 11:47:28,239 - accounts.views - INFO - [SEND_OTP] Returning success response for jeri.olivarez@gmail.com
+2025-11-09 11:47:28,242 - django.server - INFO - "POST /api/auth/send-otp/ HTTP/1.1" 200 67
+2025-11-09 11:47:38,421 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-verify-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:47:38,439 - accounts.session_views - INFO - [2FA VERIFY] SessionOTPVerifyView.post called
+2025-11-09 11:47:38,444 - accounts.session_views - INFO - [2FA VERIFY] Request data: {'identifier': 'jeri.olivarez@gmail.com', 'identifier_type': 'email', 'otp': '710208'}
+2025-11-09 11:47:38,445 - accounts.session_views - INFO - [2FA VERIFY] Session data: {}
+2025-11-09 11:47:38,446 - accounts.session_views - INFO - [2FA VERIFY] Verifying OTP for email: jeri.olivarez@gmail.com
+2025-11-09 11:47:38,447 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 710208
+2025-11-09 11:47:38,569 - accounts.session_views - INFO - [2FA VERIFY] Cache key: otp_jeri.olivarez@gmail.com_email
+2025-11-09 11:47:38,569 - accounts.session_views - INFO - [2FA VERIFY] Stored OTP: 710208
+2025-11-09 11:47:38,570 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 710208
+2025-11-09 11:47:38,570 - accounts.session_views - INFO - [2FA VERIFY] OTP Match: True
+2025-11-09 11:47:38,571 - accounts.session_views - INFO - [2FA VERIFY] Pending user ID from session: None
+2025-11-09 11:47:38,571 - accounts.session_views - ERROR - [2FA VERIFY] No pending 2FA login found in session
+2025-11-09 11:47:38,573 - django.request - WARNING - Bad Request: /api/auth/session-verify-otp/
+2025-11-09 11:47:38,574 - django.server - WARNING - "POST /api/auth/session-verify-otp/ HTTP/1.1" 400 75
+2025-11-09 11:47:57,923 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\session_views.py changed, reloading.
+INFO 2025-11-09 11:48:01,056 autoreload 940 22144 Watching for file changes with StatReloader
+2025-11-09 11:48:23,418 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\session_views.py changed, reloading.
+INFO 2025-11-09 11:48:26,542 autoreload 10940 18828 Watching for file changes with StatReloader
+2025-11-09 11:49:49,379 - root - INFO - Request: {"method": "POST", "path": "/api/auth/send-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:49:49,405 - accounts.views - INFO - [SEND_OTP] POST request received
+2025-11-09 11:49:49,406 - accounts.views - INFO - [SEND_OTP] Request data: {'identifier': 'jeri.olivarez@gmail.com', 'identifier_type': 'email'}
+2025-11-09 11:49:49,408 - accounts.views - INFO - [SEND_OTP] Identifier: jeri.olivarez@gmail.com, Type: email
+2025-11-09 11:49:49,409 - accounts.views - INFO - [SEND_OTP] Looking up user by email: jeri.olivarez@gmail.com
+2025-11-09 11:49:49,532 - accounts.views - INFO - [SEND_OTP] SUCCESS: Found user: testuser
+2025-11-09 11:49:49,532 - accounts.views - INFO - [SEND_OTP] Generating OTP...
+2025-11-09 11:49:49,534 - accounts.views - INFO - [SEND_OTP] SUCCESS: OTP generated: 660938
+2025-11-09 11:49:49,541 - accounts.views - INFO - [SEND_OTP] OTP stored in cache with key: otp_jeri.olivarez@gmail.com_email
+2025-11-09 11:49:49,546 - accounts.views - INFO - [SEND_OTP] Attempting to send OTP email to jeri.olivarez@gmail.com
+2025-11-09 11:49:49,548 - otp_email - INFO - ============================================================
+2025-11-09 11:49:49,593 - otp_email - INFO - ============================================================
+2025-11-09 11:49:49,917 - otp_email - INFO - ============================================================
+2025-11-09 11:49:49,918 - otp_email - INFO - ================================================================================
+2025-11-09 11:49:50,100 - otp_email - INFO - ================================================================================
+2025-11-09 11:49:50,388 - otp_email - INFO - ----------------------------------------
+2025-11-09 11:49:55,819 - otp_email - INFO - ================================================================================
+2025-11-09 11:49:55,894 - otp_email - INFO - ================================================================================
+2025-11-09 11:49:55,935 - accounts.views - INFO - [SEND_OTP] SUCCESS: OTP email sent to jeri.olivarez@gmail.com
+2025-11-09 11:49:55,936 - accounts.views - INFO - [SEND_OTP] Returning success response for jeri.olivarez@gmail.com
+2025-11-09 11:49:55,939 - django.server - INFO - "POST /api/auth/send-otp/ HTTP/1.1" 200 67
+2025-11-09 11:50:06,660 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-verify-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:50:06,681 - accounts.session_views - INFO - [2FA VERIFY] SessionOTPVerifyView.post called
+2025-11-09 11:50:06,685 - accounts.session_views - INFO - [2FA VERIFY] Request data: {'identifier': 'jeri.olivarez@gmail.com', 'identifier_type': 'email', 'otp': '660938'}
+2025-11-09 11:50:06,688 - accounts.session_views - INFO - [2FA VERIFY] Session data: {}
+2025-11-09 11:50:06,691 - accounts.session_views - INFO - [2FA VERIFY] Verifying OTP for email: jeri.olivarez@gmail.com
+2025-11-09 11:50:06,697 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 660938
+2025-11-09 11:50:06,915 - accounts.session_views - INFO - [2FA VERIFY] Cache key: otp_jeri.olivarez@gmail.com_email
+2025-11-09 11:50:06,916 - accounts.session_views - INFO - [2FA VERIFY] Stored OTP: 660938
+2025-11-09 11:50:06,918 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 660938
+2025-11-09 11:50:06,919 - accounts.session_views - INFO - [2FA VERIFY] OTP Match: True
+2025-11-09 11:50:06,920 - accounts.session_views - INFO - [2FA VERIFY] Pending user ID from session: None
+2025-11-09 11:50:06,922 - accounts.session_views - INFO - [2FA VERIFY] No pending user in session - searching by email: jeri.olivarez@gmail.com
+2025-11-09 11:50:06,929 - accounts.session_views - INFO - [2FA VERIFY] Found user by email: testuser
+2025-11-09 11:50:06,930 - accounts.session_views - INFO - [2FA VERIFY] OTP verification successful - clearing cache and session data
+2025-11-09 11:50:06,946 - accounts.session_views - INFO - [2FA VERIFY] Session saved successfully. Session ID: jsl10wy3uroup9bcm11ndce3mt29yi4u
+2025-11-09 11:50:07,078 - django.server - INFO - "POST /api/auth/session-verify-otp/ HTTP/1.1" 200 559
+2025-11-09 11:50:21,688 - django.server - INFO - "OPTIONS /api/auth/reset-password-otp/ HTTP/1.1" 200 0
+2025-11-09 11:50:21,834 - root - INFO - Request: {"method": "POST", "path": "/api/auth/reset-password-otp/", "user_id": 7, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:50:21,835 - accounts.views - INFO - [RESET_PASSWORD_OTP] POST request received
+2025-11-09 11:50:21,836 - accounts.views - INFO - [RESET_PASSWORD_OTP] Request data keys: dict_keys(['identifier', 'identifier_type', 'new_password'])
+2025-11-09 11:50:21,837 - accounts.views - INFO - [RESET_PASSWORD_OTP] Password reset for identifier: jeri.olivarez@gmail.com, Type: email
+2025-11-09 11:50:21,837 - accounts.views - INFO - [RESET_PASSWORD_OTP] Looking up user by email: jeri.olivarez@gmail.com
+2025-11-09 11:50:21,840 - accounts.views - INFO - [RESET_PASSWORD_OTP] SUCCESS: Found user: receptionist
+2025-11-09 11:50:23,221 - accounts.views - INFO - Password reset successfully for user receptionist via OTP
+2025-11-09 11:50:23,225 - django.server - INFO - "POST /api/auth/reset-password-otp/ HTTP/1.1" 200 65
+2025-11-09 11:50:34,764 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-login/", "user_id": 7, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:50:36,184 - otp_email - INFO - ================================================================================
+2025-11-09 11:50:36,388 - otp_email - INFO - ================================================================================
+2025-11-09 11:50:36,779 - otp_email - INFO - ----------------------------------------
+2025-11-09 11:50:42,149 - otp_email - INFO - ================================================================================
+2025-11-09 11:50:42,217 - otp_email - INFO - ================================================================================
+2025-11-09 11:50:42,325 - django.server - INFO - "POST /api/auth/session-login/ HTTP/1.1" 200 156
+2025-11-09 11:50:50,954 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-verify-otp/", "user_id": 7, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:50:50,955 - accounts.session_views - INFO - [2FA VERIFY] SessionOTPVerifyView.post called
+2025-11-09 11:50:50,956 - accounts.session_views - INFO - [2FA VERIFY] Request data: {'identifier': 'jeri.olivarez@gmail.com', 'identifier_type': 'email', 'otp': '771115'}
+2025-11-09 11:50:50,957 - accounts.session_views - INFO - [2FA VERIFY] Session data: {'_auth_user_id': '7', '_auth_user_backend': 'django.contrib.auth.backends.ModelBackend', '_auth_user_hash': '829c56233d41ea9b586d778235c6538ef562d688ebe6db9a2a37290e095f4e83', 'user_id': 7, 'username': 'testuser', 'role': 'doctor', 'login_time': '2025-11-09 03:50:06.960872+00:00', 'pending_2fa_user_id': 4}
+2025-11-09 11:50:50,959 - accounts.session_views - INFO - [2FA VERIFY] Verifying OTP for email: jeri.olivarez@gmail.com
+2025-11-09 11:50:50,961 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 771115
+2025-11-09 11:50:50,964 - accounts.session_views - INFO - [2FA VERIFY] Cache key: otp_jeri.olivarez@gmail.com_email
+2025-11-09 11:50:50,965 - accounts.session_views - INFO - [2FA VERIFY] Stored OTP: 771115
+2025-11-09 11:50:50,966 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 771115
+2025-11-09 11:50:50,967 - accounts.session_views - INFO - [2FA VERIFY] OTP Match: True
+2025-11-09 11:50:50,968 - accounts.session_views - INFO - [2FA VERIFY] Pending user ID from session: 4
+2025-11-09 11:50:50,972 - accounts.session_views - INFO - [2FA VERIFY] Found user from session: jeri.olivarez@gmail.com (ID: 4)
+2025-11-09 11:50:50,973 - accounts.session_views - INFO - [2FA VERIFY] OTP verification successful - clearing cache and session data
+2025-11-09 11:50:50,977 - accounts.session_views - INFO - [2FA VERIFY] Cleared pending_2fa_user_id from session
+2025-11-09 11:50:50,985 - accounts.session_views - INFO - [2FA VERIFY] Session saved successfully. Session ID: grdd5l7dh8bb382j84rgx6w4j4xq0nkn
+2025-11-09 11:50:51,088 - django.server - INFO - "POST /api/auth/session-verify-otp/ HTTP/1.1" 200 581
+2025-11-09 11:50:51,426 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:50:51,430 - appointments.views - INFO - Starting list method...
+2025-11-09 11:50:51,434 - appointments.views - INFO - Starting to fetch appointments...
+2025-11-09 11:50:51,438 - appointments.views - INFO - Successfully accessed database
+2025-11-09 11:50:51,441 - appointments.views - INFO - Found 6 appointments after filtering
+2025-11-09 11:50:51,453 - appointments.views - INFO - Sample appointment: id=4, status=ongoing, date=2025-11-10
+2025-11-09 11:50:51,454 - appointments.views - INFO - Patient: Mary Joy C. Olivarez
+2025-11-09 11:50:51,455 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:50:51,456 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:50:51,457 - appointments.views - INFO - Sample appointment: id=8, status=cancelled, date=2025-11-09
+2025-11-09 11:50:51,459 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2025-11-09 11:50:51,460 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:50:51,462 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:50:51,463 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-09
+2025-11-09 11:50:51,464 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2025-11-09 11:50:51,465 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:50:51,466 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:50:51,480 - appointments.views - INFO - Testing serialization with first appointment: 4
+2025-11-09 11:50:51,496 - appointments.views - INFO - Successfully serialized first appointment: {'id': 4, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Mary Joy C Olivarez', 'patient_id': 'P-20251108-0218', 'patient_email': 'joy.olivarez@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2014-06-07', 'gender': 'female', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-10', 'time': '09:00:00', 'status': 'ongoing', 'created_at': '2025-11-08T17:43:01.834463+08:00', 'display_patient_name': 'Mary Joy C. Olivarez', 'display_doctor_name': 'Jerry Oli', 'display_time': '09:00 AM', 'display_date': 'November 10, 2025', 'doctor': 3, 'doctor_name': 'Jerry Oli', 'patient': 2}
+2025-11-09 11:50:51,517 - appointments.views - INFO - Successfully serialized all appointments. Count: 6
+2025-11-09 11:50:51,526 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 4010
+2025-11-09 11:50:51,853 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:50:51,857 - security_audit - INFO - Data access: {"user_id": 4, "username": "receptionist", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1762660251.8572628, "client_ip": "127.0.0.1"}
+2025-11-09 11:50:51,896 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1903
+2025-11-09 11:50:51,901 - root - INFO - Request: {"method": "GET", "path": "/api/patients/3/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:50:51,910 - security_audit - INFO - Data access: {"user_id": 4, "username": "receptionist", "action": "GET", "endpoint": "/api/patients/3/", "timestamp": 1762660251.910062, "client_ip": "127.0.0.1"}
+2025-11-09 11:50:51,952 - django.server - INFO - "GET /api/patients/3/ HTTP/1.1" 200 400
+2025-11-09 11:50:52,178 - root - INFO - Request: {"method": "GET", "path": "/api/patients/3/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:50:52,186 - security_audit - INFO - Data access: {"user_id": 4, "username": "receptionist", "action": "GET", "endpoint": "/api/patients/3/", "timestamp": 1762660252.1864362, "client_ip": "127.0.0.1"}
+2025-11-09 11:50:52,215 - django.server - INFO - "GET /api/patients/3/ HTTP/1.1" 200 400
+2025-11-09 11:50:54,013 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-logout/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": false}
+2025-11-09 11:50:54,017 - accounts.session_views - INFO - User 4 logged out. Session dxhdo3lequ6xmha9g9cfqgyw30ls5wb7 cleared.
+2025-11-09 11:50:54,023 - django.server - INFO - "POST /api/auth/session-logout/ HTTP/1.1" 200 52
+2025-11-09 11:51:03,983 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-login/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:51:05,529 - otp_email - INFO - ================================================================================
+2025-11-09 11:51:05,685 - otp_email - INFO - ================================================================================
+2025-11-09 11:51:05,930 - otp_email - INFO - ----------------------------------------
+2025-11-09 11:51:11,550 - otp_email - INFO - ================================================================================
+2025-11-09 11:51:11,624 - otp_email - INFO - ================================================================================
+2025-11-09 11:51:11,735 - django.server - INFO - "POST /api/auth/session-login/ HTTP/1.1" 200 150
+2025-11-09 11:51:20,603 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-verify-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:51:20,605 - accounts.session_views - INFO - [2FA VERIFY] SessionOTPVerifyView.post called
+2025-11-09 11:51:20,606 - accounts.session_views - INFO - [2FA VERIFY] Request data: {'identifier': 'admin@example.com', 'identifier_type': 'email', 'otp': '732859'}
+2025-11-09 11:51:20,607 - accounts.session_views - INFO - [2FA VERIFY] Session data: {'pending_2fa_user_id': 1}
+2025-11-09 11:51:20,609 - accounts.session_views - INFO - [2FA VERIFY] Verifying OTP for email: admin@example.com
+2025-11-09 11:51:20,610 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 732859
+2025-11-09 11:51:20,613 - accounts.session_views - INFO - [2FA VERIFY] Cache key: otp_admin@example.com_email
+2025-11-09 11:51:20,614 - accounts.session_views - INFO - [2FA VERIFY] Stored OTP: 732859
+2025-11-09 11:51:20,615 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 732859
+2025-11-09 11:51:20,616 - accounts.session_views - INFO - [2FA VERIFY] OTP Match: True
+2025-11-09 11:51:20,617 - accounts.session_views - INFO - [2FA VERIFY] Pending user ID from session: 1
+2025-11-09 11:51:20,622 - accounts.session_views - INFO - [2FA VERIFY] Found user from session: admin@example.com (ID: 1)
+2025-11-09 11:51:20,623 - accounts.session_views - INFO - [2FA VERIFY] OTP verification successful - clearing cache and session data
+2025-11-09 11:51:20,628 - accounts.session_views - INFO - [2FA VERIFY] Cleared pending_2fa_user_id from session
+2025-11-09 11:51:20,634 - accounts.session_views - INFO - [2FA VERIFY] Session saved successfully. Session ID: 217uczkq0o0o2liet2nqvmklwifflzp9
+2025-11-09 11:51:20,699 - django.server - INFO - "POST /api/auth/session-verify-otp/ HTTP/1.1" 200 542
+2025-11-09 11:51:21,239 - root - INFO - Request: {"method": "GET", "path": "/api/security-status/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:51:21,242 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:51:21,256 - appointments.views - INFO - Starting list method...
+2025-11-09 11:51:21,257 - appointments.views - INFO - Starting to fetch appointments...
+2025-11-09 11:51:21,262 - appointments.views - INFO - Successfully accessed database
+2025-11-09 11:51:21,266 - appointments.views - INFO - Found 6 appointments after filtering
+2025-11-09 11:51:21,284 - appointments.views - INFO - Sample appointment: id=4, status=ongoing, date=2025-11-10
+2025-11-09 11:51:21,286 - appointments.views - INFO - Patient: Mary Joy C. Olivarez
+2025-11-09 11:51:21,288 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:51:21,290 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:51:21,294 - appointments.views - INFO - Sample appointment: id=8, status=cancelled, date=2025-11-09
+2025-11-09 11:51:21,299 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2025-11-09 11:51:21,301 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:51:21,303 - django.server - INFO - "GET /api/security-status/ HTTP/1.1" 200 1100
+2025-11-09 11:51:21,303 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:51:21,305 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-09
+2025-11-09 11:51:21,313 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2025-11-09 11:51:21,344 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:51:21,366 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:51:21,378 - appointments.views - INFO - Testing serialization with first appointment: 4
+2025-11-09 11:51:21,384 - appointments.views - INFO - Successfully serialized first appointment: {'id': 4, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Mary Joy C Olivarez', 'patient_id': 'P-20251108-0218', 'patient_email': 'joy.olivarez@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2014-06-07', 'gender': 'female', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-10', 'time': '09:00:00', 'status': 'ongoing', 'created_at': '2025-11-08T17:43:01.834463+08:00', 'display_patient_name': 'Mary Joy C. Olivarez', 'display_doctor_name': 'Jerry Oli', 'display_time': '09:00 AM', 'display_date': 'November 10, 2025', 'doctor': 3, 'doctor_name': 'Jerry Oli', 'patient': 2}
+2025-11-09 11:51:21,407 - appointments.views - INFO - Successfully serialized all appointments. Count: 6
+2025-11-09 11:51:21,415 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 4010
+2025-11-09 11:51:21,445 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:51:21,463 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1762660281.4638035, "client_ip": "127.0.0.1"}
+2025-11-09 11:51:21,507 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1903
+2025-11-09 11:51:25,108 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-logout/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": false}
+2025-11-09 11:51:25,114 - accounts.session_views - INFO - User 1 logged out. Session c36n8z72nyvniivzstiwhcjxkmhcmqmt cleared.
+2025-11-09 11:51:25,120 - django.server - INFO - "POST /api/auth/session-logout/ HTTP/1.1" 200 52
+2025-11-09 11:51:31,280 - root - INFO - Request: {"method": "POST", "path": "/api/auth/send-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:51:31,283 - accounts.views - INFO - [SEND_OTP] POST request received
+2025-11-09 11:51:31,285 - accounts.views - INFO - [SEND_OTP] Request data: {'identifier': '09852084989', 'identifier_type': 'phone'}
+2025-11-09 11:51:31,286 - accounts.views - INFO - [SEND_OTP] Identifier: 09852084989, Type: phone
+2025-11-09 11:51:31,288 - accounts.views - INFO - [SEND_OTP] Looking up user by phone: 09852084989
+2025-11-09 11:51:31,406 - accounts.views - INFO - [SEND_OTP] SUCCESS: Found user: receptionist
+2025-11-09 11:51:31,406 - accounts.views - INFO - [SEND_OTP] Generating OTP...
+2025-11-09 11:51:31,407 - accounts.views - INFO - [SEND_OTP] SUCCESS: OTP generated: 089371
+2025-11-09 11:51:31,415 - accounts.views - INFO - [SEND_OTP] OTP stored in cache with key: otp_09852084989_phone
+2025-11-09 11:51:31,416 - accounts.views - INFO - [SEND_OTP] Attempting to send OTP SMS to 09852084989
+2025-11-09 11:51:31,432 - accounts.iprog_sms_service - INFO - iProg SMS service initialized successfully
+2025-11-09 11:51:31,484 - accounts.iprog_sms_service - INFO - iProg SMS API Request - API Token: 312c1218...ad95
+2025-11-09 11:51:32,664 - accounts.iprog_sms_service - INFO - iProg SMS API Response - Status: 200
+2025-11-09 11:51:32,665 - accounts.iprog_sms_service - INFO - iProg SMS API Response - Body: {"status":200,"message":"SMS successfully queued for delivery.","message_id":"iSms-kgVJha","message_status_link":"https://sms.iprogtech.com/api/v1/sms_messages/status?api_token=12345\u0026message_id=iSms-kgVJha","message_status_request_mode":"GET","sms_rate":1.0}
+2025-11-09 11:51:32,667 - accounts.iprog_sms_service - INFO - iProg SMS sent successfully to 639852084989. Message ID: iSms-kgVJha
+2025-11-09 11:51:32,668 - accounts.views - INFO - [SEND_OTP] SUCCESS: iProg SMS sent to 09852084989: SMS successfully queued for delivery.
+2025-11-09 11:51:32,669 - accounts.views - INFO - [SEND_OTP] iProg Reference ID: iSms-kgVJha
+2025-11-09 11:51:32,671 - accounts.views - INFO - [SEND_OTP] Returning success response for 09852084989
+2025-11-09 11:51:32,673 - django.server - INFO - "POST /api/auth/send-otp/ HTTP/1.1" 200 67
+2025-11-09 11:51:50,385 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-verify-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:51:50,433 - accounts.session_views - INFO - [2FA VERIFY] SessionOTPVerifyView.post called
+2025-11-09 11:51:50,434 - accounts.session_views - INFO - [2FA VERIFY] Request data: {'identifier': '09852084989', 'identifier_type': 'phone', 'otp': '089371'}
+2025-11-09 11:51:50,435 - accounts.session_views - INFO - [2FA VERIFY] Session data: {}
+2025-11-09 11:51:50,436 - accounts.session_views - INFO - [2FA VERIFY] Verifying OTP for phone: 09852084989
+2025-11-09 11:51:50,437 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 089371
+2025-11-09 11:51:50,546 - accounts.session_views - INFO - [2FA VERIFY] Cache key: otp_09852084989_phone
+2025-11-09 11:51:50,546 - accounts.session_views - INFO - [2FA VERIFY] Stored OTP: 089371
+2025-11-09 11:51:50,547 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 089371
+2025-11-09 11:51:50,548 - accounts.session_views - INFO - [2FA VERIFY] OTP Match: True
+2025-11-09 11:51:50,548 - accounts.session_views - INFO - [2FA VERIFY] Pending user ID from session: None
+2025-11-09 11:51:50,549 - accounts.session_views - INFO - [2FA VERIFY] No pending user in session - searching by phone: 09852084989
+2025-11-09 11:51:50,553 - accounts.session_views - INFO - [2FA VERIFY] Found user by phone: receptionist
+2025-11-09 11:51:50,553 - accounts.session_views - INFO - [2FA VERIFY] OTP verification successful - clearing cache and session data
+2025-11-09 11:51:50,563 - accounts.session_views - INFO - [2FA VERIFY] Session saved successfully. Session ID: 72qa60bssm7ufrpen4q7x8gf05uebv5l
+2025-11-09 11:51:50,608 - django.server - INFO - "POST /api/auth/session-verify-otp/ HTTP/1.1" 200 581
+2025-11-09 11:52:10,920 - root - INFO - Request: {"method": "POST", "path": "/api/auth/reset-password-otp/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:52:10,921 - accounts.views - INFO - [RESET_PASSWORD_OTP] POST request received
+2025-11-09 11:52:10,922 - accounts.views - INFO - [RESET_PASSWORD_OTP] Request data keys: dict_keys(['identifier', 'identifier_type', 'new_password'])
+2025-11-09 11:52:10,922 - accounts.views - INFO - [RESET_PASSWORD_OTP] Password reset for identifier: 09852084989, Type: phone
+2025-11-09 11:52:10,923 - accounts.views - INFO - [RESET_PASSWORD_OTP] Looking up user by phone: 09852084989
+2025-11-09 11:52:10,927 - accounts.views - INFO - [RESET_PASSWORD_OTP] SUCCESS: Found user: receptionist
+2025-11-09 11:52:12,199 - accounts.views - INFO - Password reset successfully for user receptionist via OTP
+2025-11-09 11:52:12,203 - django.server - INFO - "POST /api/auth/reset-password-otp/ HTTP/1.1" 200 65
+2025-11-09 11:52:19,887 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-login/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:52:21,648 - otp_email - INFO - ================================================================================
+2025-11-09 11:52:22,096 - otp_email - INFO - ================================================================================
+2025-11-09 11:52:22,340 - otp_email - INFO - ----------------------------------------
+2025-11-09 11:52:28,352 - otp_email - INFO - ================================================================================
+2025-11-09 11:52:28,500 - otp_email - INFO - ================================================================================
+2025-11-09 11:52:28,682 - django.server - INFO - "POST /api/auth/session-login/ HTTP/1.1" 200 156
+2025-11-09 11:52:45,578 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-verify-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-09 11:52:45,580 - accounts.session_views - INFO - [2FA VERIFY] SessionOTPVerifyView.post called
+2025-11-09 11:52:45,581 - accounts.session_views - INFO - [2FA VERIFY] Request data: {'identifier': 'jeri.olivarez@gmail.com', 'identifier_type': 'email', 'otp': '474162'}
+2025-11-09 11:52:45,582 - accounts.session_views - INFO - [2FA VERIFY] Session data: {'pending_2fa_user_id': 4}
+2025-11-09 11:52:45,583 - accounts.session_views - INFO - [2FA VERIFY] Verifying OTP for email: jeri.olivarez@gmail.com
+2025-11-09 11:52:45,584 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 474162
+2025-11-09 11:52:45,588 - accounts.session_views - INFO - [2FA VERIFY] Cache key: otp_jeri.olivarez@gmail.com_email
+2025-11-09 11:52:45,589 - accounts.session_views - INFO - [2FA VERIFY] Stored OTP: 474162
+2025-11-09 11:52:45,590 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 474162
+2025-11-09 11:52:45,591 - accounts.session_views - INFO - [2FA VERIFY] OTP Match: True
+2025-11-09 11:52:45,592 - accounts.session_views - INFO - [2FA VERIFY] Pending user ID from session: 4
+2025-11-09 11:52:45,599 - accounts.session_views - INFO - [2FA VERIFY] Found user from session: jeri.olivarez@gmail.com (ID: 4)
+2025-11-09 11:52:45,600 - accounts.session_views - INFO - [2FA VERIFY] OTP verification successful - clearing cache and session data
+2025-11-09 11:52:45,604 - accounts.session_views - INFO - [2FA VERIFY] Cleared pending_2fa_user_id from session
+2025-11-09 11:52:45,611 - accounts.session_views - INFO - [2FA VERIFY] Session saved successfully. Session ID: 4uapxs0z1i89x6h21nock5fy1nhapo35
+2025-11-09 11:52:45,690 - django.server - INFO - "POST /api/auth/session-verify-otp/ HTTP/1.1" 200 581
+2025-11-09 11:52:46,167 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:52:46,168 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:52:46,171 - security_audit - INFO - Data access: {"user_id": 4, "username": "receptionist", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1762660366.1710024, "client_ip": "127.0.0.1"}
+2025-11-09 11:52:46,173 - appointments.views - INFO - Starting list method...
+2025-11-09 11:52:46,177 - appointments.views - INFO - Starting to fetch appointments...
+2025-11-09 11:52:46,184 - appointments.views - INFO - Successfully accessed database
+2025-11-09 11:52:46,190 - appointments.views - INFO - Found 6 appointments after filtering
+2025-11-09 11:52:46,216 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1903
+2025-11-09 11:52:46,211 - appointments.views - INFO - Sample appointment: id=4, status=ongoing, date=2025-11-10
+2025-11-09 11:52:46,217 - appointments.views - INFO - Patient: Mary Joy C. Olivarez
+2025-11-09 11:52:46,248 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:52:46,251 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:52:46,252 - appointments.views - INFO - Sample appointment: id=8, status=cancelled, date=2025-11-09
+2025-11-09 11:52:46,254 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2025-11-09 11:52:46,258 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:52:46,265 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:52:46,266 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-09
+2025-11-09 11:52:46,267 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2025-11-09 11:52:46,268 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-09 11:52:46,269 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-09 11:52:46,281 - appointments.views - INFO - Testing serialization with first appointment: 4
+2025-11-09 11:52:46,284 - appointments.views - INFO - Successfully serialized first appointment: {'id': 4, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Mary Joy C Olivarez', 'patient_id': 'P-20251108-0218', 'patient_email': 'joy.olivarez@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2014-06-07', 'gender': 'female', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-10', 'time': '09:00:00', 'status': 'ongoing', 'created_at': '2025-11-08T17:43:01.834463+08:00', 'display_patient_name': 'Mary Joy C. Olivarez', 'display_doctor_name': 'Jerry Oli', 'display_time': '09:00 AM', 'display_date': 'November 10, 2025', 'doctor': 3, 'doctor_name': 'Jerry Oli', 'patient': 2}
+2025-11-09 11:52:46,312 - appointments.views - INFO - Successfully serialized all appointments. Count: 6
+2025-11-09 11:52:46,319 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 4010
+2025-11-09 11:52:46,579 - root - INFO - Request: {"method": "GET", "path": "/api/patients/3/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-09 11:52:46,583 - security_audit - INFO - Data access: {"user_id": 4, "username": "receptionist", "action": "GET", "endpoint": "/api/patients/3/", "timestamp": 1762660366.5834396, "client_ip": "127.0.0.1"}
+2025-11-09 11:52:46,614 - django.server - INFO - "GET /api/patients/3/ HTTP/1.1" 200 400
+2025-11-09 11:53:39,903 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\views.py changed, reloading.
+INFO 2025-11-09 11:53:45,034 autoreload 11468 15928 Watching for file changes with StatReloader
+2025-11-09 11:53:54,777 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\session_views.py changed, reloading.
+INFO 2025-11-09 11:53:57,078 autoreload 17720 22768 Watching for file changes with StatReloader
