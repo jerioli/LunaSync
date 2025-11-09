@@ -2568,10 +2568,10 @@ const PatientPortal = () => {
       <div
         className={`fixed ${
           showArrow ? "bottom-20" : "bottom-6"
-        } right-6 z-50 flex items-center gap-2`}
+        } right-2 md:right-6 z-50 flex flex-col md:flex-row items-end md:items-center gap-2`}
       >
-        <div className="hidden md:block order-1">
-          <span className="text-[#79c942] font-medium text-xs italic flex items-center p-2 rounded-lg shadow-sm bg-white/40 backdrop-blur-sm">
+        <div className="order-2 md:order-1 mb-2 md:mb-0">
+          <span className="text-[#79c942] font-medium text-[10px] md:text-xs italic flex items-center p-2 rounded-lg shadow-sm bg-white/40 backdrop-blur-sm max-w-[200px] md:max-w-none">
             {greetingDisplay}
             <span
               className={`inline-block w-2 h-4 align-middle ml-1 bg-[#79c942]`}
@@ -2590,12 +2590,12 @@ const PatientPortal = () => {
         </div>
         <button
           onClick={() => setIsChatbotOpen(!isChatbotOpen)}
-          className="transition-transform hover:scale-110 order-2"
+          className="transition-transform hover:scale-110 order-1 md:order-2"
         >
           <img 
             src="/gif.webp" 
             alt="Chat Assistant" 
-            className="w-20 h-20 object-contain"
+            className="w-16 h-16 md:w-20 md:h-20 object-contain"
           />
         </button>
       </div>
@@ -2610,7 +2610,7 @@ const PatientPortal = () => {
 
       {/* Chatbot Modal */}
       {isChatbotOpen && (
-        <div className="fixed bottom-32 right-6 z-50 w-96">
+        <div className="fixed bottom-32 right-2 md:right-6 z-50 w-[calc(100vw-1rem)] md:w-96 max-w-96">
           <AppointmentChatbot onClose={() => setIsChatbotOpen(false)} />
         </div>
       )}
@@ -2870,7 +2870,7 @@ const PatientPortal = () => {
 
             {/* Leave a Review Form - Right Side (1 column) */}
             <div className="lg:col-span-1">
-              <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 sticky top-8">
+              <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 lg:sticky lg:top-20">
                 <h3 className="text-lg font-semibold mb-4 text-gray-900">
                   Leave a Review
                 </h3>
@@ -2996,8 +2996,9 @@ const PatientPortal = () => {
                   {/* Custom Accordion */}
                   <div className="border-b">
                     <details className="group">
-                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline">
-                        1. What's our operating hours?
+                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
+                        <span className="mr-2">•</span>
+                        <span>What's our operating hours?</span>
                       </summary>
                       <div className="pl-4 pb-3 text-gray-600">
                         Monday - Saturday: 8am - 6pm.
@@ -3011,8 +3012,9 @@ const PatientPortal = () => {
                     clinic.faqs.slice(0, 5).map((faq, index) => (
                       <div key={index} className="border-b last:border-b-0">
                         <details className="group">
-                          <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline">
-                            {faq.question}
+                          <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
+                            <span className="mr-2">•</span>
+                            <span>{faq.question}</span>
                           </summary>
                           <div className="pl-4 pb-3 text-gray-600">
                             {faq.answer}
@@ -3023,8 +3025,9 @@ const PatientPortal = () => {
                   {/* 5 static accordions */}
                   <div className="border-b">
                     <details className="group">
-                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline">
-                        2. How do I book an appointment?
+                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
+                        <span className="mr-2">•</span>
+                        <span>How do I book an appointment?</span>
                       </summary>
                       <div className="pl-4 pb-3 text-gray-600">
                         You can book an appointment online or call our clinic
@@ -3034,8 +3037,9 @@ const PatientPortal = () => {
                   </div>
                   <div className="border-b">
                     <details className="group">
-                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline">
-                        3. Do you accept walk-ins?
+                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
+                        <span className="mr-2">•</span>
+                        <span>Do you accept walk-ins?</span>
                       </summary>
                       <div className="pl-4 pb-3 text-gray-600">
                         Yes, we accept walk-ins but appointments are preferred.
@@ -3044,8 +3048,9 @@ const PatientPortal = () => {
                   </div>
                   <div className="border-b">
                     <details className="group">
-                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline">
-                        4. What insurance do you accept?
+                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
+                        <span className="mr-2">•</span>
+                        <span>What insurance do you accept?</span>
                       </summary>
                       <div className="pl-4 pb-3 text-gray-600">
                         We accept most major insurance plans. Please contact us
@@ -3055,8 +3060,9 @@ const PatientPortal = () => {
                   </div>
                   <div className="border-b">
                     <details className="group">
-                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline">
-                        5. Where are you located?
+                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
+                        <span className="mr-2">•</span>
+                        <span>Where are you located?</span>
                       </summary>
                       <div className="pl-4 pb-3 text-gray-600">
                         We are located at {clinic.address}, {clinic.city},{" "}
@@ -3079,8 +3085,9 @@ const PatientPortal = () => {
                     clinic.faqs.slice(5, 10).map((faq, index) => (
                       <div key={index} className="border-b last:border-b-0">
                         <details className="group">
-                          <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline">
-                            {faq.question}
+                          <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
+                            <span className="mr-2">•</span>
+                            <span>{faq.question}</span>
                           </summary>
                           <div className="pl-4 pb-3 text-gray-600">
                             {faq.answer}
@@ -3091,8 +3098,9 @@ const PatientPortal = () => {
                   {/* 6 more static accordions */}
                   <div className="border-b">
                     <details className="group">
-                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline">
-                        6. Can I get my lab results online?
+                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
+                        <span className="mr-2">•</span>
+                        <span>Can I get my lab results online?</span>
                       </summary>
                       <div className="pl-4 pb-3 text-gray-600">
                         Yes, lab results are available through your patient
@@ -3102,8 +3110,9 @@ const PatientPortal = () => {
                   </div>
                   <div className="border-b">
                     <details className="group">
-                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline">
-                        7. How do I request prescription refills?
+                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
+                        <span className="mr-2">•</span>
+                        <span>How do I request prescription refills?</span>
                       </summary>
                       <div className="pl-4 pb-3 text-gray-600">
                         You can request refills by contacting our clinic or
@@ -3113,8 +3122,9 @@ const PatientPortal = () => {
                   </div>
                   <div className="border-b">
                     <details className="group">
-                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline">
-                        8. Are telemedicine appointments available?
+                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
+                        <span className="mr-2">•</span>
+                        <span>Are telemedicine appointments available?</span>
                       </summary>
                       <div className="pl-4 pb-3 text-gray-600">
                         Yes, we offer telemedicine appointments for your
@@ -3124,8 +3134,9 @@ const PatientPortal = () => {
                   </div>
                   <div className="border-b">
                     <details className="group">
-                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline">
-                        9. How do I access my medical records?
+                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
+                        <span className="mr-2">•</span>
+                        <span>How do I access my medical records?</span>
                       </summary>
                       <div className="pl-4 pb-3 text-gray-600">
                         Medical records can be accessed securely through the
@@ -3135,8 +3146,9 @@ const PatientPortal = () => {
                   </div>
                   <div className="border-b">
                     <details className="group">
-                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline">
-                        10. What should I bring to my appointment?
+                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
+                        <span className="mr-2">•</span>
+                        <span>What should I bring to my appointment?</span>
                       </summary>
                       <div className="pl-4 pb-3 text-gray-600">
                         Please bring a valid ID, insurance card, and any
@@ -3410,6 +3422,17 @@ const PatientPortal = () => {
           /* Adjust the gap between buttons */
           .flex-1.flex.justify-end {
             gap: 0.25rem !important;
+          }
+          
+          /* Adjust sections padding for mobile */
+          section {
+            padding-top: 2rem !important;
+            padding-bottom: 2rem !important;
+          }
+          
+          /* Review cards responsive */
+          .service-card {
+            margin-bottom: 1rem;
           }
         }
         
