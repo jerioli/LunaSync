@@ -3518,36 +3518,36 @@ const PatientPortal = () => {
         open={openModal === "appointment"}
         onOpenChange={handleAppointmentModalClose}
       >
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-6">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-4 md:p-6">
           <DialogHeader>
-            <DialogTitle className="text-[#79c942] text-center text-2xl font-bold">
-              Schedule Appointment - Step {currentStep} of 7
+            <DialogTitle className="text-[#79c942] text-center text-lg md:text-2xl font-bold">
+              Step {currentStep} of 7
             </DialogTitle>
           </DialogHeader>
 
           {/* Progress Bar */}
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center mb-4 gap-1">
             {[1, 2, 3, 4, 5, 6, 7].map((step) => (
-              <div key={step} className="flex flex-col items-center">
+              <div key={step} className="flex flex-col items-center flex-1">
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-medium ${
                     step <= currentStep
                       ? "bg-[#79c942] text-white"
                       : "bg-gray-200 text-gray-600"
                   }`}
                 >
                   {step < currentStep ? (
-                    <CheckCircle className="w-5 h-5" />
+                    <CheckCircle className="w-4 h-4 md:w-5 md:h-5" />
                   ) : (
                     step
                   )}
                 </div>
-                <span className="text-xs mt-1 text-center">
-                  {step === 1 && "Booking Type"}
+                <span className="text-[9px] md:text-xs mt-1 text-center leading-tight hidden sm:block">
+                  {step === 1 && "Booking"}
                   {step === 2 && (bookingPreference === "doctor" ? "Doctor" : "Date")}
-                  {step === 3 && (bookingPreference === "doctor" ? "Date & Time" : "Doctor")}
-                  {step === 4 && "Patient Type"}
-                  {step === 5 && "Patient Info"}
+                  {step === 3 && (bookingPreference === "doctor" ? "Date/Time" : "Doctor")}
+                  {step === 4 && "Patient"}
+                  {step === 5 && "Info"}
                   {step === 6 && "Service"}
                   {step === 7 && "Summary"}
                 </span>
