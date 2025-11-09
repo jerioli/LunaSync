@@ -1,23 +1,21 @@
-import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
 } from "@/components/ui/command";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
 } from "@/components/ui/popover";
-import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import axios from "axios";
+import { Check, ChevronsUpDown } from "lucide-react";
+import React, { useEffect, useState } from "react";
 
 interface MedicineRecord {
   id: number;
@@ -25,6 +23,7 @@ interface MedicineRecord {
   dosage: string;
   category: string;
   description?: string;
+  medicine_name?: string; // Support both field names for compatibility
 }
 
 interface MedicineSearchProps {
@@ -67,9 +66,15 @@ const MedicineSearch: React.FC<MedicineSearchProps> = ({
   }, []);
 
   const handleSelect = (medicine: MedicineRecord) => {
-    setSearchValue(medicine.name);
+    // Normalize the medicine name (support both 'name' and 'medicine_name')
+    const medicineName = medicine.name || medicine.medicine_name || "";
+    setSearchValue(medicineName);
     setOpen(false);
-    onSelect(medicine);
+    // Send normalized medicine object
+    onSelect({
+      ...medicine,
+      name: medicineName
+    });
   };
 
   const handleClear = () => {
@@ -104,37 +109,43 @@ const MedicineSearch: React.FC<MedicineSearchProps> = ({
               </CommandEmpty>
               <CommandGroup>
                 {medicines
-                  .filter((medicine) =>
-                    medicine.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-                    medicine.dosage.toLowerCase().includes(searchValue.toLowerCase()) ||
-                    medicine.category.toLowerCase().includes(searchValue.toLowerCase())
-                  )
-                  .map((medicine) => (
-                    <CommandItem
-                      key={medicine.id}
-                      value={medicine.name}
-                      onSelect={() => handleSelect(medicine)}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          searchValue === medicine.name ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      <div className="flex flex-col">
-                        <span className="font-medium">{medicine.name}</span>
-                        <div className="flex gap-2 text-sm text-gray-500">
-                          <span>{medicine.dosage}</span>
-                          <span className="capitalize">({medicine.category})</span>
+                  .filter((medicine) => {
+                    const name = medicine.name || medicine.medicine_name || "";
+                    return (
+                      name.toLowerCase().includes(searchValue.toLowerCase()) ||
+                      medicine.dosage.toLowerCase().includes(searchValue.toLowerCase()) ||
+                      medicine.category.toLowerCase().includes(searchValue.toLowerCase())
+                    );
+                  })
+                  .map((medicine) => {
+                    const medicineName = medicine.name || medicine.medicine_name || "";
+                    return (
+                      <CommandItem
+                        key={medicine.id}
+                        value={medicineName}
+                        onSelect={() => handleSelect(medicine)}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            searchValue === medicineName ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        <div className="flex flex-col">
+                          <span className="font-medium">{medicineName}</span>
+                          <div className="flex gap-2 text-sm text-gray-500">
+                            <span>{medicine.dosage}</span>
+                            <span className="capitalize">({medicine.category})</span>
+                          </div>
+                          {medicine.description && (
+                            <span className="text-xs text-gray-400">
+                              {medicine.description}
+                            </span>
+                          )}
                         </div>
-                        {medicine.description && (
-                          <span className="text-xs text-gray-400">
-                            {medicine.description}
-                          </span>
-                        )}
-                      </div>
-                    </CommandItem>
-                  ))}
+                      </CommandItem>
+                    );
+                  })}
               </CommandGroup>
             </CommandList>
           </Command>

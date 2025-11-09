@@ -1,5 +1,6 @@
 // ...existing code...
 
+import MedicineSearch from "@/components/MedicineSearch";
 import MedicalCertificateGenerator from "@/components/patients/MedicalCertificateGenerator";
 import PatientMedicalInfo from "@/components/patients/PatientMedicalInfo";
 import PatientPersonalInfo from "@/components/patients/PatientPersonalInfo";
@@ -892,20 +893,23 @@ const PatientManagement = () => {
     setCreateDocumentType(type);
     setDocumentData({});
     if (type === "prescription") {
-      setPrescriptionTab("New");
+      // Initialize with one empty medication entry
       setDocumentData({
-        nameType: "",
-        name: "",
-        dose: "",
-        quantity: "",
-        frequency: "",
-        customFrequency: "",
-        startDate: format(new Date(), "yyyy-MM-dd"),
-        endDate: format(
-          new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-          "yyyy-MM-dd"
-        ),
-        notes: "",
+        medications: [
+          {
+            name: "",
+            dose: "",
+            quantity: "",
+            frequency: "",
+            startDate: format(new Date(), "yyyy-MM-dd"),
+            endDate: format(
+              new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+              "yyyy-MM-dd"
+            ),
+            notes: "",
+          },
+        ],
+        generalInstructions: "",
       });
     } else if (type === "soap") {
       setDocumentData({
@@ -4768,75 +4772,35 @@ const PatientManagement = () => {
 
                 {showTemplateForm && selectedTemplate === "E-Prescription" && (
                   <div className="space-y-4 border p-4 rounded-lg">
-                    <div className="flex gap-2">
-                      {["New", "Favorites", "Generic", "Brand"].map((tab) => (
-                        <Button
-                          key={tab}
-                          variant={
-                            currentPrescriptionTab === tab
-                              ? "default"
-                              : "outline"
-                          }
-                          onClick={() => setCurrentPrescriptionTab(tab)}
-                          className="hover:bg-[#1EAEDB]"
-                        >
-                          {tab}
-                        </Button>
-                      ))}
-                    </div>
-
-                    {currentPrescriptionTab === "New" && (
-                      <div className="space-y-4">
-                        {/* Add Medication Form */}
-                        <div className="bg-gray-50 p-4 rounded border">
-                          <h4 className="font-medium mb-3">Add Medication</h4>
-                          <div className="space-y-3">
-                            <div className="flex gap-4">
-                              <label className="flex items-center gap-2">
-                                <input
-                                  type="radio"
-                                  name="nameType"
-                                  checked={
-                                    currentMedication.nameType === "Generic"
-                                  }
-                                  onChange={() =>
-                                    handleMedicationChangeTemplate(
-                                      "nameType",
-                                      "Generic"
-                                    )
-                                  }
-                                />
-                                Generic Name
-                              </label>
-                              <label className="flex items-center gap-2">
-                                <input
-                                  type="radio"
-                                  name="nameType"
-                                  checked={
-                                    currentMedication.nameType === "Brand"
-                                  }
-                                  onChange={() =>
-                                    handleMedicationChangeTemplate(
-                                      "nameType",
-                                      "Brand"
-                                    )
-                                  }
-                                />
-                                Brand Name
-                              </label>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                              <Input
-                                placeholder="Medication Name"
+                    {/* Add Medication Form - Direct to medication entry */}
+                    <div className="space-y-4">
+                      {/* Add Medication Form */}
+                      <div className="bg-gray-50 p-4 rounded border">
+                        <h4 className="font-medium mb-3">Add Medication</h4>
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            {/* Medication Name - Searchable ComboBox */}
+                            <div className="space-y-2">
+                              <Label>Medication Name</Label>
+                              <MedicineSearch
                                 value={currentMedication.name}
-                                onChange={(e) =>
-                                  handleMedicationChangeTemplate(
-                                    "name",
-                                    e.target.value
-                                  )
-                                }
+                                onSelect={(medicine) => {
+                                  if (medicine) {
+                                    handleMedicationChangeTemplate("name", medicine.name);
+                                    // Auto-fill dosage if available
+                                    if (medicine.dosage) {
+                                      handleMedicationChangeTemplate("dose", medicine.dosage);
+                                    }
+                                  } else {
+                                    handleMedicationChangeTemplate("name", "");
+                                  }
+                                }}
+                                placeholder="Search medication..."
                               />
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label>Dose</Label>
                               <Input
                                 placeholder="Dose (e.g., 500mg)"
                                 value={currentMedication.dose}
@@ -4848,8 +4812,11 @@ const PatientManagement = () => {
                                 }
                               />
                             </div>
+                          </div>
 
-                            <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                              <Label>Quantity</Label>
                               <Input
                                 placeholder="Quantity"
                                 value={currentMedication.quantity}
@@ -4861,6 +4828,9 @@ const PatientManagement = () => {
                                     );
                                 }}
                               />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Frequency</Label>
                               <Select
                                 value={currentMedication.frequency}
                                 onValueChange={(val) =>
@@ -4895,207 +4865,200 @@ const PatientManagement = () => {
                                 </SelectContent>
                               </Select>
                             </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <Label>Start Date</Label>
-                                <Input
-                                  type="date"
-                                  value={currentMedication.startDate}
-                                  onChange={(e) =>
-                                    handleMedicationChangeTemplate(
-                                      "startDate",
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                              </div>
-                              <div>
-                                <Label>End Date</Label>
-                                <Input
-                                  type="date"
-                                  value={currentMedication.endDate}
-                                  onChange={(e) =>
-                                    handleMedicationChangeTemplate(
-                                      "endDate",
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                              </div>
-                            </div>
-
-                            <Textarea
-                              placeholder="Medication-specific notes or instructions"
-                              value={currentMedication.notes}
-                              onChange={(e) =>
-                                handleMedicationChangeTemplate(
-                                  "notes",
-                                  e.target.value
-                                )
-                              }
-                              rows={2}
-                            />
-
-                            <Button
-                              onClick={addMedication}
-                              disabled={
-                                !currentMedication.name ||
-                                !currentMedication.dose
-                              }
-                              className="hover:bg-[#1EAEDB]"
-                            >
-                              Add Medication
-                            </Button>
                           </div>
-                        </div>
 
-                        {/* Medications Table */}
-                        {medications.length > 0 && (
-                          <div className="border rounded">
-                            <div className="bg-gray-100 p-3 border-b">
-                              <h4 className="font-medium">
-                                Prescribed Medications
-                              </h4>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label>Start Date</Label>
+                              <Input
+                                type="date"
+                                value={currentMedication.startDate}
+                                onChange={(e) =>
+                                  handleMedicationChangeTemplate(
+                                    "startDate",
+                                    e.target.value
+                                  )
+                                }
+                              />
                             </div>
-                            <div className="overflow-x-auto">
-                              <table className="w-full text-sm">
-                                <thead className="bg-gray-50">
-                                  <tr>
-                                    <th className="p-2 text-left border-r">
-                                      Medication
-                                    </th>
-                                    <th className="p-2 text-left border-r">
-                                      Dose
-                                    </th>
-                                    <th className="p-2 text-left border-r">
-                                      Quantity
-                                    </th>
-                                    <th className="p-2 text-left border-r">
-                                      Frequency
-                                    </th>
-                                    <th className="p-2 text-left border-r">
-                                      Duration
-                                    </th>
-                                    <th className="p-2 text-left border-r">
-                                      Notes
-                                    </th>
-                                    <th className="p-2 text-center">Actions</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {medications.map((med, index) => (
-                                    <tr
-                                      key={med.id}
-                                      className="border-b hover:bg-gray-50"
-                                    >
-                                      <td className="p-2 border-r">
-                                        <div className="font-medium">
-                                          {med.name}
-                                        </div>
-                                        <div className="text-xs text-gray-500">
-                                          ({med.nameType})
-                                        </div>
-                                      </td>
-                                      <td className="p-2 border-r">
-                                        {med.dose}
-                                      </td>
-                                      <td className="p-2 border-r">
-                                        {med.quantity}
-                                      </td>
-                                      <td className="p-2 border-r">
-                                        {med.frequency}
-                                      </td>
-                                      <td className="p-2 border-r">
-                                        {med.startDate && med.endDate
-                                          ? `${med.startDate} to ${med.endDate}`
-                                          : med.startDate ||
-                                            med.endDate ||
-                                            "Not specified"}
-                                      </td>
-                                      <td className="p-2 border-r">
-                                        {med.notes || "-"}
-                                      </td>
-                                      <td className="p-2 text-center">
-                                        <div className="flex justify-center gap-2">
-                                          <Pencil
-                                            className="h-4 w-4 text-[#1EAEDB] cursor-pointer hover:text-blue-600"
-                                            onClick={() =>
-                                              editMedication(med.id)
-                                            }
-                                          />
-                                          <Trash2
-                                            className="h-4 w-4 text-red-500 cursor-pointer hover:text-red-700"
-                                            onClick={() =>
-                                              removeMedication(med.id)
-                                            }
-                                          />
-                                        </div>
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
+                            <div>
+                              <Label>End Date</Label>
+                              <Input
+                                type="date"
+                                value={currentMedication.endDate}
+                                onChange={(e) =>
+                                  handleMedicationChangeTemplate(
+                                    "endDate",
+                                    e.target.value
+                                  )
+                                }
+                              />
                             </div>
                           </div>
-                        )}
 
-                        {/* General Prescription Notes */}
-                        <div>
-                          <Label>General Prescription Notes</Label>
                           <Textarea
-                            placeholder="Any general instructions or notes for the entire prescription"
-                            value={templateData.generalNotes || ""}
+                            placeholder="Medication-specific notes or instructions"
+                            value={currentMedication.notes}
                             onChange={(e) =>
-                              handlePrescriptionChange(
-                                "generalNotes",
+                              handleMedicationChangeTemplate(
+                                "notes",
                                 e.target.value
                               )
                             }
-                            rows={3}
+                            rows={2}
                           />
-                        </div>
 
-                        <div className="flex justify-end gap-2 mt-4">
                           <Button
-                            variant="outline"
-                            className="hover:bg-[#1EAEDB] hover:text-white"
-                            onClick={() => {
-                              setSelectedTemplate("");
-                              setShowTemplateForm(false);
-                              setMedications([]);
-                              setCurrentMedication({
-                                name: "",
-                                dose: "",
-                                quantity: "",
-                                frequency: "",
-                                startDate: "",
-                                endDate: "",
-                                notes: "",
-                                nameType: "Generic",
-                              });
-                              setTemplateData({});
-                            }}
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            onClick={handleTemplateSave}
+                            onClick={addMedication}
+                            disabled={
+                              !currentMedication.name ||
+                              !currentMedication.dose
+                            }
                             className="hover:bg-[#1EAEDB]"
-                            disabled={medications.length === 0}
                           >
-                            Save E-Prescription
+                            Add Medication
                           </Button>
                         </div>
                       </div>
-                    )}
 
-                    {/* Other tabs content would go here if needed */}
-                    {currentPrescriptionTab !== "New" && (
-                      <div className="text-center text-gray-500 py-8">
-                        This feature will be available in future updates.
+                      {/* Medications Table */}
+                      {medications.length > 0 && (
+                        <div className="border rounded">
+                          <div className="bg-gray-100 p-3 border-b">
+                            <h4 className="font-medium">
+                              Prescribed Medications
+                            </h4>
+                          </div>
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                              <thead className="bg-gray-50">
+                                <tr>
+                                  <th className="p-2 text-left border-r">
+                                    Medication
+                                  </th>
+                                  <th className="p-2 text-left border-r">
+                                    Dose
+                                  </th>
+                                  <th className="p-2 text-left border-r">
+                                    Quantity
+                                  </th>
+                                  <th className="p-2 text-left border-r">
+                                    Frequency
+                                  </th>
+                                  <th className="p-2 text-left border-r">
+                                    Duration
+                                  </th>
+                                  <th className="p-2 text-left border-r">
+                                    Notes
+                                  </th>
+                                  <th className="p-2 text-center">Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {medications.map((med, index) => (
+                                  <tr
+                                    key={med.id}
+                                    className="border-b hover:bg-gray-50"
+                                  >
+                                    <td className="p-2 border-r">
+                                      <div className="font-medium">
+                                        {med.name}
+                                      </div>
+                                      <div className="text-xs text-gray-500">
+                                        ({med.nameType})
+                                      </div>
+                                    </td>
+                                    <td className="p-2 border-r">
+                                      {med.dose}
+                                    </td>
+                                    <td className="p-2 border-r">
+                                      {med.quantity}
+                                    </td>
+                                    <td className="p-2 border-r">
+                                      {med.frequency}
+                                    </td>
+                                    <td className="p-2 border-r">
+                                      {med.startDate && med.endDate
+                                        ? `${med.startDate} to ${med.endDate}`
+                                        : med.startDate ||
+                                          med.endDate ||
+                                          "Not specified"}
+                                    </td>
+                                    <td className="p-2 border-r">
+                                      {med.notes || "-"}
+                                    </td>
+                                    <td className="p-2 text-center">
+                                      <div className="flex justify-center gap-2">
+                                        <Pencil
+                                          className="h-4 w-4 text-[#1EAEDB] cursor-pointer hover:text-blue-600"
+                                          onClick={() =>
+                                            editMedication(med.id)
+                                          }
+                                        />
+                                        <Trash2
+                                          className="h-4 w-4 text-red-500 cursor-pointer hover:text-red-700"
+                                          onClick={() =>
+                                            removeMedication(med.id)
+                                          }
+                                        />
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* General Prescription Notes */}
+                      <div>
+                        <Label>General Prescription Notes</Label>
+                        <Textarea
+                          placeholder="Any general instructions or notes for the entire prescription"
+                          value={templateData.generalNotes || ""}
+                          onChange={(e) =>
+                            handlePrescriptionChange(
+                              "generalNotes",
+                              e.target.value
+                            )
+                          }
+                          rows={3}
+                        />
                       </div>
-                    )}
+
+                      <div className="flex justify-end gap-2 mt-4">
+                        <Button
+                          variant="outline"
+                          className="hover:bg-[#1EAEDB] hover:text-white"
+                          onClick={() => {
+                            setSelectedTemplate("");
+                            setShowTemplateForm(false);
+                            setMedications([]);
+                            setCurrentMedication({
+                              name: "",
+                              dose: "",
+                              quantity: "",
+                              frequency: "",
+                              startDate: "",
+                              endDate: "",
+                              notes: "",
+                              nameType: "Generic",
+                            });
+                            setTemplateData({});
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleTemplateSave}
+                          className="hover:bg-[#1EAEDB]"
+                          disabled={medications.length === 0}
+                        >
+                          Save E-Prescription
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -5370,16 +5333,20 @@ const PatientManagement = () => {
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2">
                         <div>
                           <Label>Medication Name</Label>
-                          <Input
+                          <MedicineSearch
                             value={med.name || ""}
-                            onChange={(e) =>
-                              handleMedicationChange(
-                                idx,
-                                "name",
-                                e.target.value
-                              )
-                            }
-                            placeholder="Enter medication name"
+                            onSelect={(medicine) => {
+                              if (medicine) {
+                                handleMedicationChange(idx, "name", medicine.name);
+                                // Auto-fill dosage if available
+                                if (medicine.dosage) {
+                                  handleMedicationChange(idx, "dose", medicine.dosage);
+                                }
+                              } else {
+                                handleMedicationChange(idx, "name", "");
+                              }
+                            }}
+                            placeholder="Search medication..."
                           />
                         </div>
                         <div>
@@ -5412,17 +5379,24 @@ const PatientManagement = () => {
                         </div>
                         <div>
                           <Label>Frequency</Label>
-                          <Input
+                          <Select
                             value={med.frequency || ""}
-                            onChange={(e) =>
-                              handleMedicationChange(
-                                idx,
-                                "frequency",
-                                e.target.value
-                              )
+                            onValueChange={(val) =>
+                              handleMedicationChange(idx, "frequency", val)
                             }
-                            placeholder="e.g., Once a day"
-                          />
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select frequency" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Once daily">Once daily</SelectItem>
+                              <SelectItem value="Twice daily">Twice daily</SelectItem>
+                              <SelectItem value="Three times daily">Three times daily</SelectItem>
+                              <SelectItem value="Every 8 hours">Every 8 hours</SelectItem>
+                              <SelectItem value="Every 6 hours">Every 6 hours</SelectItem>
+                              <SelectItem value="As needed">As needed</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2 mb-2">
