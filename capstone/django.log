@@ -25439,3 +25439,193 @@ INFO 2025-11-10 15:48:22,771 autoreload 7748 20068 Watching for file changes wit
 2025-11-10 16:35:22,712 - django.server - INFO - "GET /api/audit-logs/ HTTP/1.1" 200 14839
 2025-11-10 16:35:22,802 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
 2025-11-10 16:35:22,829 - django.server - INFO - "GET /api/audit-logs/?per_page=50 HTTP/1.1" 200 14839
+2025-11-10 17:34:02,814 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:34:02,831 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 387
+2025-11-10 17:34:05,881 - django.server - INFO - "OPTIONS /api/doctors/ HTTP/1.1" 200 0
+2025-11-10 17:34:05,885 - django.server - INFO - "OPTIONS /api/receptionists/ HTTP/1.1" 200 0
+2025-11-10 17:34:05,893 - django.server - INFO - "OPTIONS /api/admins/ HTTP/1.1" 200 0
+2025-11-10 17:34:05,904 - django.server - INFO - "OPTIONS /api/staff/list/?role=superadmin HTTP/1.1" 200 0
+2025-11-10 17:34:06,154 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:34:06,157 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:34:06,211 - django.server - INFO - "GET /api/audit-logs/?per_page=50 HTTP/1.1" 200 14839
+2025-11-10 17:34:06,212 - django.server - INFO - "GET /api/audit-logs/ HTTP/1.1" 200 14839
+2025-11-10 17:34:06,360 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:34:06,419 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 925
+2025-11-10 17:34:06,435 - root - INFO - Request: {"method": "GET", "path": "/api/admins/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:34:06,436 - root - INFO - Request: {"method": "GET", "path": "/api/receptionists/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:34:06,462 - django.server - INFO - "GET /api/admins/ HTTP/1.1" 200 436
+2025-11-10 17:34:06,464 - django.server - INFO - "GET /api/receptionists/ HTTP/1.1" 200 1007
+2025-11-10 17:34:06,527 - root - INFO - Request: {"method": "GET", "path": "/api/staff/list/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:34:06,538 - django.server - INFO - "GET /api/staff/list/?role=superadmin HTTP/1.1" 200 939
+2025-11-10 17:43:07,172 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:43:07,200 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 387
+2025-11-10 17:43:07,558 - root - INFO - Request: {"method": "GET", "path": "/api/receptionists/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:43:07,559 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:43:07,582 - django.server - INFO - "GET /api/receptionists/ HTTP/1.1" 200 1007
+2025-11-10 17:43:07,585 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 925
+2025-11-10 17:43:07,862 - root - INFO - Request: {"method": "GET", "path": "/api/admins/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:43:07,885 - django.server - INFO - "GET /api/admins/ HTTP/1.1" 200 436
+2025-11-10 17:43:07,925 - root - INFO - Request: {"method": "GET", "path": "/api/staff/list/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:43:07,968 - django.server - INFO - "GET /api/staff/list/?role=superadmin HTTP/1.1" 200 939
+2025-11-10 17:43:07,953 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:43:07,983 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:43:08,030 - django.server - INFO - "GET /api/audit-logs/?per_page=50 HTTP/1.1" 200 14839
+2025-11-10 17:43:08,033 - django.server - INFO - "GET /api/audit-logs/ HTTP/1.1" 200 14839
+2025-11-10 17:44:14,304 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:14,666 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 387
+2025-11-10 17:44:15,736 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:15,810 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 925
+2025-11-10 17:44:16,182 - root - INFO - Request: {"method": "GET", "path": "/api/receptionists/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:16,237 - django.server - INFO - "GET /api/receptionists/ HTTP/1.1" 200 1007
+2025-11-10 17:44:16,281 - root - INFO - Request: {"method": "GET", "path": "/api/admins/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:16,306 - django.server - INFO - "GET /api/admins/ HTTP/1.1" 200 436
+2025-11-10 17:44:16,524 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:16,557 - root - INFO - Request: {"method": "GET", "path": "/api/staff/list/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:16,586 - django.server - INFO - "GET /api/staff/list/?role=superadmin HTTP/1.1" 200 939
+2025-11-10 17:44:16,607 - django.server - INFO - "GET /api/audit-logs/ HTTP/1.1" 200 14839
+2025-11-10 17:44:16,681 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:16,729 - django.server - INFO - "GET /api/audit-logs/?per_page=50 HTTP/1.1" 200 14839
+2025-11-10 17:44:17,087 - root - INFO - Request: {"method": "GET", "path": "/api/staff/list/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:17,141 - django.server - INFO - "GET /api/staff/list/?role=superadmin HTTP/1.1" 200 939
+2025-11-10 17:44:17,104 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:17,221 - django.server - INFO - "GET /api/audit-logs/ HTTP/1.1" 200 14839
+2025-11-10 17:44:17,197 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:17,238 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 925
+2025-11-10 17:44:17,156 - root - INFO - Request: {"method": "GET", "path": "/api/receptionists/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:17,260 - django.server - INFO - "GET /api/receptionists/ HTTP/1.1" 200 1007
+2025-11-10 17:44:17,226 - root - INFO - Request: {"method": "GET", "path": "/api/admins/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:17,293 - django.server - INFO - "GET /api/admins/ HTTP/1.1" 200 436
+2025-11-10 17:44:17,368 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:17,393 - django.server - INFO - "GET /api/audit-logs/?per_page=50 HTTP/1.1" 200 14839
+2025-11-10 17:44:37,052 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:37,380 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 387
+2025-11-10 17:44:38,440 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:38,526 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 925
+2025-11-10 17:44:38,504 - root - INFO - Request: {"method": "GET", "path": "/api/receptionists/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:38,613 - django.server - INFO - "GET /api/receptionists/ HTTP/1.1" 200 1007
+2025-11-10 17:44:38,923 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:39,058 - django.server - INFO - "GET /api/audit-logs/?per_page=50 HTTP/1.1" 200 14839
+2025-11-10 17:44:39,357 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:39,541 - django.server - INFO - "GET /api/audit-logs/ HTTP/1.1" 200 14839
+2025-11-10 17:44:39,466 - root - INFO - Request: {"method": "GET", "path": "/api/staff/list/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:39,820 - django.server - INFO - "GET /api/staff/list/?role=superadmin HTTP/1.1" 200 939
+2025-11-10 17:44:39,646 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:40,091 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 925
+2025-11-10 17:44:39,838 - root - INFO - Request: {"method": "GET", "path": "/api/admins/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:40,340 - django.server - INFO - "GET /api/admins/ HTTP/1.1" 200 436
+2025-11-10 17:44:39,940 - root - INFO - Request: {"method": "GET", "path": "/api/receptionists/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:40,446 - django.server - INFO - "GET /api/receptionists/ HTTP/1.1" 200 1007
+2025-11-10 17:44:40,396 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:40,688 - django.server - INFO - "GET /api/audit-logs/?per_page=50 HTTP/1.1" 200 14839
+2025-11-10 17:44:40,404 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:40,777 - django.server - INFO - "GET /api/audit-logs/ HTTP/1.1" 200 14839
+2025-11-10 17:44:40,717 - root - INFO - Request: {"method": "GET", "path": "/api/staff/list/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:40,993 - django.server - INFO - "GET /api/staff/list/?role=superadmin HTTP/1.1" 200 939
+2025-11-10 17:44:40,999 - root - INFO - Request: {"method": "GET", "path": "/api/admins/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:44:41,224 - django.server - INFO - "GET /api/admins/ HTTP/1.1" 200 436
+2025-11-10 17:45:03,742 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:03,796 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 925
+2025-11-10 17:45:04,127 - root - INFO - Request: {"method": "GET", "path": "/api/receptionists/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:04,223 - django.server - INFO - "GET /api/receptionists/ HTTP/1.1" 200 1007
+2025-11-10 17:45:04,333 - root - INFO - Request: {"method": "GET", "path": "/api/admins/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:04,439 - django.server - INFO - "GET /api/admins/ HTTP/1.1" 200 436
+2025-11-10 17:45:04,605 - root - INFO - Request: {"method": "GET", "path": "/api/staff/list/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:04,726 - django.server - INFO - "GET /api/staff/list/?role=superadmin HTTP/1.1" 200 939
+2025-11-10 17:45:04,945 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:05,189 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 925
+2025-11-10 17:45:04,974 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:05,367 - django.server - INFO - "GET /api/audit-logs/ HTTP/1.1" 200 14839
+2025-11-10 17:45:05,081 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:05,590 - django.server - INFO - "GET /api/audit-logs/?per_page=50 HTTP/1.1" 200 14839
+2025-11-10 17:45:05,170 - root - INFO - Request: {"method": "GET", "path": "/api/receptionists/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:05,878 - django.server - INFO - "GET /api/receptionists/ HTTP/1.1" 200 1007
+2025-11-10 17:45:05,670 - root - INFO - Request: {"method": "GET", "path": "/api/staff/list/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:06,939 - django.server - INFO - "GET /api/staff/list/?role=superadmin HTTP/1.1" 200 939
+2025-11-10 17:45:07,050 - root - INFO - Request: {"method": "GET", "path": "/api/admins/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:07,785 - django.server - INFO - "GET /api/admins/ HTTP/1.1" 200 436
+2025-11-10 17:45:07,390 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:08,005 - django.server - INFO - "GET /api/audit-logs/ HTTP/1.1" 200 14839
+2025-11-10 17:45:07,769 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:08,152 - django.server - INFO - "GET /api/audit-logs/?per_page=50 HTTP/1.1" 200 14839
+2025-11-10 17:45:08,152 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:08,535 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 925
+2025-11-10 17:45:08,285 - root - INFO - Request: {"method": "GET", "path": "/api/receptionists/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:08,870 - django.server - INFO - "GET /api/receptionists/ HTTP/1.1" 200 1007
+2025-11-10 17:45:08,422 - root - INFO - Request: {"method": "GET", "path": "/api/staff/list/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:08,963 - django.server - INFO - "GET /api/staff/list/?role=superadmin HTTP/1.1" 200 939
+2025-11-10 17:45:08,755 - root - INFO - Request: {"method": "GET", "path": "/api/admins/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:09,127 - django.server - INFO - "GET /api/admins/ HTTP/1.1" 200 436
+2025-11-10 17:45:08,788 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:09,226 - django.server - INFO - "GET /api/audit-logs/ HTTP/1.1" 200 14839
+2025-11-10 17:45:09,203 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:09,437 - django.server - INFO - "GET /api/audit-logs/?per_page=50 HTTP/1.1" 200 14839
+2025-11-10 17:45:26,837 - django.server - INFO - "OPTIONS /api/auth/current-user/ HTTP/1.1" 200 0
+2025-11-10 17:45:26,837 - django.server - INFO - "OPTIONS /api/permissions/ HTTP/1.1" 200 0
+2025-11-10 17:45:27,077 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:27,101 - root - INFO - Request: {"method": "GET", "path": "/api/permissions/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:27,114 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 387
+2025-11-10 17:45:27,174 - django.server - INFO - "GET /api/permissions/ HTTP/1.1" 200 2317
+2025-11-10 17:45:28,025 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:28,040 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 387
+2025-11-10 17:45:28,349 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:28,365 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 387
+2025-11-10 17:45:30,516 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:30,540 - django.server - INFO - "GET /api/audit-logs/?page=1 HTTP/1.1" 200 14839
+2025-11-10 17:45:33,631 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:33,780 - django.server - INFO - "GET /api/audit-logs/ HTTP/1.1" 200 14839
+2025-11-10 17:45:33,702 - root - INFO - Request: {"method": "GET", "path": "/api/staff/list/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:33,712 - root - INFO - Request: {"method": "GET", "path": "/api/receptionists/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:33,752 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:33,823 - django.server - INFO - "GET /api/staff/list/?role=superadmin HTTP/1.1" 200 939
+2025-11-10 17:45:33,826 - django.server - INFO - "GET /api/receptionists/ HTTP/1.1" 200 1007
+2025-11-10 17:45:33,788 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:33,819 - root - INFO - Request: {"method": "GET", "path": "/api/admins/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:45:33,872 - django.server - INFO - "GET /api/audit-logs/?per_page=50 HTTP/1.1" 200 14839
+2025-11-10 17:45:33,873 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 925
+2025-11-10 17:45:33,875 - django.server - INFO - "GET /api/admins/ HTTP/1.1" 200 436
+2025-11-10 17:47:41,413 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:47:41,550 - django.server - INFO - "GET /api/audit-logs/ HTTP/1.1" 200 14839
+2025-11-10 17:47:41,427 - root - INFO - Request: {"method": "GET", "path": "/api/admins/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:47:41,609 - django.server - INFO - "GET /api/admins/ HTTP/1.1" 200 436
+2025-11-10 17:47:41,474 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:47:41,481 - root - INFO - Request: {"method": "GET", "path": "/api/receptionists/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:47:41,636 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 925
+2025-11-10 17:47:41,641 - django.server - INFO - "GET /api/receptionists/ HTTP/1.1" 200 1007
+2025-11-10 17:47:41,498 - root - INFO - Request: {"method": "GET", "path": "/api/staff/list/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:47:41,691 - django.server - INFO - "GET /api/staff/list/?role=superadmin HTTP/1.1" 200 939
+2025-11-10 17:47:41,607 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:47:41,844 - django.server - INFO - "GET /api/audit-logs/?per_page=50 HTTP/1.1" 200 14839
+2025-11-10 17:54:06,499 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\accounts\views.py changed, reloading.
+INFO 2025-11-10 17:54:20,384 autoreload 16612 21000 Watching for file changes with StatReloader
+2025-11-10 17:54:57,698 - root - INFO - Request: {"method": "GET", "path": "/api/staff/list/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:54:57,744 - django.server - INFO - "GET /api/staff/list/?role=superadmin HTTP/1.1" 200 939
+2025-11-10 17:54:57,703 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:54:57,796 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 925
+2025-11-10 17:54:57,704 - root - INFO - Request: {"method": "GET", "path": "/api/receptionists/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:54:57,812 - django.server - INFO - "GET /api/receptionists/ HTTP/1.1" 200 1007
+2025-11-10 17:54:57,747 - root - INFO - Request: {"method": "GET", "path": "/api/admins/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:54:57,780 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:54:57,842 - django.server - INFO - "GET /api/admins/ HTTP/1.1" 200 436
+2025-11-10 17:54:57,878 - django.server - INFO - "GET /api/audit-logs/?per_page=50 HTTP/1.1" 200 14839
+2025-11-10 17:54:57,900 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:54:57,934 - django.server - INFO - "GET /api/audit-logs/ HTTP/1.1" 200 14839
+2025-11-10 17:55:07,092 - root - INFO - Request: {"method": "GET", "path": "/api/receptionists/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:55:07,115 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:55:07,135 - django.server - INFO - "GET /api/receptionists/ HTTP/1.1" 200 1007
+2025-11-10 17:55:07,137 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 925
+2025-11-10 17:55:07,337 - root - INFO - Request: {"method": "GET", "path": "/api/admins/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:55:07,382 - django.server - INFO - "GET /api/admins/ HTTP/1.1" 200 436
+2025-11-10 17:55:07,485 - root - INFO - Request: {"method": "GET", "path": "/api/staff/list/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:55:07,501 - django.server - INFO - "GET /api/staff/list/?role=superadmin HTTP/1.1" 200 939
+2025-11-10 17:55:07,638 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:55:07,665 - django.server - INFO - "GET /api/audit-logs/ HTTP/1.1" 200 14839
+2025-11-10 17:55:07,705 - root - INFO - Request: {"method": "GET", "path": "/api/audit-logs/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:55:07,730 - django.server - INFO - "GET /api/audit-logs/?per_page=50 HTTP/1.1" 200 14839
+2025-11-10 17:57:40,482 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:57:40,536 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 908
+2025-11-10 17:57:41,233 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:57:41,246 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 2
+2025-11-10 17:58:04,177 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:58:04,441 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 908
+2025-11-10 17:58:04,451 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-10 17:58:04,636 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 2
