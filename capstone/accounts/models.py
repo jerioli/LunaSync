@@ -37,10 +37,7 @@ class CustomUser(AbstractUser):
     
     # Superadmin exclusive permissions
     can_manage_permissions = models.BooleanField(default=False)
-    can_access_integrations = models.BooleanField(default=False)
     can_view_audit_logs = models.BooleanField(default=False)
-    can_view_usage_reports = models.BooleanField(default=False)
-    can_access_security_testing = models.BooleanField(default=False)
     
     objects = CustomUserManager()
     
@@ -61,10 +58,7 @@ class CustomUser(AbstractUser):
                 self.can_manage_clinic_settings = True
                 self.can_manage_inventory = True
                 self.can_manage_permissions = True
-                self.can_access_integrations = True
                 self.can_view_audit_logs = True
-                self.can_view_usage_reports = True
-                self.can_access_security_testing = True
             elif self.role == 'admin':
                 self.can_manage_appointments = True
                 self.can_manage_patients = True
@@ -73,10 +67,7 @@ class CustomUser(AbstractUser):
                 self.can_manage_clinic_settings = True
                 self.can_manage_inventory = True
                 self.can_manage_permissions = False
-                self.can_access_integrations = False
                 self.can_view_audit_logs = False
-                self.can_view_usage_reports = False
-                self.can_access_security_testing = False
             elif self.role == 'receptionist':
                 self.can_manage_appointments = True
                 self.can_manage_patients = True
@@ -85,10 +76,7 @@ class CustomUser(AbstractUser):
                 self.can_manage_clinic_settings = False
                 self.can_manage_inventory = True
                 self.can_manage_permissions = False
-                self.can_access_integrations = False
                 self.can_view_audit_logs = False
-                self.can_view_usage_reports = False
-                self.can_access_security_testing = False
             elif self.role == 'doctor':
                 self.can_manage_appointments = False
                 self.can_manage_patients = True
@@ -97,9 +85,6 @@ class CustomUser(AbstractUser):
                 self.can_manage_clinic_settings = False
                 self.can_manage_inventory = True
                 self.can_manage_permissions = False
-                self.can_access_integrations = False
                 self.can_view_audit_logs = False
-                self.can_view_usage_reports = False
-                self.can_access_security_testing = False
         super().save(*args, **kwargs)
 

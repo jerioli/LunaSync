@@ -321,10 +321,7 @@ class StaffPermissionsView(APIView):
                 'can_manage_clinic_settings': user.can_manage_clinic_settings,
                 'can_manage_inventory': user.can_manage_inventory,
                 'can_manage_permissions': user.can_manage_permissions,
-                'can_access_integrations': user.can_access_integrations,
                 'can_view_audit_logs': user.can_view_audit_logs,
-                'can_view_usage_reports': user.can_view_usage_reports,
-                'can_access_security_testing': user.can_access_security_testing,
             }
             return Response({
                 'success': True,
@@ -351,10 +348,7 @@ class StaffPermissionsView(APIView):
                         'can_manage_clinic_settings': user.can_manage_clinic_settings,
                         'can_manage_inventory': user.can_manage_inventory,
                         'can_manage_permissions': user.can_manage_permissions,
-                        'can_access_integrations': user.can_access_integrations,
                         'can_view_audit_logs': user.can_view_audit_logs,
-                        'can_view_usage_reports': user.can_view_usage_reports,
-                        'can_access_security_testing': user.can_access_security_testing,
                     }
                 })
             return Response({
@@ -403,10 +397,7 @@ class StaffPermissionsView(APIView):
             'can_manage_clinic_settings': user.can_manage_clinic_settings,
             'can_manage_inventory': user.can_manage_inventory,
             'can_manage_permissions': user.can_manage_permissions,
-            'can_access_integrations': user.can_access_integrations,
             'can_view_audit_logs': user.can_view_audit_logs,
-            'can_view_usage_reports': user.can_view_usage_reports,
-            'can_access_security_testing': user.can_access_security_testing,
         }
         
         # Update permissions
@@ -421,10 +412,7 @@ class StaffPermissionsView(APIView):
         # Only allow superadmins to modify these exclusive permissions
         if request.user.role == 'superadmin':
             user.can_manage_permissions = permissions.get('can_manage_permissions', user.can_manage_permissions)
-            user.can_access_integrations = permissions.get('can_access_integrations', user.can_access_integrations)
             user.can_view_audit_logs = permissions.get('can_view_audit_logs', user.can_view_audit_logs)
-            user.can_view_usage_reports = permissions.get('can_view_usage_reports', user.can_view_usage_reports)
-            user.can_access_security_testing = permissions.get('can_access_security_testing', user.can_access_security_testing)
         
         user.save()
         
@@ -437,10 +425,7 @@ class StaffPermissionsView(APIView):
             'can_manage_clinic_settings': user.can_manage_clinic_settings,
             'can_manage_inventory': user.can_manage_inventory,
             'can_manage_permissions': user.can_manage_permissions,
-            'can_access_integrations': user.can_access_integrations,
             'can_view_audit_logs': user.can_view_audit_logs,
-            'can_view_usage_reports': user.can_view_usage_reports,
-            'can_access_security_testing': user.can_access_security_testing,
         }
         
         # Log permission change
@@ -1166,10 +1151,7 @@ class SessionLoginView(APIView):
             print(f"  can_view_reports: {user.can_view_reports}")
             print(f"  can_manage_clinic_settings: {user.can_manage_clinic_settings}")
             print(f"  can_manage_permissions: {user.can_manage_permissions}")
-            print(f"  can_access_integrations: {user.can_access_integrations}")
             print(f"  can_view_audit_logs: {user.can_view_audit_logs}")
-            print(f"  can_view_usage_reports: {user.can_view_usage_reports}")
-            print(f"  can_access_security_testing: {user.can_access_security_testing}")
             print(f"  can_manage_inventory: {user.can_manage_inventory}")
             
             # Return user data with all permissions
@@ -1190,10 +1172,7 @@ class SessionLoginView(APIView):
                     'can_manage_clinic_settings': user.can_manage_clinic_settings,
                     'can_manage_inventory': user.can_manage_inventory,
                     'can_manage_permissions': user.can_manage_permissions,
-                    'can_access_integrations': user.can_access_integrations,
                     'can_view_audit_logs': user.can_view_audit_logs,
-                    'can_view_usage_reports': user.can_view_usage_reports,
-                    'can_access_security_testing': user.can_access_security_testing,
                 },
                 'session_id': request.session.session_key,
                 'force_password_change': getattr(user, 'force_password_change', False)
@@ -1251,10 +1230,7 @@ class CurrentUserView(APIView):
             'can_manage_clinic_settings': request.user.can_manage_clinic_settings,
             'can_manage_inventory': request.user.can_manage_inventory,
             'can_manage_permissions': request.user.can_manage_permissions,
-            'can_access_integrations': request.user.can_access_integrations,
             'can_view_audit_logs': request.user.can_view_audit_logs,
-            'can_view_usage_reports': request.user.can_view_usage_reports,
-            'can_access_security_testing': request.user.can_access_security_testing,
         }
         
         print(f"[DEBUG] CurrentUserView - Response data: {user_data}")
@@ -1343,10 +1319,7 @@ class CompleteLoginView(APIView):
                     'can_manage_clinic_settings': user.can_manage_clinic_settings,
                     'can_manage_inventory': user.can_manage_inventory,
                     'can_manage_permissions': user.can_manage_permissions,
-                    'can_access_integrations': user.can_access_integrations,
                     'can_view_audit_logs': user.can_view_audit_logs,
-                    'can_view_usage_reports': user.can_view_usage_reports,
-                    'can_access_security_testing': user.can_access_security_testing,
                 },
                 'force_password_change': user.force_password_change
             }
@@ -1369,7 +1342,16 @@ class UserListView(APIView):
     permission_classes = [IsAuthenticated]  # Added authentication requirement
     
     def get(self, request):
-        users = CustomUser.objects.all()
+        # Check if role filter is provided
+        role = request.query_params.get('role')
+        
+        if role:
+            # Filter users by role if role parameter is provided
+            users = CustomUser.objects.filter(role=role)
+        else:
+            # Return all users if no role filter
+            users = CustomUser.objects.all()
+            
         serializer = CustomUserSerializer(users, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -1646,10 +1628,7 @@ class VerifyOTPView(APIView):
                 'can_manage_clinic_settings': getattr(user, 'can_manage_clinic_settings', False),
                 'can_manage_inventory': getattr(user, 'can_manage_inventory', False),
                 'can_manage_permissions': getattr(user, 'can_manage_permissions', False),
-                'can_access_integrations': getattr(user, 'can_access_integrations', False),
                 'can_view_audit_logs': getattr(user, 'can_view_audit_logs', False),
-                'can_view_usage_reports': getattr(user, 'can_view_usage_reports', False),
-                'can_access_security_testing': getattr(user, 'can_access_security_testing', False),
             },
             'session_id': request.session.session_key,
             'force_password_change': getattr(user, 'force_password_change', False)
@@ -1896,226 +1875,6 @@ class AuditLogsView(APIView):
                     'has_previous': False
                 }
             })
-
-
-class UsageReportsView(APIView):
-    permission_classes = [IsAuthenticated]
-    
-    def get(self, request):
-        if not request.user.can_view_usage_reports:
-            return Response({
-                'error': 'Permission denied',
-                'message': 'You do not have permission to view usage reports'
-            }, status=status.HTTP_403_FORBIDDEN)
-            
-        # Mock usage data - in production, you'd calculate from actual usage
-        usage_data = {
-            'total_users': CustomUser.objects.count(),
-            'active_users_last_30_days': CustomUser.objects.filter(last_login__gte=datetime.now() - timedelta(days=30)).count(),
-            'user_roles_breakdown': {
-                'superadmin': CustomUser.objects.filter(role='superadmin').count(),
-                'admin': CustomUser.objects.filter(role='admin').count(),
-                'doctor': CustomUser.objects.filter(role='doctor').count(),
-                'receptionist': CustomUser.objects.filter(role='receptionist').count(),
-            },
-            'monthly_stats': {
-                'logins': 1250,
-                'appointments_created': 342,
-                'patients_registered': 89,
-                'reports_generated': 156
-            },
-            'system_resources': {
-                'storage_used_gb': 45.2,
-                'storage_limit_gb': 100.0,
-                'api_calls_today': 2847,
-                'average_response_time_ms': 234
-            }
-        }
-        
-        return Response({
-            'success': True,
-            'usage_data': usage_data
-        })
-
-
-class IntegrationsView(APIView):
-    permission_classes = [IsAuthenticated]
-    
-    def get(self, request):
-        # Debug: Print detailed user and authentication information
-        print(f"DEBUG IntegrationsView: User authenticated: {request.user.is_authenticated}")
-        print(f"DEBUG IntegrationsView: User: {request.user}")
-        print(f"DEBUG IntegrationsView: User type: {type(request.user)}")
-        print(f"DEBUG IntegrationsView: User email: {getattr(request.user, 'email', 'No email')}")
-        print(f"DEBUG IntegrationsView: User role: {getattr(request.user, 'role', 'No role')}")
-        print(f"DEBUG IntegrationsView: User is_anonymous: {request.user.is_anonymous}")
-        print(f"DEBUG IntegrationsView: Session key: {request.session.session_key}")
-        print(f"DEBUG IntegrationsView: Session data: {dict(request.session)}")
-        print(f"DEBUG IntegrationsView: Request headers: {dict(request.headers)}")
-        print(f"DEBUG IntegrationsView: Request cookies: {request.COOKIES}")
-        
-        # Check if user is authenticated at all
-        if not request.user.is_authenticated:
-            print("DEBUG IntegrationsView: User is not authenticated - returning 403")
-            return Response({
-                'error': 'Authentication required',
-                'message': 'You must be logged in to access this resource'
-            }, status=status.HTTP_403_FORBIDDEN)
-        
-        if hasattr(request.user, 'can_access_integrations'):
-            print(f"DEBUG IntegrationsView: can_access_integrations: {request.user.can_access_integrations}")
-        else:
-            print("DEBUG IntegrationsView: User has no can_access_integrations attribute")
-        
-        if not request.user.can_access_integrations:
-            print("DEBUG IntegrationsView: User lacks can_access_integrations permission - returning 403")
-            return Response({
-                'error': 'Permission denied',
-                'message': 'You do not have permission to access integrations'
-            }, status=status.HTTP_403_FORBIDDEN)
-            
-        # Mock integrations data
-        integrations = [
-            {
-                'id': 1,
-                'name': 'SMS Service (Twilio)',
-                'type': 'SMS',
-                'status': 'active',
-                'last_sync': '2025-08-19T10:00:00Z',
-                'config': {
-                    'account_sid': 'ACxxx...xxx',
-                    'phone_number': '+1234567890'
-                }
-            },
-            {
-                'id': 2,
-                'name': 'Email Service (AWS SES)',
-                'type': 'Email',
-                'status': 'active',
-                'last_sync': '2025-08-19T09:30:00Z',
-                'config': {
-                    'region': 'us-east-1',
-                    'sender_email': 'noreply@clinic.com'
-                }
-            },
-            {
-                'id': 3,
-                'name': 'Document Storage (AWS S3)',
-                'type': 'Storage',
-                'status': 'active',
-                'last_sync': '2025-08-19T08:15:00Z',
-                'config': {
-                    'bucket_name': 'clinic-documents',
-                    'region': 'us-east-1'
-                }
-            }
-        ]
-        
-        return Response({
-            'success': True,
-            'integrations': integrations
-        })
-    
-    def post(self, request):
-        if not request.user.can_access_integrations:
-            return Response({
-                'error': 'Permission denied',
-                'message': 'You do not have permission to manage integrations'
-            }, status=status.HTTP_403_FORBIDDEN)
-            
-        # Handle new integration creation
-        integration_data = request.data
-        # In production, you'd save this to a proper integrations model
-        
-        return Response({
-            'success': True,
-            'message': 'Integration created successfully',
-            'integration': integration_data
-        })
-    
-    def patch(self, request, integration_id):
-        if not request.user.can_access_integrations:
-            return Response({
-                'error': 'Permission denied',
-                'message': 'You do not have permission to manage integrations'
-            }, status=status.HTTP_403_FORBIDDEN)
-            
-        # Handle integration updates
-        integration_data = request.data
-        
-        return Response({
-            'success': True,
-            'message': 'Integration updated successfully',
-            'integration': integration_data
-        })
-
-
-class SecurityTestingView(APIView):
-    permission_classes = [IsAuthenticated]
-    
-    def get(self, request):
-        if not request.user.can_access_security_testing:
-            return Response({
-                'error': 'Permission denied',
-                'message': 'You do not have permission to access security testing'
-            }, status=status.HTTP_403_FORBIDDEN)
-            
-        # Mock security test results
-        security_tests = [
-            {
-                'id': 1,
-                'test_name': 'SQL Injection Scan',
-                'status': 'passed',
-                'last_run': '2025-08-19T06:00:00Z',
-                'severity': 'high',
-                'description': 'Automated scan for SQL injection vulnerabilities'
-            },
-            {
-                'id': 2,
-                'test_name': 'XSS Vulnerability Scan',
-                'status': 'passed',
-                'last_run': '2025-08-19T06:15:00Z',
-                'severity': 'high',
-                'description': 'Cross-site scripting vulnerability assessment'
-            },
-            {
-                'id': 3,
-                'test_name': 'Authentication Security',
-                'status': 'warning',
-                'last_run': '2025-08-19T06:30:00Z',
-                'severity': 'medium',
-                'description': 'Password policy and session management review',
-                'issues': ['Consider implementing 2FA for admin accounts']
-            },
-            {
-                'id': 4,
-                'test_name': 'API Security Scan',
-                'status': 'passed',
-                'last_run': '2025-08-19T06:45:00Z',
-                'severity': 'high',
-                'description': 'API endpoint security and rate limiting assessment'
-            }
-        ]
-        
-        return Response({
-            'success': True,
-            'security_tests': security_tests
-        })
-    
-    def post(self, request):
-        if not request.user.can_access_security_testing:
-            return Response({
-                'error': 'Permission denied',
-                'message': 'You do not have permission to run security tests'
-            }, status=status.HTTP_403_FORBIDDEN)
-            
-        test_type = request.data.get('test_type')
-        
-        return Response({
-            'success': True,
-            'message': f'Security test "{test_type}" initiated successfully',
-            'test_id': 'test_' + str(secrets.randbelow(9000) + 1000)
-        })
 
 
 class CaptchaGenerateView(APIView):

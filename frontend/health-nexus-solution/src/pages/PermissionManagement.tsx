@@ -39,10 +39,7 @@ interface UserPermissions {
     can_manage_clinic_settings: boolean;
     can_manage_inventory: boolean;
     can_manage_permissions: boolean;
-    can_access_integrations: boolean;
     can_view_audit_logs: boolean;
-    can_view_usage_reports: boolean;
-    can_access_security_testing: boolean;
   };
 }
 
@@ -70,7 +67,11 @@ const PermissionManagement = () => {
   const fetchUsers = async () => {
     try {
       const response = await api.permissions.getAll();
-      setUsers(response.users);
+      // Filter out superadmin users - only show receptionist, doctor, and admin
+      const filteredUsers = response.users.filter(
+        (user: UserPermissions) => user.role !== "superadmin"
+      );
+      setUsers(filteredUsers);
     } catch (error) {
       console.error("Error fetching users:", error);
       toast({
@@ -184,10 +185,7 @@ const PermissionManagement = () => {
     can_manage_clinic_settings: "Manage Clinic Settings",
     can_manage_inventory: "Manage Inventory",
     can_manage_permissions: "Manage Permissions",
-    can_access_integrations: "Access Integrations",
     can_view_audit_logs: "View Audit Logs",
-    can_view_usage_reports: "View Usage Reports",
-    can_access_security_testing: "Access Security Testing",
   };
 
   return (

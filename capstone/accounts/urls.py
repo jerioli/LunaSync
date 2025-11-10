@@ -5,7 +5,7 @@ from accounts.views import (
     PasswordChangeView, UserProfileUpdateView, UserPreferencesView,
     StaffDetailView, StaffPermissionsView, UserListView, SendOTPView, VerifyOTPView,
     ResetPasswordOTPView, login_view, DebugUserView, TestView,  # Import the debug and test views
-    AuditLogsView, UsageReportsView, IntegrationsView, SecurityTestingView,  # New superadmin views
+    AuditLogsView,  # Superadmin views
     CurrentUserView, AccountActivationView,  # Add account activation view
     CaptchaGenerateView, CaptchaVerifyView  # Add captcha views
 )
@@ -36,10 +36,6 @@ urlpatterns = [
     
     # Superadmin specific endpoints
     path('audit-logs/', AuditLogsView.as_view(), name='audit-logs'),
-    path('usage-reports/', UsageReportsView.as_view(), name='usage-reports'),
-    path('integrations/', IntegrationsView.as_view(), name='integrations'),
-    path('integrations/<int:integration_id>/', IntegrationsView.as_view(), name='integration-detail'),
-    path('security-testing/', SecurityTestingView.as_view(), name='security-testing'),
     path('staff/create/', StaffCreateView.as_view(), name='staff-create'),
     path('staff/login/', StaffLoginView.as_view(), name='staff-login'),
     path('auth/complete-login/', CompleteLoginView.as_view(), name='complete-login'),

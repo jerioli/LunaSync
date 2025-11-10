@@ -16,7 +16,6 @@ import Dashboard from "./pages/Dashboard";
 import DocumentComparison from "./pages/DocumentComparison";
 import ForgotPassword from "./pages/ForgotPassword";
 import Index from "./pages/Index";
-import Integrations from "./pages/Integrations";
 import Inventory from "./pages/Inventory";
 import LabResults from "./pages/LabResults";
 import Login from "./pages/Login";
@@ -33,10 +32,8 @@ import PrescriptionManagement from "./pages/PrescriptionManagement";
 import Prescriptions from "./pages/Prescriptions";
 import ResetPassword from "./pages/ResetPassword";
 import Schedule from "./pages/Schedule";
-import SecurityTesting from "./pages/SecurityTesting";
 import Settings from "./pages/Settings";
 import Staff from "./pages/Staff";
-import UsageReports from "./pages/UsageReports";
 import UserSettings from "./pages/UserSettings";
 
 // PermissionGuard component for route-level permission checks
@@ -423,42 +420,6 @@ const App = () => {
                         <AppLayout>
                           <PermissionGuard permission="can_view_audit_logs">
                             <AuditLogs />
-                          </PermissionGuard>
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/usage-reports"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <PermissionGuard permission="can_view_usage_reports">
-                            <UsageReports />
-                          </PermissionGuard>
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/integrations"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <PermissionGuard permission="can_access_integrations">
-                            <Integrations />
-                          </PermissionGuard>
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/security-testing"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <PermissionGuard permission="can_access_security_testing">
-                            <SecurityTesting />
                           </PermissionGuard>
                         </AppLayout>
                       </ProtectedRoute>

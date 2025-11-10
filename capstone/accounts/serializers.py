@@ -12,8 +12,7 @@ class CustomUserSerializer(SecureBaseSerializer):
             'password', 'role', 'is_active', 'is_staff', 'is_superuser', 'force_password_change',
             'can_manage_appointments', 'can_manage_patients', 'can_manage_staff', 
             'can_view_reports', 'can_manage_clinic_settings',
-            'can_manage_permissions', 'can_access_integrations', 'can_view_audit_logs',
-            'can_view_usage_reports', 'can_access_security_testing'
+            'can_manage_permissions', 'can_view_audit_logs', 'can_manage_inventory'
         ]
         extra_kwargs = {
             'password': {'write_only': True},  # Ensure password is write-only

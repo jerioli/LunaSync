@@ -144,21 +144,6 @@ export const AppSidebar = () => {
       currentUser.can_view_audit_logs
         ? { title: "Audit Logs", icon: FileText, path: "/audit-logs" }
         : null,
-
-      // Usage Reports - Show if user has permission
-      currentUser.can_view_usage_reports
-        ? { title: "Usage Reports", icon: BarChart3, path: "/usage-reports" }
-        : null,
-
-      // Integrations - Show if user has permission
-      currentUser.can_access_integrations
-        ? { title: "Integrations", icon: Plug, path: "/integrations" }
-        : null,
-
-      // Security Testing - Show if user has permission
-      currentUser.can_access_security_testing
-        ? { title: "Security Testing", icon: Shield, path: "/security-testing" }
-        : null,
     ].filter(Boolean) as MenuItem[]; // Remove null values and cast to MenuItem[]
 
     // User Settings - available to all users
