@@ -12,6 +12,7 @@ import Appointments from "./pages/Appointments";
 import AppointmentScheduling from "./pages/AppointmentScheduling";
 import AuditLogs from "./pages/AuditLogs";
 import ChangePassword from "./pages/ChangePassword";
+import Dashboard from "./pages/Dashboard";
 import DocumentComparison from "./pages/DocumentComparison";
 import ForgotPassword from "./pages/ForgotPassword";
 import Index from "./pages/Index";
@@ -257,10 +258,16 @@ const App = () => {
                     }
                   />
 
-                  {/* Default route redirects to portal */}
+                  {/* Staff protected routes */}
                   <Route
                     path="/"
-                    element={<Navigate to="/portal" replace />}
+                    element={
+                      <ProtectedRoute>
+                        <AppLayout>
+                          <Dashboard />
+                        </AppLayout>
+                      </ProtectedRoute>
+                    }
                   />
 
                   {/* Patient management routes */}
