@@ -76,7 +76,7 @@ import {
   User,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 // Type declaration for jsPDF
 declare global {
@@ -87,6 +87,7 @@ declare global {
 
 const PatientManagement = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { colors } = useBranding();
@@ -98,6 +99,13 @@ const PatientManagement = () => {
     fetchPatients,
     clinicCustomization,
   } = useClinic();
+
+  // Check if coming from ongoing appointments
+  const fromOngoing = searchParams.get('from') === 'ongoing';
+  const appointmentId = searchParams.get('appointmentId');
+  
+  // State for confirmation dialog
+  const [showCompletionConfirm, setShowCompletionConfirm] = useState(false);
 
   // Helper function to construct full name from name parts for patient record view
   const getFullName = (patient: Patient) => {
@@ -3543,6 +3551,19 @@ const PatientManagement = () => {
       return;
     }
 
+    // If coming from ongoing appointments, show confirmation dialog
+    if (fromOngoing && appointmentId && currentUser?.role === 'doctor') {
+      setShowCompletionConfirm(true);
+      return;
+    }
+
+    // Proceed with normal save
+    await performSave();
+  };
+
+  const performSave = async () => {
+    if (!patientData) return;
+
     setIsSaving(true);
 
     try {
@@ -3615,11 +3636,40 @@ const PatientManagement = () => {
         localStorage.setItem("patientsList", JSON.stringify(updatedPatients));
       }
 
+      // If coming from ongoing and have appointmentId, complete the appointment
+      if (fromOngoing && appointmentId && currentUser?.role === 'doctor') {
+        try {
+          await axiosInstance.post(
+            `appointments/update-status/${appointmentId}/`,
+            { status: 'completed' }
+          );
+          
+          toast({
+            title: "Patient record updated and appointment completed",
+            description: "Patient information has been saved and the appointment has been marked as completed.",
+          });
+          
+          // Navigate back to appointments after a delay
+          setTimeout(() => {
+            navigate('/appointments');
+          }, 1500);
+        } catch (appointmentError) {
+          console.error("Error completing appointment:", appointmentError);
+          // Still show success for patient update
+          toast({
+            title: "Patient record updated",
+            description: "Patient information has been successfully updated. However, there was an issue completing the appointment.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "Patient record updated",
+          description: "Patient information has been successfully updated.",
+        });
+      }
+
       setIsEditing(false);
-      toast({
-        title: "Patient record updated",
-        description: "Patient information has been successfully updated.",
-      });
     } catch (error) {
       console.error("Error updating patient:", error);
 
@@ -4841,6 +4891,16 @@ const PatientManagement = () => {
 
   return (
     <div className="space-y-6">
+      {/* Appointment Completion Confirmation Dialog */}
+      <AppointmentCompletionConfirmDialog
+        open={showCompletionConfirm}
+        onOpenChange={setShowCompletionConfirm}
+        onConfirm={async () => {
+          setShowCompletionConfirm(false);
+          await performSave();
+        }}
+        patientName={getFullName(patientData)}
+      />
       {/* Patient Header */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6">
         <div className="flex items-center justify-between">
@@ -6273,6 +6333,66 @@ const PatientManagement = () => {
         </DialogContent>
       </Dialog>
     </div>
+  );
+};
+
+const AppointmentCompletionConfirmDialog = ({
+  open,
+  onOpenChange,
+  onConfirm,
+  patientName
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+  patientName: string;
+}) => {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Complete Appointment</DialogTitle>
+        </DialogHeader>
+        <div className="py-4">
+          <p className="text-sm text-muted-foreground mb-4">
+            Are you sure you want to save these changes?
+          </p>
+          <div className="bg-amber-50 border border-amber-200 rounded-md p-3">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-amber-800">
+                  Appointment will be completed
+                </h3>
+                <div className="mt-2 text-sm text-amber-700">
+                  <p>
+                    The appointment for <strong>{patientName}</strong> will be automatically marked as completed once you save these changes. This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button 
+            variant="outline" 
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={onConfirm}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            Save & Complete Appointment
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

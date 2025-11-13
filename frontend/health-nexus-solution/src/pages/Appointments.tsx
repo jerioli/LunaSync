@@ -833,7 +833,7 @@ const Appointments = () => {
               onClick={() => {
                 const patient = patients.find(p => p.id === appointment.patientId);
                 const patientIdentifier = patient?.patient_id || appointment.patientId;
-                navigate(`/patients/${patientIdentifier}`);
+                navigate(`/patients/${patientIdentifier}?from=ongoing&appointmentId=${appointment.id}`);
               }}
             >
               View Record
