@@ -419,6 +419,16 @@ class PrescriptionCreateSerializer(serializers.ModelSerializer):
     document_date = serializers.DateTimeField(required=False, write_only=True)
     status = serializers.CharField(required=False, write_only=True)
     
+    # Make prescription_number optional with default generation
+    prescription_number = serializers.CharField(required=False, allow_blank=True)
+    
+    # Make other fields optional with sensible defaults
+    general_instructions = serializers.CharField(required=False, allow_blank=True)
+    pharmacy_notes = serializers.CharField(required=False, allow_blank=True)
+    valid_until = serializers.DateField(required=False, allow_null=True)
+    refills_allowed = serializers.IntegerField(required=False, default=0)
+    refills_remaining = serializers.IntegerField(required=False, default=0)
+    
     # Read-only fields for response
     document = MedicalDocumentSerializer(read_only=True)
     patient_name = serializers.CharField(source='document.patient.name', read_only=True)
@@ -448,6 +458,16 @@ class PrescriptionCreateSerializer(serializers.ModelSerializer):
                 created_by = request.user
             else:
                 created_by = get_default_user()
+        
+        # Generate prescription number if not provided
+        prescription_number = validated_data.get('prescription_number')
+        if not prescription_number:
+            from datetime import datetime
+            import random
+            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+            random_suffix = f"{random.randint(1000, 9999)}"
+            prescription_number = f"RX-{timestamp}-{random_suffix}"
+        
         # Extract document-related data
         from django.utils import timezone
         document_data = {
@@ -463,7 +483,7 @@ class PrescriptionCreateSerializer(serializers.ModelSerializer):
         document = MedicalDocument.objects.create(**document_data)
         prescription_data = {
             'document': document,
-            'prescription_number': validated_data.get('prescription_number'),
+            'prescription_number': prescription_number,
             'prescribing_physician': prescribing_physician or created_by,
             'medications': validated_data.get('medications', []),
             'general_instructions': validated_data.get('general_instructions', ''),

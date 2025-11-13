@@ -332,6 +332,29 @@ class PrescriptionViewSet(viewsets.ModelViewSet):
             return PrescriptionCreateSerializer
         return PrescriptionSerializer
     
+    def create(self, request, *args, **kwargs):
+        """Override create to add detailed error logging"""
+        import logging
+        import json
+        logger = logging.getLogger(__name__)
+        
+        logger.info(f"[PRESCRIPTION CREATE] Received data: {json.dumps(request.data, indent=2, default=str)}")
+        
+        serializer = self.get_serializer(data=request.data)
+        
+        if not serializer.is_valid():
+            logger.error(f"[PRESCRIPTION CREATE] Validation errors: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            logger.info(f"[PRESCRIPTION CREATE] Success: {serializer.data}")
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        except Exception as e:
+            logger.error(f"[PRESCRIPTION CREATE] Exception: {str(e)}", exc_info=True)
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
     def get_queryset(self):
         queryset = Prescription.objects.select_related('document', 'document__patient', 'prescribing_physician').all()
         

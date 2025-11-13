@@ -6,38 +6,37 @@ import PatientMedicalInfo from "@/components/patients/PatientMedicalInfo";
 import PatientPersonalInfo from "@/components/patients/PatientPersonalInfo";
 import PatientPhysicalExamination from "@/components/patients/PatientPhysicalExamination";
 import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ENV } from "@/config/env";
@@ -50,29 +49,31 @@ import { axiosInstance } from "@/services/api";
 import { type LabResult as APILabResult } from "@/services/medicalDocumentsAPI";
 import { parseApiError } from "@/utils/errorHandler";
 import {
-    HTMLToPDFConverter,
-    generateClinicalNoteHTML,
-    generatePrescriptionHTML,
-    generateSOAPNoteHTML
+  HTMLToPDFConverter,
+  generateClinicalNoteHTML,
+  generatePrescriptionHTML,
+  generateSOAPNoteHTML
 } from "@/utils/htmlToPdf";
 import { formatPatientNameWithFullMiddle } from "@/utils/patientNameUtils";
 import { format } from "date-fns";
 import {
-    ArrowLeft,
-    Edit,
-    Eye,
-    File,
-    FileText,
-    Heart,
-    Pencil,
-    Plus,
-    Printer,
-    Save,
-    Stethoscope,
-    TestTube,
-    Trash2,
-    Upload,
-    User,
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Edit,
+  Eye,
+  File,
+  FileText,
+  Heart,
+  Pencil,
+  Plus,
+  Printer,
+  Save,
+  Stethoscope,
+  TestTube,
+  Trash2,
+  Upload,
+  User,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -311,8 +312,17 @@ const PatientManagement = () => {
           return;
         }
 
+        if (!patientData?.id) {
+          toast({
+            title: "Error",
+            description: "Patient data not found",
+            variant: "destructive",
+          });
+          return;
+        }
+
         const prescriptionData = {
-          patient: parseInt(id || "0"),
+          patient: typeof patientData.id === 'string' ? parseInt(patientData.id) : patientData.id,
           title: "E-Prescription",
           description:
             "Electronic prescription created from patient management",
@@ -475,9 +485,18 @@ const PatientManagement = () => {
       return;
     }
 
+    if (!patientData?.id) {
+      toast({
+        title: "Error",
+        description: "Patient data not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const clinicalData = {
-        patient: parseInt(id || "0"),
+        patient: typeof patientData.id === 'string' ? parseInt(patientData.id) : patientData.id,
         title: clinicalNoteData.title,
         description: "Clinical note created from patient management",
         document_date: new Date().toISOString(),
@@ -569,10 +588,25 @@ const PatientManagement = () => {
     },
   });
 
-  // Pagination states
+  // Document sub-tab state
+  const [activeDocumentTab, setActiveDocumentTab] = useState<
+    "prescriptions" | "soap" | "clinical" | "lab" | "certificates"
+  >("prescriptions");
+
+  // Pagination states for each document type
+  const [prescriptionsPage, setPrescriptionsPage] = useState(1);
   const [soapNotesPage, setSoapNotesPage] = useState(1);
   const [clinicalNotesPage, setClinicalNotesPage] = useState(1);
-  const notesPerPage = 5;
+  const [labResultsPage, setLabResultsPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+
+  // Reset pagination when switching document tabs
+  useEffect(() => {
+    setPrescriptionsPage(1);
+    setSoapNotesPage(1);
+    setClinicalNotesPage(1);
+    setLabResultsPage(1);
+  }, [activeDocumentTab]);
 
   // Initial load effect - only runs once per patient ID
   useEffect(() => {
@@ -776,8 +810,18 @@ const PatientManagement = () => {
 
       // If no database record exists, save to backend
       console.log("No database record found, saving certificate to database");
+      
+      if (!patientData?.id) {
+        toast({
+          title: "Error",
+          description: "Patient data not found",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       const certificateData = {
-        patient: parseInt(id!),
+        patient: typeof patientData.id === 'string' ? parseInt(patientData.id) : patientData.id,
         title: certificate.data?.title || "Medical Certificate",
         description: certificate.data?.description || "",
         certificate_type: certificate.data?.type || "fitness",
@@ -893,22 +937,19 @@ const PatientManagement = () => {
     setCreateDocumentType(type);
     setDocumentData({});
     if (type === "prescription") {
-      // Initialize with one empty medication entry
+      // Reset medications and current medication state
+      setMedications([]);
+      setCurrentMedication({
+        name: "",
+        dose: "",
+        quantity: "",
+        frequency: "",
+        startDate: "",
+        endDate: "",
+        notes: "",
+        nameType: "Generic",
+      });
       setDocumentData({
-        medications: [
-          {
-            name: "",
-            dose: "",
-            quantity: "",
-            frequency: "",
-            startDate: format(new Date(), "yyyy-MM-dd"),
-            endDate: format(
-              new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-              "yyyy-MM-dd"
-            ),
-            notes: "",
-          },
-        ],
         generalInstructions: "",
       });
     } else if (type === "soap") {
@@ -929,10 +970,18 @@ const PatientManagement = () => {
 
   const handleSaveDocument = async () => {
     if (!createDocumentType) return;
+    if (!patientData?.id) {
+      toast({
+        title: "Error",
+        description: "Patient data not found",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       const baseDocumentData = {
-        patient: parseInt(id!),
+        patient: typeof patientData.id === 'string' ? parseInt(patientData.id) : patientData.id,
         title: "",
         description: "",
         document_date: new Date().toISOString(),
@@ -940,58 +989,65 @@ const PatientManagement = () => {
       };
 
       if (createDocumentType === "prescription") {
-        // Prepare medications array for backend
-        const medications = (documentData.medications || []).map(
-          (med: any) => ({
-            name: med.name,
-            dose: med.dose,
-            quantity: med.quantity,
-            frequency: med.frequency,
-            startDate: med.startDate,
-            endDate: med.endDate,
-            notes: med.notes,
-          })
-        );
+        // Validate that medications exist
+        if (medications.length === 0) {
+          toast({
+            title: "Validation Error",
+            description:
+              "Please add at least one medication to the prescription.",
+            variant: "destructive",
+          });
+          return;
+        }
+
         const prescriptionData = {
-          ...baseDocumentData,
-          title: `Prescription for ${patientData?.name}`,
-          description: documentData.generalInstructions || "",
-          prescription_number: `RX-${Date.now()
-            .toString()
-            .slice(-8)
-            .toUpperCase()}`,
-          medications,
+          patient: typeof patientData.id === 'string' ? parseInt(patientData.id) : patientData.id,
+          title: "E-Prescription",
+          description:
+            "Electronic prescription created from patient management",
+          document_date: new Date().toISOString(),
+          medications: medications,
           general_instructions: documentData.generalInstructions || "",
-          valid_until:
-            medications.length > 0
-              ? medications[0].endDate
-              : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-                  .toISOString()
-                  .split("T")[0],
+          status: "approved",
+          prescription_number: `RX-${Date.now()}`,
+          valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split("T")[0],
           refills_allowed: 0,
           refills_remaining: 0,
         };
 
-        const savedPrescription = await medicalDocumentsAPI.createPrescription(
+        console.log("Sending prescription data:", prescriptionData);
+        const response = await axiosInstance.post(
+          "/medical-documents/prescriptions/",
           prescriptionData
         );
 
-        // Update local state with the new prescription structure
-        const document = {
-          id: savedPrescription?.id || Date.now(),
-          type: createDocumentType,
-          patientId: patientData?.id,
-          patientName: patientData?.name,
-          dateCreated: new Date().toISOString(),
-          data: {
-            medications,
-            generalInstructions: documentData.generalInstructions || "",
-          },
-          createdBy: currentUser?.name || "Unknown",
-          backendId: savedPrescription?.id,
-          documentId: savedPrescription?.document?.id,
-        };
-        setPrescriptions((prev) => [...prev, document]);
+        toast({
+          title: "Success",
+          description: "E-Prescription saved successfully!",
+        });
+
+        // Refresh prescriptions list
+        await loadAllDocuments();
+
+        // Reset form
+        setMedications([]);
+        setCurrentMedication({
+          name: "",
+          dose: "",
+          quantity: "",
+          frequency: "",
+          startDate: "",
+          endDate: "",
+          notes: "",
+          nameType: "Generic",
+        });
+        setDocumentData({});
+        
+        // Close dialog
+        setShowCreateDialog(false);
+        setCreateDocumentType(null);
       } else if (createDocumentType === "soap") {
         const soapData = {
           ...baseDocumentData,
@@ -1022,6 +1078,16 @@ const PatientManagement = () => {
         };
 
         setSoapNotes((prev) => [...prev, document]);
+        
+        toast({
+          title: "Success",
+          description: "SOAP Note saved successfully!",
+        });
+        
+        // Close dialog
+        setShowCreateDialog(false);
+        setCreateDocumentType(null);
+        setDocumentData({});
       } else if (createDocumentType === "blank") {
         const clinicalNoteData = {
           ...baseDocumentData,
@@ -1052,22 +1118,17 @@ const PatientManagement = () => {
         };
 
         setBlankNotes((prev) => [...prev, document]);
+        
+        toast({
+          title: "Success",
+          description: "Clinical Note saved successfully!",
+        });
+        
+        // Close dialog
+        setShowCreateDialog(false);
+        setCreateDocumentType(null);
+        setDocumentData({});
       }
-
-      toast({
-        title: "Document saved",
-        description: `${
-          createDocumentType === "prescription"
-            ? "E-Prescription"
-            : createDocumentType === "soap"
-            ? "SOAP Note"
-            : "Clinical Note"
-        } has been saved successfully to the database.`,
-      });
-
-      setShowCreateDialog(false);
-      setCreateDocumentType(null);
-      setDocumentData({});
     } catch (error) {
       console.error("Error saving document:", error);
       toast({
@@ -3251,10 +3312,10 @@ const PatientManagement = () => {
 
   // Load documents from backend API on component mount
   useEffect(() => {
-    if (id) {
+    if (patientData?.id) {
       loadAllDocuments();
     }
-  }, [id]);
+  }, [patientData?.id]);
 
   // Function to load all documents from database
   const loadAllDocuments = async () => {
@@ -3831,30 +3892,55 @@ const PatientManagement = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* E-Prescriptions */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                  Rx
-                </div>
-                <h3 className="font-semibold">E-Prescriptions</h3>
+        <Tabs value={activeDocumentTab} onValueChange={(value: any) => setActiveDocumentTab(value)}>
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="prescriptions" className="flex items-center gap-2">
+              <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                Rx
               </div>
+              <span className="hidden sm:inline">E-Prescriptions</span>
+            </TabsTrigger>
+            <TabsTrigger value="soap" className="flex items-center gap-2">
+              <Stethoscope className="h-4 w-4" />
+              <span className="hidden sm:inline">SOAP</span>
+            </TabsTrigger>
+            <TabsTrigger value="clinical" className="flex items-center gap-2">
+              <File className="h-4 w-4" />
+              <span className="hidden sm:inline">Clinical</span>
+            </TabsTrigger>
+            <TabsTrigger value="lab" className="flex items-center gap-2">
+              <TestTube className="h-4 w-4" />
+              <span className="hidden sm:inline">Lab Results</span>
+            </TabsTrigger>
+            <TabsTrigger value="certificates" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Certificates</span>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* E-Prescriptions Tab */}
+          <TabsContent value="prescriptions" className="space-y-4 mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">E-Prescriptions ({prescriptions.length})</h3>
               {isDoctor && (
                 <Button
-                  size="sm"
-                  variant="outline"
                   onClick={() => handleCreateDocument("prescription")}
+                  className="flex items-center gap-2"
                 >
-                  <Plus className="h-3 w-3 mr-1" />
-                  Add
+                  <Plus className="h-4 w-4" />
+                  Add Prescription
                 </Button>
               )}
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {prescriptions.length > 0 ? (
-                prescriptions.map((prescription, index) => (
+                <>
+                  {prescriptions
+                    .slice(
+                      (prescriptionsPage - 1) * itemsPerPage,
+                      prescriptionsPage * itemsPerPage
+                    )
+                    .map((prescription, index) => (
                   <div
                     key={prescription.id || index}
                     className="p-3 border rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200"
@@ -3966,7 +4052,93 @@ const PatientManagement = () => {
                       </div>
                     </div>
                   </div>
-                ))
+                ))}
+                  {/* Pagination Controls */}
+                  <div className="flex items-center justify-between px-2 py-4">
+                      <div className="flex items-center space-x-2">
+                        <p className="text-sm text-muted-foreground">Show</p>
+                        <Select
+                          value={itemsPerPage.toString()}
+                          onValueChange={(value) => {
+                            setItemsPerPage(parseInt(value));
+                            setPrescriptionsPage(1);
+                          }}
+                        >
+                          <SelectTrigger className="h-8 w-16">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-sm text-muted-foreground">entries</p>
+                      </div>
+
+                      <div className="flex items-center space-x-6 lg:space-x-8">
+                        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                          Page {prescriptionsPage} of {Math.ceil(prescriptions.length / itemsPerPage)}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setPrescriptionsPage((p) => Math.max(1, p - 1))}
+                            disabled={prescriptionsPage <= 1}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                            Previous
+                          </Button>
+                          
+                          {/* Page Number Buttons */}
+                          <div className="flex items-center gap-1">
+                            {Array.from(
+                              { length: Math.ceil(prescriptions.length / itemsPerPage) },
+                              (_, i) => i + 1
+                            ).map((page) => (
+                              <Button
+                                key={page}
+                                variant={page === prescriptionsPage ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setPrescriptionsPage(page)}
+                                className={`w-8 h-8 p-0`}
+                                style={{
+                                  backgroundColor: page === prescriptionsPage ? (clinicSettings?.clinic_color || '#3B82F6') : 'transparent',
+                                  borderColor: page === prescriptionsPage ? (clinicSettings?.clinic_color || '#3B82F6') : '#D1D5DB',
+                                  color: page === prescriptionsPage ? 'white' : (clinicSettings?.clinic_color || '#3B82F6')
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (page !== prescriptionsPage) {
+                                    e.currentTarget.style.backgroundColor = `${clinicSettings?.clinic_color || '#3B82F6'}10`;
+                                    e.currentTarget.style.borderColor = clinicSettings?.clinic_color || '#3B82F6';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (page !== prescriptionsPage) {
+                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                    e.currentTarget.style.borderColor = '#D1D5DB';
+                                  }
+                                }}
+                              >
+                                {page}
+                              </Button>
+                            ))}
+                          </div>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setPrescriptionsPage((p) => Math.min(Math.ceil(prescriptions.length / itemsPerPage), p + 1))}
+                            disabled={prescriptionsPage >= Math.ceil(prescriptions.length / itemsPerPage)}
+                          >
+                            Next
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                </>
               ) : (
                 <div className="p-3 border rounded-lg bg-gray-50">
                   <div className="flex items-center gap-3">
@@ -3987,29 +4159,31 @@ const PatientManagement = () => {
                 </div>
               )}
             </div>
-          </div>
+          </TabsContent>
 
-          {/* SOAP Notes */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Stethoscope className="h-4 w-4" />
-                <h3 className="font-semibold">SOAP Notes</h3>
-              </div>
+          {/* SOAP Notes Tab */}
+          <TabsContent value="soap" className="space-y-4 mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">SOAP Notes ({soapNotes.length})</h3>
               {isDoctor && (
                 <Button
-                  size="sm"
-                  variant="outline"
                   onClick={() => handleCreateDocument("soap")}
+                  className="flex items-center gap-2"
                 >
-                  <Plus className="h-3 w-3 mr-1" />
-                  Add
+                  <Plus className="h-4 w-4" />
+                  Add SOAP Note
                 </Button>
               )}
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {soapNotes.length > 0 ? (
-                soapNotes.map((note, index) => (
+                <>
+                  {soapNotes
+                    .slice(
+                      (soapNotesPage - 1) * itemsPerPage,
+                      soapNotesPage * itemsPerPage
+                    )
+                    .map((note, index) => (
                   <div
                     key={note.id || index}
                     className="p-3 border rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border-green-200"
@@ -4097,7 +4271,93 @@ const PatientManagement = () => {
                       </div>
                     </div>
                   </div>
-                ))
+                ))}
+                  {/* Pagination Controls */}
+                  <div className="flex items-center justify-between px-2 py-4">
+                      <div className="flex items-center space-x-2">
+                        <p className="text-sm text-muted-foreground">Show</p>
+                        <Select
+                          value={itemsPerPage.toString()}
+                          onValueChange={(value) => {
+                            setItemsPerPage(parseInt(value));
+                            setSoapNotesPage(1);
+                          }}
+                        >
+                          <SelectTrigger className="h-8 w-16">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-sm text-muted-foreground">entries</p>
+                      </div>
+
+                      <div className="flex items-center space-x-6 lg:space-x-8">
+                        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                          Page {soapNotesPage} of {Math.ceil(soapNotes.length / itemsPerPage)}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSoapNotesPage((p) => Math.max(1, p - 1))}
+                            disabled={soapNotesPage <= 1}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                            Previous
+                          </Button>
+                          
+                          {/* Page Number Buttons */}
+                          <div className="flex items-center gap-1">
+                            {Array.from(
+                              { length: Math.ceil(soapNotes.length / itemsPerPage) },
+                              (_, i) => i + 1
+                            ).map((page) => (
+                              <Button
+                                key={page}
+                                variant={page === soapNotesPage ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setSoapNotesPage(page)}
+                                className={`w-8 h-8 p-0`}
+                                style={{
+                                  backgroundColor: page === soapNotesPage ? (clinicSettings?.clinic_color || '#3B82F6') : 'transparent',
+                                  borderColor: page === soapNotesPage ? (clinicSettings?.clinic_color || '#3B82F6') : '#D1D5DB',
+                                  color: page === soapNotesPage ? 'white' : (clinicSettings?.clinic_color || '#3B82F6')
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (page !== soapNotesPage) {
+                                    e.currentTarget.style.backgroundColor = `${clinicSettings?.clinic_color || '#3B82F6'}10`;
+                                    e.currentTarget.style.borderColor = clinicSettings?.clinic_color || '#3B82F6';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (page !== soapNotesPage) {
+                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                    e.currentTarget.style.borderColor = '#D1D5DB';
+                                  }
+                                }}
+                              >
+                                {page}
+                              </Button>
+                            ))}
+                          </div>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSoapNotesPage((p) => Math.min(Math.ceil(soapNotes.length / itemsPerPage), p + 1))}
+                            disabled={soapNotesPage >= Math.ceil(soapNotes.length / itemsPerPage)}
+                          >
+                            Next
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                </>
               ) : (
                 <div className="p-3 border rounded-lg bg-gray-50">
                   <div className="flex items-center gap-3">
@@ -4118,29 +4378,31 @@ const PatientManagement = () => {
                 </div>
               )}
             </div>
-          </div>
+          </TabsContent>
 
-          {/* Blank Notes */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <File className="h-4 w-4" />
-                <h3 className="font-semibold">Clinical Notes</h3>
-              </div>
+          {/* Clinical Notes Tab */}
+          <TabsContent value="clinical" className="space-y-4 mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Clinical Notes ({blankNotes.length})</h3>
               {isDoctor && (
                 <Button
-                  size="sm"
-                  variant="outline"
                   onClick={() => handleCreateDocument("blank")}
+                  className="flex items-center gap-2"
                 >
-                  <Plus className="h-3 w-3 mr-1" />
-                  Add
+                  <Plus className="h-4 w-4" />
+                  Add Clinical Note
                 </Button>
               )}
             </div>
             <div className="space-y-2">
               {blankNotes.length > 0 ? (
-                blankNotes.map((note, index) => (
+                <>
+                  {blankNotes
+                    .slice(
+                      (clinicalNotesPage - 1) * itemsPerPage,
+                      clinicalNotesPage * itemsPerPage
+                    )
+                    .map((note, index) => (
                   <div
                     key={note.id || index}
                     className="p-3 border rounded-lg bg-gradient-to-r from-blue-50 to-sky-50 border-blue-200"
@@ -4228,7 +4490,93 @@ const PatientManagement = () => {
                       </div>
                     </div>
                   </div>
-                ))
+                ))}
+                  {/* Pagination Controls */}
+                  <div className="flex items-center justify-between px-2 py-4">
+                      <div className="flex items-center space-x-2">
+                        <p className="text-sm text-muted-foreground">Show</p>
+                        <Select
+                          value={itemsPerPage.toString()}
+                          onValueChange={(value) => {
+                            setItemsPerPage(parseInt(value));
+                            setClinicalNotesPage(1);
+                          }}
+                        >
+                          <SelectTrigger className="h-8 w-16">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-sm text-muted-foreground">entries</p>
+                      </div>
+
+                      <div className="flex items-center space-x-6 lg:space-x-8">
+                        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                          Page {clinicalNotesPage} of {Math.ceil(blankNotes.length / itemsPerPage)}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setClinicalNotesPage((p) => Math.max(1, p - 1))}
+                            disabled={clinicalNotesPage <= 1}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                            Previous
+                          </Button>
+                          
+                          {/* Page Number Buttons */}
+                          <div className="flex items-center gap-1">
+                            {Array.from(
+                              { length: Math.ceil(blankNotes.length / itemsPerPage) },
+                              (_, i) => i + 1
+                            ).map((page) => (
+                              <Button
+                                key={page}
+                                variant={page === clinicalNotesPage ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setClinicalNotesPage(page)}
+                                className={`w-8 h-8 p-0`}
+                                style={{
+                                  backgroundColor: page === clinicalNotesPage ? (clinicSettings?.clinic_color || '#3B82F6') : 'transparent',
+                                  borderColor: page === clinicalNotesPage ? (clinicSettings?.clinic_color || '#3B82F6') : '#D1D5DB',
+                                  color: page === clinicalNotesPage ? 'white' : (clinicSettings?.clinic_color || '#3B82F6')
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (page !== clinicalNotesPage) {
+                                    e.currentTarget.style.backgroundColor = `${clinicSettings?.clinic_color || '#3B82F6'}10`;
+                                    e.currentTarget.style.borderColor = clinicSettings?.clinic_color || '#3B82F6';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (page !== clinicalNotesPage) {
+                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                    e.currentTarget.style.borderColor = '#D1D5DB';
+                                  }
+                                }}
+                              >
+                                {page}
+                              </Button>
+                            ))}
+                          </div>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setClinicalNotesPage((p) => Math.min(Math.ceil(blankNotes.length / itemsPerPage), p + 1))}
+                            disabled={clinicalNotesPage >= Math.ceil(blankNotes.length / itemsPerPage)}
+                          >
+                            Next
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                </>
               ) : (
                 <div className="p-3 border rounded-lg bg-gray-50">
                   <div className="flex items-center gap-3">
@@ -4249,19 +4597,14 @@ const PatientManagement = () => {
                 </div>
               )}
             </div>
-          </div>
+          </TabsContent>
 
-          {/* Lab Results */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <TestTube className="h-4 w-4" />
-                <h3 className="font-semibold">Lab Results</h3>
-              </div>
+          {/* Lab Results Tab */}
+          <TabsContent value="lab" className="space-y-4 mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Lab Results ({labResults.length})</h3>
               {isDoctor && (
                 <Button
-                  size="sm"
-                  variant="outline"
                   onClick={() =>
                     navigate(
                       `/lab-results?patientId=${
@@ -4271,15 +4614,22 @@ const PatientManagement = () => {
                       )}&returnTo=patient`
                     )
                   }
+                  className="flex items-center gap-2"
                 >
-                  <Upload className="h-3 w-3 mr-1" />
-                  Upload
+                  <Upload className="h-4 w-4" />
+                  Upload Lab Results
                 </Button>
               )}
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {labResults.length > 0 ? (
-                labResults.map((result, index) => (
+                <>
+                  {labResults
+                    .slice(
+                      (labResultsPage - 1) * itemsPerPage,
+                      labResultsPage * itemsPerPage
+                    )
+                    .map((result, index) => (
                   <div
                     key={result.id || index}
                     className="p-3 border rounded-lg"
@@ -4373,7 +4723,93 @@ const PatientManagement = () => {
                       </div>
                     </div>
                   </div>
-                ))
+                ))}
+                  {/* Pagination Controls */}
+                  <div className="flex items-center justify-between px-2 py-4">
+                      <div className="flex items-center space-x-2">
+                        <p className="text-sm text-muted-foreground">Show</p>
+                        <Select
+                          value={itemsPerPage.toString()}
+                          onValueChange={(value) => {
+                            setItemsPerPage(parseInt(value));
+                            setLabResultsPage(1);
+                          }}
+                        >
+                          <SelectTrigger className="h-8 w-16">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-sm text-muted-foreground">entries</p>
+                      </div>
+
+                      <div className="flex items-center space-x-6 lg:space-x-8">
+                        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                          Page {labResultsPage} of {Math.ceil(labResults.length / itemsPerPage)}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setLabResultsPage((p) => Math.max(1, p - 1))}
+                            disabled={labResultsPage <= 1}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                            Previous
+                          </Button>
+                          
+                          {/* Page Number Buttons */}
+                          <div className="flex items-center gap-1">
+                            {Array.from(
+                              { length: Math.ceil(labResults.length / itemsPerPage) },
+                              (_, i) => i + 1
+                            ).map((page) => (
+                              <Button
+                                key={page}
+                                variant={page === labResultsPage ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setLabResultsPage(page)}
+                                className={`w-8 h-8 p-0`}
+                                style={{
+                                  backgroundColor: page === labResultsPage ? (clinicSettings?.clinic_color || '#3B82F6') : 'transparent',
+                                  borderColor: page === labResultsPage ? (clinicSettings?.clinic_color || '#3B82F6') : '#D1D5DB',
+                                  color: page === labResultsPage ? 'white' : (clinicSettings?.clinic_color || '#3B82F6')
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (page !== labResultsPage) {
+                                    e.currentTarget.style.backgroundColor = `${clinicSettings?.clinic_color || '#3B82F6'}10`;
+                                    e.currentTarget.style.borderColor = clinicSettings?.clinic_color || '#3B82F6';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (page !== labResultsPage) {
+                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                    e.currentTarget.style.borderColor = '#D1D5DB';
+                                  }
+                                }}
+                              >
+                                {page}
+                              </Button>
+                            ))}
+                          </div>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setLabResultsPage((p) => Math.min(Math.ceil(labResults.length / itemsPerPage), p + 1))}
+                            disabled={labResultsPage >= Math.ceil(labResults.length / itemsPerPage)}
+                          >
+                            Next
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                </>
               ) : (
                 <div className="p-3 border rounded-lg">
                   <div className="text-sm font-medium">
@@ -4387,20 +4823,18 @@ const PatientManagement = () => {
                 </div>
               )}
             </div>
-          </div>
-        </div>
+          </TabsContent>
 
-        <Separator />
-
-        {/* Medical Certificates */}
-        <div className="space-y-3">
-          <MedicalCertificateGenerator
-            patient={patientData}
-            onSaveCertificate={handleSaveCertificate}
-            onDeleteCertificate={handleDeleteCertificate}
-            savedCertificates={certificates}
-          />
-        </div>
+          {/* Certificates Tab */}
+          <TabsContent value="certificates" className="space-y-4 mt-6">
+            <MedicalCertificateGenerator
+              patient={patientData}
+              onSaveCertificate={handleSaveCertificate}
+              onDeleteCertificate={handleDeleteCertificate}
+              savedCertificates={certificates}
+            />
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
@@ -5324,147 +5758,248 @@ const PatientManagement = () => {
           <div className="space-y-4">
             {createDocumentType === "prescription" && (
               <div className="space-y-4">
-                {(documentData.medications || []).map(
-                  (med: any, idx: number) => (
-                    <div
-                      key={idx}
-                      className="border p-3 rounded mb-2 bg-gray-50"
-                    >
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2">
-                        <div>
-                          <Label>Medication Name</Label>
-                          <MedicineSearch
-                            value={med.name || ""}
-                            onSelect={(medicine) => {
-                              if (medicine) {
-                                handleMedicationChange(idx, "name", medicine.name);
-                                // Auto-fill dosage if available
-                                if (medicine.dosage) {
-                                  handleMedicationChange(idx, "dose", medicine.dosage);
-                                }
-                              } else {
-                                handleMedicationChange(idx, "name", "");
-                              }
-                            }}
-                            placeholder="Search medication..."
-                          />
-                        </div>
-                        <div>
-                          <Label>Dosage</Label>
-                          <Input
-                            value={med.dose || ""}
-                            onChange={(e) =>
-                              handleMedicationChange(
-                                idx,
-                                "dose",
-                                e.target.value
-                              )
-                            }
-                            placeholder="e.g., 500mg"
-                          />
-                        </div>
-                        <div>
-                          <Label>Quantity</Label>
-                          <Input
-                            value={med.quantity || ""}
-                            onChange={(e) =>
-                              handleMedicationChange(
-                                idx,
-                                "quantity",
-                                e.target.value
-                              )
-                            }
-                            placeholder="e.g., Capsule #21"
-                          />
-                        </div>
-                        <div>
-                          <Label>Frequency</Label>
-                          <Select
-                            value={med.frequency || ""}
-                            onValueChange={(val) =>
-                              handleMedicationChange(idx, "frequency", val)
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select frequency" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Once daily">Once daily</SelectItem>
-                              <SelectItem value="Twice daily">Twice daily</SelectItem>
-                              <SelectItem value="Three times daily">Three times daily</SelectItem>
-                              <SelectItem value="Every 8 hours">Every 8 hours</SelectItem>
-                              <SelectItem value="Every 6 hours">Every 6 hours</SelectItem>
-                              <SelectItem value="As needed">As needed</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 mb-2">
-                        <div>
-                          <Label>Start Date</Label>
-                          <Input
-                            type="date"
-                            value={med.startDate || ""}
-                            onChange={(e) =>
-                              handleMedicationChange(
-                                idx,
-                                "startDate",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </div>
-                        <div>
-                          <Label>End Date</Label>
-                          <Input
-                            type="date"
-                            value={med.endDate || ""}
-                            onChange={(e) =>
-                              handleMedicationChange(
-                                idx,
-                                "endDate",
-                                e.target.value
-                              )
-                            }
-                          />
-                        </div>
-                      </div>
+                {/* Add Medication Form */}
+                <div className="bg-gray-50 p-4 rounded border">
+                  <h4 className="font-medium mb-3">Add Medication</h4>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Medication Name - Searchable ComboBox */}
                       <div className="space-y-2">
-                        <Label>Notes</Label>
-                        <Textarea
-                          value={med.notes || ""}
-                          onChange={(e) =>
-                            handleMedicationChange(idx, "notes", e.target.value)
-                          }
-                          placeholder="Additional instructions or notes"
-                          rows={2}
+                        <Label>Medication Name</Label>
+                        <MedicineSearch
+                          value={currentMedication.name}
+                          onSelect={(medicine) => {
+                            if (medicine) {
+                              handleMedicationChangeTemplate("name", medicine.name);
+                              // Auto-fill dosage if available
+                              if (medicine.dosage) {
+                                handleMedicationChangeTemplate("dose", medicine.dosage);
+                              }
+                            } else {
+                              handleMedicationChangeTemplate("name", "");
+                            }
+                          }}
+                          placeholder="Search medication..."
                         />
                       </div>
-                      <div className="flex justify-end mt-2">
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleRemoveMedication(idx)}
-                          disabled={documentData.medications.length === 1}
-                        >
-                          Remove
-                        </Button>
+                      
+                      <div className="space-y-2">
+                        <Label>Dose</Label>
+                        <Input
+                          placeholder="Dose (e.g., 500mg)"
+                          value={currentMedication.dose}
+                          onChange={(e) =>
+                            handleMedicationChangeTemplate(
+                              "dose",
+                              e.target.value
+                            )
+                          }
+                        />
                       </div>
                     </div>
-                  )
-                )}
-                <div className="flex justify-end">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddMedication}
-                  >
-                    + Add Medication
-                  </Button>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label>Quantity</Label>
+                        <Input
+                          placeholder="Quantity"
+                          value={currentMedication.quantity}
+                          onChange={(e) => {
+                            if (/^\d*$/.test(e.target.value))
+                              handleMedicationChangeTemplate(
+                                "quantity",
+                                e.target.value
+                              );
+                          }}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Frequency</Label>
+                        <Select
+                          value={currentMedication.frequency}
+                          onValueChange={(val) =>
+                            handleMedicationChangeTemplate(
+                              "frequency",
+                              val
+                            )
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select frequency" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Once daily">
+                              Once daily
+                            </SelectItem>
+                            <SelectItem value="Twice daily">
+                              Twice daily
+                            </SelectItem>
+                            <SelectItem value="Three times daily">
+                              Three times daily
+                            </SelectItem>
+                            <SelectItem value="Every 8 hours">
+                              Every 8 hours
+                            </SelectItem>
+                            <SelectItem value="Every 6 hours">
+                              Every 6 hours
+                            </SelectItem>
+                            <SelectItem value="As needed">
+                              As needed
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label>Start Date</Label>
+                        <Input
+                          type="date"
+                          value={currentMedication.startDate}
+                          onChange={(e) =>
+                            handleMedicationChangeTemplate(
+                              "startDate",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label>End Date</Label>
+                        <Input
+                          type="date"
+                          value={currentMedication.endDate}
+                          onChange={(e) =>
+                            handleMedicationChangeTemplate(
+                              "endDate",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <Textarea
+                      placeholder="Medication-specific notes or instructions"
+                      value={currentMedication.notes}
+                      onChange={(e) =>
+                        handleMedicationChangeTemplate(
+                          "notes",
+                          e.target.value
+                        )
+                      }
+                      rows={2}
+                    />
+
+                    <Button
+                      onClick={addMedication}
+                      disabled={
+                        !currentMedication.name ||
+                        !currentMedication.dose
+                      }
+                      className="hover:bg-[#1EAEDB]"
+                    >
+                      Add Medication
+                    </Button>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>General Instructions</Label>
+
+                {/* Medications Table */}
+                {medications.length > 0 && (
+                  <div className="border rounded">
+                    <div className="bg-gray-100 p-3 border-b">
+                      <h4 className="font-medium">
+                        Prescribed Medications
+                      </h4>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="p-2 text-left border-r">
+                              Medication
+                            </th>
+                            <th className="p-2 text-left border-r">
+                              Dose
+                            </th>
+                            <th className="p-2 text-left border-r">
+                              Quantity
+                            </th>
+                            <th className="p-2 text-left border-r">
+                              Frequency
+                            </th>
+                            <th className="p-2 text-left border-r">
+                              Duration
+                            </th>
+                            <th className="p-2 text-left border-r">
+                              Notes
+                            </th>
+                            <th className="p-2 text-center">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {medications.map((med, index) => (
+                            <tr
+                              key={med.id}
+                              className="border-b hover:bg-gray-50"
+                            >
+                              <td className="p-2 border-r">
+                                <div className="font-medium">
+                                  {med.name}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  ({med.nameType})
+                                </div>
+                              </td>
+                              <td className="p-2 border-r">
+                                {med.dose}
+                              </td>
+                              <td className="p-2 border-r">
+                                {med.quantity}
+                              </td>
+                              <td className="p-2 border-r">
+                                {med.frequency}
+                              </td>
+                              <td className="p-2 border-r">
+                                {med.startDate && med.endDate
+                                  ? `${med.startDate} to ${med.endDate}`
+                                  : med.startDate ||
+                                    med.endDate ||
+                                    "Not specified"}
+                              </td>
+                              <td className="p-2 border-r">
+                                {med.notes || "-"}
+                              </td>
+                              <td className="p-2 text-center">
+                                <div className="flex justify-center gap-2">
+                                  <Pencil
+                                    className="h-4 w-4 text-[#1EAEDB] cursor-pointer hover:text-blue-600"
+                                    onClick={() =>
+                                      editMedication(med.id)
+                                    }
+                                  />
+                                  <Trash2
+                                    className="h-4 w-4 text-red-500 cursor-pointer hover:text-red-700"
+                                    onClick={() =>
+                                      removeMedication(med.id)
+                                    }
+                                  />
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* General Prescription Notes */}
+                <div>
+                  <Label>General Prescription Notes</Label>
                   <Textarea
+                    placeholder="Any general instructions or notes for the entire prescription"
                     value={documentData.generalInstructions || ""}
                     onChange={(e) =>
                       handleDocumentInputChange(
@@ -5472,8 +6007,7 @@ const PatientManagement = () => {
                         e.target.value
                       )
                     }
-                    placeholder="General instructions for all medications (optional)"
-                    rows={2}
+                    rows={3}
                   />
                 </div>
               </div>
@@ -5558,11 +6092,27 @@ const PatientManagement = () => {
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setShowCreateDialog(false)}
+              onClick={() => {
+                setShowCreateDialog(false);
+                setMedications([]);
+                setCurrentMedication({
+                  name: "",
+                  dose: "",
+                  quantity: "",
+                  frequency: "",
+                  startDate: "",
+                  endDate: "",
+                  notes: "",
+                  nameType: "Generic",
+                });
+              }}
             >
               Cancel
             </Button>
-            <Button onClick={handleSaveDocument}>
+            <Button 
+              onClick={handleSaveDocument}
+              disabled={createDocumentType === "prescription" && medications.length === 0}
+            >
               Save{" "}
               {createDocumentType === "prescription"
                 ? "Prescription"

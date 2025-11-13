@@ -3,20 +3,20 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
 } from "@/components/ui/pagination";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useBranding } from "@/contexts/BrandingContext";
@@ -824,8 +824,6 @@ const Appointments = () => {
 
     if (activeTab === "ongoing") {
       if (isDoctor || isAdmin) {
-        const canComplete = canCompleteAppointment(appointment.date);
-
         return (
           <div className="flex gap-2">
             <Button
@@ -843,22 +841,8 @@ const Appointments = () => {
             <Button
               variant="default"
               size="sm"
-              className={`${buttonClass} ${
-                canComplete
-                  ? "bg-green-600 hover:bg-green-700"
-                  : "bg-gray-400 hover:bg-gray-400 cursor-not-allowed opacity-60"
-              }`}
-              onClick={
-                canComplete
-                  ? () => handleStatusUpdate(appointment.id, "completed")
-                  : undefined
-              }
-              disabled={!canComplete}
-              title={
-                canComplete
-                  ? "Complete appointment"
-                  : "Can only complete appointments scheduled for today"
-              }
+              className={`${buttonClass} bg-green-600 hover:bg-green-700`}
+              onClick={() => handleStatusUpdate(appointment.id, "completed")}
             >
               Complete
             </Button>

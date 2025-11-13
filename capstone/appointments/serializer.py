@@ -115,15 +115,37 @@ class AppointmentSerializer(serializers.ModelSerializer):
             if instance.patient:
                 # For confirmed appointments with patient records
                 data['patient'] = instance.patient.id
-                data['patient_id'] = instance.patient.patient_id  # Include Patient ID
-                # Prioritize appointment's patient_name if available, fallback to patient.name
-                data['patient_name'] = instance.patient_name or instance.patient.name
-                data['patient_email'] = instance.patient_email or instance.patient.email
-                data['patient_phone'] = instance.patient_phone or instance.patient.phone
-                data['date_of_birth'] = instance.date_of_birth or instance.patient.date_of_birth
-                data['gender'] = instance.gender or instance.patient.gender
-                data['address'] = instance.address or instance.patient.address
-                data['marital_status'] = instance.marital_status or instance.patient.marital_status
+                # Safely get patient_id with fallback
+                try:
+                    data['patient_id'] = getattr(instance.patient, 'patient_id', None)
+                except AttributeError:
+                    data['patient_id'] = None
+                
+                # Prioritize appointment's patient_name if available, fallback to patient.name or get_full_name()
+                try:
+                    if instance.patient_name:
+                        patient_name = instance.patient_name
+                    elif hasattr(instance.patient, 'get_full_name') and callable(instance.patient.get_full_name):
+                        patient_name = instance.patient.get_full_name()
+                    elif hasattr(instance.patient, 'name') and instance.patient.name:
+                        patient_name = instance.patient.name
+                    else:
+                        # Fallback to constructing from first/last name
+                        first = getattr(instance.patient, 'first_name', '')
+                        last = getattr(instance.patient, 'last_name', '')
+                        patient_name = f"{first} {last}".strip() if first or last else "Unknown Patient"
+                    data['patient_name'] = patient_name if patient_name else "Unknown Patient"
+                except Exception as e:
+                    logger.error(f"Error getting patient name: {str(e)}")
+                    data['patient_name'] = "Unknown Patient"
+                
+                # Safely get other patient fields
+                data['patient_email'] = instance.patient_email or getattr(instance.patient, 'email', None)
+                data['patient_phone'] = instance.patient_phone or getattr(instance.patient, 'phone', None)
+                data['date_of_birth'] = instance.date_of_birth or getattr(instance.patient, 'date_of_birth', None)
+                data['gender'] = instance.gender or getattr(instance.patient, 'gender', None)
+                data['address'] = instance.address or getattr(instance.patient, 'address', None)
+                data['marital_status'] = instance.marital_status or getattr(instance.patient, 'marital_status', None)
             else:
                 # For pending appointments, use the direct appointment fields
                 data['patient'] = None

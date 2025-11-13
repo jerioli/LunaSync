@@ -58,13 +58,28 @@ class Appointment(models.Model):
         return f"{self.get_patient_name()} on {self.date} at {self.time}"
 
     def clean(self):
-        # Check if the appointment date is in the past
-        if self.date < timezone.now().date():
-            raise ValidationError("Cannot create appointment for a past date")
+        # Skip date validation if we're just updating the status of an existing appointment
+        # This allows completing appointments that are in the past
+        if self.pk:  # If this is an existing appointment (has a primary key)
+            # Only validate date for new status changes that require it
+            # Allow status updates to completed, cancelled, no-show for past appointments
+            if self.status not in ['completed', 'cancelled', 'no-show']:
+                # Check if the appointment date is in the past
+                if self.date < timezone.now().date():
+                    raise ValidationError("Cannot create appointment for a past date")
 
-        # Check if the appointment time is in the past for today's appointments
-        if self.date == timezone.now().date() and self.time < timezone.now().time():
-            raise ValidationError("Cannot create appointment for a past time")
+                # Check if the appointment time is in the past for today's appointments
+                if self.date == timezone.now().date() and self.time < timezone.now().time():
+                    raise ValidationError("Cannot create appointment for a past time")
+        else:
+            # For new appointments, always validate the date
+            # Check if the appointment date is in the past
+            if self.date < timezone.now().date():
+                raise ValidationError("Cannot create appointment for a past date")
+
+            # Check if the appointment time is in the past for today's appointments
+            if self.date == timezone.now().date() and self.time < timezone.now().time():
+                raise ValidationError("Cannot create appointment for a past time")
 
         # Check for overlapping appointments only if doctor is assigned
         if self.doctor:
@@ -79,7 +94,12 @@ class Appointment(models.Model):
                 raise ValidationError("This time slot is already booked")
 
     def save(self, *args, **kwargs):
-        self.clean()
+        # Allow skipping validation when explicitly requested (e.g., for status updates)
+        skip_validation = kwargs.pop('skip_validation', False)
+        
+        if not skip_validation:
+            self.clean()
+            
         is_new = self.pk is None
         old_status = None
         

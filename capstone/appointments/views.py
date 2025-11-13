@@ -420,7 +420,7 @@ class AppointmentUpdateStatusView(APIView):
                 email_sent = self._handle_appointment_confirmation(appointment)
                 
                 appointment.status = new_status
-                appointment.save()
+                appointment.save(skip_validation=True)  # Skip validation for status updates
                 
                 serializer = AppointmentSerializer(appointment, context={'request': request})
                 response_data = serializer.data
@@ -431,7 +431,7 @@ class AppointmentUpdateStatusView(APIView):
             else:
                 # Regular status update
                 appointment.status = new_status
-                appointment.save()
+                appointment.save(skip_validation=True)  # Skip validation for status updates
                 
                 serializer = AppointmentSerializer(appointment, context={'request': request})
                 return Response(serializer.data)
