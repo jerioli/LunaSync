@@ -607,3 +607,20 @@ else:
 
 # Use default captcha URL generation - let Django handle it properly
 # The custom URL override was causing the broken images
+
+# Celery configuration
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Manila'
+
+# Celery Beat schedule for automatic reminders
+from celery.schedules import crontab
+CELERY_BEAT_SCHEDULE = {
+    'send-appointment-reminders-every-10-minutes': {
+        'task': 'appointments.tasks.send_appointment_reminders_task',
+        'schedule': crontab(minute='*/10'),
+    },
+}
