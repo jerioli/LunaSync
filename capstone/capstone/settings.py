@@ -484,6 +484,17 @@ if PRODUCTION:
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Create logs directory if it doesn't exist
+LOGS_DIR = BASE_DIR / 'logs'
+LOGS_DIR.mkdir(exist_ok=True)
+
+# Determine log file path based on environment
+if PRODUCTION:
+    LOG_FILE = '/home/lunasynccapstone/LunaSync/django.log'
+    # Ensure production log directory exists
+    os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
+else:
+    LOG_FILE = str(LOGS_DIR / 'django.log')
 
 LOGGING = {
     'version': 1,
@@ -502,7 +513,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': 'django.log' if not PRODUCTION else '/home/lunasynccapstone/LunaSync/django.log',
+            'filename': LOG_FILE,
             'formatter': 'verbose',
         },
         'console': {
