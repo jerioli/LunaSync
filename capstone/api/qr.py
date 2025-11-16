@@ -6,7 +6,6 @@ from django.contrib.auth.decorators import login_required
 
 @require_GET
 def prescription_qr(request, prescription_id):
-    """Generate QR code for prescription - publicly accessible for PDF generation"""
     url = request.build_absolute_uri(f"/api/prescriptions/{prescription_id}/")
     qr = qrcode.QRCode(box_size=6, border=2)
     qr.add_data(url)
