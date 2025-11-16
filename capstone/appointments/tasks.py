@@ -22,10 +22,13 @@ def send_appointment_reminders_task():
     clinic_name = clinic_settings.clinic_name if clinic_settings else 'Clinic'
 
     for appointment in appointments:
-        appointment_dt = datetime.combine(appointment.date, appointment.time)
+        # Make appointment datetime timezone-aware
+        appointment_dt = timezone.make_aware(
+            datetime.combine(appointment.date, appointment.time)
+        )
         hours_until = (appointment_dt - now).total_seconds() / 3600
         patient = appointment.patient
-        patient_phone = getattr(patient, 'phone', None) or getattr(appointment, 'patient_phone', None)
+        patient_phone = getattr(patient, 'phone_number', None) or getattr(patient, 'phone', None) or getattr(appointment, 'patient_phone', None)
         if not patient_phone:
             continue
 
