@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from medical_documents.models import MedicalDocument
-from clinic.models import Clinic
+from clinic.models import ClinicSettings
 import json
 
 # Public prescription detail view with styled HTML
@@ -10,9 +10,9 @@ def prescription_detail(request, prescription_id):
     
     # Fetch clinic settings
     try:
-        clinic = Clinic.objects.first()
-        clinic_name = clinic.name if clinic and clinic.name else 'LunaSync Health Management System'
-        clinic_address = clinic.address if clinic and clinic.address else ''
+        clinic = ClinicSettings.objects.first()
+        clinic_name = clinic.clinic_name if clinic and clinic.clinic_name else 'LunaSync Health Management System'
+        clinic_address = f"{clinic.address}, {clinic.city}, {clinic.state} {clinic.zip}" if clinic and clinic.address else ''
         clinic_phone = clinic.phone if clinic and clinic.phone else ''
         clinic_email = clinic.email if clinic and clinic.email else ''
         clinic_logo_url = clinic.logo.url if clinic and clinic.logo else None
