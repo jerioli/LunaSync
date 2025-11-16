@@ -30,12 +30,19 @@ const PublicPrescription = () => {
   useEffect(() => {
     const fetchPrescription = async () => {
       try {
-        // Fetch prescription data from backend
+        // Fetch prescription data from backend - this is a public endpoint
         const response = await axios.get(
-          `${ENV.API_URL}/medical-documents/${prescriptionId}/`
+          `${ENV.API_URL}/medical-documents/${prescriptionId}/`,
+          { withCredentials: false } // No auth required for public view
         );
         
         const doc = response.data;
+        
+        // Check if it's a prescription
+        if (doc.document_type !== 'prescription') {
+          throw new Error('Not a prescription document');
+        }
+        
         const prescriptionDetail = doc.prescription_detail;
         
         // Parse medications
@@ -62,9 +69,14 @@ const PublicPrescription = () => {
           date: doc.document_date,
           medications: meds,
         });
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching prescription:', err);
-        setError('Failed to load prescription. Please check the QR code and try again.');
+        const errorMsg = err.response?.status === 404 
+          ? 'Prescription not found. Please check the QR code and try again.'
+          : err.response?.status === 403
+          ? 'Access denied to this prescription.'
+          : 'Failed to load prescription. Please check the QR code and try again.';
+        setError(errorMsg);
       } finally {
         setLoading(false);
       }

@@ -1681,3 +1681,5 @@ INFO 2025-11-17 03:52:53,840 autoreload 5284 1996 Watching for file changes with
 INFO 2025-11-17 03:59:20,325 autoreload 33516 10780 Watching for file changes with StatReloader
 2025-11-17 04:00:13,416 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\api\views.py changed, reloading.
 INFO 2025-11-17 04:00:14,549 autoreload 13388 33248 Watching for file changes with StatReloader
+2025-11-17 04:05:53,705 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\medical_documents\views.py changed, reloading.
+INFO 2025-11-17 04:05:55,856 autoreload 3012 32868 Watching for file changes with StatReloader

@@ -63,6 +63,23 @@ class MedicalDocumentViewSet(viewsets.ModelViewSet):
     serializer_class = MedicalDocumentSerializer
     permission_classes = [IsAuthenticated, MedicalStaffPermission]  # Only receptionist, doctor, and admin
     
+    def get_permissions(self):
+        """
+        Allow public access for prescription retrieval (for QR code scanning)
+        """
+        if self.action == 'retrieve':
+            # Check if it's a prescription by looking at the document
+            try:
+                doc_id = self.kwargs.get('pk')
+                if doc_id:
+                    doc = MedicalDocument.objects.filter(id=doc_id, document_type='prescription').first()
+                    if doc:
+                        # Allow public access to prescriptions
+                        return [permissions.AllowAny()]
+            except Exception:
+                pass
+        return super().get_permissions()
+    
     def get_queryset(self):
         queryset = MedicalDocument.objects.all()
         
