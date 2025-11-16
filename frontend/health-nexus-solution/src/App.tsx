@@ -46,7 +46,7 @@ const PermissionGuard = ({
   children: React.ReactNode;
 }) => {
   const { currentUser, isAuthLoading } = useClinic();
-  
+
   // Show loading while authentication is still loading
   if (isAuthLoading) {
     return (
@@ -55,7 +55,7 @@ const PermissionGuard = ({
       </div>
     );
   }
-  
+
   if (!currentUser) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -67,11 +67,11 @@ const PermissionGuard = ({
 
   // Special handling for inventory permission - allow doctors and admins by default
   if (permission === "can_manage_inventory") {
-    const hasAccess = 
-      currentUser.role === "doctor" || 
-      currentUser.role === "admin" || 
+    const hasAccess =
+      currentUser.role === "doctor" ||
+      currentUser.role === "admin" ||
       currentUser[permission];
-    
+
     if (!hasAccess) {
       return (
         <div className="flex items-center justify-center h-full">
@@ -91,7 +91,7 @@ const PermissionGuard = ({
       );
     }
   }
-  
+
   return <>{children}</>;
 };
 
@@ -185,318 +185,321 @@ const App = () => {
             <Toaster />
             <BrowserRouter>
               <Routes>
-                  {/* Initial landing/routing page */}
-                  <Route path="/index" element={<Index />} />
+                {/* Initial landing/routing page */}
+                <Route path="/index" element={<Index />} />
 
-                  {/* Public patient portal */}
-                  <Route path="/portal" element={<PatientPortal />} />
+                {/* Public patient portal */}
+                <Route path="/portal" element={<PatientPortal />} />
 
-                  {/* Public prescription viewer (from QR code) */}
-                  <Route path="/prescription/:prescriptionId" element={<PublicPrescription />} />
+                {/* Public prescription viewer (from QR code) */}
+                <Route
+                  path="/prescription/:prescriptionId"
+                  element={<PublicPrescription />}
+                />
 
-                  {/* Patient requests page */}
+                {/* Patient requests page */}
 
-                  {/* Patient appointment scheduling */}
-                  <Route
-                    path="/portal/appointment"
-                    element={<AppointmentScheduling />}
-                  />
+                {/* Patient appointment scheduling */}
+                <Route
+                  path="/portal/appointment"
+                  element={<AppointmentScheduling />}
+                />
 
-                  {/* Staff login */}
-                  <Route
-                    path="/login"
-                    element={
-                      <StaffRoute>
-                        <Login />
-                      </StaffRoute>
-                    }
-                  />
+                {/* Staff login */}
+                <Route
+                  path="/login"
+                  element={
+                    <StaffRoute>
+                      <Login />
+                    </StaffRoute>
+                  }
+                />
 
-                  {/* Account activation */}
-                  <Route
-                    path="/account/activate/:uid/:token"
-                    element={
-                      <PublicRoute>
-                        <AccountActivation />
-                      </PublicRoute>
-                    }
-                  />
+                {/* Account activation */}
+                <Route
+                  path="/account/activate/:uid/:token"
+                  element={
+                    <PublicRoute>
+                      <AccountActivation />
+                    </PublicRoute>
+                  }
+                />
 
-                  {/* Forgot password */}
-                  <Route
-                    path="/forgot-password"
-                    element={
-                      <StaffRoute>
-                        <ForgotPassword />
-                      </StaffRoute>
-                    }
-                  />
+                {/* Forgot password */}
+                <Route
+                  path="/forgot-password"
+                  element={
+                    <StaffRoute>
+                      <ForgotPassword />
+                    </StaffRoute>
+                  }
+                />
 
-                  {/* Reset password (OTP-based) */}
-                  <Route
-                    path="/reset-password"
-                    element={
-                      <PublicRoute>
-                        <ResetPassword />
-                      </PublicRoute>
-                    }
-                  />
+                {/* Reset password (OTP-based) */}
+                <Route
+                  path="/reset-password"
+                  element={
+                    <PublicRoute>
+                      <ResetPassword />
+                    </PublicRoute>
+                  }
+                />
 
-                  {/* Reset password (Email link-based) */}
-                  <Route
-                    path="/reset-password/:uidb64/:token"
-                    element={
-                      <PublicRoute>
-                        <ResetPassword />
-                      </PublicRoute>
-                    }
-                  />
+                {/* Reset password (Email link-based) */}
+                <Route
+                  path="/reset-password/:uidb64/:token"
+                  element={
+                    <PublicRoute>
+                      <ResetPassword />
+                    </PublicRoute>
+                  }
+                />
 
-                  {/* Change password for first-time users */}
-                  <Route
-                    path="/change-password"
-                    element={
-                      <PasswordChangeRoute>
-                        <ChangePassword />
-                      </PasswordChangeRoute>
-                    }
-                  />
+                {/* Change password for first-time users */}
+                <Route
+                  path="/change-password"
+                  element={
+                    <PasswordChangeRoute>
+                      <ChangePassword />
+                    </PasswordChangeRoute>
+                  }
+                />
 
-                  {/* Staff protected routes */}
-                  <Route
-                    path="/"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <Dashboard />
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
+                {/* Staff protected routes */}
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <Dashboard />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-                  {/* Patient management routes */}
-                  <Route
-                    path="/patients"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <PatientsList />
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
+                {/* Patient management routes */}
+                <Route
+                  path="/patients"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <PatientsList />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-                  <Route
-                    path="/patients/add"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <AddPatient />
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
+                <Route
+                  path="/patients/add"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <AddPatient />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-                  <Route
-                    path="/patients/:id"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <PatientManagement />
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
+                <Route
+                  path="/patients/:id"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <PatientManagement />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-                  {/* Appointments route */}
-                  <Route
-                    path="/appointments"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <Appointments />
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
+                {/* Appointments route */}
+                <Route
+                  path="/appointments"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <Appointments />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-                  {/* Doctor schedule route */}
-                  <Route
-                    path="/schedule"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <Schedule />
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
+                {/* Doctor schedule route */}
+                <Route
+                  path="/schedule"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <Schedule />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-                  {/* Receptionist scheduler route */}
-                  <Route
-                    path="/receptionist-scheduler"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <ReceptionistScheduler />
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
+                {/* Receptionist scheduler route */}
+                <Route
+                  path="/receptionist-scheduler"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <ReceptionistScheduler />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-                  {/* Prescriptions route */}
-                  <Route
-                    path="/prescriptions"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <Prescriptions />
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
+                {/* Prescriptions route */}
+                <Route
+                  path="/prescriptions"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <Prescriptions />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-                  {/* Medical Certificate Management route */}
-                  <Route
-                    path="/medical-certificates"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <MedicalCertificateManagement />
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
+                {/* Medical Certificate Management route */}
+                <Route
+                  path="/medical-certificates"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <MedicalCertificateManagement />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-                  {/* Medical Certificate Generation route */}
-                  <Route
-                    path="/patients/certificate-generate"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <MedicalCertificateGeneration />
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
+                {/* Medical Certificate Generation route */}
+                <Route
+                  path="/patients/certificate-generate"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <MedicalCertificateGeneration />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-                  {/* Prescription Management route */}
-                  <Route
-                    path="/prescription-management"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <PrescriptionManagement />
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
+                {/* Prescription Management route */}
+                <Route
+                  path="/prescription-management"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <PrescriptionManagement />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-                  {/* Staff management route for admin */}
-                  <Route
-                    path="/staff"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <Staff />
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
+                {/* Staff management route for admin */}
+                <Route
+                  path="/staff"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <Staff />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-                  {/* Superadmin routes with permission checks */}
-                  <Route
-                    path="/permissions"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <PermissionGuard permission="can_manage_permissions">
-                            <PermissionManagement />
-                          </PermissionGuard>
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/audit-logs"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <PermissionGuard permission="can_view_audit_logs">
-                            <AuditLogs />
-                          </PermissionGuard>
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
+                {/* Superadmin routes with permission checks */}
+                <Route
+                  path="/permissions"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <PermissionGuard permission="can_manage_permissions">
+                          <PermissionManagement />
+                        </PermissionGuard>
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/audit-logs"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <PermissionGuard permission="can_view_audit_logs">
+                          <AuditLogs />
+                        </PermissionGuard>
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-                  {/* Settings route for admin */}
-                  <Route
-                    path="/settings"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <Settings />
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
+                {/* Settings route for admin */}
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <Settings />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-                  {/* User Settings route for staff members */}
-                  <Route
-                    path="/user-settings"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <UserSettings />
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
+                {/* User Settings route for staff members */}
+                <Route
+                  path="/user-settings"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <UserSettings />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-                  {/* Lab Results route */}
-                  <Route
-                    path="/lab-results"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <LabResults />
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
+                {/* Lab Results route */}
+                <Route
+                  path="/lab-results"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <LabResults />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-                  {/* Inventory route */}
-                  <Route
-                    path="/inventory"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <PermissionGuard permission="can_manage_inventory">
-                            <Inventory />
-                          </PermissionGuard>
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
+                {/* Inventory route */}
+                <Route
+                  path="/inventory"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <PermissionGuard permission="can_manage_inventory">
+                          <Inventory />
+                        </PermissionGuard>
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
 
-                  {/* Document Comparison route */}
-                  <Route
-                    path="/document-comparison"
-                    element={
-                      <ProtectedRoute>
-                        <AppLayout>
-                          <DocumentComparison />
-                        </AppLayout>
-                      </ProtectedRoute>
-                    }
-                  />
-                  {/* 404 route */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </BrowserRouter>
-            </ClinicProvider>
-          </BrandingProvider>
+                {/* Document Comparison route */}
+                <Route
+                  path="/document-comparison"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <DocumentComparison />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
+                {/* 404 route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </ClinicProvider>
+        </BrandingProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
