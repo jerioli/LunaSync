@@ -25,23 +25,20 @@ def generate_prescription_qr_code(prescription_data):
     Generate QR code for prescription verification
     """
     try:
-        # Create verification URL or prescription ID
-        prescription_id = prescription_data.get('prescription_number', prescription_data.get('id', 'UNKNOWN'))
+        # Get document UUID (this is the prescription ID)
         document_uuid = prescription_data.get('document_uuid', '')
         
-        # Create QR data - this could be a verification URL or prescription details
-        verification_url = f"{getattr(settings, 'DOMAIN_URL', 'http://localhost:8000')}/api/prescriptions/{prescription_id}/verify"
+        # Use production domain in production, otherwise localhost
+        if getattr(settings, 'PRODUCTION', False):
+            base_url = "https://lunasync.site"
+        else:
+            base_url = getattr(settings, 'DOMAIN_URL', 'http://localhost:8000')
         
-        qr_data = {
-            'prescription_id': prescription_id,
-            'document_id': document_uuid,
-            'patient_name': prescription_data.get('patient_name', ''),
-            'date': datetime.now().strftime('%Y-%m-%d'),
-            'verification_url': verification_url
-        }
+        # Create URL to prescription view (matches the QR endpoint URL format)
+        prescription_url = f"{base_url}/api/prescriptions/{document_uuid}/"
         
-        # Convert to string for QR code - more compact format
-        qr_text = f"ID:{prescription_id}\nDoc:{document_uuid}\nVerify:{verification_url}"
+        # Use the prescription URL directly as QR data
+        qr_text = prescription_url
         
         # Generate QR code
         qr = qrcode.QRCode(

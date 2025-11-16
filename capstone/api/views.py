@@ -43,6 +43,7 @@ def prescription_detail(request, prescription_id):
         patient_name = doc.patient.name if doc.patient else 'N/A'
         doctor = prescription.prescribing_physician
         doctor_name = f"{doctor.first_name} {doctor.last_name}".strip() if doctor else 'N/A'
+        doctor_license = doctor.license_number if doctor and hasattr(doctor, 'license_number') and doctor.license_number else None
         prescription_number = prescription.prescription_number if prescription.prescription_number else f'RX-{doc.id}'
         
         # Format date
@@ -56,6 +57,7 @@ def prescription_detail(request, prescription_id):
         meds = []
         patient_name = 'N/A'
         doctor_name = 'N/A'
+        doctor_license = None
         prescription_number = f'RX-{doc.id}'
         doc_date = 'N/A'
         
@@ -91,8 +93,8 @@ def prescription_detail(request, prescription_id):
             margin-bottom: 20px;
         }}
         .logo {{
-            width: 80px;
-            height: 80px;
+            width: 120px;
+            height: 120px;
             margin: 0 auto 10px;
             background: #000;
             border-radius: 50%;
@@ -100,12 +102,12 @@ def prescription_detail(request, prescription_id):
             align-items: center;
             justify-content: center;
             color: #fff;
-            font-size: 32px;
+            font-size: 48px;
             font-weight: bold;
         }}
         .logo-img {{
-            width: 80px;
-            height: 80px;
+            width: 120px;
+            height: 120px;
             margin: 0 auto 10px;
             object-fit: contain;
             display: block;
@@ -161,12 +163,27 @@ def prescription_detail(request, prescription_id):
             flex: 1;
         }}
         .rx-symbol {{
-            text-align: center;
+            text-align: left;
             margin: 20px 0;
             font-size: 48px;
             font-weight: 700;
             font-family: serif;
             color: #000;
+            padding-left: 0;
+        }}
+        .doctor-info {{
+            margin: 15px 0;
+            padding: 10px 0;
+            border-top: 1px solid #ddd;
+        }}
+        .doctor-license {{
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }}
+        .doctor-license strong {{
+            color: #000;
+            font-weight: 700;
         }}
         .medications-section {{
             margin-top: 20px;
@@ -273,6 +290,15 @@ def prescription_detail(request, prescription_id):
             .container {{
                 padding: 15px;
             }}
+            .logo {{
+                width: 100px;
+                height: 100px;
+                font-size: 40px;
+            }}
+            .logo-img {{
+                width: 100px;
+                height: 100px;
+            }}
             .info-label {{
                 width: 120px;
                 font-size: 12px;
@@ -324,6 +350,10 @@ def prescription_detail(request, prescription_id):
                 <div class="info-label">Prescribing Physician:</div>
                 <div class="info-value">Dr. {doctor_name}</div>
             </div>
+            {f'''<div class="info-row">
+                <div class="info-label">License Number:</div>
+                <div class="info-value">{doctor_license}</div>
+            </div>''' if doctor_license else ''}
         </div>
         
         <!-- Rx Symbol -->
