@@ -1818,3 +1818,24 @@ INFO 2025-11-17 04:38:12,854 autoreload 15008 29384 Watching for file changes wi
 INFO 2025-11-17 04:38:29,817 autoreload 30556 13016 Watching for file changes with StatReloader
 2025-11-17 04:38:42,019 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\api\views.py changed, reloading.
 INFO 2025-11-17 04:38:43,204 autoreload 30168 18060 Watching for file changes with StatReloader
+2025-11-17 04:42:29,263 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/by_patient/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 04:42:29,281 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/by_patient/", "timestamp": 1763325749.2816918, "client_ip": "127.0.0.1"}
+2025-11-17 04:42:29,304 - django.server - INFO - "GET /api/medical-documents/lab-results/by_patient/?patient_id=1 HTTP/1.1" 200 50
+2025-11-17 04:42:35,458 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 04:42:35,463 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 328
+2025-11-17 04:42:35,764 - django.server - INFO - "OPTIONS /api/doctors/ HTTP/1.1" 200 0
+2025-11-17 04:42:35,770 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 04:42:35,776 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 119
+2025-11-17 04:42:37,813 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 04:42:37,814 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 04:42:37,821 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 119
+2025-11-17 04:42:37,826 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 328
+2025-11-17 04:42:54,088 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/by_patient/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 04:42:54,089 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/by_patient/", "timestamp": 1763325774.0889528, "client_ip": "127.0.0.1"}
+2025-11-17 04:42:54,098 - django.server - INFO - "GET /api/medical-documents/lab-results/by_patient/?patient_id=1 HTTP/1.1" 200 50
+2025-11-17 04:42:57,039 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\api\views.py changed, reloading.
+INFO 2025-11-17 04:42:58,514 autoreload 6488 26940 Watching for file changes with StatReloader
+2025-11-17 04:43:02,205 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\medical_documents\views.py changed, reloading.
+INFO 2025-11-17 04:43:04,410 autoreload 25432 26604 Watching for file changes with StatReloader
+2025-11-17 04:43:18,064 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\api\qr.py changed, reloading.
+INFO 2025-11-17 04:43:19,144 autoreload 28244 27668 Watching for file changes with StatReloader
