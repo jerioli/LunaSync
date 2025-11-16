@@ -1,170 +1,47 @@
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from medical_documents.models import MedicalDocument
 import json
-import logging
-
-logger = logging.getLogger(__name__)
 
 # Minimal public prescription detail view
 def prescription_detail(request, prescription_id):
+    doc = get_object_or_404(MedicalDocument, id=prescription_id, document_type='prescription')
+    # Fetch the related Prescription object
     try:
-        doc = get_object_or_404(MedicalDocument, id=prescription_id, document_type='prescription')
+        prescription = doc.prescription_detail
+        # Parse medications - handle both JSON string and list
+        meds_raw = prescription.medications if prescription.medications else []
+        if isinstance(meds_raw, str):
+            try:
+                meds = json.loads(meds_raw)
+            except json.JSONDecodeError:
+                meds = []
+        elif isinstance(meds_raw, list):
+            meds = meds_raw
+        else:
+            meds = []
         
-        # Initialize default values
+        patient_name = doc.patient.name if doc.patient else 'N/A'
+        doctor = prescription.prescribing_physician
+        doctor_name = f"{doctor.first_name} {doctor.last_name}".strip() if doctor else 'N/A'
+    except Exception as e:
+        print(f"Error fetching prescription details: {e}")
         meds = []
         patient_name = 'N/A'
         doctor_name = 'N/A'
-        prescription_number = 'N/A'
-        
-        # Fetch the related Prescription object
-        try:
-            prescription = doc.prescription_detail
-            if prescription:
-                # Get medications safely
-                if hasattr(prescription, 'medications') and prescription.medications:
-                    meds = prescription.medications if isinstance(prescription.medications, list) else []
-                
-                # Get prescription number
-                if hasattr(prescription, 'prescription_number'):
-                    prescription_number = prescription.prescription_number
-                
-                # Get doctor name
-                if hasattr(prescription, 'prescribing_physician') and prescription.prescribing_physician:
-                    doctor = prescription.prescribing_physician
-                    if hasattr(doctor, 'first_name') and hasattr(doctor, 'last_name'):
-                        doctor_name = f"{doctor.first_name} {doctor.last_name}".strip()
-                    elif hasattr(doctor, 'username'):
-                        doctor_name = doctor.username
-        except AttributeError as e:
-            logger.warning(f"AttributeError accessing prescription_detail for {prescription_id}: {e}")
-        except Exception as e:
-            logger.error(f"Error accessing prescription details for {prescription_id}: {e}")
-        
-        # Get patient name safely
-        try:
-            if doc.patient and hasattr(doc.patient, 'name'):
-                patient_name = doc.patient.name
-        except Exception as e:
-            logger.error(f"Error accessing patient name for {prescription_id}: {e}")
-        
-        # Format date safely
-        try:
-            doc_date = doc.document_date.strftime('%B %d, %Y') if doc.document_date else 'N/A'
-        except:
-            doc_date = str(doc.document_date) if doc.document_date else 'N/A'
-        
-        # Build HTML response
-        html = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Prescription #{prescription_number}</title>
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <style>
-                body {{
-                    font-family: Arial, sans-serif;
-                    max-width: 800px;
-                    margin: 20px auto;
-                    padding: 20px;
-                    background-color: #f5f5f5;
-                }}
-                .container {{
-                    background-color: white;
-                    padding: 30px;
-                    border-radius: 8px;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                }}
-                h2 {{
-                    color: #2c3e50;
-                    border-bottom: 2px solid #3498db;
-                    padding-bottom: 10px;
-                }}
-                .info {{
-                    margin: 15px 0;
-                    padding: 10px;
-                    background-color: #f8f9fa;
-                    border-radius: 4px;
-                }}
-                .info b {{
-                    color: #34495e;
-                }}
-                h3 {{
-                    color: #2980b9;
-                    margin-top: 25px;
-                }}
-                ul {{
-                    list-style-type: none;
-                    padding: 0;
-                }}
-                li {{
-                    padding: 10px;
-                    margin: 5px 0;
-                    background-color: #ecf0f1;
-                    border-left: 4px solid #3498db;
-                    border-radius: 4px;
-                }}
-                .no-meds {{
-                    color: #7f8c8d;
-                    font-style: italic;
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h2>📋 Prescription #{prescription_number}</h2>
-                <div class="info">
-                    <p><b>Patient:</b> {patient_name}</p>
-                    <p><b>Prescribing Doctor:</b> {doctor_name}</p>
-                    <p><b>Date:</b> {doc_date}</p>
-                </div>
-                <h3>💊 Medications:</h3>
-                <ul>
-                {''.join(f'<li><b>{m.get("name", "Unknown")}</b> - {m.get("dose", "")} {m.get("quantity", "")} {m.get("frequency", "")}</li>' for m in meds) if meds else '<li class="no-meds">No medications listed.</li>'}
-                </ul>
-            </div>
-        </body>
-        </html>
-        """
-        return HttpResponse(html)
-        
-    except Exception as e:
-        logger.error(f"Error in prescription_detail view for {prescription_id}: {e}", exc_info=True)
-        return HttpResponse(
-            f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Error</title>
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <style>
-                    body {{
-                        font-family: Arial, sans-serif;
-                        max-width: 600px;
-                        margin: 50px auto;
-                        padding: 20px;
-                        text-align: center;
-                    }}
-                    .error {{
-                        background-color: #fee;
-                        border: 1px solid #fcc;
-                        padding: 20px;
-                        border-radius: 8px;
-                        color: #c00;
-                    }}
-                </style>
-            </head>
-            <body>
-                <div class="error">
-                    <h2>⚠️ Error Loading Prescription</h2>
-                    <p>Unable to load prescription details.</p>
-                    <p>Please contact the clinic for assistance.</p>
-                </div>
-            </body>
-            </html>
-            """,
-            status=500
-        )
+    html = f"""
+    <html><head><title>Prescription #{doc.id}</title></head><body>
+    <h2>Prescription #{doc.id}</h2>
+    <p><b>Patient:</b> {patient_name}</p>
+    <p><b>Prescribing Doctor:</b> {doctor_name}</p>
+    <p><b>Date:</b> {doc.document_date}</p>
+    <h3>Medications:</h3>
+    <ul>
+    {''.join(f'<li>{m.get("name","")} - {m.get("dose","")} {m.get("quantity","")} {m.get("frequency","")}</li>' for m in meds) if meds else '<li>No medications listed.</li>'}
+    </ul>
+    </body></html>
+    """
+    return HttpResponse(html)
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
