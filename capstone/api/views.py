@@ -30,16 +30,151 @@ def prescription_detail(request, prescription_id):
         patient_name = 'N/A'
         doctor_name = 'N/A'
     html = f"""
-    <html><head><title>Prescription #{doc.id}</title></head><body>
-    <h2>Prescription #{doc.id}</h2>
-    <p><b>Patient:</b> {patient_name}</p>
-    <p><b>Prescribing Doctor:</b> {doctor_name}</p>
-    <p><b>Date:</b> {doc.document_date}</p>
-    <h3>Medications:</h3>
-    <ul>
-    {''.join(f'<li>{m.get("name","")} - {m.get("dose","")} {m.get("quantity","")} {m.get("frequency","")}</li>' for m in meds) if meds else '<li>No medications listed.</li>'}
-    </ul>
-    </body></html>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Prescription #{doc.id}</title>
+        <style>
+            * {{
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }}
+            body {{
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                padding: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }}
+            .container {{
+                background: white;
+                border-radius: 16px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                max-width: 600px;
+                width: 100%;
+                padding: 30px;
+                animation: slideUp 0.5s ease-out;
+            }}
+            @keyframes slideUp {{
+                from {{
+                    opacity: 0;
+                    transform: translateY(30px);
+                }}
+                to {{
+                    opacity: 1;
+                    transform: translateY(0);
+                }}
+            }}
+            .header {{
+                border-bottom: 3px solid #667eea;
+                padding-bottom: 20px;
+                margin-bottom: 25px;
+            }}
+            h2 {{
+                color: #2d3748;
+                font-size: 24px;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }}
+            .info-box {{
+                background: #f7fafc;
+                border-radius: 12px;
+                padding: 20px;
+                margin-bottom: 25px;
+                border-left: 4px solid #667eea;
+            }}
+            .info-row {{
+                margin-bottom: 12px;
+                display: flex;
+                flex-wrap: wrap;
+            }}
+            .info-row:last-child {{
+                margin-bottom: 0;
+            }}
+            .info-label {{
+                font-weight: 600;
+                color: #4a5568;
+                min-width: 140px;
+            }}
+            .info-value {{
+                color: #2d3748;
+            }}
+            h3 {{
+                color: #2d3748;
+                font-size: 20px;
+                font-weight: 600;
+                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }}
+            .meds-list {{
+                list-style: none;
+            }}
+            .med-item {{
+                background: #edf2f7;
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 10px;
+                border-left: 4px solid #48bb78;
+                transition: transform 0.2s;
+            }}
+            .med-item:hover {{
+                transform: translateX(5px);
+            }}
+            .no-meds {{
+                background: #fed7d7;
+                border-left-color: #fc8181;
+                color: #742a2a;
+                font-style: italic;
+            }}
+            .med-name {{
+                font-weight: 600;
+                color: #2d3748;
+                font-size: 16px;
+                margin-bottom: 5px;
+            }}
+            .med-details {{
+                color: #4a5568;
+                font-size: 14px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h2>📋 Prescription #{doc.id}</h2>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-row">
+                    <span class="info-label">Patient:</span>
+                    <span class="info-value">{patient_name}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Prescribing Doctor:</span>
+                    <span class="info-value">{doctor_name}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Date:</span>
+                    <span class="info-value">{doc.document_date}</span>
+                </div>
+            </div>
+            
+            <h3>💊 Medications:</h3>
+            <ul class="meds-list">
+                {''.join(f'<li class="med-item"><div class="med-name">{m.get("name", "Unknown medication")}</div><div class="med-details">{m.get("dose", "")} • {m.get("quantity", "")} • {m.get("frequency", "")}</div></li>' for m in meds) if meds else '<li class="med-item no-meds">No medications listed.</li>'}
+            </ul>
+        </div>
+    </body>
+    </html>
     """
     return HttpResponse(html)
 from rest_framework import viewsets, permissions, status
