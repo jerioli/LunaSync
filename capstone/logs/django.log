@@ -1156,3 +1156,7 @@ INFO 2025-11-17 01:37:38,623 autoreload 6936 27784 Watching for file changes wit
 2025-11-17 01:44:11,134 - appointments.views - INFO - Successfully serialized first appointment: {'id': 1, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Jerry N/A Olivarez', 'patient_id': 'P-20251115-0496', 'patient_email': 'jeri.olivarez@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2014-07-15', 'gender': 'male', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-17', 'time': '09:00:00', 'status': 'scheduled', 'created_at': '2025-11-17T01:43:32.896605+08:00', 'display_patient_name': 'Jerry N/A. Olivarez', 'display_doctor_name': 'Jeri Oli', 'display_time': '09:00 AM', 'display_date': 'November 17, 2025', 'doctor': 3, 'doctor_name': 'Jeri Oli', 'patient': 1}
 2025-11-17 01:44:11,136 - appointments.views - INFO - Successfully serialized all appointments. Count: 1
 2025-11-17 01:44:11,139 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 671
+INFO 2025-11-17 02:03:43,206 iprog_sms_service 24752 28548 iProg SMS service initialized successfully
+INFO 2025-11-17 02:03:46,203 iprog_sms_service 24752 28548 [SMS] Response Status: 200
+INFO 2025-11-17 02:03:46,203 iprog_sms_service 24752 28548 [SMS] Success! Message ID: iSms-g5EFc1
+INFO 2025-11-17 02:09:14,096 autoreload 23396 6492 Watching for file changes with StatReloader

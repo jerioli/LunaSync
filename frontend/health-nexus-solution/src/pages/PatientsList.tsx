@@ -2,6 +2,7 @@ import BulkImportModal from "@/components/bulk/BulkImportModal";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -21,8 +22,12 @@ import {
 import { useClinic } from "@/contexts/ClinicContext";
 import { useToast } from "@/hooks/use-toast";
 // Import sessionManager to ensure global axios configuration is applied
-import { formatPatientNameWithInitial, getPatientInitial } from "@/utils/patientNameUtils";
+import {
+  formatPatientNameWithInitial,
+  getPatientInitial,
+} from "@/utils/patientNameUtils";
 import "@/utils/sessionManager";
+import axios from "axios";
 import { format } from "date-fns";
 import {
   ArrowUpDown,
@@ -32,6 +37,7 @@ import {
   ChevronUp,
   FileText,
   Search,
+  Trash2,
   UserPlus,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -58,6 +64,12 @@ const PatientsList = () => {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Bulk selection states
+  const [selectedPatients, setSelectedPatients] = useState<Set<string>>(
+    new Set()
+  );
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Role-based access control - admin, receptionist, and doctor can use bulk import
   const canUseBulkImport =
@@ -125,6 +137,11 @@ const PatientsList = () => {
     setCurrentPage(1);
   }, [searchQuery, sortField, sortDirection]);
 
+  // Clear selections when page changes
+  useEffect(() => {
+    setSelectedPatients(new Set());
+  }, [currentPage, searchQuery, sortField, sortDirection]);
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
@@ -146,11 +163,121 @@ const PatientsList = () => {
     );
   };
 
+  // Handle select all patients on current page
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const newSelected = new Set(selectedPatients);
+      paginatedPatients.forEach((patient) => {
+        newSelected.add(patient.id);
+      });
+      setSelectedPatients(newSelected);
+    } else {
+      const newSelected = new Set(selectedPatients);
+      paginatedPatients.forEach((patient) => {
+        newSelected.delete(patient.id);
+      });
+      setSelectedPatients(newSelected);
+    }
+  };
+
+  // Handle individual patient selection
+  const handleSelectPatient = (patientId: string, checked: boolean) => {
+    const newSelected = new Set(selectedPatients);
+    if (checked) {
+      newSelected.add(patientId);
+    } else {
+      newSelected.delete(patientId);
+    }
+    setSelectedPatients(newSelected);
+  };
+
+  // Check if all patients on current page are selected
+  const isAllSelected =
+    paginatedPatients.length > 0 &&
+    paginatedPatients.every((patient) => selectedPatients.has(patient.id));
+
+  // Check if some (but not all) patients are selected
+  const isSomeSelected =
+    paginatedPatients.some((patient) => selectedPatients.has(patient.id)) &&
+    !isAllSelected;
+
+  // Handle bulk delete
+  const handleBulkDelete = async () => {
+    if (selectedPatients.size === 0) {
+      toast({
+        title: "No patients selected",
+        description: "Please select at least one patient to delete.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${selectedPatients.size} patient(s)? This action cannot be undone.`
+    );
+
+    if (!confirmDelete) return;
+
+    setIsDeleting(true);
+    const selectedIds = Array.from(selectedPatients);
+    let successCount = 0;
+    let failCount = 0;
+
+    try {
+      // Delete patients one by one
+      for (const patientId of selectedIds) {
+        try {
+          await axios.delete(`patients/${patientId}/`);
+          successCount++;
+        } catch (error) {
+          console.error(`Failed to delete patient ${patientId}:`, error);
+          failCount++;
+        }
+      }
+
+      // Show result toast
+      if (successCount > 0) {
+        toast({
+          title: "Patients deleted",
+          description: `Successfully deleted ${successCount} patient(s).${
+            failCount > 0 ? ` Failed to delete ${failCount} patient(s).` : ""
+          }`,
+        });
+        fetchPatients(); // Refresh the list
+        setSelectedPatients(new Set()); // Clear selections
+      } else {
+        toast({
+          title: "Delete failed",
+          description: "Failed to delete selected patients.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while deleting patients.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Patient Records</h1>
         <div className="flex gap-2">
+          {selectedPatients.size > 0 && (
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={isDeleting}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Selected ({selectedPatients.size})
+            </Button>
+          )}
           {canUseBulkImport && (
             <BulkImportModal
               type="patients"
@@ -170,7 +297,6 @@ const PatientsList = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-            
               <p className="text-sm text-muted-foreground mt-1">
                 Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{" "}
                 {totalItems} patients
@@ -214,6 +340,16 @@ const PatientsList = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={isAllSelected}
+                    onCheckedChange={handleSelectAll}
+                    aria-label="Select all patients"
+                    className={
+                      isSomeSelected ? "data-[state=checked]:bg-primary" : ""
+                    }
+                  />
+                </TableHead>
                 <TableHead>
                   <Button
                     variant="ghost"
@@ -272,6 +408,15 @@ const PatientsList = () => {
                 paginatedPatients.map((patient) => (
                   <TableRow key={patient.id}>
                     <TableCell>
+                      <Checkbox
+                        checked={selectedPatients.has(patient.id)}
+                        onCheckedChange={(checked) =>
+                          handleSelectPatient(patient.id, checked as boolean)
+                        }
+                        aria-label={`Select ${patient.name}`}
+                      />
+                    </TableCell>
+                    <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar>
                           <AvatarFallback>
@@ -280,7 +425,8 @@ const PatientsList = () => {
                         </Avatar>
                         <div>
                           <div className="font-medium">
-                            {formatPatientNameWithInitial(patient) || patient.name}
+                            {formatPatientNameWithInitial(patient) ||
+                              patient.name}
                           </div>
                           <div className="text-sm text-muted-foreground">
                             ID: {patient.patient_id || patient.id}
@@ -310,7 +456,11 @@ const PatientsList = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => navigate(`/patients/${patient.patient_id || patient.id}`)}
+                        onClick={() =>
+                          navigate(
+                            `/patients/${patient.patient_id || patient.id}`
+                          )
+                        }
                       >
                         <FileText className="mr-2 h-4 w-4" />
                         View Record
@@ -320,7 +470,7 @@ const PatientsList = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={7} className="text-center py-8">
                     <div className="text-muted-foreground">
                       {searchQuery ? (
                         <>
