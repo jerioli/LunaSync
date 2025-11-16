@@ -35,6 +35,7 @@ import Schedule from "./pages/Schedule";
 import Settings from "./pages/Settings";
 import Staff from "./pages/Staff";
 import UserSettings from "./pages/UserSettings";
+import PublicPrescription from "./pages/PublicPrescription";
 
 // PermissionGuard component for route-level permission checks
 const PermissionGuard = ({
@@ -189,6 +190,9 @@ const App = () => {
 
                   {/* Public patient portal */}
                   <Route path="/portal" element={<PatientPortal />} />
+
+                  {/* Public prescription viewer (from QR code) */}
+                  <Route path="/prescription/:prescriptionId" element={<PublicPrescription />} />
 
                   {/* Patient requests page */}
 

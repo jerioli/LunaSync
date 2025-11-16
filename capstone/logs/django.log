@@ -1633,3 +1633,51 @@ INFO 2025-11-17 03:21:11,233 autoreload 16980 3112 Watching for file changes wit
 2025-11-17 03:23:54,859 - django.server - INFO - "GET /api/medical-documents/lab-results/by_patient/?patient_id=1 HTTP/1.1" 200 50
 2025-11-17 03:33:16,505 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\api\qr.py changed, reloading.
 INFO 2025-11-17 03:33:17,750 autoreload 18424 25504 Watching for file changes with StatReloader
+2025-11-17 03:39:43,504 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/by_patient/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 03:39:43,518 - security_audit - INFO - Data access: {"user_id": 4, "username": "receptionist", "action": "GET", "endpoint": "/api/medical-documents/lab-results/by_patient/", "timestamp": 1763321983.5187354, "client_ip": "127.0.0.1"}
+2025-11-17 03:39:43,537 - django.server - INFO - "GET /api/medical-documents/lab-results/by_patient/?patient_id=1 HTTP/1.1" 200 50
+2025-11-17 03:39:45,728 - root - INFO - Request: {"method": "GET", "path": "/api/prescriptions/2a2abc4e-4469-46c7-b178-747cc007cdc8/qr/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 03:39:45,769 - django.server - INFO - "GET /api/prescriptions/2a2abc4e-4469-46c7-b178-747cc007cdc8/qr/ HTTP/1.1" 200 685
+2025-11-17 03:39:45,774 - root - INFO - Request: {"method": "GET", "path": "/api/prescriptions/2a2abc4e-4469-46c7-b178-747cc007cdc8/qr/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 03:39:45,786 - django.server - INFO - "GET /api/prescriptions/2a2abc4e-4469-46c7-b178-747cc007cdc8/qr/ HTTP/1.1" 200 685
+2025-11-17 03:39:46,166 - root - INFO - Request: {"method": "GET", "path": "/api/prescriptions/2a2abc4e-4469-46c7-b178-747cc007cdc8/qr/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 03:39:46,175 - django.server - INFO - "GET /api/prescriptions/2a2abc4e-4469-46c7-b178-747cc007cdc8/qr/ HTTP/1.1" 200 685
+2025-11-17 03:40:47,051 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\api\views.py changed, reloading.
+INFO 2025-11-17 03:40:48,776 autoreload 13728 21176 Watching for file changes with StatReloader
+2025-11-17 03:42:35,216 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/by_patient/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 03:42:35,224 - security_audit - INFO - Data access: {"user_id": 4, "username": "receptionist", "action": "GET", "endpoint": "/api/medical-documents/lab-results/by_patient/", "timestamp": 1763322155.2241876, "client_ip": "127.0.0.1"}
+2025-11-17 03:42:35,247 - django.server - INFO - "GET /api/medical-documents/lab-results/by_patient/?patient_id=1 HTTP/1.1" 200 50
+2025-11-17 03:42:36,642 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/by_patient/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 03:42:36,643 - security_audit - INFO - Data access: {"user_id": 4, "username": "receptionist", "action": "GET", "endpoint": "/api/medical-documents/lab-results/by_patient/", "timestamp": 1763322156.6432807, "client_ip": "127.0.0.1"}
+2025-11-17 03:42:36,650 - django.server - INFO - "GET /api/medical-documents/lab-results/by_patient/?patient_id=1 HTTP/1.1" 200 50
+2025-11-17 03:42:38,219 - root - INFO - Request: {"method": "GET", "path": "/api/prescriptions/2a2abc4e-4469-46c7-b178-747cc007cdc8/qr/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 03:42:38,251 - django.server - INFO - "GET /api/prescriptions/2a2abc4e-4469-46c7-b178-747cc007cdc8/qr/ HTTP/1.1" 200 685
+2025-11-17 03:42:38,257 - root - INFO - Request: {"method": "GET", "path": "/api/prescriptions/2a2abc4e-4469-46c7-b178-747cc007cdc8/qr/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 03:42:38,270 - django.server - INFO - "GET /api/prescriptions/2a2abc4e-4469-46c7-b178-747cc007cdc8/qr/ HTTP/1.1" 200 685
+2025-11-17 03:42:38,643 - root - INFO - Request: {"method": "GET", "path": "/api/prescriptions/2a2abc4e-4469-46c7-b178-747cc007cdc8/qr/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 03:42:38,651 - django.server - INFO - "GET /api/prescriptions/2a2abc4e-4469-46c7-b178-747cc007cdc8/qr/ HTTP/1.1" 200 685
+2025-11-17 03:43:51,258 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\api\qr.py changed, reloading.
+INFO 2025-11-17 03:43:53,005 autoreload 23344 3936 Watching for file changes with StatReloader
+2025-11-17 03:44:36,072 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/by_patient/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 03:44:36,078 - security_audit - INFO - Data access: {"user_id": 4, "username": "receptionist", "action": "GET", "endpoint": "/api/medical-documents/lab-results/by_patient/", "timestamp": 1763322276.078843, "client_ip": "127.0.0.1"}
+2025-11-17 03:44:36,089 - django.server - INFO - "GET /api/medical-documents/lab-results/by_patient/?patient_id=1 HTTP/1.1" 200 50
+2025-11-17 03:44:37,686 - root - INFO - Request: {"method": "GET", "path": "/api/prescriptions/2a2abc4e-4469-46c7-b178-747cc007cdc8/qr/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 03:44:37,712 - django.server - INFO - "GET /api/prescriptions/2a2abc4e-4469-46c7-b178-747cc007cdc8/qr/ HTTP/1.1" 200 685
+2025-11-17 03:44:37,717 - root - INFO - Request: {"method": "GET", "path": "/api/prescriptions/2a2abc4e-4469-46c7-b178-747cc007cdc8/qr/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 03:44:37,728 - django.server - INFO - "GET /api/prescriptions/2a2abc4e-4469-46c7-b178-747cc007cdc8/qr/ HTTP/1.1" 200 685
+2025-11-17 03:44:38,119 - root - INFO - Request: {"method": "GET", "path": "/api/prescriptions/2a2abc4e-4469-46c7-b178-747cc007cdc8/qr/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 03:44:38,126 - django.server - INFO - "GET /api/prescriptions/2a2abc4e-4469-46c7-b178-747cc007cdc8/qr/ HTTP/1.1" 200 685
+2025-11-17 03:44:53,614 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/by_patient/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 03:44:53,615 - security_audit - INFO - Data access: {"user_id": 4, "username": "receptionist", "action": "GET", "endpoint": "/api/medical-documents/lab-results/by_patient/", "timestamp": 1763322293.6155066, "client_ip": "127.0.0.1"}
+2025-11-17 03:44:53,622 - django.server - INFO - "GET /api/medical-documents/lab-results/by_patient/?patient_id=1 HTTP/1.1" 200 50
+2025-11-17 03:44:58,266 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/by_patient/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 03:44:58,267 - security_audit - INFO - Data access: {"user_id": 4, "username": "receptionist", "action": "GET", "endpoint": "/api/medical-documents/lab-results/by_patient/", "timestamp": 1763322298.2671945, "client_ip": "127.0.0.1"}
+2025-11-17 03:44:58,273 - django.server - INFO - "GET /api/medical-documents/lab-results/by_patient/?patient_id=1 HTTP/1.1" 200 50
+2025-11-17 03:48:18,629 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\api\views.py changed, reloading.
+INFO 2025-11-17 03:48:20,346 autoreload 7648 15684 Watching for file changes with StatReloader
+2025-11-17 03:52:51,708 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\api\views.py changed, reloading.
+INFO 2025-11-17 03:52:53,840 autoreload 5284 1996 Watching for file changes with StatReloader
+2025-11-17 03:59:18,331 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\api\views.py changed, reloading.
+INFO 2025-11-17 03:59:20,325 autoreload 33516 10780 Watching for file changes with StatReloader
+2025-11-17 04:00:13,416 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\api\views.py changed, reloading.
+INFO 2025-11-17 04:00:14,549 autoreload 13388 33248 Watching for file changes with StatReloader
