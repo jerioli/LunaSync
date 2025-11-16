@@ -2,10 +2,12 @@ from io import BytesIO
 import qrcode
 from django.http import HttpResponse
 from django.views.decorators.http import require_GET
-from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 
 @require_GET
+@csrf_exempt  # Allow public access for QR code scanning
 def prescription_qr(request, prescription_id):
+    """Generate QR code for prescription verification - publicly accessible"""
     url = request.build_absolute_uri(f"/api/prescriptions/{prescription_id}/")
     qr = qrcode.QRCode(box_size=6, border=2)
     qr.add_data(url)
