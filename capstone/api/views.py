@@ -1,11 +1,28 @@
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from medical_documents.models import MedicalDocument
+from clinic.models import Clinic
 import json
 
 # Public prescription detail view with styled HTML
 def prescription_detail(request, prescription_id):
     doc = get_object_or_404(MedicalDocument, id=prescription_id, document_type='prescription')
+    
+    # Fetch clinic settings
+    try:
+        clinic = Clinic.objects.first()
+        clinic_name = clinic.name if clinic and clinic.name else 'LunaSync Health Management System'
+        clinic_address = clinic.address if clinic and clinic.address else ''
+        clinic_phone = clinic.phone if clinic and clinic.phone else ''
+        clinic_email = clinic.email if clinic and clinic.email else ''
+        clinic_logo_url = clinic.logo.url if clinic and clinic.logo else None
+    except Exception as e:
+        print(f"Error fetching clinic: {e}")
+        clinic_name = 'LunaSync Health Management System'
+        clinic_address = ''
+        clinic_phone = ''
+        clinic_email = ''
+        clinic_logo_url = None
     
     # Fetch the related Prescription object
     try:
@@ -74,8 +91,8 @@ def prescription_detail(request, prescription_id):
             margin-bottom: 30px;
         }}
         .logo {{
-            width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
             margin: 0 auto 15px;
             background: #000;
             border-radius: 50%;
@@ -83,8 +100,15 @@ def prescription_detail(request, prescription_id):
             align-items: center;
             justify-content: center;
             color: #fff;
-            font-size: 36px;
+            font-size: 40px;
             font-weight: bold;
+        }}
+        .logo-img {{
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 15px;
+            object-fit: contain;
+            display: block;
         }}
         h1 {{
             font-size: 24px;
@@ -94,9 +118,14 @@ def prescription_detail(request, prescription_id):
             letter-spacing: 1px;
         }}
         .clinic-name {{
-            font-size: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }}
+        .clinic-info {{
+            font-size: 12px;
             color: #666;
-            margin-bottom: 10px;
+            margin-bottom: 3px;
         }}
         .prescription-number {{
             font-size: 16px;
@@ -155,33 +184,50 @@ def prescription_detail(request, prescription_id):
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
-            border: 1px solid #000;
+            border: 2px solid #000;
         }}
         .med-table th {{
             background: #000;
             color: #fff;
-            padding: 12px;
+            padding: 15px 10px;
             text-align: left;
-            font-size: 13px;
-            font-weight: 600;
+            font-size: 12px;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            border-right: 1px solid #fff;
+        }}
+        .med-table th:last-child {{
+            border-right: none;
         }}
         .med-table td {{
-            padding: 12px;
+            padding: 15px 10px;
             border-bottom: 1px solid #ddd;
+            border-right: 1px solid #ddd;
             font-size: 13px;
             vertical-align: top;
+            line-height: 1.5;
+        }}
+        .med-table td:last-child {{
+            border-right: none;
         }}
         .med-table tr:last-child td {{
             border-bottom: none;
         }}
-        .med-table tr:nth-child(even) {{
-            background: #f9f9f9;
+        .med-table tbody tr:nth-child(odd) {{
+            background: #fafafa;
+        }}
+        .med-table tbody tr:hover {{
+            background: #f0f0f0;
         }}
         .med-name {{
             font-weight: 700;
             font-size: 14px;
+            color: #000;
+        }}
+        .med-number {{
+            font-weight: 700;
+            text-align: center;
         }}
         .no-meds {{
             text-align: center;
@@ -235,9 +281,11 @@ def prescription_detail(request, prescription_id):
     <div class="container">
         <!-- Header with Logo -->
         <div class="header">
-            <div class="logo">LS</div>
+            {'<img src="' + request.build_absolute_uri(clinic_logo_url) + '" alt="Clinic Logo" class="logo-img">' if clinic_logo_url else '<div class="logo">LS</div>'}
             <h1>Medical Prescription</h1>
-            <div class="clinic-name">LunaSync Health Management System</div>
+            <div class="clinic-name">{clinic_name}</div>
+            {f'<div class="clinic-info">{clinic_address}</div>' if clinic_address else ''}
+            {f'<div class="clinic-info">{clinic_phone}{" | " + clinic_email if clinic_email else ""}</div>' if clinic_phone or clinic_email else ''}
             <div class="prescription-number">Prescription No: {prescription_number}</div>
             <div class="date">Date Issued: {doc_date}</div>
         </div>
@@ -264,19 +312,19 @@ def prescription_detail(request, prescription_id):
             {''.join(f'''<table class="med-table">
                 <thead>
                     <tr>
-                        <th style="width: 40px;">#</th>
-                        <th>Medication Name</th>
-                        <th>Dosage</th>
-                        <th>Quantity</th>
-                        <th>Frequency</th>
+                        <th style="width: 50px; text-align: center;">#</th>
+                        <th style="width: 35%;">Medication Name</th>
+                        <th style="width: 25%;">Dosage</th>
+                        <th style="width: 15%;">Quantity</th>
+                        <th style="width: 25%;">Frequency</th>
                     </tr>
                 </thead>
                 <tbody>
                     {''.join(f'''<tr>
-                        <td>{i+1}</td>
+                        <td class="med-number">{i+1}</td>
                         <td><span class="med-name">{m.get("name", "Unknown medication")}</span></td>
                         <td>{m.get("dose", "—")}</td>
-                        <td>{m.get("quantity", "—")}</td>
+                        <td style="text-align: center;">{m.get("quantity", "—")}</td>
                         <td>{m.get("frequency", "—")}</td>
                     </tr>''' for i, m in enumerate(meds))}
                 </tbody>
