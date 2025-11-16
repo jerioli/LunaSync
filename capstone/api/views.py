@@ -74,77 +74,77 @@ def prescription_detail(request, prescription_id):
         body {{
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             background: #f5f5f5;
-            padding: 20px;
+            padding: 10px;
             color: #000;
         }}
         .container {{
             background: #fff;
             max-width: 800px;
             margin: 0 auto;
-            padding: 40px;
+            padding: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }}
         .header {{
             text-align: center;
             border-bottom: 2px solid #000;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
         }}
         .logo {{
-            width: 100px;
-            height: 100px;
-            margin: 0 auto 15px;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 10px;
             background: #000;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #fff;
-            font-size: 40px;
+            font-size: 32px;
             font-weight: bold;
         }}
         .logo-img {{
-            width: 100px;
-            height: 100px;
-            margin: 0 auto 15px;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 10px;
             object-fit: contain;
             display: block;
         }}
         h1 {{
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
             margin-bottom: 5px;
             text-transform: uppercase;
             letter-spacing: 1px;
         }}
         .clinic-name {{
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
-            margin-bottom: 5px;
-        }}
-        .clinic-info {{
-            font-size: 12px;
-            color: #666;
             margin-bottom: 3px;
         }}
+        .clinic-info {{
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 2px;
+        }}
         .prescription-number {{
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
-            margin-top: 10px;
+            margin-top: 8px;
         }}
         .date {{
-            font-size: 13px;
+            font-size: 12px;
             color: #666;
-            margin-top: 5px;
+            margin-top: 3px;
         }}
         .info-section {{
-            margin: 30px 0;
+            margin: 20px 0;
             border: 1px solid #000;
-            padding: 20px;
+            padding: 15px;
         }}
         .info-row {{
             display: flex;
-            padding: 8px 0;
+            padding: 6px 0;
             border-bottom: 1px solid #e0e0e0;
         }}
         .info-row:last-child {{
@@ -152,61 +152,65 @@ def prescription_detail(request, prescription_id):
         }}
         .info-label {{
             font-weight: 700;
-            width: 180px;
+            width: 150px;
             flex-shrink: 0;
-            font-size: 14px;
+            font-size: 13px;
         }}
         .info-value {{
-            font-size: 14px;
+            font-size: 13px;
             flex: 1;
         }}
         .rx-symbol {{
             text-align: center;
-            margin: 30px 0;
-            font-size: 60px;
+            margin: 20px 0;
+            font-size: 48px;
             font-weight: 700;
             font-family: serif;
             color: #000;
         }}
         .medications-section {{
-            margin-top: 30px;
+            margin-top: 20px;
         }}
         .section-title {{
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
             border-bottom: 2px solid #000;
         }}
         .med-table {{
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
+            margin-top: 10px;
             border: 2px solid #000;
+            table-layout: fixed;
         }}
         .med-table th {{
             background: #000;
             color: #fff;
-            padding: 15px 10px;
+            padding: 10px 6px;
             text-align: left;
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
             border-right: 1px solid #fff;
+            word-wrap: break-word;
         }}
         .med-table th:last-child {{
             border-right: none;
         }}
         .med-table td {{
-            padding: 15px 10px;
+            padding: 10px 6px;
             border-bottom: 1px solid #ddd;
             border-right: 1px solid #ddd;
-            font-size: 13px;
+            font-size: 11px;
             vertical-align: top;
-            line-height: 1.5;
+            line-height: 1.4;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }}
         .med-table td:last-child {{
             border-right: none;
@@ -222,8 +226,10 @@ def prescription_detail(request, prescription_id):
         }}
         .med-name {{
             font-weight: 700;
-            font-size: 14px;
+            font-size: 12px;
             color: #000;
+            display: block;
+            word-wrap: break-word;
         }}
         .med-number {{
             font-weight: 700;
@@ -231,25 +237,25 @@ def prescription_detail(request, prescription_id):
         }}
         .no-meds {{
             text-align: center;
-            padding: 30px;
+            padding: 20px;
             color: #666;
             font-style: italic;
             border: 1px dashed #999;
         }}
         .footer {{
-            margin-top: 40px;
-            padding-top: 20px;
+            margin-top: 30px;
+            padding-top: 15px;
             border-top: 1px solid #000;
             text-align: center;
-            font-size: 11px;
+            font-size: 10px;
             color: #666;
-            line-height: 1.6;
+            line-height: 1.5;
         }}
         .footer strong {{
             color: #000;
             display: block;
-            margin-top: 8px;
-            font-size: 12px;
+            margin-top: 6px;
+            font-size: 11px;
         }}
         @media print {{
             body {{
@@ -261,18 +267,36 @@ def prescription_detail(request, prescription_id):
             }}
         }}
         @media (max-width: 600px) {{
+            body {{
+                padding: 5px;
+            }}
             .container {{
-                padding: 20px;
+                padding: 15px;
             }}
             .info-label {{
-                width: 140px;
+                width: 120px;
+                font-size: 12px;
+            }}
+            .info-value {{
+                font-size: 12px;
             }}
             .med-table {{
-                font-size: 12px;
+                font-size: 10px;
             }}
             .med-table th,
             .med-table td {{
-                padding: 8px;
+                padding: 6px 4px;
+                font-size: 9px;
+            }}
+            .med-name {{
+                font-size: 10px;
+            }}
+            h1 {{
+                font-size: 18px;
+            }}
+            .rx-symbol {{
+                font-size: 36px;
+                margin: 15px 0;
             }}
         }}
     </style>
@@ -312,17 +336,17 @@ def prescription_detail(request, prescription_id):
             {''.join(f'''<table class="med-table">
                 <thead>
                     <tr>
-                        <th style="width: 50px; text-align: center;">#</th>
-                        <th style="width: 35%;">Medication Name</th>
-                        <th style="width: 25%;">Dosage</th>
-                        <th style="width: 15%;">Quantity</th>
-                        <th style="width: 25%;">Frequency</th>
+                        <th style="width: 8%; text-align: center;">#</th>
+                        <th style="width: 32%;">Medication</th>
+                        <th style="width: 28%;">Dosage</th>
+                        <th style="width: 12%;">Qty</th>
+                        <th style="width: 20%;">Frequency</th>
                     </tr>
                 </thead>
                 <tbody>
                     {''.join(f'''<tr>
                         <td class="med-number">{i+1}</td>
-                        <td><span class="med-name">{m.get("name", "Unknown medication")}</span></td>
+                        <td><span class="med-name">{m.get("name", "Unknown")}</span></td>
                         <td>{m.get("dose", "—")}</td>
                         <td style="text-align: center;">{m.get("quantity", "—")}</td>
                         <td>{m.get("frequency", "—")}</td>
