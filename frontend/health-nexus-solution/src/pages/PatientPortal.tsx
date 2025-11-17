@@ -41,7 +41,7 @@ import {
   Info,
   Pill,
   Stethoscope,
-  User
+  User,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -121,10 +121,10 @@ const medicalCertSchema = z.object({
 
 const prescriptionSchema = z.object({
   patientId: z.string().optional(),
-  medicationName: z.string().min(1, "Medication name is required"),
-  dosage: z.string().min(1, "Dosage is required"),
-  frequency: z.string().min(1, "Frequency is required"),
-  duration: z.string().min(1, "Duration is required"),
+  medicationName: z.string().optional(),
+  dosage: z.string().optional(),
+  frequency: z.string().optional(),
+  duration: z.string().optional(),
   firstName: z.string().min(1, "First name is required"),
   middleInitial: z.string().optional(),
   lastName: z.string().min(1, "Last name is required"),
@@ -196,7 +196,7 @@ const PatientPortal = () => {
   const [appointmentTypes] = useState([
     "Consultation",
     "Follow-up",
-    "Vaccination"
+    "Vaccination",
   ]);
   const [selectedAppointmentType, setSelectedAppointmentType] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -207,10 +207,14 @@ const PatientPortal = () => {
   const [isLoadingTimeSlots, setIsLoadingTimeSlots] = useState(false);
   const [doctorAvailableDates, setDoctorAvailableDates] = useState<Date[]>([]);
   const [isLoadingDates, setIsLoadingDates] = useState(false);
-  const [doctorDatesCache, setDoctorDatesCache] = useState<{[doctorId: string]: Date[]}>({});
+  const [doctorDatesCache, setDoctorDatesCache] = useState<{
+    [doctorId: string]: Date[];
+  }>({});
 
   // Booking preference: "doctor" or "datetime"
-  const [bookingPreference, setBookingPreference] = useState<"doctor" | "datetime" | null>(null);
+  const [bookingPreference, setBookingPreference] = useState<
+    "doctor" | "datetime" | null
+  >(null);
 
   // New patient terms and conditions
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -225,7 +229,7 @@ const PatientPortal = () => {
     suffix: "",
     dateOfBirth: "",
     email: "",
-    phone: ""
+    phone: "",
   });
   const [forgotIdSubmitting, setForgotIdSubmitting] = useState(false);
   const [lookupResult, setLookupResult] = useState<any>(null);
@@ -277,7 +281,8 @@ const PatientPortal = () => {
   const [medCertSubmitting, setMedCertSubmitting] = useState(false);
 
   // Medical Certificate forgot Patient ID states
-  const [showMedCertForgotPatientId, setShowMedCertForgotPatientId] = useState(false);
+  const [showMedCertForgotPatientId, setShowMedCertForgotPatientId] =
+    useState(false);
   const [medCertForgotIdForm, setMedCertForgotIdForm] = useState({
     firstName: "",
     middleInitial: "",
@@ -285,10 +290,11 @@ const PatientPortal = () => {
     suffix: "",
     dateOfBirth: "",
     email: "",
-    phone: ""
+    phone: "",
   });
-  const [medCertForgotIdSubmitting, setMedCertForgotIdSubmitting] = useState(false);
-  
+  const [medCertForgotIdSubmitting, setMedCertForgotIdSubmitting] =
+    useState(false);
+
   // Medical Certificate delivery method
   const [medCertDeliveryMethod, setMedCertDeliveryMethod] = useState("pickup");
 
@@ -315,7 +321,8 @@ const PatientPortal = () => {
   const [prescriptionSubmitting, setPrescriptionSubmitting] = useState(false);
 
   // Prescription forgot Patient ID states
-  const [showPrescriptionForgotPatientId, setShowPrescriptionForgotPatientId] = useState(false);
+  const [showPrescriptionForgotPatientId, setShowPrescriptionForgotPatientId] =
+    useState(false);
   const [prescriptionForgotIdForm, setPrescriptionForgotIdForm] = useState({
     firstName: "",
     middleInitial: "",
@@ -323,9 +330,10 @@ const PatientPortal = () => {
     suffix: "",
     dateOfBirth: "",
     email: "",
-    phone: ""
+    phone: "",
   });
-  const [prescriptionForgotIdSubmitting, setPrescriptionForgotIdSubmitting] = useState(false);
+  const [prescriptionForgotIdSubmitting, setPrescriptionForgotIdSubmitting] =
+    useState(false);
 
   // Form handling for medical cert and prescription
   const medicalCertForm = useForm<MedicalCertFormData>({
@@ -426,55 +434,67 @@ const PatientPortal = () => {
   };
 
   // Function to fetch doctors available on a specific date
-  const fetchDoctorsAvailableOnDate = useCallback(async (date: Date) => {
-    try {
-      // Format date to YYYY-MM-DD without timezone conversion
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const dateString = `${year}-${month}-${day}`;
-      
-      console.log('Fetching doctors available on date:', dateString);
-      
-      // Get all doctors first
-      const doctorsResponse = await axiosInstance.get('/users/doctors/');
-      const allDoctors = doctorsResponse.data;
-      
-      // Filter doctors who have availability on this date
-      const availableDoctors = [];
-      
-      for (const doctor of allDoctors) {
-        try {
-          const response = await api.availability.getTimeSlots(doctor.id, dateString);
-          
-          // Check if doctor has any available slots on this date
-          if (Array.isArray(response) && response.length > 0) {
-            const availability = response[0];
-            if (availability && availability.time_slots && Array.isArray(availability.time_slots)) {
-              const availableSlots = availability.time_slots.filter(slot => 
-                !slot.is_booked && slot.is_available
-              );
-              
-              if (availableSlots.length > 0) {
-                availableDoctors.push(doctor);
+  const fetchDoctorsAvailableOnDate = useCallback(
+    async (date: Date) => {
+      try {
+        // Format date to YYYY-MM-DD without timezone conversion
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const dateString = `${year}-${month}-${day}`;
+
+        console.log("Fetching doctors available on date:", dateString);
+
+        // Get all doctors first
+        const doctorsResponse = await axiosInstance.get("/users/doctors/");
+        const allDoctors = doctorsResponse.data;
+
+        // Filter doctors who have availability on this date
+        const availableDoctors = [];
+
+        for (const doctor of allDoctors) {
+          try {
+            const response = await api.availability.getTimeSlots(
+              doctor.id,
+              dateString
+            );
+
+            // Check if doctor has any available slots on this date
+            if (Array.isArray(response) && response.length > 0) {
+              const availability = response[0];
+              if (
+                availability &&
+                availability.time_slots &&
+                Array.isArray(availability.time_slots)
+              ) {
+                const availableSlots = availability.time_slots.filter(
+                  (slot) => !slot.is_booked && slot.is_available
+                );
+
+                if (availableSlots.length > 0) {
+                  availableDoctors.push(doctor);
+                }
               }
             }
+          } catch (error) {
+            console.error(
+              `Error checking availability for doctor ${doctor.id}:`,
+              error
+            );
+            // Continue to next doctor if there's an error
           }
-        } catch (error) {
-          console.error(`Error checking availability for doctor ${doctor.id}:`, error);
-          // Continue to next doctor if there's an error
         }
+
+        console.log("Available doctors on", dateString, ":", availableDoctors);
+        setFilteredDoctors(availableDoctors);
+      } catch (error) {
+        console.error("Error fetching doctors available on date:", error);
+        // Fallback to all doctors if there's an error
+        setFilteredDoctors(doctors);
       }
-      
-      console.log('Available doctors on', dateString, ':', availableDoctors);
-      setFilteredDoctors(availableDoctors);
-      
-    } catch (error) {
-      console.error("Error fetching doctors available on date:", error);
-      // Fallback to all doctors if there's an error
-      setFilteredDoctors(doctors);
-    }
-  }, [doctors]);
+    },
+    [doctors]
+  );
 
   // Fetch doctors
   useEffect(() => {
@@ -499,21 +519,35 @@ const PatientPortal = () => {
 
   // Fetch doctors available on selected date for date-first flow
   useEffect(() => {
-    if (bookingPreference === "datetime" && selectedDate && openModal === "appointment") {
+    if (
+      bookingPreference === "datetime" &&
+      selectedDate &&
+      openModal === "appointment"
+    ) {
       fetchDoctorsAvailableOnDate(selectedDate);
     }
   }, [selectedDate, bookingPreference, openModal, fetchDoctorsAvailableOnDate]);
 
   // Fetch time slots when doctor is selected in date-first flow
   useEffect(() => {
-    if (bookingPreference === "datetime" && selectedDate && selectedDoctor && openModal === "appointment") {
+    if (
+      bookingPreference === "datetime" &&
+      selectedDate &&
+      selectedDoctor &&
+      openModal === "appointment"
+    ) {
       fetchAvailableTimeSlots(selectedDoctor.id, selectedDate);
     }
   }, [selectedDoctor, selectedDate, bookingPreference, openModal]);
 
   // Refresh time slots when navigating to step 3 (for conflict resolution)
   useEffect(() => {
-    if (currentStep === 3 && selectedDoctor && selectedDate && openModal === "appointment") {
+    if (
+      currentStep === 3 &&
+      selectedDoctor &&
+      selectedDate &&
+      openModal === "appointment"
+    ) {
       fetchAvailableTimeSlots(selectedDoctor.id, selectedDate);
     }
   }, [currentStep, selectedDoctor, selectedDate, openModal]);
@@ -604,76 +638,96 @@ const PatientPortal = () => {
     try {
       // Format date to YYYY-MM-DD without timezone conversion (matching chatbot)
       const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
       const dateString = `${year}-${month}-${day}`;
-      
-      console.log('Fetching time slots for doctor:', doctorId, 'on date:', dateString);
-      
+
+      console.log(
+        "Fetching time slots for doctor:",
+        doctorId,
+        "on date:",
+        dateString
+      );
+
       // Use the same API as chatbot
-      const response = await api.availability.getTimeSlots(doctorId, dateString);
-      
-      console.log('Time slots API response:', response);
-      
+      const response = await api.availability.getTimeSlots(
+        doctorId,
+        dateString
+      );
+
+      console.log("Time slots API response:", response);
+
       // Process the response - only use doctor's actual schedule
       if (!Array.isArray(response) || response.length === 0) {
-        console.log('No availability data found for this doctor on this date');
+        console.log("No availability data found for this doctor on this date");
         setAvailableTimeSlots([]);
         return;
       }
 
       const availability = response[0];
-      if (!availability || !availability.time_slots || !Array.isArray(availability.time_slots)) {
-        console.log('Invalid time slots format or no time slots available');
+      if (
+        !availability ||
+        !availability.time_slots ||
+        !Array.isArray(availability.time_slots)
+      ) {
+        console.log("Invalid time slots format or no time slots available");
         setAvailableTimeSlots([]);
         return;
       }
-      
+
       // Log all time slots before filtering
-      console.log('All time slots before filtering:', availability.time_slots.map(slot => ({
-        start: slot.start_time,
-        end: slot.end_time,
-        booked: slot.is_booked
-      })));
-      
+      console.log(
+        "All time slots before filtering:",
+        availability.time_slots.map((slot) => ({
+          start: slot.start_time,
+          end: slot.end_time,
+          booked: slot.is_booked,
+        }))
+      );
+
       // Filter out booked slots and lunch break (12:00 PM - 1:00 PM) matching Schedule.tsx logic
-      const availableSlots = availability.time_slots.filter(slot => {
+      const availableSlots = availability.time_slots.filter((slot) => {
         const isBooked = Boolean(
-          slot.is_booked === true || 
-          slot.is_booked === 1 || 
-          slot.is_booked === "true" || 
-          slot.is_booked === "1" ||
-          slot.is_booked === "True" ||
-          slot.is_booked === "TRUE" ||
-          slot.is_booked === "yes" ||
-          slot.is_booked === "YES" ||
-          slot.is_booked === "Yes"
+          slot.is_booked === true ||
+            slot.is_booked === 1 ||
+            slot.is_booked === "true" ||
+            slot.is_booked === "1" ||
+            slot.is_booked === "True" ||
+            slot.is_booked === "TRUE" ||
+            slot.is_booked === "yes" ||
+            slot.is_booked === "YES" ||
+            slot.is_booked === "Yes"
         );
-        
+
         // Skip lunch break (12:00 PM to 1:00 PM) - same logic as Schedule.tsx
-        const [hours] = slot.start_time.split(':');
+        const [hours] = slot.start_time.split(":");
         const hour = parseInt(hours);
-        const isLunchBreak = (hour === 12);
-        
+        const isLunchBreak = hour === 12;
+
         // Debug logging for lunch break filtering
         if (isLunchBreak) {
-          console.log(`Filtering out lunch break slot: ${slot.start_time} - ${slot.end_time} (hour: ${hour})`);
+          console.log(
+            `Filtering out lunch break slot: ${slot.start_time} - ${slot.end_time} (hour: ${hour})`
+          );
         }
-        
+
         // Only show slots that are NOT booked AND NOT lunch break
         return !isBooked && !isLunchBreak;
       });
-     
+
       // Format time slots for display (matching chatbot format)
-      const formattedAvailableSlots = availableSlots.map(slot => {
-        const [hours, minutes] = slot.start_time.split(':');
+      const formattedAvailableSlots = availableSlots.map((slot) => {
+        const [hours, minutes] = slot.start_time.split(":");
         const hour = parseInt(hours);
-        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const ampm = hour >= 12 ? "PM" : "AM";
         const displayHour = hour % 12 || 12;
         return `${displayHour}:${minutes} ${ampm}`;
       });
 
-      console.log('Available time slots from doctor schedule:', formattedAvailableSlots);
+      console.log(
+        "Available time slots from doctor schedule:",
+        formattedAvailableSlots
+      );
       setAvailableTimeSlots(formattedAvailableSlots);
     } catch (error) {
       console.error("Error fetching time slots:", error);
@@ -685,105 +739,125 @@ const PatientPortal = () => {
   };
 
   // Create a function compatible with the DateTimePicker component
-  const getTimeSlotsForDate = useCallback(async (date: Date): Promise<string[]> => {
-    if (!selectedDoctor) {
-      console.log('No doctor selected, returning empty slots');
-      return [];
-    }
-    
-    try {
-      // Format date to YYYY-MM-DD without timezone conversion (matching chatbot)
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const dateString = `${year}-${month}-${day}`;
-      
-      console.log('Fetching time slots for:', { doctorId: selectedDoctor.id, date: dateString });
-      
-      // Use the same API as chatbot
-      const response = await api.availability.getTimeSlots(selectedDoctor.id, dateString);
-      
-      console.log('Time slots response:', response);
-      
-      // Check if response is an array and has at least one item
-      if (!Array.isArray(response) || response.length === 0) {
-        console.log('No availability data found for this doctor on this date');
+  const getTimeSlotsForDate = useCallback(
+    async (date: Date): Promise<string[]> => {
+      if (!selectedDoctor) {
+        console.log("No doctor selected, returning empty slots");
         return [];
       }
 
-      // Get the first availability object
-      const availability = response[0];
-      
-      // Check if availability has time_slots array
-      if (!availability || !availability.time_slots || !Array.isArray(availability.time_slots)) {
-        console.log('Invalid time slots format or no time slots available');
-        return [];
-      }
-      
-      // Filter out booked slots and lunch break (12:00 PM - 1:00 PM) matching Schedule.tsx logic
-      const availableSlots = availability.time_slots.filter(slot => {
-        const isBooked = Boolean(
-          slot.is_booked === true || 
-          slot.is_booked === 1 || 
-          slot.is_booked === "true" || 
-          slot.is_booked === "1" ||
-          slot.is_booked === "True" ||
-          slot.is_booked === "TRUE" ||
-          slot.is_booked === "yes" ||
-          slot.is_booked === "YES" ||
-          slot.is_booked === "Yes"
+      try {
+        // Format date to YYYY-MM-DD without timezone conversion (matching chatbot)
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const dateString = `${year}-${month}-${day}`;
+
+        console.log("Fetching time slots for:", {
+          doctorId: selectedDoctor.id,
+          date: dateString,
+        });
+
+        // Use the same API as chatbot
+        const response = await api.availability.getTimeSlots(
+          selectedDoctor.id,
+          dateString
         );
-        
-        // Skip lunch break (12:00 PM to 1:00 PM) - same logic as Schedule.tsx
-        const [hours] = slot.start_time.split(':');
-        const hour = parseInt(hours);
-        const isLunchBreak = (hour === 12);
-        
-        // Debug logging for lunch break filtering
-        if (isLunchBreak) {
-          console.log(`Filtering out lunch break slot: ${slot.start_time} - ${slot.end_time} (hour: ${hour})`);
-        }
-        
-        // Only show slots that are NOT booked AND NOT lunch break
-        return !isBooked && !isLunchBreak;
-      });
-     
-      // Format for display (matching chatbot format)
-      const formattedAvailableSlots = availableSlots.map(slot => {
-        const [hours, minutes] = slot.start_time.split(':');
-        const hour = parseInt(hours);
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        const displayHour = hour % 12 || 12;
-        return `${displayHour}:${minutes} ${ampm}`;
-      });
 
-      console.log('Available time slots from doctor schedule:', formattedAvailableSlots);
-      return formattedAvailableSlots;
-    } catch (error) {
-      console.error("Error fetching time slots:", error);
-      // Return empty array on error - no hardcoded fallback
-      return [];
-    }
-  }, [selectedDoctor?.id]);
+        console.log("Time slots response:", response);
+
+        // Check if response is an array and has at least one item
+        if (!Array.isArray(response) || response.length === 0) {
+          console.log(
+            "No availability data found for this doctor on this date"
+          );
+          return [];
+        }
+
+        // Get the first availability object
+        const availability = response[0];
+
+        // Check if availability has time_slots array
+        if (
+          !availability ||
+          !availability.time_slots ||
+          !Array.isArray(availability.time_slots)
+        ) {
+          console.log("Invalid time slots format or no time slots available");
+          return [];
+        }
+
+        // Filter out booked slots and lunch break (12:00 PM - 1:00 PM) matching Schedule.tsx logic
+        const availableSlots = availability.time_slots.filter((slot) => {
+          const isBooked = Boolean(
+            slot.is_booked === true ||
+              slot.is_booked === 1 ||
+              slot.is_booked === "true" ||
+              slot.is_booked === "1" ||
+              slot.is_booked === "True" ||
+              slot.is_booked === "TRUE" ||
+              slot.is_booked === "yes" ||
+              slot.is_booked === "YES" ||
+              slot.is_booked === "Yes"
+          );
+
+          // Skip lunch break (12:00 PM to 1:00 PM) - same logic as Schedule.tsx
+          const [hours] = slot.start_time.split(":");
+          const hour = parseInt(hours);
+          const isLunchBreak = hour === 12;
+
+          // Debug logging for lunch break filtering
+          if (isLunchBreak) {
+            console.log(
+              `Filtering out lunch break slot: ${slot.start_time} - ${slot.end_time} (hour: ${hour})`
+            );
+          }
+
+          // Only show slots that are NOT booked AND NOT lunch break
+          return !isBooked && !isLunchBreak;
+        });
+
+        // Format for display (matching chatbot format)
+        const formattedAvailableSlots = availableSlots.map((slot) => {
+          const [hours, minutes] = slot.start_time.split(":");
+          const hour = parseInt(hours);
+          const ampm = hour >= 12 ? "PM" : "AM";
+          const displayHour = hour % 12 || 12;
+          return `${displayHour}:${minutes} ${ampm}`;
+        });
+
+        console.log(
+          "Available time slots from doctor schedule:",
+          formattedAvailableSlots
+        );
+        return formattedAvailableSlots;
+      } catch (error) {
+        console.error("Error fetching time slots:", error);
+        // Return empty array on error - no hardcoded fallback
+        return [];
+      }
+    },
+    [selectedDoctor?.id]
+  );
 
   // Fetch doctor's available dates from their actual schedule
   const fetchDoctorAvailableDates = async (doctorId: string) => {
     // Check cache first
     if (doctorDatesCache[doctorId]) {
-      console.log('Using cached dates for doctor:', doctorId);
+      console.log("Using cached dates for doctor:", doctorId);
       setDoctorAvailableDates(doctorDatesCache[doctorId]);
       return;
     }
 
     setIsLoadingDates(true);
     try {
-      console.log('Fetching available dates for doctor:', doctorId);
-      
+      console.log("Fetching available dates for doctor:", doctorId);
+
       // Use the same API as chatbot - direct call to get doctor's available dates
       const response = await api.availability.getAvailableDates(doctorId);
 
       if (!response || !Array.isArray(response)) {
-        console.error('Invalid response format:', response);
+        console.error("Invalid response format:", response);
         setDoctorAvailableDates([]);
         return;
       }
@@ -791,7 +865,7 @@ const PatientPortal = () => {
       // Convert date strings to Date objects (same as chatbot)
       const availableDates = response.map((dateStr: string) => {
         // Create date in Pacific Time to match chatbot
-        const date = new Date(dateStr + 'T00:00:00-08:00');
+        const date = new Date(dateStr + "T00:00:00-08:00");
         return date;
       });
 
@@ -799,20 +873,19 @@ const PatientPortal = () => {
       const today = new Date();
       const twoWeeksFromNow = new Date();
       twoWeeksFromNow.setDate(today.getDate() + 14);
-      
-      const filteredDates = availableDates.filter(date => {
+
+      const filteredDates = availableDates.filter((date) => {
         return date >= today && date <= twoWeeksFromNow;
       });
-      
-      console.log('Doctor available dates:', filteredDates);
+
+      console.log("Doctor available dates:", filteredDates);
       setDoctorAvailableDates(filteredDates);
-      
+
       // Cache the results for this doctor
-      setDoctorDatesCache(prev => ({
+      setDoctorDatesCache((prev) => ({
         ...prev,
-        [doctorId]: filteredDates
+        [doctorId]: filteredDates,
       }));
-      
     } catch (error) {
       console.error("Error fetching doctor's available dates:", error);
       // Fallback to empty array if error
@@ -829,17 +902,17 @@ const PatientPortal = () => {
     if (selectedDoctor && doctorAvailableDates.length > 0) {
       return doctorAvailableDates;
     }
-    
+
     // Fallback to hardcoded dates (for date-first flow or when no doctor schedule)
     const dates: Date[] = [];
     const today = new Date();
-    
+
     for (let i = 0; i < 60; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       dates.push(date);
     }
-    
+
     return dates;
   }, [selectedDoctor, doctorAvailableDates]);
 
@@ -851,7 +924,7 @@ const PatientPortal = () => {
   // Submit forgot Patient ID request (using chatbot's lookup approach)
   const submitForgotPatientId = async () => {
     setForgotIdSubmitting(true);
-    
+
     try {
       // Validate required fields
       if (!forgotIdForm.firstName.trim()) {
@@ -901,7 +974,11 @@ const PatientPortal = () => {
       }
 
       // Construct full name matching chatbot's format
-      const fullName = `${forgotIdForm.firstName} ${forgotIdForm.middleInitial || ''} ${forgotIdForm.lastName} ${forgotIdForm.suffix || ''}`.trim().replace(/\s+/g, ' ');
+      const fullName = `${forgotIdForm.firstName} ${
+        forgotIdForm.middleInitial || ""
+      } ${forgotIdForm.lastName} ${forgotIdForm.suffix || ""}`
+        .trim()
+        .replace(/\s+/g, " ");
 
       const requestData = {
         full_name: fullName,
@@ -910,20 +987,33 @@ const PatientPortal = () => {
         phone: forgotIdForm.phone,
         first_name: forgotIdForm.firstName,
         last_name: forgotIdForm.lastName,
-        middle_initial: forgotIdForm.middleInitial || ''
+        middle_initial: forgotIdForm.middleInitial || "",
       };
 
-      const response = await axiosInstance.post('/patients/lookup-patient/', requestData);
+      const response = await axiosInstance.post(
+        "/patients/lookup-patient/",
+        requestData
+      );
 
-      console.log('[DEBUG] Full response:', response);
-      console.log('[DEBUG] Response data:', JSON.stringify(response.data, null, 2));
-      console.log('[DEBUG] Response status field:', response.data.status);
-      console.log('[DEBUG] Response patient_id field:', response.data.patient_id);
+      console.log("[DEBUG] Full response:", response);
+      console.log(
+        "[DEBUG] Response data:",
+        JSON.stringify(response.data, null, 2)
+      );
+      console.log("[DEBUG] Response status field:", response.data.status);
+      console.log(
+        "[DEBUG] Response patient_id field:",
+        response.data.patient_id
+      );
 
       // Check if we have a patient_id in the response (regardless of status field)
       if (response.data.patient_id) {
         // Handle both 'match' and 'exact_match' status (chatbot uses 'match')
-        if (response.data.status === 'exact_match' || response.data.status === 'match' || !response.data.status) {
+        if (
+          response.data.status === "exact_match" ||
+          response.data.status === "match" ||
+          !response.data.status
+        ) {
           toast({
             title: "Success",
             description: `Patient ID found: ${response.data.patient_id}`,
@@ -937,12 +1027,14 @@ const PatientPortal = () => {
             suffix: "",
             dateOfBirth: "",
             email: "",
-            phone: ""
+            phone: "",
           });
-          
+
           // Automatically validate the patient ID
           try {
-            const validation = await validatePatientId(response.data.patient_id);
+            const validation = await validatePatientId(
+              response.data.patient_id
+            );
             if (validation.isValid) {
               setSelectedPatient(validation.patient);
               toast({
@@ -953,7 +1045,7 @@ const PatientPortal = () => {
           } catch (error) {
             console.error("Error validating found patient ID:", error);
           }
-        } else if (response.data.status === 'partial_match') {
+        } else if (response.data.status === "partial_match") {
           // Partial Match: Similar patient found, might be the right one
           toast({
             title: "🔍 Partial Match",
@@ -969,43 +1061,48 @@ const PatientPortal = () => {
             suffix: "",
             dateOfBirth: "",
             email: "",
-            phone: ""
+            phone: "",
           });
-          
+
           // Don't auto-validate, let user verify manually
-        } else if (response.data.status === 'multiple_matches') {
+        } else if (response.data.status === "multiple_matches") {
           // Multiple Matches: Found multiple similar patients
           toast({
             title: "⚠️ Multiple Matches",
-            description: "Found multiple patients with similar details. Could you please confirm your registered email or phone number again so I can narrow it down?",
+            description:
+              "Found multiple patients with similar details. Could you please confirm your registered email or phone number again so I can narrow it down?",
             variant: "destructive",
             duration: 8000,
           });
-        } else if (response.data.status === 'suggestion') {
+        } else if (response.data.status === "suggestion") {
           toast({
             title: "🔍 Suggestion",
-            description: "Hmm, I found a similar record. Is this you? Please reply YES or NO. If NO → show the same form again",
+            description:
+              "Hmm, I found a similar record. Is this you? Please reply YES or NO. If NO → show the same form again",
             variant: "destructive",
           });
-        } else if (response.data.status === 'no_match') {
+        } else if (response.data.status === "no_match") {
           // No Match: Completely no matching patient found
           toast({
             title: "❌ No Match",
-            description: "I couldn't find any patient record with those details. Please double-check your name, birthdate, email, or phone number. If the issue persists, contact the clinic for help. 📞 Provide a 'Try Again' button to reopen the form",
+            description:
+              "I couldn't find any patient record with those details. Please double-check your name, birthdate, email, or phone number. If the issue persists, contact the clinic for help. 📞 Provide a 'Try Again' button to reopen the form",
             variant: "destructive",
             duration: 10000,
           });
         } else {
           toast({
             title: "Error",
-            description: "No matching patient found with the provided information",
+            description:
+              "No matching patient found with the provided information",
             variant: "destructive",
           });
         }
       } else {
         toast({
           title: "Error",
-          description: "No matching patient found with the provided information",
+          description:
+            "No matching patient found with the provided information",
           variant: "destructive",
         });
       }
@@ -1014,7 +1111,8 @@ const PatientPortal = () => {
       if (error.response?.status === 404) {
         toast({
           title: "Error",
-          description: "No matching patient found with the provided information",
+          description:
+            "No matching patient found with the provided information",
           variant: "destructive",
         });
       } else if (error.response?.data?.message) {
@@ -1026,7 +1124,8 @@ const PatientPortal = () => {
       } else {
         toast({
           title: "Error",
-          description: "Failed to lookup patient. Please try again or contact support.",
+          description:
+            "Failed to lookup patient. Please try again or contact support.",
           variant: "destructive",
         });
       }
@@ -1038,7 +1137,7 @@ const PatientPortal = () => {
   // Submit medical certificate forgot Patient ID request (same approach as appointment)
   const submitMedCertForgotPatientId = async () => {
     setMedCertForgotIdSubmitting(true);
-    
+
     try {
       // Validate required fields
       if (!medCertForgotIdForm.firstName.trim()) {
@@ -1088,7 +1187,11 @@ const PatientPortal = () => {
       }
 
       // Construct full name matching chatbot's format
-      const fullName = `${medCertForgotIdForm.firstName} ${medCertForgotIdForm.middleInitial || ''} ${medCertForgotIdForm.lastName} ${medCertForgotIdForm.suffix || ''}`.trim().replace(/\s+/g, ' ');
+      const fullName = `${medCertForgotIdForm.firstName} ${
+        medCertForgotIdForm.middleInitial || ""
+      } ${medCertForgotIdForm.lastName} ${medCertForgotIdForm.suffix || ""}`
+        .trim()
+        .replace(/\s+/g, " ");
 
       const requestData = {
         full_name: fullName,
@@ -1097,16 +1200,23 @@ const PatientPortal = () => {
         phone: medCertForgotIdForm.phone,
         first_name: medCertForgotIdForm.firstName,
         last_name: medCertForgotIdForm.lastName,
-        middle_initial: medCertForgotIdForm.middleInitial || ''
+        middle_initial: medCertForgotIdForm.middleInitial || "",
       };
 
-      const response = await axiosInstance.post('/patients/lookup-patient/', requestData);
+      const response = await axiosInstance.post(
+        "/patients/lookup-patient/",
+        requestData
+      );
 
-      console.log('[DEBUG] Med Cert Patient lookup response:', response);
+      console.log("[DEBUG] Med Cert Patient lookup response:", response);
 
       // Check if we have a patient_id in the response
       if (response.data.patient_id) {
-        if (response.data.status === 'exact_match' || response.data.status === 'match' || !response.data.status) {
+        if (
+          response.data.status === "exact_match" ||
+          response.data.status === "match" ||
+          !response.data.status
+        ) {
           toast({
             title: "Success",
             description: `Patient ID found: ${response.data.patient_id}`,
@@ -1120,12 +1230,14 @@ const PatientPortal = () => {
             suffix: "",
             dateOfBirth: "",
             email: "",
-            phone: ""
+            phone: "",
           });
-          
+
           // Automatically validate the patient ID and proceed
           try {
-            const validation = await validatePatientId(response.data.patient_id);
+            const validation = await validatePatientId(
+              response.data.patient_id
+            );
             if (validation.isValid) {
               setMedCertSelectedPatient(validation.patient);
               toast({
@@ -1136,7 +1248,7 @@ const PatientPortal = () => {
           } catch (error) {
             console.error("Error validating found patient ID:", error);
           }
-        } else if (response.data.status === 'partial_match') {
+        } else if (response.data.status === "partial_match") {
           toast({
             title: "🔍 Partial Match",
             description: `Found similar patient record. Patient ID: ${response.data.patient_id}. Please verify if this is correct.`,
@@ -1151,39 +1263,44 @@ const PatientPortal = () => {
             suffix: "",
             dateOfBirth: "",
             email: "",
-            phone: ""
+            phone: "",
           });
-        } else if (response.data.status === 'multiple_matches') {
+        } else if (response.data.status === "multiple_matches") {
           toast({
             title: "⚠️ Multiple Matches",
-            description: "Found multiple patients with similar details. Could you please confirm your registered email or phone number again so I can narrow it down?",
+            description:
+              "Found multiple patients with similar details. Could you please confirm your registered email or phone number again so I can narrow it down?",
             variant: "destructive",
             duration: 8000,
           });
-        } else if (response.data.status === 'suggestion') {
+        } else if (response.data.status === "suggestion") {
           toast({
             title: "🔍 Suggestion",
-            description: "Hmm, I found a similar record. Is this you? Please reply YES or NO. If NO → show the same form again",
+            description:
+              "Hmm, I found a similar record. Is this you? Please reply YES or NO. If NO → show the same form again",
             variant: "destructive",
           });
-        } else if (response.data.status === 'no_match') {
+        } else if (response.data.status === "no_match") {
           toast({
             title: "❌ No Match",
-            description: "I couldn't find any patient record with those details. Please double-check your name, birthdate, email, or phone number. If the issue persists, contact the clinic for help.",
+            description:
+              "I couldn't find any patient record with those details. Please double-check your name, birthdate, email, or phone number. If the issue persists, contact the clinic for help.",
             variant: "destructive",
             duration: 10000,
           });
         } else {
           toast({
             title: "Error",
-            description: "No matching patient found with the provided information",
+            description:
+              "No matching patient found with the provided information",
             variant: "destructive",
           });
         }
       } else {
         toast({
           title: "Error",
-          description: "No matching patient found with the provided information",
+          description:
+            "No matching patient found with the provided information",
           variant: "destructive",
         });
       }
@@ -1192,7 +1309,8 @@ const PatientPortal = () => {
       if (error.response?.status === 404) {
         toast({
           title: "Error",
-          description: "No matching patient found with the provided information",
+          description:
+            "No matching patient found with the provided information",
           variant: "destructive",
         });
       } else if (error.response?.data?.message) {
@@ -1204,7 +1322,8 @@ const PatientPortal = () => {
       } else {
         toast({
           title: "Error",
-          description: "Failed to lookup patient. Please try again or contact support.",
+          description:
+            "Failed to lookup patient. Please try again or contact support.",
           variant: "destructive",
         });
       }
@@ -1216,7 +1335,7 @@ const PatientPortal = () => {
   // Submit prescription forgot Patient ID request (same approach as others)
   const submitPrescriptionForgotPatientId = async () => {
     setPrescriptionForgotIdSubmitting(true);
-    
+
     try {
       // Validate required fields
       if (!prescriptionForgotIdForm.firstName.trim()) {
@@ -1266,7 +1385,13 @@ const PatientPortal = () => {
       }
 
       // Construct full name matching chatbot's format
-      const fullName = `${prescriptionForgotIdForm.firstName} ${prescriptionForgotIdForm.middleInitial || ''} ${prescriptionForgotIdForm.lastName} ${prescriptionForgotIdForm.suffix || ''}`.trim().replace(/\s+/g, ' ');
+      const fullName = `${prescriptionForgotIdForm.firstName} ${
+        prescriptionForgotIdForm.middleInitial || ""
+      } ${prescriptionForgotIdForm.lastName} ${
+        prescriptionForgotIdForm.suffix || ""
+      }`
+        .trim()
+        .replace(/\s+/g, " ");
 
       const requestData = {
         full_name: fullName,
@@ -1275,16 +1400,23 @@ const PatientPortal = () => {
         phone: prescriptionForgotIdForm.phone,
         first_name: prescriptionForgotIdForm.firstName,
         last_name: prescriptionForgotIdForm.lastName,
-        middle_initial: prescriptionForgotIdForm.middleInitial || ''
+        middle_initial: prescriptionForgotIdForm.middleInitial || "",
       };
 
-      const response = await axiosInstance.post('/patients/lookup-patient/', requestData);
+      const response = await axiosInstance.post(
+        "/patients/lookup-patient/",
+        requestData
+      );
 
-      console.log('[DEBUG] Prescription Patient lookup response:', response);
+      console.log("[DEBUG] Prescription Patient lookup response:", response);
 
       // Check if we have a patient_id in the response
       if (response.data.patient_id) {
-        if (response.data.status === 'exact_match' || response.data.status === 'match' || !response.data.status) {
+        if (
+          response.data.status === "exact_match" ||
+          response.data.status === "match" ||
+          !response.data.status
+        ) {
           toast({
             title: "Success",
             description: `Patient ID found: ${response.data.patient_id}`,
@@ -1298,12 +1430,14 @@ const PatientPortal = () => {
             suffix: "",
             dateOfBirth: "",
             email: "",
-            phone: ""
+            phone: "",
           });
-          
+
           // Automatically validate the patient ID and proceed
           try {
-            const validation = await validatePatientId(response.data.patient_id);
+            const validation = await validatePatientId(
+              response.data.patient_id
+            );
             if (validation.isValid) {
               setPrescriptionSelectedPatient(validation.patient);
               toast({
@@ -1314,7 +1448,7 @@ const PatientPortal = () => {
           } catch (error) {
             console.error("Error validating found patient ID:", error);
           }
-        } else if (response.data.status === 'partial_match') {
+        } else if (response.data.status === "partial_match") {
           toast({
             title: "🔍 Partial Match",
             description: `Found similar patient record. Patient ID: ${response.data.patient_id}. Please verify if this is correct.`,
@@ -1329,39 +1463,44 @@ const PatientPortal = () => {
             suffix: "",
             dateOfBirth: "",
             email: "",
-            phone: ""
+            phone: "",
           });
-        } else if (response.data.status === 'multiple_matches') {
+        } else if (response.data.status === "multiple_matches") {
           toast({
             title: "⚠️ Multiple Matches",
-            description: "Found multiple patients with similar details. Could you please confirm your registered email or phone number again so I can narrow it down?",
+            description:
+              "Found multiple patients with similar details. Could you please confirm your registered email or phone number again so I can narrow it down?",
             variant: "destructive",
             duration: 8000,
           });
-        } else if (response.data.status === 'suggestion') {
+        } else if (response.data.status === "suggestion") {
           toast({
             title: "🔍 Suggestion",
-            description: "Hmm, I found a similar record. Is this you? Please reply YES or NO. If NO → show the same form again",
+            description:
+              "Hmm, I found a similar record. Is this you? Please reply YES or NO. If NO → show the same form again",
             variant: "destructive",
           });
-        } else if (response.data.status === 'no_match') {
+        } else if (response.data.status === "no_match") {
           toast({
             title: "❌ No Match",
-            description: "I couldn't find any patient record with those details. Please double-check your name, birthdate, email, or phone number. If the issue persists, contact the clinic for help.",
+            description:
+              "I couldn't find any patient record with those details. Please double-check your name, birthdate, email, or phone number. If the issue persists, contact the clinic for help.",
             variant: "destructive",
             duration: 10000,
           });
         } else {
           toast({
             title: "Error",
-            description: "No matching patient found with the provided information",
+            description:
+              "No matching patient found with the provided information",
             variant: "destructive",
           });
         }
       } else {
         toast({
           title: "Error",
-          description: "No matching patient found with the provided information",
+          description:
+            "No matching patient found with the provided information",
           variant: "destructive",
         });
       }
@@ -1370,7 +1509,8 @@ const PatientPortal = () => {
       if (error.response?.status === 404) {
         toast({
           title: "Error",
-          description: "No matching patient found with the provided information",
+          description:
+            "No matching patient found with the provided information",
           variant: "destructive",
         });
       } else if (error.response?.data?.message) {
@@ -1382,7 +1522,8 @@ const PatientPortal = () => {
       } else {
         toast({
           title: "Error",
-          description: "Failed to lookup patient. Please try again or contact support.",
+          description:
+            "Failed to lookup patient. Please try again or contact support.",
           variant: "destructive",
         });
       }
@@ -1419,7 +1560,7 @@ const PatientPortal = () => {
       suffix: "",
       dateOfBirth: "",
       email: "",
-      phone: ""
+      phone: "",
     });
     patientForm.reset();
     appointmentForm.reset();
@@ -1434,8 +1575,8 @@ const PatientPortal = () => {
   // Submit appointment - using same approach as chatbot
   const onSubmitAppointment = async () => {
     setIsSubmitting(true);
-    
-    console.log('Starting appointment submission...');
+
+    console.log("Starting appointment submission...");
 
     try {
       // Validate patient form if new patient
@@ -1488,7 +1629,9 @@ const PatientPortal = () => {
           ? selectedPatient?.middleInitial ||
             selectedPatient?.middle_initial ||
             ""
-          : (patientData.middleName === "N/A" ? "" : patientData.middleName || ""),
+          : patientData.middleName === "N/A"
+          ? ""
+          : patientData.middleName || "",
         lastName: isExistingPatient
           ? selectedPatient?.lastName || selectedPatient?.last_name
           : patientData.lastName,
@@ -1507,14 +1650,14 @@ const PatientPortal = () => {
         date_of_birth: isExistingPatient
           ? selectedPatient?.dateOfBirth || selectedPatient?.date_of_birth
           : patientData.dateOfBirth,
-        age: isExistingPatient
-          ? selectedPatient?.age || null
-          : patientData.age,
+        age: isExistingPatient ? selectedPatient?.age || null : patientData.age,
         religion: isExistingPatient
           ? selectedPatient?.religion || null
           : patientData.religion,
         gender: isExistingPatient
-          ? selectedPatient?.gender || selectedPatient?.sex || "prefer_not_to_say"
+          ? selectedPatient?.gender ||
+            selectedPatient?.sex ||
+            "prefer_not_to_say"
           : patientData.sex,
         address: isExistingPatient
           ? selectedPatient?.address || null
@@ -1525,7 +1668,7 @@ const PatientPortal = () => {
             "prefer_not_to_say"
           : patientData.maritalStatus || "prefer_not_to_say",
         appointment_type: selectedAppointmentType,
-        date: selectedDate?.toISOString().split('T')[0] || '',
+        date: selectedDate?.toISOString().split("T")[0] || "",
         time: formattedTime,
         doctor_id: parseInt(selectedDoctor.id),
         status: "pending",
@@ -1535,20 +1678,22 @@ const PatientPortal = () => {
 
       // Create appointment using the same API as chatbot
       const response = await api.appointments.create(appointmentData);
-      
-      console.log('Appointment created successfully:', response);
+
+      console.log("Appointment created successfully:", response);
 
       // Enhanced success toast notification with appointment details
       const patientName = isExistingPatient
-        ? `${selectedPatient?.firstName || selectedPatient?.first_name} ${selectedPatient?.lastName || selectedPatient?.last_name}`
+        ? `${selectedPatient?.firstName || selectedPatient?.first_name} ${
+            selectedPatient?.lastName || selectedPatient?.last_name
+          }`
         : `${patientData.firstName} ${patientData.lastName}`;
-      
+
       // Success toast with simple confirmation
       toast({
         title: "🎉 Appointment Successfully Scheduled!",
         description: "You will receive a confirmation email once approved.",
       });
-      
+
       // Add a small delay before closing modal to ensure toast is visible
       setTimeout(() => {
         handleAppointmentModalClose();
@@ -1569,7 +1714,8 @@ const PatientPortal = () => {
       ) {
         toast({
           title: "Time Slot Conflict",
-          description: "This time slot has just been booked by another patient. Please select a different time.",
+          description:
+            "This time slot has just been booked by another patient. Please select a different time.",
           variant: "destructive",
         });
         // Clear the selected time slot and refresh available slots
@@ -1597,7 +1743,8 @@ const PatientPortal = () => {
       } else {
         toast({
           title: "Submission Failed",
-          description: "Failed to submit appointment request. Please try again.",
+          description:
+            "Failed to submit appointment request. Please try again.",
           variant: "destructive",
         });
       }
@@ -1736,7 +1883,7 @@ const PatientPortal = () => {
         } else {
           // Custom validation for new patients
           const formData = patientForm.getValues();
-          
+
           // Check required fields
           if (!formData.firstName?.trim()) {
             toast({
@@ -1749,7 +1896,8 @@ const PatientPortal = () => {
           if (!noMiddleName && !formData.middleName?.trim()) {
             toast({
               title: "Required Field",
-              description: "Middle name is required (or check 'No middle name')",
+              description:
+                "Middle name is required (or check 'No middle name')",
               variant: "destructive",
             });
             return;
@@ -1826,7 +1974,7 @@ const PatientPortal = () => {
             });
             return;
           }
-          
+
           // Email validation
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (!emailRegex.test(formData.email)) {
@@ -1883,7 +2031,8 @@ const PatientPortal = () => {
       if (!medCertSelectedPatient) {
         toast({
           title: "Patient Not Found",
-          description: "Patient information not found. Please verify your Patient ID again.",
+          description:
+            "Patient information not found. Please verify your Patient ID again.",
           variant: "destructive",
         });
         setMedCertStep(1);
@@ -1943,10 +2092,11 @@ const PatientPortal = () => {
       );
 
       if (response.status === 200 || response.status === 201) {
-        const deliveryMessage = medCertDeliveryMethod === "pickup" 
-          ? "You will be notified when it's ready for pickup at the clinic."
-          : "A digital copy will be sent to your registered email address.";
-        
+        const deliveryMessage =
+          medCertDeliveryMethod === "pickup"
+            ? "You will be notified when it's ready for pickup at the clinic."
+            : "A digital copy will be sent to your registered email address.";
+
         toast({
           title: "🎉 Medical Certificate Request Submitted!",
           description: `Your medical certificate request has been submitted successfully! Our team will review your request and contact you within 2-3 business days. ${deliveryMessage}`,
@@ -1960,7 +2110,8 @@ const PatientPortal = () => {
       console.error("Error submitting medical record request:", error);
       toast({
         title: "Submission Failed",
-        description: "Sorry, there was an error submitting your request. Please try again or contact us directly.",
+        description:
+          "Sorry, there was an error submitting your request. Please try again or contact us directly.",
         variant: "destructive",
       });
     } finally {
@@ -1987,7 +2138,8 @@ const PatientPortal = () => {
       if (!prescriptionSelectedPatient) {
         toast({
           title: "Patient Not Found",
-          description: "Patient information not found. Please verify your Patient ID again.",
+          description:
+            "Patient information not found. Please verify your Patient ID again.",
           variant: "destructive",
         });
         setPrescriptionStep(1);
@@ -2056,7 +2208,8 @@ const PatientPortal = () => {
       if (response.status === 200 || response.status === 201) {
         toast({
           title: "🎉 Prescription Request Submitted!",
-          description: "Your prescription request has been submitted successfully! Our team will review your request and contact you within 2-3 business days.",
+          description:
+            "Your prescription request has been submitted successfully! Our team will review your request and contact you within 2-3 business days.",
         });
         resetPrescriptionModal();
         setOpenModal(null);
@@ -2067,7 +2220,8 @@ const PatientPortal = () => {
       console.error("Error submitting prescription request:", error);
       toast({
         title: "Submission Failed",
-        description: "Sorry, there was an error submitting your request. Please try again or contact us directly.",
+        description:
+          "Sorry, there was an error submitting your request. Please try again or contact us directly.",
         variant: "destructive",
       });
     } finally {
@@ -2096,7 +2250,7 @@ const PatientPortal = () => {
       suffix: "",
       dateOfBirth: "",
       email: "",
-      phone: ""
+      phone: "",
     });
     setMedCertDeliveryMethod("pickup");
     medicalCertForm.reset();
@@ -2120,7 +2274,7 @@ const PatientPortal = () => {
       suffix: "",
       dateOfBirth: "",
       email: "",
-      phone: ""
+      phone: "",
     });
     setPrescriptionForgotIdSubmitting(false);
     prescriptionForm.reset();
@@ -2194,13 +2348,12 @@ const PatientPortal = () => {
   const getLogoUrl = (logo) => {
     if (!logo) return null;
     if (logo.startsWith("http")) return logo;
-    
+
     // Use the same base URL as the API but without /api suffix for media files
-    const baseUrl = ENV.API_URL.replace('/api', '');
-    
+    const baseUrl = ENV.API_URL.replace("/api", "");
+
     if (logo.startsWith("/media/")) return `${baseUrl}${logo}`;
-    if (logo.startsWith("branding/"))
-      return `${baseUrl}/media/${logo}`;
+    if (logo.startsWith("branding/")) return `${baseUrl}/media/${logo}`;
     return `${baseUrl}${logo}`;
   };
 
@@ -2592,9 +2745,9 @@ const PatientPortal = () => {
           onClick={() => setIsChatbotOpen(!isChatbotOpen)}
           className="transition-transform hover:scale-110 order-1 md:order-2"
         >
-          <img 
-            src="/gif.webp" 
-            alt="Chat Assistant" 
+          <img
+            src="/gif.webp"
+            alt="Chat Assistant"
             className="w-16 h-16 md:w-20 md:h-20 object-contain"
           />
         </button>
@@ -2624,7 +2777,9 @@ const PatientPortal = () => {
             </h1>
             <p className="text-lg text-gray-600">
               {clinic.hero_subtitle ||
-                `${clinic.clinic_name || "Welcome"} - Your Trusted Healthcare Partner`}
+                `${
+                  clinic.clinic_name || "Welcome"
+                } - Your Trusted Healthcare Partner`}
             </p>
             {/* Remove the flex container with two buttons and only leave the content div empty */}
           </div>
@@ -3196,7 +3351,10 @@ const PatientPortal = () => {
               </div>
               <div className="w-full h-48 rounded overflow-hidden border mb-2">
                 <iframe
-                  src={clinic.google_maps_embed_url || "https://www.google.com/maps/embed?pb=!4v1751955711488!6m8!1m7!1sIi6uy9JxNnmbSDI1hq2OpQ!2m2!1d14.32452455175477!2d121.0129429156632!3f200.80705806525316!4f-2.215198390680669!5f2.5769253873367934"}
+                  src={
+                    clinic.google_maps_embed_url ||
+                    "https://www.google.com/maps/embed?pb=!4v1751955711488!6m8!1m7!1sIi6uy9JxNnmbSDI1hq2OpQ!2m2!1d14.32452455175477!2d121.0129429156632!3f200.80705806525316!4f-2.215198390680669!5f2.5769253873367934"
+                  }
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}
@@ -3304,13 +3462,13 @@ const PatientPortal = () => {
         <div className="container mx-auto px-4 text-center">
           <div className="mb-4">
             <p className="text-gray-300 leading-relaxed">
-              Medratrics Langgam. Providing quality healthcare services since 2010. Dedicated to improving the health and wellbeing of our community.
+              Medratrics Langgam. Providing quality healthcare services since
+              2010. Dedicated to improving the health and wellbeing of our
+              community.
             </p>
           </div>
           <div className="border-t border-gray-800 pt-4 text-center text-gray-400 text-xs">
-            <p>
-              &copy; 2024 Medratrics Langgam. All rights reserved.
-            </p>
+            <p>&copy; 2024 Medratrics Langgam. All rights reserved.</p>
           </div>
         </div>
       </footer>
@@ -3544,8 +3702,10 @@ const PatientPortal = () => {
                 </div>
                 <span className="text-[9px] md:text-xs mt-1 text-center leading-tight hidden sm:block">
                   {step === 1 && "Booking"}
-                  {step === 2 && (bookingPreference === "doctor" ? "Doctor" : "Date")}
-                  {step === 3 && (bookingPreference === "doctor" ? "Date/Time" : "Doctor")}
+                  {step === 2 &&
+                    (bookingPreference === "doctor" ? "Doctor" : "Date")}
+                  {step === 3 &&
+                    (bookingPreference === "doctor" ? "Date/Time" : "Doctor")}
                   {step === 4 && "Patient"}
                   {step === 5 && "Info"}
                   {step === 6 && "Service"}
@@ -3564,7 +3724,9 @@ const PatientPortal = () => {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Button
-                    variant={bookingPreference === "doctor" ? "default" : "outline"}
+                    variant={
+                      bookingPreference === "doctor" ? "default" : "outline"
+                    }
                     className={`p-6 h-auto ${
                       bookingPreference === "doctor"
                         ? "bg-[#79c942] hover:bg-[#68ab38]"
@@ -3574,16 +3736,16 @@ const PatientPortal = () => {
                   >
                     <div className="text-center">
                       <User className="w-8 h-8 mx-auto mb-2" />
-                      <div className="font-semibold">
-                        Choose Doctor First
-                      </div>
+                      <div className="font-semibold">Choose Doctor First</div>
                       <div className="text-sm opacity-75">
                         Select your preferred doctor, then pick date & time
                       </div>
                     </div>
                   </Button>
                   <Button
-                    variant={bookingPreference === "datetime" ? "default" : "outline"}
+                    variant={
+                      bookingPreference === "datetime" ? "default" : "outline"
+                    }
                     className={`p-6 h-auto ${
                       bookingPreference === "datetime"
                         ? "bg-[#79c942] hover:bg-[#68ab38]"
@@ -3617,7 +3779,9 @@ const PatientPortal = () => {
                         <Button
                           key={doctor.id}
                           variant={
-                            selectedDoctor?.id === doctor.id ? "default" : "outline"
+                            selectedDoctor?.id === doctor.id
+                              ? "default"
+                              : "outline"
                           }
                           className={`p-4 h-auto text-left justify-start ${
                             selectedDoctor?.id === doctor.id
@@ -3649,11 +3813,12 @@ const PatientPortal = () => {
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                       {availableDates.slice(0, 30).map((date) => {
-                        const isSelected = selectedDate && 
+                        const isSelected =
+                          selectedDate &&
                           date.getFullYear() === selectedDate.getFullYear() &&
                           date.getMonth() === selectedDate.getMonth() &&
                           date.getDate() === selectedDate.getDate();
-                        
+
                         return (
                           <Button
                             key={date.toISOString()}
@@ -3669,16 +3834,19 @@ const PatientPortal = () => {
                               setSelectedTimeSlot(""); // Reset time slot when date changes
                               toast({
                                 title: "Date Selected",
-                                description: `Date selected: ${format(date, 'MMM dd, yyyy')}`,
+                                description: `Date selected: ${format(
+                                  date,
+                                  "MMM dd, yyyy"
+                                )}`,
                               });
                             }}
                           >
                             <div>
                               <div className="font-semibold text-sm">
-                                {format(date, 'MMM dd')}
+                                {format(date, "MMM dd")}
                               </div>
                               <div className="text-xs opacity-75">
-                                {format(date, 'EEE')}
+                                {format(date, "EEE")}
                               </div>
                             </div>
                           </Button>
@@ -3687,7 +3855,7 @@ const PatientPortal = () => {
                     </div>
                     {selectedDate && (
                       <div className="text-center text-sm text-gray-600 mt-4">
-                        Selected: {format(selectedDate, 'MMMM do, yyyy')}
+                        Selected: {format(selectedDate, "MMMM do, yyyy")}
                       </div>
                     )}
                   </>
@@ -3704,7 +3872,7 @@ const PatientPortal = () => {
                     <h3 className="text-lg font-semibold text-center mb-4">
                       Select Date and Time
                     </h3>
-                    
+
                     {selectedDoctor ? (
                       isLoadingDates ? (
                         <div className="text-center text-gray-500 py-8">
@@ -3715,10 +3883,14 @@ const PatientPortal = () => {
                         </div>
                       ) : availableDates.length === 0 && selectedDoctor ? (
                         <div className="text-center text-gray-500 py-8">
-                          <div className="text-lg font-medium mb-2">No available dates</div>
+                          <div className="text-lg font-medium mb-2">
+                            No available dates
+                          </div>
                           <div className="text-sm">
-                            Dr. {selectedDoctor.first_name} {selectedDoctor.last_name} has no available appointments scheduled. 
-                            Please select a different doctor or contact the clinic.
+                            Dr. {selectedDoctor.first_name}{" "}
+                            {selectedDoctor.last_name} has no available
+                            appointments scheduled. Please select a different
+                            doctor or contact the clinic.
                           </div>
                         </div>
                       ) : (
@@ -3728,12 +3900,18 @@ const PatientPortal = () => {
                           selectedTime={selectedTimeSlot}
                           getTimeSlotsForDate={getTimeSlotsForDate}
                           onDateTimeSelect={(date: Date, time: string) => {
-                            console.log('DateTimePicker selected:', { date, time });
+                            console.log("DateTimePicker selected:", {
+                              date,
+                              time,
+                            });
                             setSelectedDate(date);
                             setSelectedTimeSlot(time);
                             toast({
                               title: "Appointment Scheduled",
-                              description: `Appointment scheduled for ${format(date, 'MMM dd, yyyy')} at ${time}`,
+                              description: `Appointment scheduled for ${format(
+                                date,
+                                "MMM dd, yyyy"
+                              )} at ${time}`,
                             });
                           }}
                         />
@@ -3751,7 +3929,10 @@ const PatientPortal = () => {
                       Select a Doctor
                     </h3>
                     <div className="text-center text-sm text-gray-600 mb-4">
-                      Selected date: {selectedDate ? format(selectedDate, 'MMMM do, yyyy') : 'No date'}
+                      Selected date:{" "}
+                      {selectedDate
+                        ? format(selectedDate, "MMMM do, yyyy")
+                        : "No date"}
                     </div>
                     {selectedDate ? (
                       <>
@@ -3761,7 +3942,9 @@ const PatientPortal = () => {
                               <Button
                                 key={doctor.id}
                                 variant={
-                                  selectedDoctor?.id === doctor.id ? "default" : "outline"
+                                  selectedDoctor?.id === doctor.id
+                                    ? "default"
+                                    : "outline"
                                 }
                                 className={`p-4 h-auto text-left justify-start ${
                                   selectedDoctor?.id === doctor.id
@@ -3796,14 +3979,17 @@ const PatientPortal = () => {
                           </div>
                         ) : (
                           <div className="text-center text-gray-500 py-8">
-                            <div className="text-lg font-medium mb-2">No doctors available</div>
+                            <div className="text-lg font-medium mb-2">
+                              No doctors available
+                            </div>
                             <div className="text-sm">
-                              No doctors have set their schedule for {format(selectedDate, 'MMMM do, yyyy')}. 
-                              Please select a different date.
+                              No doctors have set their schedule for{" "}
+                              {format(selectedDate, "MMMM do, yyyy")}. Please
+                              select a different date.
                             </div>
                           </div>
                         )}
-                        
+
                         {/* Time Slot Selection for date-first flow */}
                         {selectedDoctor && (
                           <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
@@ -3823,7 +4009,11 @@ const PatientPortal = () => {
                                   {availableTimeSlots.map((timeSlot) => (
                                     <Button
                                       key={timeSlot}
-                                      variant={selectedTimeSlot === timeSlot ? "default" : "outline"}
+                                      variant={
+                                        selectedTimeSlot === timeSlot
+                                          ? "default"
+                                          : "outline"
+                                      }
                                       className={`p-2 text-sm ${
                                         selectedTimeSlot === timeSlot
                                           ? "bg-[#79c942] hover:bg-[#68ab38]"
@@ -3843,7 +4033,8 @@ const PatientPortal = () => {
                                 </div>
                                 {availableTimeSlots.length === 0 && (
                                   <div className="text-center text-gray-500 py-4">
-                                    No available time slots for this doctor on the selected date.
+                                    No available time slots for this doctor on
+                                    the selected date.
                                   </div>
                                 )}
                               </>
@@ -3920,13 +4111,27 @@ const PatientPortal = () => {
                       </h4>
                       <div className="text-sm text-gray-700 space-y-2">
                         <p>
-                          Before proceeding with your appointment request, please read and accept our terms and conditions:
+                          Before proceeding with your appointment request,
+                          please read and accept our terms and conditions:
                         </p>
                         <ul className="list-disc list-inside space-y-1 ml-4">
-                          <li>Your personal information will be collected and processed for appointment scheduling and medical record purposes</li>
-                          <li>We comply with the Data Privacy Act of 2012 (RA 10173)</li>
-                          <li>Your information will be kept confidential and secure</li>
-                          <li>You have the right to access, correct, or delete your personal information</li>
+                          <li>
+                            Your personal information will be collected and
+                            processed for appointment scheduling and medical
+                            record purposes
+                          </li>
+                          <li>
+                            We comply with the Data Privacy Act of 2012 (RA
+                            10173)
+                          </li>
+                          <li>
+                            Your information will be kept confidential and
+                            secure
+                          </li>
+                          <li>
+                            You have the right to access, correct, or delete
+                            your personal information
+                          </li>
                         </ul>
                       </div>
                       <div className="flex items-start space-x-3">
@@ -3937,8 +4142,15 @@ const PatientPortal = () => {
                           onChange={(e) => setTermsAccepted(e.target.checked)}
                           className="mt-1 h-4 w-4 text-[#79c942] focus:ring-[#79c942] border-gray-300 rounded"
                         />
-                        <label htmlFor="terms-checkbox" className="text-sm text-gray-700">
-                          By checking this box, I confirm that I consent to the collection and processing of my personal information for appointment scheduling and medical record purposes, in compliance with the Data Privacy Act of 2012 (RA 10173).
+                        <label
+                          htmlFor="terms-checkbox"
+                          className="text-sm text-gray-700"
+                        >
+                          By checking this box, I confirm that I consent to the
+                          collection and processing of my personal information
+                          for appointment scheduling and medical record
+                          purposes, in compliance with the Data Privacy Act of
+                          2012 (RA 10173).
                         </label>
                       </div>
                     </div>
@@ -3946,10 +4158,6 @@ const PatientPortal = () => {
                 )}
               </div>
             )}
-
-
-
-
 
             {/* Step 5: Patient Information */}
             {currentStep === 5 && (
@@ -3994,7 +4202,8 @@ const PatientPortal = () => {
                               Forgot Patient ID? Let's help you find it
                             </h4>
                             <p className="text-sm text-gray-600">
-                              Please provide the following information to lookup your Patient ID:
+                              Please provide the following information to lookup
+                              your Patient ID:
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
@@ -4004,7 +4213,12 @@ const PatientPortal = () => {
                                 <Input
                                   placeholder="Enter your first name"
                                   value={forgotIdForm.firstName}
-                                  onChange={(e) => setForgotIdForm({...forgotIdForm, firstName: e.target.value})}
+                                  onChange={(e) =>
+                                    setForgotIdForm({
+                                      ...forgotIdForm,
+                                      firstName: e.target.value,
+                                    })
+                                  }
                                 />
                               </div>
                               <div>
@@ -4014,7 +4228,12 @@ const PatientPortal = () => {
                                 <Input
                                   placeholder="Optional"
                                   value={forgotIdForm.middleInitial}
-                                  onChange={(e) => setForgotIdForm({...forgotIdForm, middleInitial: e.target.value})}
+                                  onChange={(e) =>
+                                    setForgotIdForm({
+                                      ...forgotIdForm,
+                                      middleInitial: e.target.value,
+                                    })
+                                  }
                                 />
                               </div>
                               <div>
@@ -4024,7 +4243,12 @@ const PatientPortal = () => {
                                 <Input
                                   placeholder="Enter your last name"
                                   value={forgotIdForm.lastName}
-                                  onChange={(e) => setForgotIdForm({...forgotIdForm, lastName: e.target.value})}
+                                  onChange={(e) =>
+                                    setForgotIdForm({
+                                      ...forgotIdForm,
+                                      lastName: e.target.value,
+                                    })
+                                  }
                                 />
                               </div>
                               <div>
@@ -4034,7 +4258,12 @@ const PatientPortal = () => {
                                 <Input
                                   placeholder="Jr, Sr, III, etc."
                                   value={forgotIdForm.suffix}
-                                  onChange={(e) => setForgotIdForm({...forgotIdForm, suffix: e.target.value})}
+                                  onChange={(e) =>
+                                    setForgotIdForm({
+                                      ...forgotIdForm,
+                                      suffix: e.target.value,
+                                    })
+                                  }
                                 />
                               </div>
                               <div>
@@ -4044,7 +4273,12 @@ const PatientPortal = () => {
                                 <Input
                                   type="date"
                                   value={forgotIdForm.dateOfBirth}
-                                  onChange={(e) => setForgotIdForm({...forgotIdForm, dateOfBirth: e.target.value})}
+                                  onChange={(e) =>
+                                    setForgotIdForm({
+                                      ...forgotIdForm,
+                                      dateOfBirth: e.target.value,
+                                    })
+                                  }
                                 />
                               </div>
                               <div>
@@ -4055,7 +4289,12 @@ const PatientPortal = () => {
                                   type="email"
                                   placeholder="Enter your registered email"
                                   value={forgotIdForm.email}
-                                  onChange={(e) => setForgotIdForm({...forgotIdForm, email: e.target.value})}
+                                  onChange={(e) =>
+                                    setForgotIdForm({
+                                      ...forgotIdForm,
+                                      email: e.target.value,
+                                    })
+                                  }
                                 />
                               </div>
                               <div className="md:col-span-2">
@@ -4065,7 +4304,12 @@ const PatientPortal = () => {
                                 <Input
                                   placeholder="Enter your registered phone number"
                                   value={forgotIdForm.phone}
-                                  onChange={(e) => setForgotIdForm({...forgotIdForm, phone: e.target.value})}
+                                  onChange={(e) =>
+                                    setForgotIdForm({
+                                      ...forgotIdForm,
+                                      phone: e.target.value,
+                                    })
+                                  }
                                 />
                               </div>
                             </div>
@@ -4082,7 +4326,7 @@ const PatientPortal = () => {
                                     suffix: "",
                                     dateOfBirth: "",
                                     email: "",
-                                    phone: ""
+                                    phone: "",
                                   });
                                 }}
                               >
@@ -4094,7 +4338,9 @@ const PatientPortal = () => {
                                 disabled={forgotIdSubmitting}
                                 className="bg-[#79c942] hover:bg-[#6bb33a]"
                               >
-                                {forgotIdSubmitting ? "Looking up..." : "Find Patient ID"}
+                                {forgotIdSubmitting
+                                  ? "Looking up..."
+                                  : "Find Patient ID"}
                               </Button>
                             </div>
                           </div>
@@ -4126,7 +4372,11 @@ const PatientPortal = () => {
                         <div className="space-y-2">
                           <Input
                             {...patientForm.register("middleName")}
-                            placeholder={noMiddleName ? "No Middle Name" : "Enter middle name"}
+                            placeholder={
+                              noMiddleName
+                                ? "No Middle Name"
+                                : "Enter middle name"
+                            }
                             disabled={noMiddleName}
                             className={noMiddleName ? "bg-gray-100" : ""}
                           />
@@ -4145,7 +4395,10 @@ const PatientPortal = () => {
                               }}
                               className="h-4 w-4 text-[#79c942] focus:ring-[#79c942] border-gray-300 rounded"
                             />
-                            <label htmlFor="no-middle-name" className="text-sm text-gray-600">
+                            <label
+                              htmlFor="no-middle-name"
+                              className="text-sm text-gray-600"
+                            >
                               No middle name
                             </label>
                           </div>
@@ -4199,7 +4452,7 @@ const PatientPortal = () => {
                         <label className="block text-sm font-medium mb-1">
                           Age *
                         </label>
-                        <Input 
+                        <Input
                           type="number"
                           {...patientForm.register("age")}
                           placeholder="Enter your age"
@@ -4244,7 +4497,7 @@ const PatientPortal = () => {
                         <label className="block text-sm font-medium mb-1">
                           Religion *
                         </label>
-                        <Input 
+                        <Input
                           {...patientForm.register("religion")}
                           placeholder="Enter your religion"
                         />
@@ -4368,15 +4621,22 @@ const PatientPortal = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <h4 className="font-semibold text-gray-700">Date</h4>
-                      <p>{selectedDate ? format(selectedDate, 'MM/dd/yyyy') : 'Not selected'}</p>
+                      <p>
+                        {selectedDate
+                          ? format(selectedDate, "MM/dd/yyyy")
+                          : "Not selected"}
+                      </p>
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-700">Time</h4>
-                      <p>{selectedTimeSlot || 'Not selected'}</p>
+                      <p>{selectedTimeSlot || "Not selected"}</p>
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-700">Doctor</h4>
-                      <p>Dr. {selectedDoctor?.first_name} {selectedDoctor?.last_name}</p>
+                      <p>
+                        Dr. {selectedDoctor?.first_name}{" "}
+                        {selectedDoctor?.last_name}
+                      </p>
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-700">Type</h4>
@@ -4386,9 +4646,22 @@ const PatientPortal = () => {
                       <h4 className="font-semibold text-gray-700">Patient</h4>
                       <p>
                         {isExistingPatient
-                          ? `${selectedPatient?.firstName || selectedPatient?.first_name} ${selectedPatient?.middleInitial || selectedPatient?.middle_initial || ''} ${selectedPatient?.lastName || selectedPatient?.last_name}`.trim()
-                          : `${patientForm.getValues("firstName")} ${patientForm.getValues("middleName") === "N/A" ? "" : patientForm.getValues("middleName")} ${patientForm.getValues("lastName")}`.trim()
-                        }
+                          ? `${
+                              selectedPatient?.firstName ||
+                              selectedPatient?.first_name
+                            } ${
+                              selectedPatient?.middleInitial ||
+                              selectedPatient?.middle_initial ||
+                              ""
+                            } ${
+                              selectedPatient?.lastName ||
+                              selectedPatient?.last_name
+                            }`.trim()
+                          : `${patientForm.getValues("firstName")} ${
+                              patientForm.getValues("middleName") === "N/A"
+                                ? ""
+                                : patientForm.getValues("middleName")
+                            } ${patientForm.getValues("lastName")}`.trim()}
                       </p>
                     </div>
                     <div>
@@ -4396,26 +4669,29 @@ const PatientPortal = () => {
                       <p>
                         {isExistingPatient
                           ? selectedPatient?.email || "Not available"
-                          : patientForm.getValues("email")
-                        }
+                          : patientForm.getValues("email")}
                       </p>
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-700">Phone</h4>
                       <p>
                         {isExistingPatient
-                          ? selectedPatient?.phone_number || selectedPatient?.phone || "Not available"
-                          : patientForm.getValues("phone")
-                        }
+                          ? selectedPatient?.phone_number ||
+                            selectedPatient?.phone ||
+                            "Not available"
+                          : patientForm.getValues("phone")}
                       </p>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-700">Date of Birth</h4>
+                      <h4 className="font-semibold text-gray-700">
+                        Date of Birth
+                      </h4>
                       <p>
                         {isExistingPatient
-                          ? selectedPatient?.dateOfBirth || selectedPatient?.date_of_birth || "Not available"
-                          : patientForm.getValues("dateOfBirth")
-                        }
+                          ? selectedPatient?.dateOfBirth ||
+                            selectedPatient?.date_of_birth ||
+                            "Not available"
+                          : patientForm.getValues("dateOfBirth")}
                       </p>
                     </div>
                     <div>
@@ -4423,15 +4699,21 @@ const PatientPortal = () => {
                       <p>
                         {(() => {
                           const gender = isExistingPatient
-                            ? selectedPatient?.gender || selectedPatient?.sex || "Not available"
+                            ? selectedPatient?.gender ||
+                              selectedPatient?.sex ||
+                              "Not available"
                             : patientForm.getValues("sex");
-                          
+
                           // Format the gender for better display
-                          switch(gender) {
-                            case "male": return "Male";
-                            case "female": return "Female";
-                            case "prefer_not_to_say": return "Prefer not to say";
-                            default: return gender;
+                          switch (gender) {
+                            case "male":
+                              return "Male";
+                            case "female":
+                              return "Female";
+                            case "prefer_not_to_say":
+                              return "Prefer not to say";
+                            default:
+                              return gender;
                           }
                         })()}
                       </p>
@@ -4441,26 +4723,36 @@ const PatientPortal = () => {
                       <p>
                         {isExistingPatient
                           ? selectedPatient?.address || "Not available"
-                          : patientForm.getValues("address")
-                        }
+                          : patientForm.getValues("address")}
                       </p>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-700">Marital Status</h4>
+                      <h4 className="font-semibold text-gray-700">
+                        Marital Status
+                      </h4>
                       <p>
                         {(() => {
                           const status = isExistingPatient
-                            ? selectedPatient?.maritalStatus || selectedPatient?.marital_status || "Not available"
-                            : patientForm.getValues("maritalStatus") || "prefer_not_to_say";
-                          
+                            ? selectedPatient?.maritalStatus ||
+                              selectedPatient?.marital_status ||
+                              "Not available"
+                            : patientForm.getValues("maritalStatus") ||
+                              "prefer_not_to_say";
+
                           // Format the status for better display
-                          switch(status) {
-                            case "prefer_not_to_say": return "Prefer not to say";
-                            case "single": return "Single";
-                            case "married": return "Married";
-                            case "divorced": return "Divorced";
-                            case "widowed": return "Widowed";
-                            default: return status;
+                          switch (status) {
+                            case "prefer_not_to_say":
+                              return "Prefer not to say";
+                            case "single":
+                              return "Single";
+                            case "married":
+                              return "Married";
+                            case "divorced":
+                              return "Divorced";
+                            case "widowed":
+                              return "Widowed";
+                            default:
+                              return status;
                           }
                         })()}
                       </p>
@@ -4502,10 +4794,12 @@ const PatientPortal = () => {
                   onClick={handleNextStep}
                   className="bg-[#79c942] hover:bg-[#68ab38] text-white disabled:bg-gray-400 disabled:cursor-not-allowed"
                   disabled={
-                    isSubmitting || 
+                    isSubmitting ||
                     isLoadingTimeSlots ||
                     (currentStep === 1 && !bookingPreference) ||
-                    (currentStep === 4 && isExistingPatient === false && !termsAccepted) ||
+                    (currentStep === 4 &&
+                      isExistingPatient === false &&
+                      !termsAccepted) ||
                     (currentStep === 4 && isExistingPatient === null)
                   }
                 >
@@ -4584,7 +4878,9 @@ const PatientPortal = () => {
                         <Input
                           placeholder="Enter your Patient ID"
                           value={medCertSearchQuery}
-                          onChange={(e) => setMedCertSearchQuery(e.target.value)}
+                          onChange={(e) =>
+                            setMedCertSearchQuery(e.target.value)
+                          }
                           className="w-full"
                         />
                         <div className="text-xs text-gray-500 mt-1">
@@ -4611,7 +4907,8 @@ const PatientPortal = () => {
                               Forgot Patient ID? Let's help you find it
                             </h4>
                             <p className="text-sm text-gray-600">
-                              Please provide the following information to lookup your Patient ID:
+                              Please provide the following information to lookup
+                              your Patient ID:
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
@@ -4621,7 +4918,12 @@ const PatientPortal = () => {
                                 <Input
                                   placeholder="Enter your first name"
                                   value={medCertForgotIdForm.firstName}
-                                  onChange={(e) => setMedCertForgotIdForm({...medCertForgotIdForm, firstName: e.target.value})}
+                                  onChange={(e) =>
+                                    setMedCertForgotIdForm({
+                                      ...medCertForgotIdForm,
+                                      firstName: e.target.value,
+                                    })
+                                  }
                                 />
                               </div>
                               <div>
@@ -4631,7 +4933,12 @@ const PatientPortal = () => {
                                 <Input
                                   placeholder="Optional"
                                   value={medCertForgotIdForm.middleInitial}
-                                  onChange={(e) => setMedCertForgotIdForm({...medCertForgotIdForm, middleInitial: e.target.value})}
+                                  onChange={(e) =>
+                                    setMedCertForgotIdForm({
+                                      ...medCertForgotIdForm,
+                                      middleInitial: e.target.value,
+                                    })
+                                  }
                                 />
                               </div>
                               <div>
@@ -4641,7 +4948,12 @@ const PatientPortal = () => {
                                 <Input
                                   placeholder="Enter your last name"
                                   value={medCertForgotIdForm.lastName}
-                                  onChange={(e) => setMedCertForgotIdForm({...medCertForgotIdForm, lastName: e.target.value})}
+                                  onChange={(e) =>
+                                    setMedCertForgotIdForm({
+                                      ...medCertForgotIdForm,
+                                      lastName: e.target.value,
+                                    })
+                                  }
                                 />
                               </div>
                               <div>
@@ -4651,7 +4963,12 @@ const PatientPortal = () => {
                                 <Input
                                   placeholder="Jr, Sr, III, etc."
                                   value={medCertForgotIdForm.suffix}
-                                  onChange={(e) => setMedCertForgotIdForm({...medCertForgotIdForm, suffix: e.target.value})}
+                                  onChange={(e) =>
+                                    setMedCertForgotIdForm({
+                                      ...medCertForgotIdForm,
+                                      suffix: e.target.value,
+                                    })
+                                  }
                                 />
                               </div>
                               <div>
@@ -4661,7 +4978,12 @@ const PatientPortal = () => {
                                 <Input
                                   type="date"
                                   value={medCertForgotIdForm.dateOfBirth}
-                                  onChange={(e) => setMedCertForgotIdForm({...medCertForgotIdForm, dateOfBirth: e.target.value})}
+                                  onChange={(e) =>
+                                    setMedCertForgotIdForm({
+                                      ...medCertForgotIdForm,
+                                      dateOfBirth: e.target.value,
+                                    })
+                                  }
                                 />
                               </div>
                               <div>
@@ -4672,7 +4994,12 @@ const PatientPortal = () => {
                                   type="email"
                                   placeholder="Enter your registered email"
                                   value={medCertForgotIdForm.email}
-                                  onChange={(e) => setMedCertForgotIdForm({...medCertForgotIdForm, email: e.target.value})}
+                                  onChange={(e) =>
+                                    setMedCertForgotIdForm({
+                                      ...medCertForgotIdForm,
+                                      email: e.target.value,
+                                    })
+                                  }
                                 />
                               </div>
                               <div className="md:col-span-2">
@@ -4682,7 +5009,12 @@ const PatientPortal = () => {
                                 <Input
                                   placeholder="Enter your registered phone number"
                                   value={medCertForgotIdForm.phone}
-                                  onChange={(e) => setMedCertForgotIdForm({...medCertForgotIdForm, phone: e.target.value})}
+                                  onChange={(e) =>
+                                    setMedCertForgotIdForm({
+                                      ...medCertForgotIdForm,
+                                      phone: e.target.value,
+                                    })
+                                  }
                                 />
                               </div>
                             </div>
@@ -4699,7 +5031,7 @@ const PatientPortal = () => {
                                     suffix: "",
                                     dateOfBirth: "",
                                     email: "",
-                                    phone: ""
+                                    phone: "",
                                   });
                                 }}
                               >
@@ -4711,7 +5043,9 @@ const PatientPortal = () => {
                                 disabled={medCertForgotIdSubmitting}
                                 className="bg-[#79c942] hover:bg-[#6bb33a]"
                               >
-                                {medCertForgotIdSubmitting ? "Looking up..." : "Find Patient ID"}
+                                {medCertForgotIdSubmitting
+                                  ? "Looking up..."
+                                  : "Find Patient ID"}
                               </Button>
                             </div>
                           </div>
@@ -4721,7 +5055,8 @@ const PatientPortal = () => {
                       {/* Delivery Method Selection */}
                       <div>
                         <label className="block text-sm font-medium mb-2">
-                          How would you like to receive your medical certificate? *
+                          How would you like to receive your medical
+                          certificate? *
                         </label>
                         <div className="space-y-2">
                           <div className="flex items-center space-x-2">
@@ -4730,10 +5065,15 @@ const PatientPortal = () => {
                               id="pickup"
                               value="pickup"
                               checked={medCertDeliveryMethod === "pickup"}
-                              onChange={(e) => setMedCertDeliveryMethod(e.target.value)}
+                              onChange={(e) =>
+                                setMedCertDeliveryMethod(e.target.value)
+                              }
                               className="w-4 h-4 text-[#79c942] border-gray-300 focus:ring-[#79c942]"
                             />
-                            <label htmlFor="pickup" className="text-sm text-gray-700">
+                            <label
+                              htmlFor="pickup"
+                              className="text-sm text-gray-700"
+                            >
                               Pick up at clinic
                             </label>
                           </div>
@@ -4743,19 +5083,23 @@ const PatientPortal = () => {
                               id="email"
                               value="email"
                               checked={medCertDeliveryMethod === "email"}
-                              onChange={(e) => setMedCertDeliveryMethod(e.target.value)}
+                              onChange={(e) =>
+                                setMedCertDeliveryMethod(e.target.value)
+                              }
                               className="w-4 h-4 text-[#79c942] border-gray-300 focus:ring-[#79c942]"
                             />
-                            <label htmlFor="email" className="text-sm text-gray-700">
+                            <label
+                              htmlFor="email"
+                              className="text-sm text-gray-700"
+                            >
                               Receive via email
                             </label>
                           </div>
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
-                          {medCertDeliveryMethod === "pickup" 
+                          {medCertDeliveryMethod === "pickup"
                             ? "You will be notified when your medical certificate is ready for pickup"
-                            : "Medical certificate will be sent to your registered email address"
-                          }
+                            : "Medical certificate will be sent to your registered email address"}
                         </div>
                       </div>
                     </div>
@@ -4771,13 +5115,13 @@ const PatientPortal = () => {
                           Enter your information to create new patient
                         </label>
                         <div className="text-sm text-gray-600">
-                          Since you don't have a Patient ID, please provide your details
+                          Since you don't have a Patient ID, please provide your
+                          details
                         </div>
                       </div>
                     </div>
                   </>
-                )
-              }
+                )}
               </div>
             )}
 
@@ -4877,7 +5221,11 @@ const PatientPortal = () => {
                       <h4 className="font-semibold text-gray-700">
                         Delivery Method
                       </h4>
-                      <p>{medCertDeliveryMethod === "pickup" ? "Pick up at clinic" : "Receive via email"}</p>
+                      <p>
+                        {medCertDeliveryMethod === "pickup"
+                          ? "Pick up at clinic"
+                          : "Receive via email"}
+                      </p>
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-700">
@@ -4982,12 +5330,13 @@ const PatientPortal = () => {
                       if (showMedCertForgotPatientId) {
                         toast({
                           title: "Form Incomplete",
-                          description: "Please complete the patient lookup or go back to enter Patient ID directly",
+                          description:
+                            "Please complete the patient lookup or go back to enter Patient ID directly",
                           variant: "destructive",
                         });
                         return;
                       }
-                      
+
                       // Validate Patient ID
                       if (!medCertSearchQuery.trim()) {
                         toast({
@@ -4997,17 +5346,18 @@ const PatientPortal = () => {
                         });
                         return;
                       }
-                      
+
                       // Validate delivery method
                       if (!medCertDeliveryMethod) {
                         toast({
                           title: "Selection Required",
-                          description: "Please select how you want to receive your medical certificate",
+                          description:
+                            "Please select how you want to receive your medical certificate",
                           variant: "destructive",
                         });
                         return;
                       }
-                      
+
                       const validation = await validatePatientId(
                         medCertSearchQuery
                       );
@@ -5066,13 +5416,13 @@ const PatientPortal = () => {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-6">
           <DialogHeader>
             <DialogTitle className="text-[#79c942] text-center text-2xl font-bold">
-              Request E-Prescription - Step {prescriptionStep} of 4
+              Request E-Prescription - Step {prescriptionStep} of 3
             </DialogTitle>
           </DialogHeader>
 
           {/* Progress Bar */}
           <div className="flex justify-between items-center mb-6">
-            {[1, 2, 3, 4].map((step) => (
+            {[1, 2, 3].map((step) => (
               <div key={step} className="flex flex-col items-center">
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
@@ -5089,9 +5439,8 @@ const PatientPortal = () => {
                 </div>
                 <span className="text-xs mt-1 text-center">
                   {step === 1 && "Patient ID"}
-                  {step === 2 && "Medication"}
-                  {step === 3 && "Documents"}
-                  {step === 4 && "Confirm"}
+                  {step === 2 && "Documents"}
+                  {step === 3 && "Confirm"}
                 </span>
               </div>
             ))}
@@ -5120,8 +5469,9 @@ const PatientPortal = () => {
                           className="w-full"
                         />
                         <div className="text-xs text-gray-500 mt-1">
-                          You can find your Patient ID on your previous appointment
-                          receipts, medical certificates, or contact the clinic
+                          You can find your Patient ID on your previous
+                          appointment receipts, medical certificates, or contact
+                          the clinic
                         </div>
                       </div>
                       <div className="text-center">
@@ -5129,7 +5479,9 @@ const PatientPortal = () => {
                           type="button"
                           variant="link"
                           className="text-sm text-blue-600 hover:text-blue-800"
-                          onClick={() => setShowPrescriptionForgotPatientId(true)}
+                          onClick={() =>
+                            setShowPrescriptionForgotPatientId(true)
+                          }
                         >
                           Forgot your Patient ID?
                         </Button>
@@ -5197,12 +5549,16 @@ const PatientPortal = () => {
                           disabled={prescriptionForgotIdSubmitting}
                           className="flex-1"
                         >
-                          {prescriptionForgotIdSubmitting ? "Searching..." : "Find Patient ID"}
+                          {prescriptionForgotIdSubmitting
+                            ? "Searching..."
+                            : "Find Patient ID"}
                         </Button>
                         <Button
                           type="button"
                           variant="outline"
-                          onClick={() => setShowPrescriptionForgotPatientId(false)}
+                          onClick={() =>
+                            setShowPrescriptionForgotPatientId(false)
+                          }
                           className="flex-1"
                         >
                           Back
@@ -5214,91 +5570,11 @@ const PatientPortal = () => {
               </div>
             )}
 
-            {/* Step 2: Medication Information */}
+            {/* Step 2: Document Upload (skip medication details) */}
             {prescriptionStep === 2 && (
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-center mb-4">
-                  Medication Details
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Medication Name *
-                    </label>
-                    <Input
-                      {...prescriptionForm.register("medicationName")}
-                      placeholder="e.g., Amoxicillin"
-                    />
-                    {prescriptionForm.formState.errors.medicationName && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {
-                          prescriptionForm.formState.errors.medicationName
-                            .message
-                        }
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Dosage *
-                    </label>
-                    <Input
-                      {...prescriptionForm.register("dosage")}
-                      placeholder="e.g., 500mg"
-                    />
-                    {prescriptionForm.formState.errors.dosage && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {prescriptionForm.formState.errors.dosage.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Frequency *
-                    </label>
-                    <Input
-                      {...prescriptionForm.register("frequency")}
-                      placeholder="e.g., 3 times daily"
-                    />
-                    {prescriptionForm.formState.errors.frequency && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {prescriptionForm.formState.errors.frequency.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Duration *
-                    </label>
-                    <Input
-                      {...prescriptionForm.register("duration")}
-                      placeholder="e.g., 7 days"
-                    />
-                    {prescriptionForm.formState.errors.duration && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {prescriptionForm.formState.errors.duration.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Additional Notes
-                  </label>
-                  <Textarea
-                    {...prescriptionForm.register("additionalNotes")}
-                    placeholder="Any additional instructions or information..."
-                    rows={3}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Document Upload (Previously Step 4) */}
-            {prescriptionStep === 3 && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-center mb-4">
-                  Upload Documents
+                  Upload Supporting Documents
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
@@ -5361,8 +5637,8 @@ const PatientPortal = () => {
               </div>
             )}
 
-            {/* Step 4: Confirmation (Previously Step 5) */}
-            {prescriptionStep === 4 && (
+            {/* Step 3: Confirmation */}
+            {prescriptionStep === 3 && (
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-center mb-4">
                   Confirm Your Request
@@ -5422,38 +5698,24 @@ const PatientPortal = () => {
                       </>
                     )}
                     <div>
-                      <h4 className="font-semibold text-gray-700">
-                        Medication
-                      </h4>
-                      <p>
-                        {prescriptionForm.getValues("medicationName")} -{" "}
-                        {prescriptionForm.getValues("dosage")}
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-700">
-                        Frequency & Duration
-                      </h4>
-                      <p>
-                        {prescriptionForm.getValues("frequency")} for{" "}
-                        {prescriptionForm.getValues("duration")}
-                      </p>
-                    </div>
-                    <div>
                       <h4 className="font-semibold text-gray-700">Documents</h4>
                       <p>
                         {prescriptionIdFront ? "ID uploaded" : "No ID uploaded"}
                       </p>
                     </div>
                   </div>
-                  {prescriptionForm.getValues("additionalNotes") && (
-                    <div>
-                      <h4 className="font-semibold text-gray-700">Notes</h4>
-                      <p className="text-gray-600">
-                        {prescriptionForm.getValues("additionalNotes")}
+                </div>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-2">
+                    <Info className="w-5 h-5 text-blue-600 mt-0.5" />
+                    <div className="text-sm text-blue-800">
+                      <p className="font-semibold">Note:</p>
+                      <p>
+                        Your doctor will review your request and provide the
+                        appropriate prescription based on your medical needs.
                       </p>
                     </div>
-                  )}
+                  </div>
                 </div>
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <div className="flex items-start space-x-2">
@@ -5489,7 +5751,7 @@ const PatientPortal = () => {
                 {prescriptionStep === 1 ? "Cancel" : "Previous"}
               </Button>
 
-              {prescriptionStep < 4 ? (
+              {prescriptionStep < 3 ? (
                 <Button
                   onClick={async () => {
                     if (prescriptionStep === 1) {
@@ -5519,26 +5781,7 @@ const PatientPortal = () => {
                         description: "Patient ID verified successfully!",
                       });
                     }
-                    if (prescriptionStep === 2) {
-                      const medicationFields = [
-                        "medicationName",
-                        "dosage",
-                        "frequency",
-                        "duration",
-                      ];
-                      const hasEmptyField = medicationFields.some(
-                        (field) => !prescriptionForm.getValues(field as any)
-                      );
-                      if (hasEmptyField) {
-                        toast({
-                          title: "Required Fields",
-                          description: "Please fill in all medication details",
-                          variant: "destructive",
-                        });
-                        return;
-                      }
-                    }
-                    if (prescriptionStep === 3 && !prescriptionIdFront) {
+                    if (prescriptionStep === 2 && !prescriptionIdFront) {
                       toast({
                         title: "Upload Required",
                         description: "Please upload your ID",
@@ -5671,4 +5914,3 @@ const PatientPortal = () => {
 };
 
 export default PatientPortal;
-

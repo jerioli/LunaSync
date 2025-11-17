@@ -52,7 +52,7 @@ import {
   HTMLToPDFConverter,
   generateClinicalNoteHTML,
   generatePrescriptionHTML,
-  generateSOAPNoteHTML
+  generateSOAPNoteHTML,
 } from "@/utils/htmlToPdf";
 import { formatPatientNameWithFullMiddle } from "@/utils/patientNameUtils";
 import { format } from "date-fns";
@@ -101,9 +101,9 @@ const PatientManagement = () => {
   } = useClinic();
 
   // Check if coming from ongoing appointments
-  const fromOngoing = searchParams.get('from') === 'ongoing';
-  const appointmentId = searchParams.get('appointmentId');
-  
+  const fromOngoing = searchParams.get("from") === "ongoing";
+  const appointmentId = searchParams.get("appointmentId");
+
   // State for confirmation dialog
   const [showCompletionConfirm, setShowCompletionConfirm] = useState(false);
 
@@ -116,13 +116,12 @@ const PatientManagement = () => {
   const getLogoUrl = (logo: string) => {
     if (!logo) return null;
     if (logo.startsWith("http")) return logo;
-    
+
     // Use environment-aware base URL
-    const baseUrl = ENV.API_URL.replace('/api', '');
-    
+    const baseUrl = ENV.API_URL.replace("/api", "");
+
     if (logo.startsWith("/media/")) return `${baseUrl}${logo}`;
-    if (logo.startsWith("branding/"))
-      return `${baseUrl}/media/${logo}`;
+    if (logo.startsWith("branding/")) return `${baseUrl}/media/${logo}`;
     return `${baseUrl}${logo}`;
   };
 
@@ -142,6 +141,7 @@ const PatientManagement = () => {
   const [soapNotes, setSoapNotes] = useState<any[]>([]);
   const [blankNotes, setBlankNotes] = useState<any[]>([]);
   const [labResults, setLabResults] = useState<APILabResult[]>([]);
+  const [completedAppointments, setCompletedAppointments] = useState<any[]>([]);
 
   // Medical Documentation Templates state
   const [showTemplateForm, setShowTemplateForm] = useState(false);
@@ -296,6 +296,38 @@ const PatientManagement = () => {
     }
   };
 
+  // Fetch completed appointments for visit history
+  const fetchCompletedAppointments = async () => {
+    if (!patientData?.id) return;
+
+    try {
+      const response = await axiosInstance.get("/appointments/");
+      console.log("Fetched all appointments:", response.data);
+
+      // Filter for this patient's completed appointments
+      const patientCompletedAppointments = response.data
+        .filter((apt: any) => {
+          // Match by patient ID (database id)
+          const matchesPatient = String(apt.patient) === String(patientData.id);
+          // Only show completed appointments
+          const isCompleted = apt.status === "completed";
+          return matchesPatient && isCompleted;
+        })
+        .sort((a: any, b: any) => {
+          // Sort by date descending (most recent first)
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        });
+
+      console.log(
+        "Filtered completed appointments for patient:",
+        patientCompletedAppointments
+      );
+      setCompletedAppointments(patientCompletedAppointments);
+    } catch (error) {
+      console.error("Error fetching appointments:", error);
+    }
+  };
+
   // Medical Documentation Templates handler functions
   const placeholders: Record<string, string> = {
     subjective:
@@ -330,7 +362,10 @@ const PatientManagement = () => {
         }
 
         const prescriptionData = {
-          patient: typeof patientData.id === 'string' ? parseInt(patientData.id) : patientData.id,
+          patient:
+            typeof patientData.id === "string"
+              ? parseInt(patientData.id)
+              : patientData.id,
           title: "E-Prescription",
           description:
             "Electronic prescription created from patient management",
@@ -504,7 +539,10 @@ const PatientManagement = () => {
 
     try {
       const clinicalData = {
-        patient: typeof patientData.id === 'string' ? parseInt(patientData.id) : patientData.id,
+        patient:
+          typeof patientData.id === "string"
+            ? parseInt(patientData.id)
+            : patientData.id,
         title: clinicalNoteData.title,
         description: "Clinical note created from patient management",
         document_date: new Date().toISOString(),
@@ -646,15 +684,20 @@ const PatientManagement = () => {
         if (stored) {
           const storedPatients = JSON.parse(stored);
           // First try to find by patient_id, then fallback to database id
-          let patient = storedPatients.find((p: Patient) => p.patient_id === id);
+          let patient = storedPatients.find(
+            (p: Patient) => p.patient_id === id
+          );
           if (!patient) {
-            patient = storedPatients.find((p: Patient) => String(p.id) === String(id));
+            patient = storedPatients.find(
+              (p: Patient) => String(p.id) === String(id)
+            );
           }
           if (patient) {
             setPatientData(patient);
             setInitialLoadComplete(true);
-            // Fetch certificates for this patient
+            // Fetch certificates and appointments for this patient
             await fetchCertificates();
+            await fetchCompletedAppointments();
             return;
           }
         }
@@ -678,8 +721,9 @@ const PatientManagement = () => {
           setPatientData(mappedPatient);
           setInitialLoadComplete(true);
 
-          // Fetch certificates for this patient
+          // Fetch certificates and appointments for this patient
           await fetchCertificates();
+          await fetchCompletedAppointments();
 
           // Update localStorage with the fetched data
           const stored = localStorage.getItem("patientsList");
@@ -687,9 +731,13 @@ const PatientManagement = () => {
           if (stored) {
             updated = JSON.parse(stored);
             // Find existing by patient_id or database id
-            let existingIndex = updated.findIndex((p: Patient) => p.patient_id === mappedPatient.patient_id);
+            let existingIndex = updated.findIndex(
+              (p: Patient) => p.patient_id === mappedPatient.patient_id
+            );
             if (existingIndex === -1) {
-              existingIndex = updated.findIndex((p: Patient) => String(p.id) === String(mappedPatient.id));
+              existingIndex = updated.findIndex(
+                (p: Patient) => String(p.id) === String(mappedPatient.id)
+              );
             }
             if (existingIndex >= 0) {
               updated[existingIndex] = mappedPatient;
@@ -818,7 +866,7 @@ const PatientManagement = () => {
 
       // If no database record exists, save to backend
       console.log("No database record found, saving certificate to database");
-      
+
       if (!patientData?.id) {
         toast({
           title: "Error",
@@ -827,9 +875,12 @@ const PatientManagement = () => {
         });
         return;
       }
-      
+
       const certificateData = {
-        patient: typeof patientData.id === 'string' ? parseInt(patientData.id) : patientData.id,
+        patient:
+          typeof patientData.id === "string"
+            ? parseInt(patientData.id)
+            : patientData.id,
         title: certificate.data?.title || "Medical Certificate",
         description: certificate.data?.description || "",
         certificate_type: certificate.data?.type || "fitness",
@@ -989,7 +1040,10 @@ const PatientManagement = () => {
 
     try {
       const baseDocumentData = {
-        patient: typeof patientData.id === 'string' ? parseInt(patientData.id) : patientData.id,
+        patient:
+          typeof patientData.id === "string"
+            ? parseInt(patientData.id)
+            : patientData.id,
         title: "",
         description: "",
         document_date: new Date().toISOString(),
@@ -1009,7 +1063,10 @@ const PatientManagement = () => {
         }
 
         const prescriptionData = {
-          patient: typeof patientData.id === 'string' ? parseInt(patientData.id) : patientData.id,
+          patient:
+            typeof patientData.id === "string"
+              ? parseInt(patientData.id)
+              : patientData.id,
           title: "E-Prescription",
           description:
             "Electronic prescription created from patient management",
@@ -1052,7 +1109,7 @@ const PatientManagement = () => {
           nameType: "Generic",
         });
         setDocumentData({});
-        
+
         // Close dialog
         setShowCreateDialog(false);
         setCreateDocumentType(null);
@@ -1086,12 +1143,12 @@ const PatientManagement = () => {
         };
 
         setSoapNotes((prev) => [...prev, document]);
-        
+
         toast({
           title: "Success",
           description: "SOAP Note saved successfully!",
         });
-        
+
         // Close dialog
         setShowCreateDialog(false);
         setCreateDocumentType(null);
@@ -1126,12 +1183,12 @@ const PatientManagement = () => {
         };
 
         setBlankNotes((prev) => [...prev, document]);
-        
+
         toast({
           title: "Success",
           description: "Clinical Note saved successfully!",
         });
-        
+
         // Close dialog
         setShowCreateDialog(false);
         setCreateDocumentType(null);
@@ -3332,7 +3389,9 @@ const PatientManagement = () => {
     try {
       // Load medical certificates
       const certificatesResponse =
-        await medicalDocumentsAPI.getMedicalCertificatesByPatient(patientData.id);
+        await medicalDocumentsAPI.getMedicalCertificatesByPatient(
+          patientData.id
+        );
       const mappedCertificates = certificatesResponse.map((cert: any) => ({
         id: cert.id,
         type: "certificate",
@@ -3392,7 +3451,9 @@ const PatientManagement = () => {
       setPrescriptions(mappedPrescriptions);
 
       // Load SOAP notes
-      const soapResponse = await medicalDocumentsAPI.getSOAPNotesByPatient(patientData.id);
+      const soapResponse = await medicalDocumentsAPI.getSOAPNotesByPatient(
+        patientData.id
+      );
       const mappedSoapNotes = soapResponse.map((soap: any) => ({
         id: soap.id,
         type: "soap",
@@ -3477,7 +3538,9 @@ const PatientManagement = () => {
     if (!patientData?.id) return; // Use patientData.id instead of id parameter
 
     try {
-      const results = await medicalDocumentsAPI.getLabResultsByPatient(patientData.id);
+      const results = await medicalDocumentsAPI.getLabResultsByPatient(
+        patientData.id
+      );
       setLabResults(results.lab_results || []);
     } catch (error) {
       console.error("Failed to load lab results:", error);
@@ -3552,7 +3615,7 @@ const PatientManagement = () => {
     }
 
     // If coming from ongoing appointments, show confirmation dialog
-    if (fromOngoing && appointmentId && currentUser?.role === 'doctor') {
+    if (fromOngoing && appointmentId && currentUser?.role === "doctor") {
       setShowCompletionConfirm(true);
       return;
     }
@@ -3637,28 +3700,30 @@ const PatientManagement = () => {
       }
 
       // If coming from ongoing and have appointmentId, complete the appointment
-      if (fromOngoing && appointmentId && currentUser?.role === 'doctor') {
+      if (fromOngoing && appointmentId && currentUser?.role === "doctor") {
         try {
           await axiosInstance.post(
             `appointments/update-status/${appointmentId}/`,
-            { status: 'completed' }
+            { status: "completed" }
           );
-          
+
           toast({
             title: "Patient record updated and appointment completed",
-            description: "Patient information has been saved and the appointment has been marked as completed.",
+            description:
+              "Patient information has been saved and the appointment has been marked as completed.",
           });
-          
+
           // Navigate back to appointments after a delay
           setTimeout(() => {
-            navigate('/appointments');
+            navigate("/appointments");
           }, 1500);
         } catch (appointmentError) {
           console.error("Error completing appointment:", appointmentError);
           // Still show success for patient update
           toast({
             title: "Patient record updated",
-            description: "Patient information has been successfully updated. However, there was an issue completing the appointment.",
+            description:
+              "Patient information has been successfully updated. However, there was an issue completing the appointment.",
             variant: "destructive",
           });
         }
@@ -3799,7 +3864,8 @@ const PatientManagement = () => {
               <h3 className="font-semibold text-lg">Basic Information</h3>
               <div className="space-y-1">
                 <div>
-                  <span className="font-medium">Name:</span> {getFullName(patientData)}
+                  <span className="font-medium">Name:</span>{" "}
+                  {getFullName(patientData)}
                 </div>
                 <div>
                   <span className="font-medium">Age:</span>{" "}
@@ -3906,22 +3972,37 @@ const PatientManagement = () => {
                 </tr>
               </thead>
               <tbody>
-                {/* Mock data for demonstration */}
-                <tr>
-                  <td className="py-2 px-4">2025-08-01</td>
-                  <td className="py-2 px-4">Dr. John Smith</td>
-                  <td className="py-2 px-4">Routine Checkup</td>
-                </tr>
-                <tr>
-                  <td className="py-2 px-4">2025-07-15</td>
-                  <td className="py-2 px-4">Dr. Jane Doe</td>
-                  <td className="py-2 px-4">Follow-up</td>
-                </tr>
-                <tr>
-                  <td className="py-2 px-4">2025-06-10</td>
-                  <td className="py-2 px-4">Dr. John Smith</td>
-                  <td className="py-2 px-4">Lab Results Review</td>
-                </tr>
+                {completedAppointments.length > 0 ? (
+                  completedAppointments.map((appointment) => (
+                    <tr key={appointment.id}>
+                      <td className="py-2 px-4">
+                        {new Date(appointment.date).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                          }
+                        )}
+                      </td>
+                      <td className="py-2 px-4">
+                        {appointment.doctor_name || "N/A"}
+                      </td>
+                      <td className="py-2 px-4">
+                        {appointment.appointment_type || "General Consultation"}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={3}
+                      className="py-4 px-4 text-center text-muted-foreground"
+                    >
+                      No completed visits found
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -3942,9 +4023,15 @@ const PatientManagement = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <Tabs value={activeDocumentTab} onValueChange={(value: any) => setActiveDocumentTab(value)}>
+        <Tabs
+          value={activeDocumentTab}
+          onValueChange={(value: any) => setActiveDocumentTab(value)}
+        >
           <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="prescriptions" className="flex items-center gap-2">
+            <TabsTrigger
+              value="prescriptions"
+              className="flex items-center gap-2"
+            >
               <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
                 Rx
               </div>
@@ -3962,7 +4049,10 @@ const PatientManagement = () => {
               <TestTube className="h-4 w-4" />
               <span className="hidden sm:inline">Lab Results</span>
             </TabsTrigger>
-            <TabsTrigger value="certificates" className="flex items-center gap-2">
+            <TabsTrigger
+              value="certificates"
+              className="flex items-center gap-2"
+            >
               <FileText className="h-4 w-4" />
               <span className="hidden sm:inline">Certificates</span>
             </TabsTrigger>
@@ -3971,7 +4061,9 @@ const PatientManagement = () => {
           {/* E-Prescriptions Tab */}
           <TabsContent value="prescriptions" className="space-y-4 mt-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">E-Prescriptions ({prescriptions.length})</h3>
+              <h3 className="text-lg font-semibold">
+                E-Prescriptions ({prescriptions.length})
+              </h3>
               {isDoctor && (
                 <Button
                   onClick={() => handleCreateDocument("prescription")}
@@ -3991,203 +4083,251 @@ const PatientManagement = () => {
                       prescriptionsPage * itemsPerPage
                     )
                     .map((prescription, index) => (
-                  <div
-                    key={prescription.id || index}
-                    className="p-3 border rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 flex-1">
-                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                          Rx
-                        </div>
-                        <div className="flex-1">
-                          {(
-                            prescription.data?.medications ||
-                            prescription.medications
-                          )?.length > 0 ? (
-                            (
-                              prescription.data?.medications ||
-                              prescription.medications
-                            ).map((med: any, idx: number) => (
-                              <div key={idx} className="mb-2">
-                                <div className="font-semibold text-xs">
-                                  {idx + 1}. {med.name || ""}
-                                </div>
-                                <div className="text-xs">
-                                  {med.dose || med.dosage || ""} -{" "}
-                                  {med.quantity || ""}{" "}
-                                  {med.frequency ? `- ${med.frequency}` : ""}
-                                </div>
-                                {med.notes && (
-                                  <div className="text-xs text-gray-500 ml-4">
-                                    {med.notes}
-                                  </div>
-                                )}
-                                <div className="text-xs text-gray-400 ml-4">
-                                  {med.startDate
-                                    ? `Start: ${med.startDate}`
-                                    : ""}{" "}
-                                  {med.endDate ? ` | End: ${med.endDate}` : ""}
-                                </div>
-                              </div>
-                            ))
-                          ) : (
-                            <div className="text-xs text-gray-500">
-                              No medications listed.
+                      <div
+                        key={prescription.id || index}
+                        className="p-3 border rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                              Rx
                             </div>
-                          )}
+                            <div className="flex-1">
+                              {(
+                                prescription.data?.medications ||
+                                prescription.medications
+                              )?.length > 0 ? (
+                                (
+                                  prescription.data?.medications ||
+                                  prescription.medications
+                                ).map((med: any, idx: number) => (
+                                  <div key={idx} className="mb-2">
+                                    <div className="font-semibold text-xs">
+                                      {idx + 1}. {med.name || ""}
+                                    </div>
+                                    <div className="text-xs">
+                                      {med.dose || med.dosage || ""} -{" "}
+                                      {med.quantity || ""}{" "}
+                                      {med.frequency
+                                        ? `- ${med.frequency}`
+                                        : ""}
+                                    </div>
+                                    {med.notes && (
+                                      <div className="text-xs text-gray-500 ml-4">
+                                        {med.notes}
+                                      </div>
+                                    )}
+                                    <div className="text-xs text-gray-400 ml-4">
+                                      {med.startDate
+                                        ? `Start: ${med.startDate}`
+                                        : ""}{" "}
+                                      {med.endDate
+                                        ? ` | End: ${med.endDate}`
+                                        : ""}
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="text-xs text-gray-500">
+                                  No medications listed.
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  // Fetch current clinic settings
+                                  let currentClinicSettings = clinicSettings;
+                                  if (!currentClinicSettings) {
+                                    try {
+                                      currentClinicSettings =
+                                        await fetchClinicSettings();
+                                    } catch (error) {
+                                      console.error(
+                                        "Failed to fetch clinic settings:",
+                                        error
+                                      );
+                                      currentClinicSettings = {};
+                                    }
+                                  }
+
+                                  // Generate HTML content using template
+                                  const htmlContent = generatePrescriptionHTML(
+                                    prescription,
+                                    patientData,
+                                    currentClinicSettings,
+                                    currentUser
+                                  );
+
+                                  // View as PDF
+                                  await HTMLToPDFConverter.viewPDFFromHTML(
+                                    htmlContent
+                                  );
+
+                                  toast({
+                                    title: "Prescription Viewed",
+                                    description: "Prescription opened as PDF",
+                                  });
+                                } catch (error) {
+                                  console.error(
+                                    "Error generating prescription PDF:",
+                                    error
+                                  );
+                                  toast({
+                                    title: "Error",
+                                    description:
+                                      "Failed to generate prescription PDF",
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                              title="View Prescription (PDF)"
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                            {isDoctor && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handleDeleteDocument(
+                                    prescription.id,
+                                    "prescription"
+                                  )
+                                }
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                title="Delete Prescription"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
+                    ))}
+                  {/* Pagination Controls */}
+                  <div className="flex items-center justify-between px-2 py-4">
+                    <div className="flex items-center space-x-2">
+                      <p className="text-sm text-muted-foreground">Show</p>
+                      <Select
+                        value={itemsPerPage.toString()}
+                        onValueChange={(value) => {
+                          setItemsPerPage(parseInt(value));
+                          setPrescriptionsPage(1);
+                        }}
+                      >
+                        <SelectTrigger className="h-8 w-16">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="5">5</SelectItem>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="20">20</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-sm text-muted-foreground">entries</p>
+                    </div>
+
+                    <div className="flex items-center space-x-6 lg:space-x-8">
+                      <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                        Page {prescriptionsPage} of{" "}
+                        {Math.ceil(prescriptions.length / itemsPerPage)}
+                      </div>
+                      <div className="flex items-center space-x-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={async () => {
-                            try {
-                              // Fetch current clinic settings
-                              let currentClinicSettings = clinicSettings;
-                              if (!currentClinicSettings) {
-                                try {
-                                  currentClinicSettings = await fetchClinicSettings();
-                                } catch (error) {
-                                  console.error("Failed to fetch clinic settings:", error);
-                                  currentClinicSettings = {};
-                                }
-                              }
-
-                              // Generate HTML content using template
-                              const htmlContent = generatePrescriptionHTML(
-                                prescription,
-                                patientData,
-                                currentClinicSettings,
-                                currentUser
-                              );
-
-                              // View as PDF
-                              await HTMLToPDFConverter.viewPDFFromHTML(htmlContent);
-
-                              toast({
-                                title: "Prescription Viewed",
-                                description: "Prescription opened as PDF",
-                              });
-                            } catch (error) {
-                              console.error("Error generating prescription PDF:", error);
-                              toast({
-                                title: "Error",
-                                description: "Failed to generate prescription PDF",
-                                variant: "destructive",
-                              });
-                            }
-                          }}
-                          title="View Prescription (PDF)"
+                          onClick={() =>
+                            setPrescriptionsPage((p) => Math.max(1, p - 1))
+                          }
+                          disabled={prescriptionsPage <= 1}
                         >
-                          <Eye className="h-3 w-3" />
+                          <ChevronLeft className="h-4 w-4" />
+                          Previous
                         </Button>
-                        {isDoctor && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              handleDeleteDocument(
-                                prescription.id,
-                                "prescription"
+
+                        {/* Page Number Buttons */}
+                        <div className="flex items-center gap-1">
+                          {Array.from(
+                            {
+                              length: Math.ceil(
+                                prescriptions.length / itemsPerPage
+                              ),
+                            },
+                            (_, i) => i + 1
+                          ).map((page) => (
+                            <Button
+                              key={page}
+                              variant={
+                                page === prescriptionsPage
+                                  ? "default"
+                                  : "outline"
+                              }
+                              size="sm"
+                              onClick={() => setPrescriptionsPage(page)}
+                              className={`w-8 h-8 p-0`}
+                              style={{
+                                backgroundColor:
+                                  page === prescriptionsPage
+                                    ? clinicSettings?.clinic_color || "#3B82F6"
+                                    : "transparent",
+                                borderColor:
+                                  page === prescriptionsPage
+                                    ? clinicSettings?.clinic_color || "#3B82F6"
+                                    : "#D1D5DB",
+                                color:
+                                  page === prescriptionsPage
+                                    ? "white"
+                                    : clinicSettings?.clinic_color || "#3B82F6",
+                              }}
+                              onMouseEnter={(e) => {
+                                if (page !== prescriptionsPage) {
+                                  e.currentTarget.style.backgroundColor = `${
+                                    clinicSettings?.clinic_color || "#3B82F6"
+                                  }10`;
+                                  e.currentTarget.style.borderColor =
+                                    clinicSettings?.clinic_color || "#3B82F6";
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (page !== prescriptionsPage) {
+                                  e.currentTarget.style.backgroundColor =
+                                    "transparent";
+                                  e.currentTarget.style.borderColor = "#D1D5DB";
+                                }
+                              }}
+                            >
+                              {page}
+                            </Button>
+                          ))}
+                        </div>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setPrescriptionsPage((p) =>
+                              Math.min(
+                                Math.ceil(prescriptions.length / itemsPerPage),
+                                p + 1
                               )
-                            }
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            title="Delete Prescription"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        )}
+                            )
+                          }
+                          disabled={
+                            prescriptionsPage >=
+                            Math.ceil(prescriptions.length / itemsPerPage)
+                          }
+                        >
+                          Next
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   </div>
-                ))}
-                  {/* Pagination Controls */}
-                  <div className="flex items-center justify-between px-2 py-4">
-                      <div className="flex items-center space-x-2">
-                        <p className="text-sm text-muted-foreground">Show</p>
-                        <Select
-                          value={itemsPerPage.toString()}
-                          onValueChange={(value) => {
-                            setItemsPerPage(parseInt(value));
-                            setPrescriptionsPage(1);
-                          }}
-                        >
-                          <SelectTrigger className="h-8 w-16">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="5">5</SelectItem>
-                            <SelectItem value="10">10</SelectItem>
-                            <SelectItem value="20">20</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <p className="text-sm text-muted-foreground">entries</p>
-                      </div>
-
-                      <div className="flex items-center space-x-6 lg:space-x-8">
-                        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                          Page {prescriptionsPage} of {Math.ceil(prescriptions.length / itemsPerPage)}
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setPrescriptionsPage((p) => Math.max(1, p - 1))}
-                            disabled={prescriptionsPage <= 1}
-                          >
-                            <ChevronLeft className="h-4 w-4" />
-                            Previous
-                          </Button>
-                          
-                          {/* Page Number Buttons */}
-                          <div className="flex items-center gap-1">
-                            {Array.from(
-                              { length: Math.ceil(prescriptions.length / itemsPerPage) },
-                              (_, i) => i + 1
-                            ).map((page) => (
-                              <Button
-                                key={page}
-                                variant={page === prescriptionsPage ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setPrescriptionsPage(page)}
-                                className={`w-8 h-8 p-0`}
-                                style={{
-                                  backgroundColor: page === prescriptionsPage ? (clinicSettings?.clinic_color || '#3B82F6') : 'transparent',
-                                  borderColor: page === prescriptionsPage ? (clinicSettings?.clinic_color || '#3B82F6') : '#D1D5DB',
-                                  color: page === prescriptionsPage ? 'white' : (clinicSettings?.clinic_color || '#3B82F6')
-                                }}
-                                onMouseEnter={(e) => {
-                                  if (page !== prescriptionsPage) {
-                                    e.currentTarget.style.backgroundColor = `${clinicSettings?.clinic_color || '#3B82F6'}10`;
-                                    e.currentTarget.style.borderColor = clinicSettings?.clinic_color || '#3B82F6';
-                                  }
-                                }}
-                                onMouseLeave={(e) => {
-                                  if (page !== prescriptionsPage) {
-                                    e.currentTarget.style.backgroundColor = 'transparent';
-                                    e.currentTarget.style.borderColor = '#D1D5DB';
-                                  }
-                                }}
-                              >
-                                {page}
-                              </Button>
-                            ))}
-                          </div>
-
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setPrescriptionsPage((p) => Math.min(Math.ceil(prescriptions.length / itemsPerPage), p + 1))}
-                            disabled={prescriptionsPage >= Math.ceil(prescriptions.length / itemsPerPage)}
-                          >
-                            Next
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
                 </>
               ) : (
                 <div className="p-3 border rounded-lg bg-gray-50">
@@ -4214,7 +4354,9 @@ const PatientManagement = () => {
           {/* SOAP Notes Tab */}
           <TabsContent value="soap" className="space-y-4 mt-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">SOAP Notes ({soapNotes.length})</h3>
+              <h3 className="text-lg font-semibold">
+                SOAP Notes ({soapNotes.length})
+              </h3>
               {isDoctor && (
                 <Button
                   onClick={() => handleCreateDocument("soap")}
@@ -4234,179 +4376,223 @@ const PatientManagement = () => {
                       soapNotesPage * itemsPerPage
                     )
                     .map((note, index) => (
-                  <div
-                    key={note.id || index}
-                    className="p-3 border rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border-green-200"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 flex-1">
-                        <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                          S
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-gray-900">
-                            SOAP Note
+                      <div
+                        key={note.id || index}
+                        className="p-3 border rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border-green-200"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                              S
+                            </div>
+                            <div className="flex-1">
+                              <div className="text-sm font-medium text-gray-900">
+                                SOAP Note
+                              </div>
+                              <div className="text-xs text-green-600">
+                                {note.data?.assessment?.substring(0, 50) ||
+                                  "Assessment pending"}
+                                {(note.data?.assessment?.length || 0) > 50
+                                  ? "..."
+                                  : ""}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Created:{" "}
+                                {new Date(
+                                  note.dateCreated
+                                ).toLocaleDateString()}
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-xs text-green-600">
-                            {note.data?.assessment?.substring(0, 50) ||
-                              "Assessment pending"}
-                            {(note.data?.assessment?.length || 0) > 50
-                              ? "..."
-                              : ""}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            Created:{" "}
-                            {new Date(note.dateCreated).toLocaleDateString()}
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  // Fetch current clinic settings
+                                  let currentClinicSettings = clinicSettings;
+                                  if (!currentClinicSettings) {
+                                    try {
+                                      currentClinicSettings =
+                                        await fetchClinicSettings();
+                                    } catch (error) {
+                                      console.error(
+                                        "Failed to fetch clinic settings:",
+                                        error
+                                      );
+                                      currentClinicSettings = {};
+                                    }
+                                  }
+
+                                  // Generate HTML content using template
+                                  const htmlContent = generateSOAPNoteHTML(
+                                    note,
+                                    patientData,
+                                    currentClinicSettings,
+                                    currentUser
+                                  );
+
+                                  // View as PDF
+                                  await HTMLToPDFConverter.viewPDFFromHTML(
+                                    htmlContent
+                                  );
+
+                                  toast({
+                                    title: "SOAP Note Viewed",
+                                    description: "SOAP note opened as PDF",
+                                  });
+                                } catch (error) {
+                                  console.error(
+                                    "Error generating SOAP note PDF:",
+                                    error
+                                  );
+                                  toast({
+                                    title: "Error",
+                                    description:
+                                      "Failed to generate SOAP note PDF",
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                              title="View SOAP Note"
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                            {canDelete && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handleDeleteDocument(note.id, "soap")
+                                }
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                title="Delete SOAP Note"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
+                    ))}
+                  {/* Pagination Controls */}
+                  <div className="flex items-center justify-between px-2 py-4">
+                    <div className="flex items-center space-x-2">
+                      <p className="text-sm text-muted-foreground">Show</p>
+                      <Select
+                        value={itemsPerPage.toString()}
+                        onValueChange={(value) => {
+                          setItemsPerPage(parseInt(value));
+                          setSoapNotesPage(1);
+                        }}
+                      >
+                        <SelectTrigger className="h-8 w-16">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="5">5</SelectItem>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="20">20</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-sm text-muted-foreground">entries</p>
+                    </div>
+
+                    <div className="flex items-center space-x-6 lg:space-x-8">
+                      <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                        Page {soapNotesPage} of{" "}
+                        {Math.ceil(soapNotes.length / itemsPerPage)}
+                      </div>
+                      <div className="flex items-center space-x-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={async () => {
-                            try {
-                              // Fetch current clinic settings
-                              let currentClinicSettings = clinicSettings;
-                              if (!currentClinicSettings) {
-                                try {
-                                  currentClinicSettings = await fetchClinicSettings();
-                                } catch (error) {
-                                  console.error("Failed to fetch clinic settings:", error);
-                                  currentClinicSettings = {};
-                                }
-                              }
-
-                              // Generate HTML content using template
-                              const htmlContent = generateSOAPNoteHTML(
-                                note,
-                                patientData,
-                                currentClinicSettings,
-                                currentUser
-                              );
-
-                              // View as PDF
-                              await HTMLToPDFConverter.viewPDFFromHTML(htmlContent);
-
-                              toast({
-                                title: "SOAP Note Viewed",
-                                description: "SOAP note opened as PDF",
-                              });
-                            } catch (error) {
-                              console.error("Error generating SOAP note PDF:", error);
-                              toast({
-                                title: "Error",
-                                description: "Failed to generate SOAP note PDF",
-                                variant: "destructive",
-                              });
-                            }
-                          }}
-                          title="View SOAP Note"
+                          onClick={() =>
+                            setSoapNotesPage((p) => Math.max(1, p - 1))
+                          }
+                          disabled={soapNotesPage <= 1}
                         >
-                          <Eye className="h-3 w-3" />
+                          <ChevronLeft className="h-4 w-4" />
+                          Previous
                         </Button>
-                        {canDelete && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              handleDeleteDocument(note.id, "soap")
-                            }
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            title="Delete SOAP Note"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        )}
+
+                        {/* Page Number Buttons */}
+                        <div className="flex items-center gap-1">
+                          {Array.from(
+                            {
+                              length: Math.ceil(
+                                soapNotes.length / itemsPerPage
+                              ),
+                            },
+                            (_, i) => i + 1
+                          ).map((page) => (
+                            <Button
+                              key={page}
+                              variant={
+                                page === soapNotesPage ? "default" : "outline"
+                              }
+                              size="sm"
+                              onClick={() => setSoapNotesPage(page)}
+                              className={`w-8 h-8 p-0`}
+                              style={{
+                                backgroundColor:
+                                  page === soapNotesPage
+                                    ? clinicSettings?.clinic_color || "#3B82F6"
+                                    : "transparent",
+                                borderColor:
+                                  page === soapNotesPage
+                                    ? clinicSettings?.clinic_color || "#3B82F6"
+                                    : "#D1D5DB",
+                                color:
+                                  page === soapNotesPage
+                                    ? "white"
+                                    : clinicSettings?.clinic_color || "#3B82F6",
+                              }}
+                              onMouseEnter={(e) => {
+                                if (page !== soapNotesPage) {
+                                  e.currentTarget.style.backgroundColor = `${
+                                    clinicSettings?.clinic_color || "#3B82F6"
+                                  }10`;
+                                  e.currentTarget.style.borderColor =
+                                    clinicSettings?.clinic_color || "#3B82F6";
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (page !== soapNotesPage) {
+                                  e.currentTarget.style.backgroundColor =
+                                    "transparent";
+                                  e.currentTarget.style.borderColor = "#D1D5DB";
+                                }
+                              }}
+                            >
+                              {page}
+                            </Button>
+                          ))}
+                        </div>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setSoapNotesPage((p) =>
+                              Math.min(
+                                Math.ceil(soapNotes.length / itemsPerPage),
+                                p + 1
+                              )
+                            )
+                          }
+                          disabled={
+                            soapNotesPage >=
+                            Math.ceil(soapNotes.length / itemsPerPage)
+                          }
+                        >
+                          Next
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   </div>
-                ))}
-                  {/* Pagination Controls */}
-                  <div className="flex items-center justify-between px-2 py-4">
-                      <div className="flex items-center space-x-2">
-                        <p className="text-sm text-muted-foreground">Show</p>
-                        <Select
-                          value={itemsPerPage.toString()}
-                          onValueChange={(value) => {
-                            setItemsPerPage(parseInt(value));
-                            setSoapNotesPage(1);
-                          }}
-                        >
-                          <SelectTrigger className="h-8 w-16">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="5">5</SelectItem>
-                            <SelectItem value="10">10</SelectItem>
-                            <SelectItem value="20">20</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <p className="text-sm text-muted-foreground">entries</p>
-                      </div>
-
-                      <div className="flex items-center space-x-6 lg:space-x-8">
-                        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                          Page {soapNotesPage} of {Math.ceil(soapNotes.length / itemsPerPage)}
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setSoapNotesPage((p) => Math.max(1, p - 1))}
-                            disabled={soapNotesPage <= 1}
-                          >
-                            <ChevronLeft className="h-4 w-4" />
-                            Previous
-                          </Button>
-                          
-                          {/* Page Number Buttons */}
-                          <div className="flex items-center gap-1">
-                            {Array.from(
-                              { length: Math.ceil(soapNotes.length / itemsPerPage) },
-                              (_, i) => i + 1
-                            ).map((page) => (
-                              <Button
-                                key={page}
-                                variant={page === soapNotesPage ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setSoapNotesPage(page)}
-                                className={`w-8 h-8 p-0`}
-                                style={{
-                                  backgroundColor: page === soapNotesPage ? (clinicSettings?.clinic_color || '#3B82F6') : 'transparent',
-                                  borderColor: page === soapNotesPage ? (clinicSettings?.clinic_color || '#3B82F6') : '#D1D5DB',
-                                  color: page === soapNotesPage ? 'white' : (clinicSettings?.clinic_color || '#3B82F6')
-                                }}
-                                onMouseEnter={(e) => {
-                                  if (page !== soapNotesPage) {
-                                    e.currentTarget.style.backgroundColor = `${clinicSettings?.clinic_color || '#3B82F6'}10`;
-                                    e.currentTarget.style.borderColor = clinicSettings?.clinic_color || '#3B82F6';
-                                  }
-                                }}
-                                onMouseLeave={(e) => {
-                                  if (page !== soapNotesPage) {
-                                    e.currentTarget.style.backgroundColor = 'transparent';
-                                    e.currentTarget.style.borderColor = '#D1D5DB';
-                                  }
-                                }}
-                              >
-                                {page}
-                              </Button>
-                            ))}
-                          </div>
-
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setSoapNotesPage((p) => Math.min(Math.ceil(soapNotes.length / itemsPerPage), p + 1))}
-                            disabled={soapNotesPage >= Math.ceil(soapNotes.length / itemsPerPage)}
-                          >
-                            Next
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
                 </>
               ) : (
                 <div className="p-3 border rounded-lg bg-gray-50">
@@ -4433,7 +4619,9 @@ const PatientManagement = () => {
           {/* Clinical Notes Tab */}
           <TabsContent value="clinical" className="space-y-4 mt-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Clinical Notes ({blankNotes.length})</h3>
+              <h3 className="text-lg font-semibold">
+                Clinical Notes ({blankNotes.length})
+              </h3>
               {isDoctor && (
                 <Button
                   onClick={() => handleCreateDocument("blank")}
@@ -4453,179 +4641,225 @@ const PatientManagement = () => {
                       clinicalNotesPage * itemsPerPage
                     )
                     .map((note, index) => (
-                  <div
-                    key={note.id || index}
-                    className="p-3 border rounded-lg bg-gradient-to-r from-blue-50 to-sky-50 border-blue-200"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 flex-1">
-                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                          N
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-gray-900">
-                            {note.data?.title || "Clinical Note"}
+                      <div
+                        key={note.id || index}
+                        className="p-3 border rounded-lg bg-gradient-to-r from-blue-50 to-sky-50 border-blue-200"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                              N
+                            </div>
+                            <div className="flex-1">
+                              <div className="text-sm font-medium text-gray-900">
+                                {note.data?.title || "Clinical Note"}
+                              </div>
+                              <div className="text-xs text-blue-600">
+                                {note.data?.content?.substring(0, 50) ||
+                                  "Content pending"}
+                                {(note.data?.content?.length || 0) > 50
+                                  ? "..."
+                                  : ""}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Created:{" "}
+                                {new Date(
+                                  note.dateCreated
+                                ).toLocaleDateString()}
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-xs text-blue-600">
-                            {note.data?.content?.substring(0, 50) ||
-                              "Content pending"}
-                            {(note.data?.content?.length || 0) > 50
-                              ? "..."
-                              : ""}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            Created:{" "}
-                            {new Date(note.dateCreated).toLocaleDateString()}
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  // Fetch current clinic settings
+                                  let currentClinicSettings = clinicSettings;
+                                  if (!currentClinicSettings) {
+                                    try {
+                                      currentClinicSettings =
+                                        await fetchClinicSettings();
+                                    } catch (error) {
+                                      console.error(
+                                        "Failed to fetch clinic settings:",
+                                        error
+                                      );
+                                      currentClinicSettings = {};
+                                    }
+                                  }
+
+                                  // Generate HTML content using template
+                                  const htmlContent = generateClinicalNoteHTML(
+                                    note,
+                                    patientData,
+                                    currentClinicSettings,
+                                    currentUser
+                                  );
+
+                                  // View as PDF
+                                  await HTMLToPDFConverter.viewPDFFromHTML(
+                                    htmlContent
+                                  );
+
+                                  toast({
+                                    title: "Clinical Note Viewed",
+                                    description: "Clinical note opened as PDF",
+                                  });
+                                } catch (error) {
+                                  console.error(
+                                    "Error generating clinical note PDF:",
+                                    error
+                                  );
+                                  toast({
+                                    title: "Error",
+                                    description:
+                                      "Failed to generate clinical note PDF",
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                              title="View Note"
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                            {canDelete && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handleDeleteDocument(note.id, "blank")
+                                }
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                title="Delete Note"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
+                    ))}
+                  {/* Pagination Controls */}
+                  <div className="flex items-center justify-between px-2 py-4">
+                    <div className="flex items-center space-x-2">
+                      <p className="text-sm text-muted-foreground">Show</p>
+                      <Select
+                        value={itemsPerPage.toString()}
+                        onValueChange={(value) => {
+                          setItemsPerPage(parseInt(value));
+                          setClinicalNotesPage(1);
+                        }}
+                      >
+                        <SelectTrigger className="h-8 w-16">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="5">5</SelectItem>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="20">20</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-sm text-muted-foreground">entries</p>
+                    </div>
+
+                    <div className="flex items-center space-x-6 lg:space-x-8">
+                      <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                        Page {clinicalNotesPage} of{" "}
+                        {Math.ceil(blankNotes.length / itemsPerPage)}
+                      </div>
+                      <div className="flex items-center space-x-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={async () => {
-                            try {
-                              // Fetch current clinic settings
-                              let currentClinicSettings = clinicSettings;
-                              if (!currentClinicSettings) {
-                                try {
-                                  currentClinicSettings = await fetchClinicSettings();
-                                } catch (error) {
-                                  console.error("Failed to fetch clinic settings:", error);
-                                  currentClinicSettings = {};
-                                }
-                              }
-
-                              // Generate HTML content using template
-                              const htmlContent = generateClinicalNoteHTML(
-                                note,
-                                patientData,
-                                currentClinicSettings,
-                                currentUser
-                              );
-
-                              // View as PDF
-                              await HTMLToPDFConverter.viewPDFFromHTML(htmlContent);
-
-                              toast({
-                                title: "Clinical Note Viewed",
-                                description: "Clinical note opened as PDF",
-                              });
-                            } catch (error) {
-                              console.error("Error generating clinical note PDF:", error);
-                              toast({
-                                title: "Error",
-                                description: "Failed to generate clinical note PDF",
-                                variant: "destructive",
-                              });
-                            }
-                          }}
-                          title="View Note"
+                          onClick={() =>
+                            setClinicalNotesPage((p) => Math.max(1, p - 1))
+                          }
+                          disabled={clinicalNotesPage <= 1}
                         >
-                          <Eye className="h-3 w-3" />
+                          <ChevronLeft className="h-4 w-4" />
+                          Previous
                         </Button>
-                        {canDelete && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              handleDeleteDocument(note.id, "blank")
-                            }
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            title="Delete Note"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        )}
+
+                        {/* Page Number Buttons */}
+                        <div className="flex items-center gap-1">
+                          {Array.from(
+                            {
+                              length: Math.ceil(
+                                blankNotes.length / itemsPerPage
+                              ),
+                            },
+                            (_, i) => i + 1
+                          ).map((page) => (
+                            <Button
+                              key={page}
+                              variant={
+                                page === clinicalNotesPage
+                                  ? "default"
+                                  : "outline"
+                              }
+                              size="sm"
+                              onClick={() => setClinicalNotesPage(page)}
+                              className={`w-8 h-8 p-0`}
+                              style={{
+                                backgroundColor:
+                                  page === clinicalNotesPage
+                                    ? clinicSettings?.clinic_color || "#3B82F6"
+                                    : "transparent",
+                                borderColor:
+                                  page === clinicalNotesPage
+                                    ? clinicSettings?.clinic_color || "#3B82F6"
+                                    : "#D1D5DB",
+                                color:
+                                  page === clinicalNotesPage
+                                    ? "white"
+                                    : clinicSettings?.clinic_color || "#3B82F6",
+                              }}
+                              onMouseEnter={(e) => {
+                                if (page !== clinicalNotesPage) {
+                                  e.currentTarget.style.backgroundColor = `${
+                                    clinicSettings?.clinic_color || "#3B82F6"
+                                  }10`;
+                                  e.currentTarget.style.borderColor =
+                                    clinicSettings?.clinic_color || "#3B82F6";
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (page !== clinicalNotesPage) {
+                                  e.currentTarget.style.backgroundColor =
+                                    "transparent";
+                                  e.currentTarget.style.borderColor = "#D1D5DB";
+                                }
+                              }}
+                            >
+                              {page}
+                            </Button>
+                          ))}
+                        </div>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setClinicalNotesPage((p) =>
+                              Math.min(
+                                Math.ceil(blankNotes.length / itemsPerPage),
+                                p + 1
+                              )
+                            )
+                          }
+                          disabled={
+                            clinicalNotesPage >=
+                            Math.ceil(blankNotes.length / itemsPerPage)
+                          }
+                        >
+                          Next
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   </div>
-                ))}
-                  {/* Pagination Controls */}
-                  <div className="flex items-center justify-between px-2 py-4">
-                      <div className="flex items-center space-x-2">
-                        <p className="text-sm text-muted-foreground">Show</p>
-                        <Select
-                          value={itemsPerPage.toString()}
-                          onValueChange={(value) => {
-                            setItemsPerPage(parseInt(value));
-                            setClinicalNotesPage(1);
-                          }}
-                        >
-                          <SelectTrigger className="h-8 w-16">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="5">5</SelectItem>
-                            <SelectItem value="10">10</SelectItem>
-                            <SelectItem value="20">20</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <p className="text-sm text-muted-foreground">entries</p>
-                      </div>
-
-                      <div className="flex items-center space-x-6 lg:space-x-8">
-                        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                          Page {clinicalNotesPage} of {Math.ceil(blankNotes.length / itemsPerPage)}
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setClinicalNotesPage((p) => Math.max(1, p - 1))}
-                            disabled={clinicalNotesPage <= 1}
-                          >
-                            <ChevronLeft className="h-4 w-4" />
-                            Previous
-                          </Button>
-                          
-                          {/* Page Number Buttons */}
-                          <div className="flex items-center gap-1">
-                            {Array.from(
-                              { length: Math.ceil(blankNotes.length / itemsPerPage) },
-                              (_, i) => i + 1
-                            ).map((page) => (
-                              <Button
-                                key={page}
-                                variant={page === clinicalNotesPage ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setClinicalNotesPage(page)}
-                                className={`w-8 h-8 p-0`}
-                                style={{
-                                  backgroundColor: page === clinicalNotesPage ? (clinicSettings?.clinic_color || '#3B82F6') : 'transparent',
-                                  borderColor: page === clinicalNotesPage ? (clinicSettings?.clinic_color || '#3B82F6') : '#D1D5DB',
-                                  color: page === clinicalNotesPage ? 'white' : (clinicSettings?.clinic_color || '#3B82F6')
-                                }}
-                                onMouseEnter={(e) => {
-                                  if (page !== clinicalNotesPage) {
-                                    e.currentTarget.style.backgroundColor = `${clinicSettings?.clinic_color || '#3B82F6'}10`;
-                                    e.currentTarget.style.borderColor = clinicSettings?.clinic_color || '#3B82F6';
-                                  }
-                                }}
-                                onMouseLeave={(e) => {
-                                  if (page !== clinicalNotesPage) {
-                                    e.currentTarget.style.backgroundColor = 'transparent';
-                                    e.currentTarget.style.borderColor = '#D1D5DB';
-                                  }
-                                }}
-                              >
-                                {page}
-                              </Button>
-                            ))}
-                          </div>
-
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setClinicalNotesPage((p) => Math.min(Math.ceil(blankNotes.length / itemsPerPage), p + 1))}
-                            disabled={clinicalNotesPage >= Math.ceil(blankNotes.length / itemsPerPage)}
-                          >
-                            Next
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
                 </>
               ) : (
                 <div className="p-3 border rounded-lg bg-gray-50">
@@ -4652,7 +4886,9 @@ const PatientManagement = () => {
           {/* Lab Results Tab */}
           <TabsContent value="lab" className="space-y-4 mt-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Lab Results ({labResults.length})</h3>
+              <h3 className="text-lg font-semibold">
+                Lab Results ({labResults.length})
+              </h3>
               {isDoctor && (
                 <Button
                   onClick={() =>
@@ -4680,185 +4916,223 @@ const PatientManagement = () => {
                       labResultsPage * itemsPerPage
                     )
                     .map((result, index) => (
-                  <div
-                    key={result.id || index}
-                    className="p-3 border rounded-lg"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="text-sm font-medium">
-                          {result.test_name}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {result.test_category} |{" "}
-                          {result.document?.status || "Unknown"}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Date:{" "}
-                          {result.document?.document_date
-                            ? new Date(
-                                result.document.document_date
-                              ).toLocaleDateString()
-                            : "Date not available"}
-                        </div>
-                        {result.laboratory_name && (
-                          <div className="text-xs text-muted-foreground">
-                            Lab: {result.laboratory_name}
+                      <div
+                        key={result.id || index}
+                        className="p-3 border rounded-lg"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="text-sm font-medium">
+                              {result.test_name}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {result.test_category} |{" "}
+                              {result.document?.status || "Unknown"}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Date:{" "}
+                              {result.document?.document_date
+                                ? new Date(
+                                    result.document.document_date
+                                  ).toLocaleDateString()
+                                : "Date not available"}
+                            </div>
+                            {result.laboratory_name && (
+                              <div className="text-xs text-muted-foreground">
+                                Lab: {result.laboratory_name}
+                              </div>
+                            )}
+                            {result.critical_values &&
+                              result.critical_values.length > 0 && (
+                                <div className="text-xs text-red-600 font-medium">
+                                  🚨 {result.critical_values.length} critical
+                                  value(s)
+                                </div>
+                              )}
+                            {result.abnormal_values &&
+                              result.abnormal_values.length > 0 && (
+                                <div className="text-xs text-yellow-600 font-medium">
+                                  ⚠️ {result.abnormal_values.length} abnormal
+                                  value(s)
+                                </div>
+                              )}
                           </div>
-                        )}
-                        {result.critical_values &&
-                          result.critical_values.length > 0 && (
-                            <div className="text-xs text-red-600 font-medium">
-                              🚨 {result.critical_values.length} critical
-                              value(s)
-                            </div>
-                          )}
-                        {result.abnormal_values &&
-                          result.abnormal_values.length > 0 && (
-                            <div className="text-xs text-yellow-600 font-medium">
-                              ⚠️ {result.abnormal_values.length} abnormal
-                              value(s)
-                            </div>
-                          )}
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                // Simply open the saved processed_file PDF
+                                const processedFileUrl = (
+                                  result.document as any
+                                )?.processed_file;
+
+                                if (processedFileUrl) {
+                                  // Open the saved professional PDF directly
+                                  const baseUrl = ENV.API_URL.replace(
+                                    "/api",
+                                    ""
+                                  );
+                                  const pdfUrl = processedFileUrl.startsWith(
+                                    "http"
+                                  )
+                                    ? processedFileUrl
+                                    : `${baseUrl}${processedFileUrl}`;
+
+                                  console.log("Opening saved PDF at:", pdfUrl);
+                                  window.open(pdfUrl, "_blank");
+
+                                  toast({
+                                    title: "Lab Result Opened",
+                                    description:
+                                      "Saved PDF lab result opened from patient record.",
+                                  });
+                                } else {
+                                  // No saved PDF available
+                                  toast({
+                                    title: "No PDF Available",
+                                    description:
+                                      "No processed PDF found for this lab result. Please re-upload through Lab Results page.",
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                              title="View Saved Lab Result PDF"
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                            {isDoctor && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteLabResult(result.id)}
+                                title="Delete Lab Result"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1">
+                    ))}
+                  {/* Pagination Controls */}
+                  <div className="flex items-center justify-between px-2 py-4">
+                    <div className="flex items-center space-x-2">
+                      <p className="text-sm text-muted-foreground">Show</p>
+                      <Select
+                        value={itemsPerPage.toString()}
+                        onValueChange={(value) => {
+                          setItemsPerPage(parseInt(value));
+                          setLabResultsPage(1);
+                        }}
+                      >
+                        <SelectTrigger className="h-8 w-16">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="5">5</SelectItem>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="20">20</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-sm text-muted-foreground">entries</p>
+                    </div>
+
+                    <div className="flex items-center space-x-6 lg:space-x-8">
+                      <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                        Page {labResultsPage} of{" "}
+                        {Math.ceil(labResults.length / itemsPerPage)}
+                      </div>
+                      <div className="flex items-center space-x-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            // Simply open the saved processed_file PDF
-                            const processedFileUrl = (result.document as any)
-                              ?.processed_file;
-
-                            if (processedFileUrl) {
-                              // Open the saved professional PDF directly
-                              const baseUrl = ENV.API_URL.replace('/api', '');
-                              const pdfUrl = processedFileUrl.startsWith("http")
-                                ? processedFileUrl
-                                : `${baseUrl}${processedFileUrl}`;
-
-                              console.log("Opening saved PDF at:", pdfUrl);
-                              window.open(pdfUrl, "_blank");
-
-                              toast({
-                                title: "Lab Result Opened",
-                                description:
-                                  "Saved PDF lab result opened from patient record.",
-                              });
-                            } else {
-                              // No saved PDF available
-                              toast({
-                                title: "No PDF Available",
-                                description:
-                                  "No processed PDF found for this lab result. Please re-upload through Lab Results page.",
-                                variant: "destructive",
-                              });
-                            }
-                          }}
-                          title="View Saved Lab Result PDF"
+                          onClick={() =>
+                            setLabResultsPage((p) => Math.max(1, p - 1))
+                          }
+                          disabled={labResultsPage <= 1}
                         >
-                          <Eye className="h-3 w-3" />
+                          <ChevronLeft className="h-4 w-4" />
+                          Previous
                         </Button>
-                        {isDoctor && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteLabResult(result.id)}
-                            title="Delete Lab Result"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        )}
+
+                        {/* Page Number Buttons */}
+                        <div className="flex items-center gap-1">
+                          {Array.from(
+                            {
+                              length: Math.ceil(
+                                labResults.length / itemsPerPage
+                              ),
+                            },
+                            (_, i) => i + 1
+                          ).map((page) => (
+                            <Button
+                              key={page}
+                              variant={
+                                page === labResultsPage ? "default" : "outline"
+                              }
+                              size="sm"
+                              onClick={() => setLabResultsPage(page)}
+                              className={`w-8 h-8 p-0`}
+                              style={{
+                                backgroundColor:
+                                  page === labResultsPage
+                                    ? clinicSettings?.clinic_color || "#3B82F6"
+                                    : "transparent",
+                                borderColor:
+                                  page === labResultsPage
+                                    ? clinicSettings?.clinic_color || "#3B82F6"
+                                    : "#D1D5DB",
+                                color:
+                                  page === labResultsPage
+                                    ? "white"
+                                    : clinicSettings?.clinic_color || "#3B82F6",
+                              }}
+                              onMouseEnter={(e) => {
+                                if (page !== labResultsPage) {
+                                  e.currentTarget.style.backgroundColor = `${
+                                    clinicSettings?.clinic_color || "#3B82F6"
+                                  }10`;
+                                  e.currentTarget.style.borderColor =
+                                    clinicSettings?.clinic_color || "#3B82F6";
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (page !== labResultsPage) {
+                                  e.currentTarget.style.backgroundColor =
+                                    "transparent";
+                                  e.currentTarget.style.borderColor = "#D1D5DB";
+                                }
+                              }}
+                            >
+                              {page}
+                            </Button>
+                          ))}
+                        </div>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setLabResultsPage((p) =>
+                              Math.min(
+                                Math.ceil(labResults.length / itemsPerPage),
+                                p + 1
+                              )
+                            )
+                          }
+                          disabled={
+                            labResultsPage >=
+                            Math.ceil(labResults.length / itemsPerPage)
+                          }
+                        >
+                          Next
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   </div>
-                ))}
-                  {/* Pagination Controls */}
-                  <div className="flex items-center justify-between px-2 py-4">
-                      <div className="flex items-center space-x-2">
-                        <p className="text-sm text-muted-foreground">Show</p>
-                        <Select
-                          value={itemsPerPage.toString()}
-                          onValueChange={(value) => {
-                            setItemsPerPage(parseInt(value));
-                            setLabResultsPage(1);
-                          }}
-                        >
-                          <SelectTrigger className="h-8 w-16">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="5">5</SelectItem>
-                            <SelectItem value="10">10</SelectItem>
-                            <SelectItem value="20">20</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <p className="text-sm text-muted-foreground">entries</p>
-                      </div>
-
-                      <div className="flex items-center space-x-6 lg:space-x-8">
-                        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                          Page {labResultsPage} of {Math.ceil(labResults.length / itemsPerPage)}
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setLabResultsPage((p) => Math.max(1, p - 1))}
-                            disabled={labResultsPage <= 1}
-                          >
-                            <ChevronLeft className="h-4 w-4" />
-                            Previous
-                          </Button>
-                          
-                          {/* Page Number Buttons */}
-                          <div className="flex items-center gap-1">
-                            {Array.from(
-                              { length: Math.ceil(labResults.length / itemsPerPage) },
-                              (_, i) => i + 1
-                            ).map((page) => (
-                              <Button
-                                key={page}
-                                variant={page === labResultsPage ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setLabResultsPage(page)}
-                                className={`w-8 h-8 p-0`}
-                                style={{
-                                  backgroundColor: page === labResultsPage ? (clinicSettings?.clinic_color || '#3B82F6') : 'transparent',
-                                  borderColor: page === labResultsPage ? (clinicSettings?.clinic_color || '#3B82F6') : '#D1D5DB',
-                                  color: page === labResultsPage ? 'white' : (clinicSettings?.clinic_color || '#3B82F6')
-                                }}
-                                onMouseEnter={(e) => {
-                                  if (page !== labResultsPage) {
-                                    e.currentTarget.style.backgroundColor = `${clinicSettings?.clinic_color || '#3B82F6'}10`;
-                                    e.currentTarget.style.borderColor = clinicSettings?.clinic_color || '#3B82F6';
-                                  }
-                                }}
-                                onMouseLeave={(e) => {
-                                  if (page !== labResultsPage) {
-                                    e.currentTarget.style.backgroundColor = 'transparent';
-                                    e.currentTarget.style.borderColor = '#D1D5DB';
-                                  }
-                                }}
-                              >
-                                {page}
-                              </Button>
-                            ))}
-                          </div>
-
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setLabResultsPage((p) => Math.min(Math.ceil(labResults.length / itemsPerPage), p + 1))}
-                            disabled={labResultsPage >= Math.ceil(labResults.length / itemsPerPage)}
-                          >
-                            Next
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
                 </>
               ) : (
                 <div className="p-3 border rounded-lg">
@@ -4928,7 +5202,9 @@ const PatientManagement = () => {
                 <Badge variant="outline" className="capitalize">
                   {patientData.gender}
                 </Badge>
-                <Badge variant="outline">ID: {patientData.patient_id || patientData.id}</Badge>
+                <Badge variant="outline">
+                  ID: {patientData.patient_id || patientData.id}
+                </Badge>
               </div>
             </div>
           </div>
@@ -4998,56 +5274,61 @@ const PatientManagement = () => {
         className="w-full"
       >
         <TabsList className="mb-4 grid w-full grid-cols-5">
-          <TabsTrigger 
-            value="overview" 
+          <TabsTrigger
+            value="overview"
             className="flex items-center gap-2 transition-colors"
             style={{
-              backgroundColor: activeTab === 'overview' ? colors.primaryColor : undefined,
-              color: activeTab === 'overview' ? 'white' : undefined
+              backgroundColor:
+                activeTab === "overview" ? colors.primaryColor : undefined,
+              color: activeTab === "overview" ? "white" : undefined,
             }}
           >
             <User className="h-4 w-4" />
             Overview
           </TabsTrigger>
-          <TabsTrigger 
-            value="personal" 
+          <TabsTrigger
+            value="personal"
             className="flex items-center gap-2 transition-colors"
             style={{
-              backgroundColor: activeTab === 'personal' ? colors.primaryColor : undefined,
-              color: activeTab === 'personal' ? 'white' : undefined
+              backgroundColor:
+                activeTab === "personal" ? colors.primaryColor : undefined,
+              color: activeTab === "personal" ? "white" : undefined,
             }}
           >
             <User className="h-4 w-4" />
             Personal Info
           </TabsTrigger>
-          <TabsTrigger 
-            value="physical" 
+          <TabsTrigger
+            value="physical"
             className="flex items-center gap-2 transition-colors"
             style={{
-              backgroundColor: activeTab === 'physical' ? colors.primaryColor : undefined,
-              color: activeTab === 'physical' ? 'white' : undefined
+              backgroundColor:
+                activeTab === "physical" ? colors.primaryColor : undefined,
+              color: activeTab === "physical" ? "white" : undefined,
             }}
           >
             <Stethoscope className="h-4 w-4" />
             Physical Exam
           </TabsTrigger>
-          <TabsTrigger 
-            value="medical" 
+          <TabsTrigger
+            value="medical"
             className="flex items-center gap-2 transition-colors"
             style={{
-              backgroundColor: activeTab === 'medical' ? colors.primaryColor : undefined,
-              color: activeTab === 'medical' ? 'white' : undefined
+              backgroundColor:
+                activeTab === "medical" ? colors.primaryColor : undefined,
+              color: activeTab === "medical" ? "white" : undefined,
             }}
           >
             <Heart className="h-4 w-4" />
             Medical Info
           </TabsTrigger>
-          <TabsTrigger 
-            value="documents" 
+          <TabsTrigger
+            value="documents"
             className="flex items-center gap-2 transition-colors"
             style={{
-              backgroundColor: activeTab === 'documents' ? colors.primaryColor : undefined,
-              color: activeTab === 'documents' ? 'white' : undefined
+              backgroundColor:
+                activeTab === "documents" ? colors.primaryColor : undefined,
+              color: activeTab === "documents" ? "white" : undefined,
             }}
           >
             <FileText className="h-4 w-4" />
@@ -5280,10 +5561,16 @@ const PatientManagement = () => {
                                 value={currentMedication.name}
                                 onSelect={(medicine) => {
                                   if (medicine) {
-                                    handleMedicationChangeTemplate("name", medicine.name);
+                                    handleMedicationChangeTemplate(
+                                      "name",
+                                      medicine.name
+                                    );
                                     // Auto-fill dosage if available
                                     if (medicine.dosage) {
-                                      handleMedicationChangeTemplate("dose", medicine.dosage);
+                                      handleMedicationChangeTemplate(
+                                        "dose",
+                                        medicine.dosage
+                                      );
                                     }
                                   } else {
                                     handleMedicationChangeTemplate("name", "");
@@ -5292,7 +5579,7 @@ const PatientManagement = () => {
                                 placeholder="Search medication..."
                               />
                             </div>
-                            
+
                             <div className="space-y-2">
                               <Label>Dose</Label>
                               <Input
@@ -5405,8 +5692,7 @@ const PatientManagement = () => {
                           <Button
                             onClick={addMedication}
                             disabled={
-                              !currentMedication.name ||
-                              !currentMedication.dose
+                              !currentMedication.name || !currentMedication.dose
                             }
                             className="hover:bg-[#1EAEDB]"
                           >
@@ -5462,9 +5748,7 @@ const PatientManagement = () => {
                                         ({med.nameType})
                                       </div>
                                     </td>
-                                    <td className="p-2 border-r">
-                                      {med.dose}
-                                    </td>
+                                    <td className="p-2 border-r">{med.dose}</td>
                                     <td className="p-2 border-r">
                                       {med.quantity}
                                     </td>
@@ -5485,9 +5769,7 @@ const PatientManagement = () => {
                                       <div className="flex justify-center gap-2">
                                         <Pencil
                                           className="h-4 w-4 text-[#1EAEDB] cursor-pointer hover:text-blue-600"
-                                          onClick={() =>
-                                            editMedication(med.id)
-                                          }
+                                          onClick={() => editMedication(med.id)}
                                         />
                                         <Trash2
                                           className="h-4 w-4 text-red-500 cursor-pointer hover:text-red-700"
@@ -5830,10 +6112,16 @@ const PatientManagement = () => {
                           value={currentMedication.name}
                           onSelect={(medicine) => {
                             if (medicine) {
-                              handleMedicationChangeTemplate("name", medicine.name);
+                              handleMedicationChangeTemplate(
+                                "name",
+                                medicine.name
+                              );
                               // Auto-fill dosage if available
                               if (medicine.dosage) {
-                                handleMedicationChangeTemplate("dose", medicine.dosage);
+                                handleMedicationChangeTemplate(
+                                  "dose",
+                                  medicine.dosage
+                                );
                               }
                             } else {
                               handleMedicationChangeTemplate("name", "");
@@ -5842,7 +6130,7 @@ const PatientManagement = () => {
                           placeholder="Search medication..."
                         />
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label>Dose</Label>
                         <Input
@@ -5878,10 +6166,7 @@ const PatientManagement = () => {
                         <Select
                           value={currentMedication.frequency}
                           onValueChange={(val) =>
-                            handleMedicationChangeTemplate(
-                              "frequency",
-                              val
-                            )
+                            handleMedicationChangeTemplate("frequency", val)
                           }
                         >
                           <SelectTrigger>
@@ -5903,9 +6188,7 @@ const PatientManagement = () => {
                             <SelectItem value="Every 6 hours">
                               Every 6 hours
                             </SelectItem>
-                            <SelectItem value="As needed">
-                              As needed
-                            </SelectItem>
+                            <SelectItem value="As needed">As needed</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -5944,10 +6227,7 @@ const PatientManagement = () => {
                       placeholder="Medication-specific notes or instructions"
                       value={currentMedication.notes}
                       onChange={(e) =>
-                        handleMedicationChangeTemplate(
-                          "notes",
-                          e.target.value
-                        )
+                        handleMedicationChangeTemplate("notes", e.target.value)
                       }
                       rows={2}
                     />
@@ -5955,8 +6235,7 @@ const PatientManagement = () => {
                     <Button
                       onClick={addMedication}
                       disabled={
-                        !currentMedication.name ||
-                        !currentMedication.dose
+                        !currentMedication.name || !currentMedication.dose
                       }
                       className="hover:bg-[#1EAEDB]"
                     >
@@ -5969,9 +6248,7 @@ const PatientManagement = () => {
                 {medications.length > 0 && (
                   <div className="border rounded">
                     <div className="bg-gray-100 p-3 border-b">
-                      <h4 className="font-medium">
-                        Prescribed Medications
-                      </h4>
+                      <h4 className="font-medium">Prescribed Medications</h4>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
@@ -5980,21 +6257,13 @@ const PatientManagement = () => {
                             <th className="p-2 text-left border-r">
                               Medication
                             </th>
-                            <th className="p-2 text-left border-r">
-                              Dose
-                            </th>
-                            <th className="p-2 text-left border-r">
-                              Quantity
-                            </th>
+                            <th className="p-2 text-left border-r">Dose</th>
+                            <th className="p-2 text-left border-r">Quantity</th>
                             <th className="p-2 text-left border-r">
                               Frequency
                             </th>
-                            <th className="p-2 text-left border-r">
-                              Duration
-                            </th>
-                            <th className="p-2 text-left border-r">
-                              Notes
-                            </th>
+                            <th className="p-2 text-left border-r">Duration</th>
+                            <th className="p-2 text-left border-r">Notes</th>
                             <th className="p-2 text-center">Actions</th>
                           </tr>
                         </thead>
@@ -6005,22 +6274,14 @@ const PatientManagement = () => {
                               className="border-b hover:bg-gray-50"
                             >
                               <td className="p-2 border-r">
-                                <div className="font-medium">
-                                  {med.name}
-                                </div>
+                                <div className="font-medium">{med.name}</div>
                                 <div className="text-xs text-gray-500">
                                   ({med.nameType})
                                 </div>
                               </td>
-                              <td className="p-2 border-r">
-                                {med.dose}
-                              </td>
-                              <td className="p-2 border-r">
-                                {med.quantity}
-                              </td>
-                              <td className="p-2 border-r">
-                                {med.frequency}
-                              </td>
+                              <td className="p-2 border-r">{med.dose}</td>
+                              <td className="p-2 border-r">{med.quantity}</td>
+                              <td className="p-2 border-r">{med.frequency}</td>
                               <td className="p-2 border-r">
                                 {med.startDate && med.endDate
                                   ? `${med.startDate} to ${med.endDate}`
@@ -6035,15 +6296,11 @@ const PatientManagement = () => {
                                 <div className="flex justify-center gap-2">
                                   <Pencil
                                     className="h-4 w-4 text-[#1EAEDB] cursor-pointer hover:text-blue-600"
-                                    onClick={() =>
-                                      editMedication(med.id)
-                                    }
+                                    onClick={() => editMedication(med.id)}
                                   />
                                   <Trash2
                                     className="h-4 w-4 text-red-500 cursor-pointer hover:text-red-700"
-                                    onClick={() =>
-                                      removeMedication(med.id)
-                                    }
+                                    onClick={() => removeMedication(med.id)}
                                   />
                                 </div>
                               </td>
@@ -6169,9 +6426,12 @@ const PatientManagement = () => {
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleSaveDocument}
-              disabled={createDocumentType === "prescription" && medications.length === 0}
+              disabled={
+                createDocumentType === "prescription" &&
+                medications.length === 0
+              }
             >
               Save{" "}
               {createDocumentType === "prescription"
@@ -6340,7 +6600,7 @@ const AppointmentCompletionConfirmDialog = ({
   open,
   onOpenChange,
   onConfirm,
-  patientName
+  patientName,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -6360,8 +6620,16 @@ const AppointmentCompletionConfirmDialog = ({
           <div className="bg-amber-50 border border-amber-200 rounded-md p-3">
             <div className="flex items-start">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                <svg
+                  className="h-5 w-5 text-amber-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
               <div className="ml-3">
@@ -6370,7 +6638,9 @@ const AppointmentCompletionConfirmDialog = ({
                 </h3>
                 <div className="mt-2 text-sm text-amber-700">
                   <p>
-                    The appointment for <strong>{patientName}</strong> will be automatically marked as completed once you save these changes. This action cannot be undone.
+                    The appointment for <strong>{patientName}</strong> will be
+                    automatically marked as completed once you save these
+                    changes. This action cannot be undone.
                   </p>
                 </div>
               </div>
@@ -6378,13 +6648,10 @@ const AppointmentCompletionConfirmDialog = ({
           </div>
         </div>
         <DialogFooter>
-          <Button 
-            variant="outline" 
-            onClick={() => onOpenChange(false)}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button 
+          <Button
             onClick={onConfirm}
             className="bg-green-600 hover:bg-green-700"
           >

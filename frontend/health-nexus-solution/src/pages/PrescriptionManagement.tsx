@@ -41,7 +41,7 @@ import {
   Mail,
   Plus,
   Search,
-  XCircle
+  XCircle,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -118,7 +118,8 @@ const PrescriptionManagement: React.FC = () => {
   const [rejectionReason, setRejectionReason] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [showDoctorApprovalForm, setShowDoctorApprovalForm] = useState(false);
-  const [requestForApproval, setRequestForApproval] = useState<PrescriptionRequest | null>(null);
+  const [requestForApproval, setRequestForApproval] =
+    useState<PrescriptionRequest | null>(null);
 
   // E-Prescription creation states
   const [showCreatePrescription, setShowCreatePrescription] = useState(false);
@@ -167,27 +168,27 @@ const PrescriptionManagement: React.FC = () => {
     }
     // If it starts with /media/, add the base URL
     if (imagePath.startsWith("/media/")) {
-      const baseUrl = ENV.API_URL.replace('/api', '');
+      const baseUrl = ENV.API_URL.replace("/api", "");
       finalUrl = `${baseUrl}${imagePath}`;
       console.log("Starts with /media/, constructed URL:", finalUrl);
       return finalUrl;
     }
     // If it starts with medical_requests/, add the full path
     if (imagePath.startsWith("medical_requests/")) {
-      const baseUrl = ENV.API_URL.replace('/api', '');
+      const baseUrl = ENV.API_URL.replace("/api", "");
       finalUrl = `${baseUrl}/media/${imagePath}`;
       console.log("Starts with medical_requests/, constructed URL:", finalUrl);
       return finalUrl;
     }
     // If it's just a filename, assume it's in medical_requests folder
     if (!imagePath.includes("/")) {
-      const baseUrl = ENV.API_URL.replace('/api', '');
+      const baseUrl = ENV.API_URL.replace("/api", "");
       finalUrl = `${baseUrl}/media/medical_requests/${imagePath}`;
       console.log("Just filename, constructed URL:", finalUrl);
       return finalUrl;
     }
     // Otherwise, add base URL
-    const baseUrl = ENV.API_URL.replace('/api', '');
+    const baseUrl = ENV.API_URL.replace("/api", "");
     finalUrl = `${baseUrl}${
       imagePath.startsWith("/") ? imagePath : "/" + imagePath
     }`;
@@ -320,33 +321,43 @@ const PrescriptionManagement: React.FC = () => {
     setRequestForApproval(null);
   };
 
-  const handleApprovalSubmit = async (requestId: number, action: string, prescriptionData?: any) => {
+  const handleApprovalSubmit = async (
+    requestId: number,
+    action: string,
+    prescriptionData?: any
+  ) => {
     try {
       if (action === "doctor_approve" && prescriptionData) {
         // Get the prescription request details
-        const prescriptionRequest = requests.find(req => req.id === requestId);
+        const prescriptionRequest = requests.find(
+          (req) => req.id === requestId
+        );
         if (!prescriptionRequest) {
           toast.error("Prescription request not found");
           return;
         }
 
         // Find the patient by name
-        const patient = patients.find(p => 
-          p.name === prescriptionRequest.patient_name || 
-          `${p.first_name} ${p.last_name}` === prescriptionRequest.patient_name
+        const patient = patients.find(
+          (p) =>
+            p.name === prescriptionRequest.patient_name ||
+            `${p.first_name} ${p.last_name}` ===
+              prescriptionRequest.patient_name
         );
 
         if (!patient) {
-          toast.error("Patient not found. Please ensure the patient exists in the system.");
+          toast.error(
+            "Patient not found. Please ensure the patient exists in the system."
+          );
           return;
         }
 
         // Parse medications from prescription content
         const medications: Medication[] = [];
         if (prescriptionData.prescription_content) {
-          const lines = prescriptionData.prescription_content.split('\n');
+          const lines = prescriptionData.prescription_content.split("\n");
           let currentMed: Partial<Medication> = {};
-          
+
           for (const line of lines) {
             const trimmedLine = line.trim();
             if (trimmedLine.match(/^\d+\./)) {
@@ -354,43 +365,46 @@ const PrescriptionManagement: React.FC = () => {
               if (currentMed.name) {
                 medications.push({
                   ...currentMed,
-                  id: Date.now() + Math.random()
+                  id: Date.now() + Math.random(),
                 } as Medication);
               }
               // Start new medication
               currentMed = {
-                name: trimmedLine.split('.', 2)[1]?.trim() || 'Unknown medication',
-                dose: '',
-                quantity: '',
-                frequency: '',
-                startDate: new Date().toISOString().split('T')[0],
-                endDate: '',
-                notes: '',
-                nameType: 'Generic' as "Generic" | "Brand"
+                name:
+                  trimmedLine.split(".", 2)[1]?.trim() || "Unknown medication",
+                dose: "",
+                quantity: "",
+                frequency: "",
+                startDate: new Date().toISOString().split("T")[0],
+                endDate: "",
+                notes: "",
+                nameType: "Generic" as "Generic" | "Brand",
               };
-            } else if (trimmedLine.startsWith('Dose:')) {
-              currentMed.dose = trimmedLine.replace('Dose:', '').trim();
-            } else if (trimmedLine.startsWith('Quantity:')) {
-              currentMed.quantity = trimmedLine.replace('Quantity:', '').trim();
-            } else if (trimmedLine.startsWith('Frequency:')) {
-              currentMed.frequency = trimmedLine.replace('Frequency:', '').trim();
-            } else if (trimmedLine.startsWith('Duration:')) {
-              const duration = trimmedLine.replace('Duration:', '').trim();
-              if (duration.includes(' to ')) {
-                const [start, end] = duration.split(' to ');
+            } else if (trimmedLine.startsWith("Dose:")) {
+              currentMed.dose = trimmedLine.replace("Dose:", "").trim();
+            } else if (trimmedLine.startsWith("Quantity:")) {
+              currentMed.quantity = trimmedLine.replace("Quantity:", "").trim();
+            } else if (trimmedLine.startsWith("Frequency:")) {
+              currentMed.frequency = trimmedLine
+                .replace("Frequency:", "")
+                .trim();
+            } else if (trimmedLine.startsWith("Duration:")) {
+              const duration = trimmedLine.replace("Duration:", "").trim();
+              if (duration.includes(" to ")) {
+                const [start, end] = duration.split(" to ");
                 currentMed.startDate = start.trim();
                 currentMed.endDate = end.trim();
               }
-            } else if (trimmedLine.startsWith('Notes:')) {
-              currentMed.notes = trimmedLine.replace('Notes:', '').trim();
+            } else if (trimmedLine.startsWith("Notes:")) {
+              currentMed.notes = trimmedLine.replace("Notes:", "").trim();
             }
           }
-          
+
           // Add the last medication
           if (currentMed.name) {
             medications.push({
               ...currentMed,
-              id: Date.now() + Math.random()
+              id: Date.now() + Math.random(),
             } as Medication);
           }
         }
@@ -399,14 +413,15 @@ const PrescriptionManagement: React.FC = () => {
         if (medications.length === 0) {
           medications.push({
             id: Date.now(),
-            name: prescriptionRequest.medication_name || 'Prescribed medication',
-            dose: prescriptionRequest.dosage || '',
-            quantity: '30', // Default quantity
-            frequency: prescriptionRequest.frequency || '',
-            startDate: new Date().toISOString().split('T')[0],
-            endDate: '',
-            notes: prescriptionRequest.additional_notes || '',
-            nameType: 'Generic' as "Generic" | "Brand"
+            name:
+              prescriptionRequest.medication_name || "Prescribed medication",
+            dose: prescriptionRequest.dosage || "",
+            quantity: "30", // Default quantity
+            frequency: prescriptionRequest.frequency || "",
+            startDate: new Date().toISOString().split("T")[0],
+            endDate: "",
+            notes: prescriptionRequest.additional_notes || "",
+            nameType: "Generic" as "Generic" | "Brand",
           });
         }
 
@@ -415,7 +430,7 @@ const PrescriptionManagement: React.FC = () => {
           action: "doctor_approve",
           prescription_content: prescriptionData.prescription_content,
           doctor_notes: prescriptionData.doctor_notes,
-          medications: medications // Send the parsed medications array
+          medications: medications, // Send the parsed medications array
         };
 
         await axiosInstance.post(
@@ -423,13 +438,14 @@ const PrescriptionManagement: React.FC = () => {
           approvalPayload
         );
 
-        toast.success("E-Prescription created and sent to patient successfully!");
-        
+        toast.success(
+          "E-Prescription created and sent to patient successfully!"
+        );
       } else if (action === "reject" && prescriptionData) {
         // Handle rejection normally
         const payload = {
           action: "reject",
-          rejection_reason: prescriptionData.rejection_reason
+          rejection_reason: prescriptionData.rejection_reason,
         };
 
         await axiosInstance.post(
@@ -441,7 +457,7 @@ const PrescriptionManagement: React.FC = () => {
       } else {
         // Handle other actions normally
         const payload = { action };
-        
+
         await axiosInstance.post(
           `/medical-documents/prescription-requests/${requestId}/approve/`,
           payload
@@ -534,16 +550,19 @@ const PrescriptionManagement: React.FC = () => {
       // Convert medications array to structured prescription content
       let prescriptionContentText = "";
       if (medications.length > 0) {
-        prescriptionContentText = medications.map((med, index) => 
-          `${index + 1}. ${med.name}
+        prescriptionContentText = medications
+          .map(
+            (med, index) =>
+              `${index + 1}. ${med.name}
    Dose: ${med.dose}
    Quantity: ${med.quantity}
    Frequency: ${med.frequency}
-   Duration: ${med.startDate}${med.endDate ? ` to ${med.endDate}` : ''}
-   ${med.notes ? `Notes: ${med.notes}` : ''}`
-        ).join('\n\n');
+   Duration: ${med.startDate}${med.endDate ? ` to ${med.endDate}` : ""}
+   ${med.notes ? `Notes: ${med.notes}` : ""}`
+          )
+          .join("\n\n");
       }
-      
+
       if (generalNotes) {
         prescriptionContentText += `\n\nGeneral Instructions:\n${generalNotes}`;
       }
@@ -562,14 +581,14 @@ const PrescriptionManagement: React.FC = () => {
       );
 
       toast.success("E-Prescription created successfully!");
-      
+
       // Reset form
       setSelectedPatient(null);
       setMedications([]);
       setGeneralNotes("");
       setCreatePrescriptionNotes("");
       setShowCreatePrescription(false);
-      
+
       // Optionally refresh requests to show if this creates any related data
       fetchRequests();
     } catch (error) {
@@ -628,7 +647,6 @@ const PrescriptionManagement: React.FC = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              
               <p className="text-sm text-muted-foreground mt-1">
                 Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{" "}
                 {totalItems} prescription requests
@@ -640,7 +658,8 @@ const PrescriptionManagement: React.FC = () => {
                 )}
               </p>
             </div>
-            <div className="flex items-center gap-2">ext             <div className="relative w-64">
+            <div className="flex items-center gap-2">
+              <div className="relative w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search patients, medications..."
@@ -735,19 +754,6 @@ const PrescriptionManagement: React.FC = () => {
                     <Button
                       variant="ghost"
                       className="h-auto p-0 font-semibold hover:bg-transparent"
-                      onClick={() => handleSort("medication_name")}
-                    >
-                      Medication
-                      {renderSortIcon("medication_name")}
-                    </Button>
-                  </TableHead>
-                  <TableHead>Dosage</TableHead>
-                  <TableHead>Frequency</TableHead>
-                  <TableHead>Duration</TableHead>
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
                       onClick={() => handleSort("status")}
                     >
                       Status
@@ -773,10 +779,6 @@ const PrescriptionManagement: React.FC = () => {
                     <TableCell className="font-medium">
                       {request.patient_name}
                     </TableCell>
-                    <TableCell>{request.medication_name}</TableCell>
-                    <TableCell>{request.dosage}</TableCell>
-                    <TableCell>{request.frequency}</TableCell>
-                    <TableCell>{request.duration}</TableCell>
                     <TableCell>{getStatusBadge(request.status)}</TableCell>
                     <TableCell>
                       {new Date(request.requested_at).toLocaleDateString()}
@@ -1036,7 +1038,11 @@ const PrescriptionManagement: React.FC = () => {
                                         "receptionist_approved" && (
                                         <div className="space-y-2">
                                           <Button
-                                            onClick={() => handleShowDoctorApprovalForm(selectedRequest)}
+                                            onClick={() =>
+                                              handleShowDoctorApprovalForm(
+                                                selectedRequest
+                                              )
+                                            }
                                             className="w-full bg-green-600 hover:bg-green-700"
                                           >
                                             <Mail className="h-4 w-4 mr-1" />
@@ -1120,7 +1126,7 @@ const PrescriptionManagement: React.FC = () => {
           )}
         </CardContent>
       </Card>
-      
+
       {/* Prescription Approval Modal */}
       {requestForApproval && (
         <PrescriptionApproval
@@ -1131,7 +1137,10 @@ const PrescriptionManagement: React.FC = () => {
       )}
 
       {/* Create E-Prescription Modal */}
-      <Dialog open={showCreatePrescription} onOpenChange={setShowCreatePrescription}>
+      <Dialog
+        open={showCreatePrescription}
+        onOpenChange={setShowCreatePrescription}
+      >
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create New E-Prescription</DialogTitle>
@@ -1149,7 +1158,9 @@ const PrescriptionManagement: React.FC = () => {
                   <Select
                     value={selectedPatient?.id.toString() || ""}
                     onValueChange={(value) => {
-                      const patient = patients.find(p => p.id.toString() === value);
+                      const patient = patients.find(
+                        (p) => p.id.toString() === value
+                      );
                       setSelectedPatient(patient || null);
                     }}
                   >
@@ -1158,23 +1169,39 @@ const PrescriptionManagement: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {patients.map((patient) => (
-                        <SelectItem key={patient.id} value={patient.id.toString()}>
-                          {patient.name || `${patient.first_name} ${patient.last_name}`} - {patient.email}
+                        <SelectItem
+                          key={patient.id}
+                          value={patient.id.toString()}
+                        >
+                          {patient.name ||
+                            `${patient.first_name} ${patient.last_name}`}{" "}
+                          - {patient.email}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  
+
                   {selectedPatient && (
                     <div className="mt-4 p-4 bg-gray-50 rounded border">
                       <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div><strong>Name:</strong></div>
-                        <div>{selectedPatient.name || `${selectedPatient.first_name} ${selectedPatient.last_name}`}</div>
-                        <div><strong>DOB:</strong></div>
+                        <div>
+                          <strong>Name:</strong>
+                        </div>
+                        <div>
+                          {selectedPatient.name ||
+                            `${selectedPatient.first_name} ${selectedPatient.last_name}`}
+                        </div>
+                        <div>
+                          <strong>DOB:</strong>
+                        </div>
                         <div>{selectedPatient.date_of_birth}</div>
-                        <div><strong>Email:</strong></div>
+                        <div>
+                          <strong>Email:</strong>
+                        </div>
                         <div>{selectedPatient.email}</div>
-                        <div><strong>Phone:</strong></div>
+                        <div>
+                          <strong>Phone:</strong>
+                        </div>
                         <div>{selectedPatient.phone}</div>
                       </div>
                     </div>
@@ -1186,19 +1213,26 @@ const PrescriptionManagement: React.FC = () => {
               {medications.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Current Medications</CardTitle>
+                    <CardTitle className="text-lg">
+                      Current Medications
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
                       {medications.map((med) => (
-                        <div key={med.id} className="flex items-center justify-between p-3 bg-gray-50 rounded border">
+                        <div
+                          key={med.id}
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded border"
+                        >
                           <div className="flex-1">
                             <div className="font-medium">{med.name}</div>
                             <div className="text-sm text-gray-600">
                               {med.dose} • {med.frequency} • Qty: {med.quantity}
                             </div>
                             {med.notes && (
-                              <div className="text-xs text-gray-500 mt-1">{med.notes}</div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                {med.notes}
+                              </div>
                             )}
                           </div>
                           <div className="flex gap-2">
@@ -1240,7 +1274,9 @@ const PrescriptionManagement: React.FC = () => {
                           type="radio"
                           name="nameType"
                           checked={currentMedication.nameType === "Generic"}
-                          onChange={() => handleMedicationChange("nameType", "Generic")}
+                          onChange={() =>
+                            handleMedicationChange("nameType", "Generic")
+                          }
                         />
                         Generic Name
                       </label>
@@ -1249,7 +1285,9 @@ const PrescriptionManagement: React.FC = () => {
                           type="radio"
                           name="nameType"
                           checked={currentMedication.nameType === "Brand"}
-                          onChange={() => handleMedicationChange("nameType", "Brand")}
+                          onChange={() =>
+                            handleMedicationChange("nameType", "Brand")
+                          }
                         />
                         Brand Name
                       </label>
@@ -1259,12 +1297,16 @@ const PrescriptionManagement: React.FC = () => {
                       <Input
                         placeholder="Medication Name"
                         value={currentMedication.name}
-                        onChange={(e) => handleMedicationChange("name", e.target.value)}
+                        onChange={(e) =>
+                          handleMedicationChange("name", e.target.value)
+                        }
                       />
                       <Input
                         placeholder="e.g., 500mg"
                         value={currentMedication.dose}
-                        onChange={(e) => handleMedicationChange("dose", e.target.value)}
+                        onChange={(e) =>
+                          handleMedicationChange("dose", e.target.value)
+                        }
                       />
                     </div>
 
@@ -1272,21 +1314,33 @@ const PrescriptionManagement: React.FC = () => {
                       <Input
                         placeholder="e.g., 30 tablets"
                         value={currentMedication.quantity}
-                        onChange={(e) => handleMedicationChange("quantity", e.target.value)}
+                        onChange={(e) =>
+                          handleMedicationChange("quantity", e.target.value)
+                        }
                       />
                       <Select
                         value={currentMedication.frequency}
-                        onValueChange={(val) => handleMedicationChange("frequency", val)}
+                        onValueChange={(val) =>
+                          handleMedicationChange("frequency", val)
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="e.g., Once a day" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Once daily">Once daily</SelectItem>
-                          <SelectItem value="Twice daily">Twice daily</SelectItem>
-                          <SelectItem value="Three times daily">Three times daily</SelectItem>
-                          <SelectItem value="Every 8 hours">Every 8 hours</SelectItem>
-                          <SelectItem value="Every 6 hours">Every 6 hours</SelectItem>
+                          <SelectItem value="Twice daily">
+                            Twice daily
+                          </SelectItem>
+                          <SelectItem value="Three times daily">
+                            Three times daily
+                          </SelectItem>
+                          <SelectItem value="Every 8 hours">
+                            Every 8 hours
+                          </SelectItem>
+                          <SelectItem value="Every 6 hours">
+                            Every 6 hours
+                          </SelectItem>
                           <SelectItem value="As needed">As needed</SelectItem>
                         </SelectContent>
                       </Select>
@@ -1298,7 +1352,9 @@ const PrescriptionManagement: React.FC = () => {
                         <Input
                           type="date"
                           value={currentMedication.startDate}
-                          onChange={(e) => handleMedicationChange("startDate", e.target.value)}
+                          onChange={(e) =>
+                            handleMedicationChange("startDate", e.target.value)
+                          }
                         />
                       </div>
                       <div>
@@ -1306,7 +1362,9 @@ const PrescriptionManagement: React.FC = () => {
                         <Input
                           type="date"
                           value={currentMedication.endDate}
-                          onChange={(e) => handleMedicationChange("endDate", e.target.value)}
+                          onChange={(e) =>
+                            handleMedicationChange("endDate", e.target.value)
+                          }
                         />
                       </div>
                     </div>
@@ -1314,13 +1372,17 @@ const PrescriptionManagement: React.FC = () => {
                     <Textarea
                       placeholder="Additional instructions or notes"
                       value={currentMedication.notes}
-                      onChange={(e) => handleMedicationChange("notes", e.target.value)}
+                      onChange={(e) =>
+                        handleMedicationChange("notes", e.target.value)
+                      }
                       rows={2}
                     />
 
                     <Button
                       onClick={addMedication}
-                      disabled={!currentMedication.name || !currentMedication.dose}
+                      disabled={
+                        !currentMedication.name || !currentMedication.dose
+                      }
                       className="w-full"
                     >
                       <Plus className="h-4 w-4 mr-1" />
@@ -1333,7 +1395,9 @@ const PrescriptionManagement: React.FC = () => {
               {/* General Instructions */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">General Instructions</CardTitle>
+                  <CardTitle className="text-lg">
+                    General Instructions
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Textarea
