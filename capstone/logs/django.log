@@ -1841,3 +1841,116 @@ INFO 2025-11-17 04:43:04,410 autoreload 25432 26604 Watching for file changes wi
 INFO 2025-11-17 04:43:19,144 autoreload 28244 27668 Watching for file changes with StatReloader
 INFO 2025-11-17 13:20:02,550 autoreload 12828 30316 Watching for file changes with StatReloader
 INFO 2025-11-17 13:48:42,329 autoreload 3584 11272 Watching for file changes with StatReloader
+2025-11-17 14:41:49,649 - django.server - INFO - "OPTIONS /api/auth/session-login/ HTTP/1.1" 200 0
+2025-11-17 14:41:49,976 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-login/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-17 14:41:51,003 - otp_email - INFO - ============================================================
+2025-11-17 14:41:51,055 - otp_email - INFO - ============================================================
+2025-11-17 14:41:51,096 - otp_email - INFO - ============================================================
+2025-11-17 14:41:51,096 - otp_email - INFO - ================================================================================
+2025-11-17 14:41:51,114 - otp_email - INFO - ================================================================================
+2025-11-17 14:41:51,139 - otp_email - INFO - ----------------------------------------
+2025-11-17 14:41:59,737 - otp_email - INFO - ================================================================================
+2025-11-17 14:41:59,747 - otp_email - INFO - ================================================================================
+2025-11-17 14:41:59,764 - django.server - INFO - "POST /api/auth/session-login/ HTTP/1.1" 200 151
+2025-11-17 14:42:36,651 - django.server - INFO - "OPTIONS /api/auth/session-verify-otp/ HTTP/1.1" 200 0
+2025-11-17 14:42:36,658 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-verify-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-11-17 14:42:36,659 - accounts.session_views - INFO - [2FA VERIFY] SessionOTPVerifyView.post called
+2025-11-17 14:42:36,659 - accounts.session_views - INFO - [2FA VERIFY] Request data: {'identifier': 'doctor@example.com', 'identifier_type': 'email', 'otp': '932084'}
+2025-11-17 14:42:36,659 - accounts.session_views - INFO - [2FA VERIFY] Session data: {'pending_2fa_user_id': 3}
+2025-11-17 14:42:36,659 - accounts.session_views - INFO - [2FA VERIFY] Verifying OTP for email: doctor@example.com
+2025-11-17 14:42:36,660 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 932084
+2025-11-17 14:42:36,660 - accounts.session_views - INFO - [2FA VERIFY] Cache key: otp_doctor@example.com_email
+2025-11-17 14:42:36,660 - accounts.session_views - INFO - [2FA VERIFY] Stored OTP: 932084
+2025-11-17 14:42:36,660 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 932084
+2025-11-17 14:42:36,661 - accounts.session_views - INFO - [2FA VERIFY] OTP Match: True
+2025-11-17 14:42:36,661 - accounts.session_views - INFO - [2FA VERIFY] Pending user ID from session: 3
+2025-11-17 14:42:36,662 - accounts.session_views - INFO - [2FA VERIFY] Found user from session: doctor@example.com (ID: 3)
+2025-11-17 14:42:36,662 - accounts.session_views - INFO - [2FA VERIFY] OTP verification successful - clearing cache and session data
+2025-11-17 14:42:36,664 - accounts.session_views - INFO - [2FA VERIFY] Cleared pending_2fa_user_id from session
+2025-11-17 14:42:36,669 - accounts.session_views - INFO - [2FA VERIFY] Session saved successfully. Session ID: 0ft04f0bfm8jb1blm1w9ksqjm9anfele
+2025-11-17 14:42:36,684 - django.server - INFO - "POST /api/auth/session-verify-otp/ HTTP/1.1" 200 551
+2025-11-17 14:42:36,738 - django.server - INFO - "OPTIONS /api/appointments/list/ HTTP/1.1" 200 0
+2025-11-17 14:42:36,738 - django.server - INFO - "OPTIONS /api/patients/ HTTP/1.1" 200 0
+2025-11-17 14:42:36,746 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 14:42:36,747 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 14:42:36,748 - appointments.views - INFO - Starting list method...
+2025-11-17 14:42:36,748 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1763361756.748597, "client_ip": "127.0.0.1"}
+2025-11-17 14:42:36,748 - appointments.views - INFO - Starting to fetch appointments...
+2025-11-17 14:42:36,750 - appointments.views - INFO - Successfully accessed database
+2025-11-17 14:42:36,752 - appointments.views - INFO - Found 1 appointments after filtering
+2025-11-17 14:42:36,754 - appointments.views - INFO - Sample appointment: id=1, status=ongoing, date=2025-11-17
+2025-11-17 14:42:36,754 - appointments.views - INFO - Patient: Jerry N/A. Olivarez
+2025-11-17 14:42:36,754 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-17 14:42:36,754 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-17 14:42:36,772 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 684
+2025-11-17 14:42:36,784 - appointments.views - INFO - Testing serialization with first appointment: 1
+2025-11-17 14:42:36,806 - appointments.views - INFO - Successfully serialized first appointment: {'id': 1, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Jerry N/A Olivarez', 'patient_id': 'P-20251115-0496', 'patient_email': 'jeri.olivarez@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2014-07-15', 'gender': 'male', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-17', 'time': '09:00:00', 'status': 'ongoing', 'created_at': '2025-11-17T01:43:32.896605+08:00', 'display_patient_name': 'Jerry N/A. Olivarez', 'display_doctor_name': 'Jeri Oli', 'display_time': '09:00 AM', 'display_date': 'November 17, 2025', 'doctor': 3, 'doctor_name': 'Jeri Oli', 'patient': 1}
+2025-11-17 14:42:36,809 - appointments.views - INFO - Successfully serialized all appointments. Count: 1
+2025-11-17 14:42:36,813 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 669
+2025-11-17 14:42:36,821 - django.server - INFO - "OPTIONS /api/patients/1/ HTTP/1.1" 200 0
+2025-11-17 14:42:36,827 - root - INFO - Request: {"method": "GET", "path": "/api/patients/1/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 14:42:36,828 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/1/", "timestamp": 1763361756.8284142, "client_ip": "127.0.0.1"}
+2025-11-17 14:42:36,837 - django.server - INFO - "GET /api/patients/1/ HTTP/1.1" 200 682
+2025-11-17 14:42:37,962 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 14:42:37,974 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 119
+2025-11-17 14:42:37,986 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 14:42:38,039 - django.server - INFO - "GET /api/availability/?doctor_id=3&page=1&page_size=10&ordering=-date&_t=1763361757978 HTTP/1.1" 200 3466
+2025-11-17 14:42:38,388 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 14:42:38,393 - appointments.views - INFO - Starting list method...
+2025-11-17 14:42:38,394 - appointments.views - INFO - Starting to fetch appointments...
+2025-11-17 14:42:38,395 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 14:42:38,395 - appointments.views - INFO - Successfully accessed database
+2025-11-17 14:42:38,396 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1763361758.3964527, "client_ip": "127.0.0.1"}
+2025-11-17 14:42:38,398 - appointments.views - INFO - Found 1 appointments after filtering
+2025-11-17 14:42:38,403 - appointments.views - INFO - Sample appointment: id=1, status=ongoing, date=2025-11-17
+2025-11-17 14:42:38,405 - appointments.views - INFO - Patient: Jerry N/A. Olivarez
+2025-11-17 14:42:38,406 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-17 14:42:38,407 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-17 14:42:38,417 - appointments.views - INFO - Testing serialization with first appointment: 1
+2025-11-17 14:42:38,419 - appointments.views - INFO - Successfully serialized first appointment: {'id': 1, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Jerry N/A Olivarez', 'patient_id': 'P-20251115-0496', 'patient_email': 'jeri.olivarez@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2014-07-15', 'gender': 'male', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-17', 'time': '09:00:00', 'status': 'ongoing', 'created_at': '2025-11-17T01:43:32.896605+08:00', 'display_patient_name': 'Jerry N/A. Olivarez', 'display_doctor_name': 'Jeri Oli', 'display_time': '09:00 AM', 'display_date': 'November 17, 2025', 'doctor': 3, 'doctor_name': 'Jeri Oli', 'patient': 1}
+2025-11-17 14:42:38,422 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 684
+2025-11-17 14:42:38,426 - appointments.views - INFO - Successfully serialized all appointments. Count: 1
+2025-11-17 14:42:38,433 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 669
+2025-11-17 14:42:39,262 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 14:42:39,264 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1763361759.263951, "client_ip": "127.0.0.1"}
+2025-11-17 14:42:39,289 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 684
+2025-11-17 14:42:43,976 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 14:42:43,982 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 119
+2025-11-17 14:42:43,990 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 14:42:44,034 - django.server - INFO - "GET /api/availability/?doctor_id=3&page=1&page_size=10&ordering=-date&_t=1763361763984 HTTP/1.1" 200 3466
+2025-11-17 14:42:44,764 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 14:42:44,765 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1763361764.7649148, "client_ip": "127.0.0.1"}
+2025-11-17 14:42:44,774 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 684
+2025-11-17 14:42:45,092 - django.server - INFO - "OPTIONS /api/medical-documents/lab-results/? HTTP/1.1" 200 0
+2025-11-17 14:42:45,098 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 14:42:45,100 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1763361765.100025, "client_ip": "127.0.0.1"}
+2025-11-17 14:42:45,106 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 2
+2025-11-17 14:42:45,111 - django.server - INFO - "OPTIONS /api/textract/health/ HTTP/1.1" 200 0
+2025-11-17 14:42:45,113 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 14:42:45,114 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-11-17 14:42:45,114 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-11-17 14:42:45,114 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-11-17 14:42:45,114 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-11-17 14:42:45,114 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-11-17 14:42:45,120 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-11-17 14:42:45,121 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-11-17 14:42:45,645 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-11-17 14:42:45,645 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-11-17 14:42:45,646 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-11-17 14:42:48,415 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 14:42:48,417 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-17 14:42:48,418 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1763361768.418896, "client_ip": "127.0.0.1"}
+2025-11-17 14:42:48,419 - appointments.views - INFO - Starting list method...
+2025-11-17 14:42:48,420 - appointments.views - INFO - Starting to fetch appointments...
+2025-11-17 14:42:48,422 - appointments.views - INFO - Successfully accessed database
+2025-11-17 14:42:48,426 - appointments.views - INFO - Found 1 appointments after filtering
+2025-11-17 14:42:48,431 - appointments.views - INFO - Sample appointment: id=1, status=ongoing, date=2025-11-17
+2025-11-17 14:42:48,432 - appointments.views - INFO - Patient: Jerry N/A. Olivarez
+2025-11-17 14:42:48,433 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-17 14:42:48,433 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-17 14:42:48,449 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 684
+2025-11-17 14:42:48,463 - appointments.views - INFO - Testing serialization with first appointment: 1
+2025-11-17 14:42:48,467 - appointments.views - INFO - Successfully serialized first appointment: {'id': 1, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Jerry N/A Olivarez', 'patient_id': 'P-20251115-0496', 'patient_email': 'jeri.olivarez@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2014-07-15', 'gender': 'male', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-17', 'time': '09:00:00', 'status': 'ongoing', 'created_at': '2025-11-17T01:43:32.896605+08:00', 'display_patient_name': 'Jerry N/A. Olivarez', 'display_doctor_name': 'Jeri Oli', 'display_time': '09:00 AM', 'display_date': 'November 17, 2025', 'doctor': 3, 'doctor_name': 'Jeri Oli', 'patient': 1}
+2025-11-17 14:42:48,472 - appointments.views - INFO - Successfully serialized all appointments. Count: 1
+2025-11-17 14:42:48,482 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 669
+INFO 2025-11-17 20:53:40,762 autoreload 31444 22172 Watching for file changes with StatReloader

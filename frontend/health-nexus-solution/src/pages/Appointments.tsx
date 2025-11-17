@@ -3,20 +3,20 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
 } from "@/components/ui/pagination";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useBranding } from "@/contexts/BrandingContext";
@@ -28,6 +28,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
+import { FollowUpModal } from "@/components/FollowUpModal";
+
 const Appointments = () => {
   const { currentUser, patients, users } = useClinic();
   const { colors } = useBranding();
@@ -35,6 +37,8 @@ const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [activeTab, setActiveTab] = useState("pending");
   const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false);
+  const [showFollowUpModal, setShowFollowUpModal] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [localPatients, setLocalPatients] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -214,62 +218,82 @@ const Appointments = () => {
 
       const mappedAppointments = mapAppointments(response.data);
       console.log("Mapped appointments:", mappedAppointments);
-      console.log("Mapped appointments with details:", mappedAppointments.map(apt => ({
-        id: apt.id,
-        date: apt.date,
-        time: apt.time,
-        status: apt.status,
-        patientName: apt.patient_name || apt.display_patient_name
-      })));
+      console.log(
+        "Mapped appointments with details:",
+        mappedAppointments.map((apt) => ({
+          id: apt.id,
+          date: apt.date,
+          time: apt.time,
+          status: apt.status,
+          patientName: apt.patient_name || apt.display_patient_name,
+        }))
+      );
 
       // Check for overdue appointments and delete them BEFORE setting state
       // Only do this if user can manage appointments (receptionist/admin)
       if (canManageAppointments) {
         console.log("Checking for overdue appointments...");
-        
+
         // Identify overdue appointments that need to be deleted
         const overdueAppointments = mappedAppointments.filter((appointment) => {
-          const isOverdue = isAppointmentOverdue(appointment.date, appointment.time);
-          
+          const isOverdue = isAppointmentOverdue(
+            appointment.date,
+            appointment.time
+          );
+
           // Only delete appointments that are:
           // 1. Truly overdue (past their time + grace period)
           // 2. In pending or ongoing status (not scheduled appointments)
           // 3. Not from today (to avoid deleting same-day appointments)
           const appointmentDate = new Date(appointment.date);
           const today = new Date();
-          const isFromToday = appointmentDate.toDateString() === today.toDateString();
-          
-          const shouldDelete = isOverdue && 
+          const isFromToday =
+            appointmentDate.toDateString() === today.toDateString();
+
+          const shouldDelete =
+            isOverdue &&
             !isFromToday && // Don't delete today's appointments
-            (appointment.status === "pending" || appointment.status === "ongoing"); // Only delete pending/ongoing, not scheduled
-          
+            (appointment.status === "pending" ||
+              appointment.status === "ongoing"); // Only delete pending/ongoing, not scheduled
+
           if (shouldDelete) {
-            console.log(`Appointment ${appointment.id} is overdue and will be deleted - Date: ${appointment.date}, Time: ${appointment.time}, Status: ${appointment.status}`);
+            console.log(
+              `Appointment ${appointment.id} is overdue and will be deleted - Date: ${appointment.date}, Time: ${appointment.time}, Status: ${appointment.status}`
+            );
           }
-          
+
           return shouldDelete;
         });
 
         // Delete overdue appointments from backend
-        const deletionPromises = overdueAppointments.map(async (appointment) => {
-          try {
-            console.log(`Auto-deleting overdue appointment ${appointment.id}`);
-            await axiosInstance.delete(`appointments/delete/${appointment.id}/`);
-            console.log(`Successfully deleted appointment ${appointment.id}`);
-            return appointment.id;
-          } catch (error) {
-            console.error(`Failed to delete overdue appointment ${appointment.id}:`, error);
-            // Return the ID anyway so we can filter it from local state
-            return appointment.id;
+        const deletionPromises = overdueAppointments.map(
+          async (appointment) => {
+            try {
+              console.log(
+                `Auto-deleting overdue appointment ${appointment.id}`
+              );
+              await axiosInstance.delete(
+                `appointments/delete/${appointment.id}/`
+              );
+              console.log(`Successfully deleted appointment ${appointment.id}`);
+              return appointment.id;
+            } catch (error) {
+              console.error(
+                `Failed to delete overdue appointment ${appointment.id}:`,
+                error
+              );
+              // Return the ID anyway so we can filter it from local state
+              return appointment.id;
+            }
           }
-        });
+        );
 
         // Wait for all deletions to complete
         const deletedIds = await Promise.all(deletionPromises);
-        
+
         // Filter out deleted appointments from the mapped appointments
         const validAppointments = mappedAppointments.filter(
-          appointment => !deletedIds.includes(appointment.id)
+          (appointment) => !deletedIds.includes(appointment.id)
         );
 
         // Set state with only valid (non-overdue) appointments
@@ -277,7 +301,9 @@ const Appointments = () => {
 
         // Show notification if any appointments were deleted
         if (overdueAppointments.length > 0) {
-          console.log(`${overdueAppointments.length} overdue appointments were automatically deleted`);
+          console.log(
+            `${overdueAppointments.length} overdue appointments were automatically deleted`
+          );
           toast.info(
             `${overdueAppointments.length} overdue appointment(s) were automatically deleted`
           );
@@ -299,51 +325,72 @@ const Appointments = () => {
     if (canManageAppointments) {
       const intervalId = setInterval(async () => {
         console.log("Periodic check for overdue appointments...");
-        
+
         // Get current appointments from state
         const currentAppointments = appointments;
-        
+
         // Identify overdue appointments that need to be deleted
-        const overdueAppointments = currentAppointments.filter((appointment) => {
-          const isOverdue = isAppointmentOverdue(appointment.date, appointment.time);
-          
-          // Only delete appointments that are:
-          // 1. Truly overdue (past their time + grace period)
-          // 2. In pending or ongoing status (not scheduled appointments)
-          // 3. Not from today (to avoid deleting same-day appointments)
-          const appointmentDate = new Date(appointment.date);
-          const today = new Date();
-          const isFromToday = appointmentDate.toDateString() === today.toDateString();
-          
-          const shouldDelete = isOverdue && 
-            !isFromToday && // Don't delete today's appointments
-            (appointment.status === "pending" || appointment.status === "ongoing"); // Only delete pending/ongoing, not scheduled
-          
-          return shouldDelete;
-        });
+        const overdueAppointments = currentAppointments.filter(
+          (appointment) => {
+            const isOverdue = isAppointmentOverdue(
+              appointment.date,
+              appointment.time
+            );
+
+            // Only delete appointments that are:
+            // 1. Truly overdue (past their time + grace period)
+            // 2. In pending or ongoing status (not scheduled appointments)
+            // 3. Not from today (to avoid deleting same-day appointments)
+            const appointmentDate = new Date(appointment.date);
+            const today = new Date();
+            const isFromToday =
+              appointmentDate.toDateString() === today.toDateString();
+
+            const shouldDelete =
+              isOverdue &&
+              !isFromToday && // Don't delete today's appointments
+              (appointment.status === "pending" ||
+                appointment.status === "ongoing"); // Only delete pending/ongoing, not scheduled
+
+            return shouldDelete;
+          }
+        );
 
         if (overdueAppointments.length > 0) {
           // Delete overdue appointments from backend
-          const deletionPromises = overdueAppointments.map(async (appointment) => {
-            try {
-              console.log(`Periodic deletion of overdue appointment ${appointment.id}`);
-              await axiosInstance.delete(`appointments/delete/${appointment.id}/`);
-              console.log(`Successfully deleted appointment ${appointment.id}`);
-              return appointment.id;
-            } catch (error) {
-              console.error(`Failed to delete overdue appointment ${appointment.id}:`, error);
-              return appointment.id; // Return ID anyway to remove from local state
+          const deletionPromises = overdueAppointments.map(
+            async (appointment) => {
+              try {
+                console.log(
+                  `Periodic deletion of overdue appointment ${appointment.id}`
+                );
+                await axiosInstance.delete(
+                  `appointments/delete/${appointment.id}/`
+                );
+                console.log(
+                  `Successfully deleted appointment ${appointment.id}`
+                );
+                return appointment.id;
+              } catch (error) {
+                console.error(
+                  `Failed to delete overdue appointment ${appointment.id}:`,
+                  error
+                );
+                return appointment.id; // Return ID anyway to remove from local state
+              }
             }
-          });
+          );
 
           // Wait for all deletions and update local state immediately
           const deletedIds = await Promise.all(deletionPromises);
-          
-          setAppointments(prev => 
-            prev.filter(appointment => !deletedIds.includes(appointment.id))
+
+          setAppointments((prev) =>
+            prev.filter((appointment) => !deletedIds.includes(appointment.id))
           );
 
-          console.log(`Periodic check: ${overdueAppointments.length} overdue appointments deleted`);
+          console.log(
+            `Periodic check: ${overdueAppointments.length} overdue appointments deleted`
+          );
           toast.info(
             `${overdueAppointments.length} overdue appointment(s) were automatically deleted`
           );
@@ -497,25 +544,6 @@ const Appointments = () => {
       const result = appointment.status === "completed";
       console.log(
         "Completed filter result:",
-        result,
-        "for appointment:",
-        appointment.id
-      );
-      return result;
-    } else if (activeTab === "followup") {
-      // Only receptionists and admins can see follow-up appointments
-      if (!canManageAppointments) {
-        console.log("Filtering out followup: Cannot manage appointments");
-        return false;
-      }
-      // Show appointments that are completed and have follow-up type or need follow-up
-      const result =
-        appointment.status === "completed" &&
-        (appointment.appointment_type?.toLowerCase().includes("follow") ||
-          appointment.type?.toLowerCase().includes("follow") ||
-          appointment.notes?.toLowerCase().includes("follow"));
-      console.log(
-        "Follow-up filter result:",
         result,
         "for appointment:",
         appointment.id
@@ -742,27 +770,102 @@ const Appointments = () => {
     }
   };
 
-  // Handler for scheduling follow-up appointments
-  const handleScheduleFollowUp = async (appointment) => {
+  // Handler for opening follow-up modal
+  const handleScheduleFollowUp = (appointment) => {
+    setSelectedAppointment(appointment);
+    setShowFollowUpModal(true);
+  };
+
+  // Handler for submitting follow-up appointment
+  const handleFollowUpSubmit = async (date: string, time: string) => {
+    console.log("handleFollowUpSubmit called with:", { date, time });
+    console.log("selectedAppointment:", selectedAppointment);
+    console.log("All patients:", patients);
+
+    if (!selectedAppointment) {
+      console.error("No selected appointment");
+      toast.error("No appointment selected");
+      return;
+    }
+
     try {
-      // Create a follow-up appointment
+      // Get patient details from the completed appointment
+      // Try to find patient by database ID first, then by patient_id string
+      // Convert both to strings for comparison since patient.id might be a string
+      let patient = patients.find(
+        (p) => String(p.id) === String(selectedAppointment.patientId)
+      );
+
+      if (!patient) {
+        // Try finding by patient_id if the appointment has it
+        const appointmentPatientId = selectedAppointment.patient_id;
+        if (appointmentPatientId) {
+          patient = patients.find((p) => p.patient_id === appointmentPatientId);
+        }
+      }
+
+      console.log("Found patient:", patient);
+      console.log(
+        "selectedAppointment.patientId:",
+        selectedAppointment.patientId
+      );
+      console.log(
+        "selectedAppointment.patient_id:",
+        selectedAppointment.patient_id
+      );
+
+      if (!patient) {
+        console.error("Patient not found in patients array");
+        toast.error("Patient information not found");
+        return;
+      }
+
       const followUpData = {
-        patient: appointment.patientId || appointment.patient,
-        doctor: appointment.doctorId || appointment.doctor,
-        date: "", // Will be set by the scheduling modal
-        time: "", // Will be set by the scheduling modal
+        patient_id: patient.patient_id,
+        patient_email: patient.email,
+        patient_phone: patient.phone,
+        date_of_birth: patient.date_of_birth,
+        gender: patient.gender,
+        address: patient.address,
+        marital_status: patient.marital_status,
+        doctor_id: selectedAppointment.doctorId || selectedAppointment.doctor,
+        date: date,
+        time: time,
         appointment_type: "Follow-up",
-        notes: `Follow-up for appointment on ${appointment.date}`,
-        status: "pending",
+        notes: `Follow-up for appointment on ${formatDate(
+          selectedAppointment.date
+        )}`,
+        status: "scheduled",
       };
 
-      // For now, we'll show a toast and open the new appointment modal
-      // In a full implementation, you might want to create a dedicated follow-up scheduling modal
-      toast.success("Opening appointment scheduler for follow-up");
-      setShowNewAppointmentModal(true);
+      console.log("Creating follow-up appointment with data:", followUpData);
+
+      const response = await axiosInstance.post(
+        "appointments/create/",
+        followUpData
+      );
+
+      console.log("Follow-up appointment created:", response.data);
+
+      // Refresh appointments list
+      await fetchAppointments();
+
+      toast.success(
+        `Follow-up appointment scheduled for ${formatDate(
+          date
+        )} at ${formatTime(time)}`
+      );
+
+      // Switch to upcoming tab to show the new appointment
+      setActiveTab("upcoming");
     } catch (error) {
       console.error("Error scheduling follow-up:", error);
-      toast.error("Failed to schedule follow-up appointment");
+      console.error("Error details:", error.response?.data);
+      const errorMsg =
+        error.response?.data?.error ||
+        error.response?.data?.detail ||
+        "Failed to schedule follow-up appointment";
+      toast.error(errorMsg);
     }
   };
 
@@ -831,9 +934,14 @@ const Appointments = () => {
               size="sm"
               className={buttonClass}
               onClick={() => {
-                const patient = patients.find(p => p.id === appointment.patientId);
-                const patientIdentifier = patient?.patient_id || appointment.patientId;
-                navigate(`/patients/${patientIdentifier}?from=ongoing&appointmentId=${appointment.id}`);
+                const patient = patients.find(
+                  (p) => p.id === appointment.patientId
+                );
+                const patientIdentifier =
+                  patient?.patient_id || appointment.patientId;
+                navigate(
+                  `/patients/${patientIdentifier}?from=ongoing&appointmentId=${appointment.id}`
+                );
               }}
             >
               View Record
@@ -848,8 +956,35 @@ const Appointments = () => {
             </Button>
           </div>
         );
+      } else if (isReceptionist) {
+        return (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className={buttonClass}
+              onClick={() => {
+                const patient = patients.find(
+                  (p) => p.id === appointment.patientId
+                );
+                const patientIdentifier =
+                  patient?.patient_id || appointment.patientId;
+                navigate(`/patients/${patientIdentifier}`);
+              }}
+            >
+              View Record
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              className={buttonClass}
+              onClick={() => handleStatusUpdate(appointment.id, "cancelled")}
+            >
+              Cancel
+            </Button>
+          </div>
+        );
       }
-      // Removed receptionist actions from ongoing tab - only doctors and admins can manage ongoing appointments
     }
 
     if (activeTab === "completed") {
@@ -861,20 +996,15 @@ const Appointments = () => {
               size="sm"
               className={buttonClass}
               onClick={() => {
-                const patient = patients.find(p => p.id === appointment.patientId);
-                const patientIdentifier = patient?.patient_id || appointment.patientId;
+                const patient = patients.find(
+                  (p) => p.id === appointment.patientId
+                );
+                const patientIdentifier =
+                  patient?.patient_id || appointment.patientId;
                 navigate(`/patients/${patientIdentifier}`);
               }}
             >
               View Record
-            </Button>
-            <Button
-              variant="default"
-              size="sm"
-              className={`${buttonClass} bg-blue-600 hover:bg-blue-700`}
-              onClick={() => handleScheduleFollowUp(appointment)}
-            >
-              Schedule Follow-up
             </Button>
           </div>
         );
@@ -886,8 +1016,11 @@ const Appointments = () => {
               size="sm"
               className={buttonClass}
               onClick={() => {
-                const patient = patients.find(p => p.id === appointment.patientId);
-                const patientIdentifier = patient?.patient_id || appointment.patientId;
+                const patient = patients.find(
+                  (p) => p.id === appointment.patientId
+                );
+                const patientIdentifier =
+                  patient?.patient_id || appointment.patientId;
                 navigate(`/patients/${patientIdentifier}`);
               }}
             >
@@ -899,15 +1032,7 @@ const Appointments = () => {
               className={`${buttonClass} bg-blue-600 hover:bg-blue-700`}
               onClick={() => handleScheduleFollowUp(appointment)}
             >
-              Schedule Follow-up
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className={buttonClass}
-              onClick={() => handleStatusUpdate(appointment.id, "scheduled")}
-            >
-              Reschedule
+              Follow-up
             </Button>
           </div>
         );
@@ -944,69 +1069,62 @@ const Appointments = () => {
           >
             <TabsList
               className={`grid mb-4 ${
-                canManageAppointments ? "grid-cols-6" : "grid-cols-4"
+                canManageAppointments ? "grid-cols-5" : "grid-cols-4"
               }`}
             >
               {canManageAppointments && (
-                <TabsTrigger 
-                  value="pending" 
+                <TabsTrigger
+                  value="pending"
                   className="hover:bg-primary/10 transition-colors"
                   style={{
-                    backgroundColor: activeTab === 'pending' ? colors.primaryColor : undefined,
-                    color: activeTab === 'pending' ? 'white' : undefined
+                    backgroundColor:
+                      activeTab === "pending" ? colors.primaryColor : undefined,
+                    color: activeTab === "pending" ? "white" : undefined,
                   }}
                 >
                   Pending
                 </TabsTrigger>
               )}
-              <TabsTrigger 
-                value="upcoming" 
+              <TabsTrigger
+                value="upcoming"
                 className="hover:bg-primary/10 transition-colors"
                 style={{
-                  backgroundColor: activeTab === 'upcoming' ? colors.primaryColor : undefined,
-                  color: activeTab === 'upcoming' ? 'white' : undefined
+                  backgroundColor:
+                    activeTab === "upcoming" ? colors.primaryColor : undefined,
+                  color: activeTab === "upcoming" ? "white" : undefined,
                 }}
               >
                 Upcoming
               </TabsTrigger>
-              <TabsTrigger 
-                value="ongoing" 
+              <TabsTrigger
+                value="ongoing"
                 className="hover:bg-primary/10 transition-colors"
                 style={{
-                  backgroundColor: activeTab === 'ongoing' ? colors.primaryColor : undefined,
-                  color: activeTab === 'ongoing' ? 'white' : undefined
+                  backgroundColor:
+                    activeTab === "ongoing" ? colors.primaryColor : undefined,
+                  color: activeTab === "ongoing" ? "white" : undefined,
                 }}
               >
                 Ongoing
               </TabsTrigger>
-              <TabsTrigger 
-                value="completed" 
+              <TabsTrigger
+                value="completed"
                 className="hover:bg-primary/10 transition-colors"
                 style={{
-                  backgroundColor: activeTab === 'completed' ? colors.primaryColor : undefined,
-                  color: activeTab === 'completed' ? 'white' : undefined
+                  backgroundColor:
+                    activeTab === "completed" ? colors.primaryColor : undefined,
+                  color: activeTab === "completed" ? "white" : undefined,
                 }}
               >
                 Completed
               </TabsTrigger>
-              {canManageAppointments && (
-                <TabsTrigger 
-                  value="followup" 
-                  className="hover:bg-primary/10 transition-colors"
-                  style={{
-                    backgroundColor: activeTab === 'followup' ? colors.primaryColor : undefined,
-                    color: activeTab === 'followup' ? 'white' : undefined
-                  }}
-                >
-                  Follow-up
-                </TabsTrigger>
-              )}
-              <TabsTrigger 
-                value="cancelled" 
+              <TabsTrigger
+                value="cancelled"
                 className="hover:bg-primary/10 transition-colors"
                 style={{
-                  backgroundColor: activeTab === 'cancelled' ? colors.primaryColor : undefined,
-                  color: activeTab === 'cancelled' ? 'white' : undefined
+                  backgroundColor:
+                    activeTab === "cancelled" ? colors.primaryColor : undefined,
+                  color: activeTab === "cancelled" ? "white" : undefined,
                 }}
               >
                 Cancelled
@@ -1065,11 +1183,12 @@ const Appointments = () => {
                                   appointment
                                 )}
                                 {/* Show "New Patient" badge for first-time patients from portal/chatbot */}
-                                {appointment.patient_name && !appointment.patientId && (
-                                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                    New Patient
-                                  </span>
-                                )}
+                                {appointment.patient_name &&
+                                  !appointment.patientId && (
+                                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                      New Patient
+                                    </span>
+                                  )}
                               </TableCell>
                               <TableCell>
                                 {formatDate(appointment.date)}
@@ -1381,6 +1500,7 @@ const Appointments = () => {
                           <TableHead>Type</TableHead>
                           <TableHead>Doctor</TableHead>
                           <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -1405,6 +1525,9 @@ const Appointments = () => {
                             <TableCell>
                               {getStatusBadge(appointment.status)}
                             </TableCell>
+                            <TableCell className="text-right">
+                              {renderActionButtons(appointment)}
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -1413,93 +1536,6 @@ const Appointments = () => {
                 </Card>
               )}
             </TabsContent>
-
-            {isReceptionist && (
-              <TabsContent value="followup" className="space-y-4">
-                {filteredAppointments.length === 0 ? (
-                  <Card>
-                    <CardContent className="pt-6 text-center">
-                      <p>No follow-up appointments found.</p>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card>
-                    <CardContent className="p-0">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-[200px]">
-                              <div className="flex items-center gap-2">
-                                <User className="h-4 w-4" />
-                                Patient
-                              </div>
-                            </TableHead>
-                            <TableHead>
-                              <div className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4" />
-                                Date
-                              </div>
-                            </TableHead>
-                            <TableHead>
-                              <div className="flex items-center gap-2">
-                                <Clock className="h-4 w-4" />
-                                Time
-                              </div>
-                            </TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Doctor</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">
-                              Actions
-                            </TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {filteredAppointments.map((appointment) => (
-                            <TableRow key={appointment.id}>
-                              <TableCell className="font-medium">
-                                {getPatientName(
-                                  appointment.patientId,
-                                  appointment
-                                )}
-                              </TableCell>
-                              <TableCell>
-                                {formatDate(appointment.date)}
-                              </TableCell>
-                              <TableCell>
-                                {formatTime(appointment.time)}
-                              </TableCell>
-                              <TableCell>{appointment.type}</TableCell>
-                              <TableCell>
-                                {getDoctorName(
-                                  appointment.doctorId,
-                                  appointment
-                                )}
-                              </TableCell>
-                              <TableCell>
-                                {getStatusBadge(appointment.status)}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  className={buttonClass}
-                                  onClick={() =>
-                                    handleScheduleFollowUp(appointment)
-                                  }
-                                >
-                                  Schedule New Follow-up
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-            )}
 
             <TabsContent value="cancelled" className="space-y-4">
               {filteredAppointments.length === 0 ? (
@@ -1575,6 +1611,18 @@ const Appointments = () => {
       <NewAppointmentModal
         open={showNewAppointmentModal}
         onOpenChange={setShowNewAppointmentModal}
+      />
+
+      {/* Follow-up Appointment Modal */}
+      <FollowUpModal
+        open={showFollowUpModal}
+        onOpenChange={setShowFollowUpModal}
+        onSubmit={handleFollowUpSubmit}
+        patientName={getPatientName(
+          selectedAppointment?.patientId,
+          selectedAppointment
+        )}
+        doctorId={selectedAppointment?.doctorId || selectedAppointment?.doctor}
       />
     </div>
   );
