@@ -2498,6 +2498,11 @@ const PatientManagement = () => {
           }
           
           @media print {
+            * {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
             .page-break {
               page-break-before: always;
               page-break-after: auto;
@@ -2559,6 +2564,9 @@ const PatientManagement = () => {
             display: block;
             margin-left: auto;
             margin-right: auto;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
           }
           
           .clinic-name {
@@ -2973,42 +2981,39 @@ const PatientManagement = () => {
           </div>
         </div>
       `;
+    }
 
-      // Visit History Section
-      if (completedAppointments.length > 0) {
-        content += `
-          <div class="section">
-            <div class="section-title">Visit History</div>
-            <table class="visit-history-table">
-              <thead>
+    // Visit History Section - Always show if there are completed appointments
+    if (completedAppointments.length > 0) {
+      content += `
+        <div class="section">
+          <div class="section-title">Visit History</div>
+          <table class="visit-history-table">
+            <thead>
+              <tr>
+                <th>Date Visited</th>
+                <th>Doctor</th>
+                <th>Reason for Visit</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${completedAppointments
+                .map(
+                  (appointment) => `
                 <tr>
-                  <th>Date Visited</th>
-                  <th>Doctor</th>
-                  <th>Reason for Visit</th>
+                  <td>${format(new Date(appointment.date), "MMM dd, yyyy")}</td>
+                  <td>${appointment.doctor_name || "N/A"}</td>
+                  <td>${
+                    appointment.appointment_type || "General Consultation"
+                  }</td>
                 </tr>
-              </thead>
-              <tbody>
-                ${completedAppointments
-                  .map(
-                    (appointment) => `
-                  <tr>
-                    <td>${format(
-                      new Date(appointment.date),
-                      "MMM dd, yyyy"
-                    )}</td>
-                    <td>${appointment.doctor_name || "N/A"}</td>
-                    <td>${
-                      appointment.appointment_type || "General Consultation"
-                    }</td>
-                  </tr>
-                `
-                  )
-                  .join("")}
-              </tbody>
-            </table>
-          </div>
-        `;
-      }
+              `
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
     }
 
     // Documents sections (existing format)
