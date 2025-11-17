@@ -190,11 +190,7 @@ const App = () => {
                 {/* Public patient portal */}
                 <Route path="/portal" element={<PatientPortal />} />
 
-                {/* Public prescription viewer (from QR code) */}
-                <Route
-                  path="/prescription/:prescriptionId"
-                  element={<PublicPrescription />}
-                />
+                
 
                 {/* Patient requests page */}
 

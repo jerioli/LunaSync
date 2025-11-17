@@ -1839,3 +1839,5 @@ INFO 2025-11-17 04:42:58,514 autoreload 6488 26940 Watching for file changes wit
 INFO 2025-11-17 04:43:04,410 autoreload 25432 26604 Watching for file changes with StatReloader
 2025-11-17 04:43:18,064 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\api\qr.py changed, reloading.
 INFO 2025-11-17 04:43:19,144 autoreload 28244 27668 Watching for file changes with StatReloader
+INFO 2025-11-17 13:20:02,550 autoreload 12828 30316 Watching for file changes with StatReloader
+INFO 2025-11-17 13:48:42,329 autoreload 3584 11272 Watching for file changes with StatReloader
