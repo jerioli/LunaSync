@@ -60,6 +60,7 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
+  Download,
   Edit,
   Eye,
   File,
@@ -1247,7 +1248,37 @@ const PatientManagement = () => {
 
   // Print functionality
   const handlePrintRecord = () => {
-    setShowPrintDialog(true);
+    // Generate print content first
+    const printContent = generateStandardPrintContent();
+
+    // Create a hidden window with white background
+    const printWindow = window.open(
+      "about:blank",
+      "_blank",
+      "width=1,height=1,left=10000"
+    );
+    if (printWindow) {
+      // Write the print content
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+
+      // Wait a moment for content to load, then resize window and trigger print
+      setTimeout(() => {
+        // Resize and center the window before showing
+        const width = 800;
+        const height = 600;
+        const left = (screen.width - width) / 2;
+        const top = (screen.height - height) / 2;
+        printWindow.resizeTo(width, height);
+        printWindow.moveTo(left, top);
+        printWindow.focus();
+
+        // Trigger print dialog immediately
+        setTimeout(() => {
+          printWindow.print();
+        }, 100);
+      }, 100);
+    }
   };
 
   const handlePrintSettingsChange = (
@@ -2462,7 +2493,7 @@ const PatientManagement = () => {
         <meta charset="utf-8">
         <style>
           @page {
-            margin: 1in;
+            margin: 0.4in 0.5in;
             size: A4;
           }
           
@@ -2477,152 +2508,243 @@ const PatientManagement = () => {
             body {
               margin: 0;
               padding: 0;
+              background: white !important;
             }
-            .document-container {
-              page-break-inside: avoid;
-              min-height: 100vh;
+            body > *:not(.page-container) {
+              display: none !important;
+            }
+            #root > *:not(style):not(script) {
+              display: none !important;
             }
           }
           
+          * {
+            box-sizing: border-box;
+          }
+          
           body {
-            font-family: Arial, sans-serif;
-            line-height: 1.4;
-            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.3;
+            color: #1a1a1a;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            font-size: 9pt;
+            background: white;
+          }
+          
+          .page-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: white;
+          }
+          
+          .content-wrapper {
+            flex: 1;
           }
           
           .header {
             text-align: center;
-            border-bottom: 2px solid #333;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
+            border-bottom: 2px solid #2c5282;
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+            background: white;
+            padding-top: 5px;
           }
           
           .logo {
-            max-height: 80px;
-            margin-bottom: 10px;
+            max-height: 60px;
+            width: auto;
+            margin-bottom: 8px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
           }
           
           .clinic-name {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 5px;
+            font-size: 14pt;
+            font-weight: 700;
+            margin-bottom: 3px;
+            color: #2c5282;
+            letter-spacing: 0.3px;
           }
           
           .clinic-info {
-            font-size: 14px;
-            color: #666;
+            font-size: 8pt;
+            color: #495057;
+            line-height: 1.4;
+            margin-top: 5px;
           }
           
           .patient-header {
-            background: #f5f5f5;
-            padding: 15px;
+            background: #5a67d8;
+            color: white;
+            padding: 10px 12px;
             border-radius: 5px;
-            margin-bottom: 30px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
           }
           
           .patient-name {
-            font-size: 22px;
-            font-weight: bold;
+            font-size: 13pt;
+            font-weight: 700;
             margin-bottom: 5px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
           }
           
           .patient-details {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            font-size: 8pt;
           }
           
           .section {
-            margin-bottom: 30px;
+            margin-bottom: 12px;
+            page-break-inside: avoid;
           }
           
           .section-title {
-            font-size: 18px;
-            font-weight: bold;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 5px;
-            margin-bottom: 15px;
+            font-size: 10pt;
+            font-weight: 700;
+            color: #2c5282;
+            border-bottom: 1.5px solid #e2e8f0;
+            padding-bottom: 3px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
           }
           
-          .info-grid {
+          .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+            background: white;
+            font-size: 8pt;
+          }
+          
+          .info-table td {
+            padding: 4px 6px;
+            border: 1px solid #e2e8f0;
+            vertical-align: top;
+          }
+          
+          .info-table td:first-child {
+            font-weight: 600;
+            background: #f8f9fa;
+            width: 28%;
+            color: #495057;
+          }
+          
+          .info-table td:nth-child(2) {
+            background: white;
+          }
+          
+          .data-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px 12px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
           }
           
-          .info-item {
-            display: flex;
-            gap: 5px;
+          .data-item {
+            padding: 3px 0;
           }
           
-          .info-label {
-            font-weight: bold;
-            min-width: 120px;
+          .data-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 2px;
+            font-size: 7.5pt;
           }
           
-          .document {
-            border: 1px solid #ddd;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 5px;
+          .data-value {
+            color: #1a1a1a;
+            font-size: 8pt;
           }
           
-          .document-title {
-            font-weight: bold;
-            margin-bottom: 10px;
-            font-size: 16px;
+          .visit-history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+            font-size: 7.5pt;
           }
           
-          .document-date {
-            color: #666;
-            font-size: 12px;
-            margin-bottom: 10px;
+          .visit-history-table thead {
+            background: #5a67d8;
+            color: white;
           }
           
-          .prescription-details {
-            background: #f9f9f9;
-            padding: 10px;
-            border-radius: 3px;
+          .visit-history-table th {
+            padding: 5px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 8pt;
+            border: 1px solid rgba(255,255,255,0.2);
           }
           
-          .soap-section {
-            margin-bottom: 10px;
+          .visit-history-table td {
+            padding: 4px 8px;
+            border: 1px solid #e2e8f0;
+            font-size: 7.5pt;
           }
           
-          .soap-label {
-            font-weight: bold;
-            color: #444;
-            margin-bottom: 5px;
+          .visit-history-table tbody tr:nth-child(even) {
+            background: #f8f9fa;
           }
           
           .footer {
-            margin-top: 50px;
+            margin-top: auto;
+            padding-top: 8px;
+            border-top: 1.5px solid #e2e8f0;
             text-align: center;
-            font-size: 12px;
-            color: #666;
-            border-top: 1px solid #ccc;
-            padding-top: 20px;
+            font-size: 7pt;
+            color: #6c757d;
+          }
+          
+          .footer-info {
+            margin-bottom: 3px;
+          }
+          
+          .confidential-notice {
+            margin-top: 6px;
+            padding: 5px;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 3px;
+            font-size: 6.5pt;
+            color: #856404;
+          }
+          
+          strong {
+            font-weight: 600;
           }
         </style>
       </head>
       <body>
+        <div class="page-container">
+          <div class="content-wrapper">
     `;
 
-    // Header with clinic info
+    // Header with clinic info - fetch logo and contact like e-prescription
+    const clinicData = clinicSettings || {};
     content += `
       <div class="header">
         ${
-          logoUrl ? `<img src="${logoUrl}" alt="Clinic Logo" class="logo">` : ""
+          logoUrl
+            ? `<img src="${logoUrl}" alt="Clinic Logo" class="logo">`
+            : `<div style="font-size: 16pt; font-weight: 700; margin-bottom: 8px; color: #2c5282;">${
+                clinicData.clinic_name || "Medical Clinic"
+              }</div>`
         }
-        <div class="clinic-name">${
-          clinicInfo?.clinic_name || "Medical Clinic"
-        }</div>
         <div class="clinic-info">
-          ${clinicInfo?.address || ""}<br>
-          ${clinicInfo?.phone || ""} | ${clinicInfo?.email || ""}
+          ${clinicData.address || "Clinic Address"}<br>
+          ${clinicData.phone ? `Tel: ${clinicData.phone}` : ""}${
+      clinicData.email ? ` | Email: ${clinicData.email}` : ""
+    }${clinicData.website ? ` | ${clinicData.website}` : ""}
         </div>
       </div>
     `;
@@ -2632,7 +2754,9 @@ const PatientManagement = () => {
       <div class="patient-header">
         <div class="patient-name">${patientData.name}</div>
         <div class="patient-details">
-         
+          <span><strong>Patient ID:</strong> ${
+            patientData.patient_id || patientData.id
+          }</span>
           <span><strong>Age:</strong> ${
             patientData.date_of_birth
               ? new Date().getFullYear() -
@@ -2640,7 +2764,6 @@ const PatientManagement = () => {
               : "N/A"
           } years</span>
           <span><strong>Sex:</strong> ${patientData.gender}</span>
-          <span><strong>Date:</strong> ${format(new Date(), "PPP")}</span>
         </div>
       </div>
     `;
@@ -2651,44 +2774,44 @@ const PatientManagement = () => {
       content += `
         <div class="section">
           <div class="section-title">Personal Information</div>
-          <div class="info-grid">
-            <div class="info-item">
-              <span class="info-label">Full Name:</span>
-              <span>${patientData.name}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Date of Birth:</span>
-              <span>${
+          <table class="info-table">
+            <tr>
+              <td>Full Name</td>
+              <td>${patientData.name}</td>
+            </tr>
+            <tr>
+              <td>Date of Birth</td>
+              <td>${
                 patientData.date_of_birth
                   ? format(new Date(patientData.date_of_birth), "PPP")
                   : "N/A"
-              }</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Sex:</span>
-              <span class="capitalize">${patientData.gender}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Phone:</span>
-              <span>${patientData.phone}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Email:</span>
-              <span>${patientData.email}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Home Address:</span>
-              <span>${patientData.address || "N/A"}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Religion:</span>
-              <span>${patientData.religion || "N/A"}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Emergency Contact:</span>
-              <span>${(patientData as any)?.emergency_contact || "N/A"}</span>
-            </div>
-          </div>
+              }</td>
+            </tr>
+            <tr>
+              <td>Sex</td>
+              <td class="capitalize">${patientData.gender}</td>
+            </tr>
+            <tr>
+              <td>Phone</td>
+              <td>${patientData.phone}</td>
+            </tr>
+            <tr>
+              <td>Email</td>
+              <td>${patientData.email}</td>
+            </tr>
+            <tr>
+              <td>Home Address</td>
+              <td>${patientData.address || "N/A"}</td>
+            </tr>
+            <tr>
+              <td>Religion</td>
+              <td>${patientData.religion || "N/A"}</td>
+            </tr>
+            <tr>
+              <td>Emergency Contact</td>
+              <td>${(patientData as any)?.emergency_contact || "N/A"}</td>
+            </tr>
+          </table>
         </div>
       `;
 
@@ -2696,44 +2819,44 @@ const PatientManagement = () => {
       content += `
         <div class="section">
           <div class="section-title">Physical Examination</div>
-          <div class="info-grid">
-            <div class="info-item">
-              <span class="info-label">Height:</span>
-              <span>${
+          <div class="data-grid">
+            <div class="data-item">
+              <div class="data-label">Height</div>
+              <div class="data-value">${
                 patientData.physical_examination?.height || "Not recorded"
-              }</span>
+              }</div>
             </div>
-            <div class="info-item">
-              <span class="info-label">Weight:</span>
-              <span>${
+            <div class="data-item">
+              <div class="data-label">Weight</div>
+              <div class="data-value">${
                 patientData.physical_examination?.weight || "Not recorded"
-              }</span>
+              }</div>
             </div>
-            <div class="info-item">
-              <span class="info-label">Blood Pressure:</span>
-              <span>${
+            <div class="data-item">
+              <div class="data-label">Blood Pressure</div>
+              <div class="data-value">${
                 patientData.physical_examination?.bloodPressure ||
                 "Not recorded"
-              }</span>
+              }</div>
             </div>
-            <div class="info-item">
-              <span class="info-label">Temperature:</span>
-              <span>${
+            <div class="data-item">
+              <div class="data-label">Temperature</div>
+              <div class="data-value">${
                 patientData.physical_examination?.temperature || "Not recorded"
-              }</span>
+              }</div>
             </div>
-            <div class="info-item">
-              <span class="info-label">Pulse Rate:</span>
-              <span>${
+            <div class="data-item">
+              <div class="data-label">Pulse Rate</div>
+              <div class="data-value">${
                 patientData.physical_examination?.pulseRate || "Not recorded"
-              }</span>
+              }</div>
             </div>
-            <div class="info-item">
-              <span class="info-label">Respiratory Rate:</span>
-              <span>${
+            <div class="data-item">
+              <div class="data-label">Respiratory Rate</div>
+              <div class="data-value">${
                 patientData.physical_examination?.respiratoryRate ||
                 "Not recorded"
-              }</span>
+              }</div>
             </div>
           </div>
         </div>
@@ -2743,25 +2866,27 @@ const PatientManagement = () => {
       content += `
         <div class="section">
           <div class="section-title">Medical Information</div>
-          <div class="info-grid">
-            <div class="info-item">
-              <span class="info-label">Blood Type:</span>
-              <span>${patientData.medical_info?.bloodType || "N/A"}</span>
+          <div class="data-grid">
+            <div class="data-item">
+              <div class="data-label">Blood Type</div>
+              <div class="data-value">${
+                patientData.medical_info?.bloodType || "N/A"
+              }</div>
             </div>
-            <div class="info-item">
-              <span class="info-label">Known Allergies:</span>
-              <span>${
+            <div class="data-item">
+              <div class="data-label">Known Allergies</div>
+              <div class="data-value">${
                 patientData.medical_info?.allergies?.join(", ") ||
                 "None recorded"
-              }</span>
+              }</div>
             </div>
           </div>
           ${
             patientData.medical_info?.medicalHistory
               ? `
-            <div class="info-item">
-              <span class="info-label">Medical History:</span>
-              <div style="margin-top: 5px;">${patientData.medical_info.medicalHistory}</div>
+            <div class="data-item" style="margin-top: 15px;">
+              <div class="data-label">Medical History</div>
+              <div class="data-value" style="margin-top: 8px; line-height: 1.6;">${patientData.medical_info.medicalHistory}</div>
             </div>
           `
               : ""
@@ -2770,9 +2895,9 @@ const PatientManagement = () => {
           ${
             (patientData.medical_info as any)?.chiefComplaint
               ? `
-            <div class="info-item">
-              <span class="info-label">Chief Complaint:</span>
-              <div style="margin-top: 5px;">${
+            <div class="data-item" style="margin-top: 15px;">
+              <div class="data-label">Chief Complaint</div>
+              <div class="data-value" style="margin-top: 8px; line-height: 1.6;">${
                 (patientData.medical_info as any).chiefComplaint
               }</div>
             </div>
@@ -2780,13 +2905,13 @@ const PatientManagement = () => {
               : ""
           }
           
-          <div class="info-grid" style="margin-top: 15px;">
+          <div class="data-grid" style="margin-top: 15px;">
             ${
               (patientData.medical_info as any)?.illnesses
                 ? `
-              <div class="info-item">
-                <span class="info-label">Illnesses:</span>
-                <div style="margin-top: 3px;">${
+              <div class="data-item">
+                <div class="data-label">Illnesses</div>
+                <div class="data-value" style="margin-top: 5px;">${
                   (patientData.medical_info as any).illnesses
                 }</div>
               </div>
@@ -2797,9 +2922,9 @@ const PatientManagement = () => {
             ${
               (patientData.medical_info as any)?.surgeries
                 ? `
-              <div class="info-item">
-                <span class="info-label">Surgeries:</span>
-                <div style="margin-top: 3px;">${
+              <div class="data-item">
+                <div class="data-label">Surgeries</div>
+                <div class="data-value" style="margin-top: 5px;">${
                   (patientData.medical_info as any).surgeries
                 }</div>
               </div>
@@ -2810,9 +2935,9 @@ const PatientManagement = () => {
             ${
               (patientData.medical_info as any)?.medications
                 ? `
-              <div class="info-item">
-                <span class="info-label">Current Medications:</span>
-                <div style="margin-top: 3px;">${
+              <div class="data-item">
+                <div class="data-label">Current Medications</div>
+                <div class="data-value" style="margin-top: 5px;">${
                   (patientData.medical_info as any).medications
                 }</div>
               </div>
@@ -2823,9 +2948,9 @@ const PatientManagement = () => {
             ${
               (patientData.medical_info as any)?.familyHistory
                 ? `
-              <div class="info-item">
-                <span class="info-label">Family History:</span>
-                <div style="margin-top: 3px;">${
+              <div class="data-item">
+                <div class="data-label">Family History</div>
+                <div class="data-value" style="margin-top: 5px;">${
                   (patientData.medical_info as any).familyHistory
                 }</div>
               </div>
@@ -2836,9 +2961,9 @@ const PatientManagement = () => {
             ${
               (patientData.medical_info as any)?.socialHistory
                 ? `
-              <div class="info-item">
-                <span class="info-label">Social History:</span>
-                <div style="margin-top: 3px;">${
+              <div class="data-item">
+                <div class="data-label">Social History</div>
+                <div class="data-value" style="margin-top: 5px;">${
                   (patientData.medical_info as any).socialHistory
                 }</div>
               </div>
@@ -2848,6 +2973,42 @@ const PatientManagement = () => {
           </div>
         </div>
       `;
+
+      // Visit History Section
+      if (completedAppointments.length > 0) {
+        content += `
+          <div class="section">
+            <div class="section-title">Visit History</div>
+            <table class="visit-history-table">
+              <thead>
+                <tr>
+                  <th>Date Visited</th>
+                  <th>Doctor</th>
+                  <th>Reason for Visit</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${completedAppointments
+                  .map(
+                    (appointment) => `
+                  <tr>
+                    <td>${format(
+                      new Date(appointment.date),
+                      "MMM dd, yyyy"
+                    )}</td>
+                    <td>${appointment.doctor_name || "N/A"}</td>
+                    <td>${
+                      appointment.appointment_type || "General Consultation"
+                    }</td>
+                  </tr>
+                `
+                  )
+                  .join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
     }
 
     // Documents sections (existing format)
@@ -3267,11 +3428,18 @@ const PatientManagement = () => {
     }
 
     content += `
+          </div>
         <div class="footer">
-          <div>Generated on ${format(new Date(), "PPP")} by ${
-      currentUser?.name || "Medical Staff"
-    }</div>
-          <div>This is a computer-generated document.</div>
+          <div class="footer-info">Generated on ${format(
+            new Date(),
+            "PPP"
+          )} by ${currentUser?.name || "Medical Staff"}</div>
+          <div class="footer-info">This is a computer-generated document.</div>
+          <div class="confidential-notice">
+            <strong>⚠️ CONFIDENTIAL MEDICAL RECORD</strong><br>
+            This document contains private health information protected by law. Unauthorized disclosure or distribution is strictly prohibited.
+          </div>
+        </div>
         </div>
       </body>
       </html>
@@ -4189,6 +4357,69 @@ const PatientManagement = () => {
                             >
                               <Eye className="h-3 w-3" />
                             </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  // Ensure clinic settings are loaded
+                                  let currentClinicSettings = clinicSettings;
+                                  if (!currentClinicSettings) {
+                                    try {
+                                      currentClinicSettings =
+                                        await fetchClinicSettings();
+                                    } catch (error) {
+                                      console.error(
+                                        "Failed to fetch clinic settings:",
+                                        error
+                                      );
+                                      currentClinicSettings = {};
+                                    }
+                                  }
+
+                                  // Generate HTML content using template
+                                  const htmlContent = generatePrescriptionHTML(
+                                    prescription,
+                                    patientData,
+                                    currentClinicSettings,
+                                    currentUser
+                                  );
+
+                                  // Generate filename
+                                  const filename = `prescription-${
+                                    patientData?.name || "patient"
+                                  }-${format(
+                                    new Date(prescription.dateCreated),
+                                    "yyyy-MM-dd"
+                                  )}.pdf`;
+
+                                  // Download as PDF
+                                  await HTMLToPDFConverter.downloadPDFFromHTML(
+                                    htmlContent,
+                                    filename
+                                  );
+
+                                  toast({
+                                    title: "Prescription Downloaded",
+                                    description: "Prescription saved as PDF",
+                                  });
+                                } catch (error) {
+                                  console.error(
+                                    "Error downloading prescription PDF:",
+                                    error
+                                  );
+                                  toast({
+                                    title: "Error",
+                                    description:
+                                      "Failed to download prescription PDF",
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                              title="Download Prescription (PDF)"
+                            >
+                              <Download className="h-3 w-3" />
+                            </Button>
                             {isDoctor && (
                               <Button
                                 variant="outline"
@@ -4444,20 +4675,82 @@ const PatientManagement = () => {
                                   });
                                 } catch (error) {
                                   console.error(
-                                    "Error generating SOAP note PDF:",
+                                    "Error viewing SOAP note PDF:",
+                                    error
+                                  );
+                                  toast({
+                                    title: "Error",
+                                    description: "Failed to view SOAP note PDF",
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                              title="View SOAP Note (PDF)"
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  // Fetch current clinic settings
+                                  let currentClinicSettings = clinicSettings;
+                                  if (!currentClinicSettings) {
+                                    try {
+                                      currentClinicSettings =
+                                        await fetchClinicSettings();
+                                    } catch (error) {
+                                      console.error(
+                                        "Failed to fetch clinic settings:",
+                                        error
+                                      );
+                                      currentClinicSettings = {};
+                                    }
+                                  }
+
+                                  // Generate HTML content using template
+                                  const htmlContent = generateSOAPNoteHTML(
+                                    note,
+                                    patientData,
+                                    currentClinicSettings,
+                                    currentUser
+                                  );
+
+                                  // Generate filename
+                                  const filename = `soap-note-${
+                                    patientData?.name || "patient"
+                                  }-${format(
+                                    new Date(note.dateCreated),
+                                    "yyyy-MM-dd"
+                                  )}.pdf`;
+
+                                  // Download as PDF
+                                  await HTMLToPDFConverter.downloadPDFFromHTML(
+                                    htmlContent,
+                                    filename
+                                  );
+
+                                  toast({
+                                    title: "SOAP Note Downloaded",
+                                    description: "SOAP note saved as PDF",
+                                  });
+                                } catch (error) {
+                                  console.error(
+                                    "Error downloading SOAP note PDF:",
                                     error
                                   );
                                   toast({
                                     title: "Error",
                                     description:
-                                      "Failed to generate SOAP note PDF",
+                                      "Failed to download SOAP note PDF",
                                     variant: "destructive",
                                   });
                                 }
                               }}
-                              title="View SOAP Note"
+                              title="Download SOAP Note (PDF)"
                             >
-                              <Eye className="h-3 w-3" />
+                              <Download className="h-3 w-3" />
                             </Button>
                             {canDelete && (
                               <Button
@@ -4709,20 +5002,83 @@ const PatientManagement = () => {
                                   });
                                 } catch (error) {
                                   console.error(
-                                    "Error generating clinical note PDF:",
+                                    "Error viewing clinical note PDF:",
                                     error
                                   );
                                   toast({
                                     title: "Error",
                                     description:
-                                      "Failed to generate clinical note PDF",
+                                      "Failed to view clinical note PDF",
                                     variant: "destructive",
                                   });
                                 }
                               }}
-                              title="View Note"
+                              title="View Clinical Note (PDF)"
                             >
                               <Eye className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  // Fetch current clinic settings
+                                  let currentClinicSettings = clinicSettings;
+                                  if (!currentClinicSettings) {
+                                    try {
+                                      currentClinicSettings =
+                                        await fetchClinicSettings();
+                                    } catch (error) {
+                                      console.error(
+                                        "Failed to fetch clinic settings:",
+                                        error
+                                      );
+                                      currentClinicSettings = {};
+                                    }
+                                  }
+
+                                  // Generate HTML content using template
+                                  const htmlContent = generateClinicalNoteHTML(
+                                    note,
+                                    patientData,
+                                    currentClinicSettings,
+                                    currentUser
+                                  );
+
+                                  // Generate filename
+                                  const filename = `clinical-note-${
+                                    patientData?.name || "patient"
+                                  }-${format(
+                                    new Date(note.dateCreated),
+                                    "yyyy-MM-dd"
+                                  )}.pdf`;
+
+                                  // Download as PDF
+                                  await HTMLToPDFConverter.downloadPDFFromHTML(
+                                    htmlContent,
+                                    filename
+                                  );
+
+                                  toast({
+                                    title: "Clinical Note Downloaded",
+                                    description: "Clinical note saved as PDF",
+                                  });
+                                } catch (error) {
+                                  console.error(
+                                    "Error downloading clinical note PDF:",
+                                    error
+                                  );
+                                  toast({
+                                    title: "Error",
+                                    description:
+                                      "Failed to download clinical note PDF",
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                              title="Download Clinical Note (PDF)"
+                            >
+                              <Download className="h-3 w-3" />
                             </Button>
                             {canDelete && (
                               <Button
@@ -4962,7 +5318,7 @@ const PatientManagement = () => {
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                // Simply open the saved processed_file PDF
+                                // Open the saved processed_file PDF
                                 const processedFileUrl = (
                                   result.document as any
                                 )?.processed_file;
@@ -4997,9 +5353,68 @@ const PatientManagement = () => {
                                   });
                                 }
                               }}
-                              title="View Saved Lab Result PDF"
+                              title="View Lab Result PDF"
                             >
                               <Eye className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                // Download the saved processed_file PDF
+                                const processedFileUrl = (
+                                  result.document as any
+                                )?.processed_file;
+
+                                if (processedFileUrl) {
+                                  // Download the saved professional PDF
+                                  const baseUrl = ENV.API_URL.replace(
+                                    "/api",
+                                    ""
+                                  );
+                                  const pdfUrl = processedFileUrl.startsWith(
+                                    "http"
+                                  )
+                                    ? processedFileUrl
+                                    : `${baseUrl}${processedFileUrl}`;
+
+                                  console.log("Downloading PDF from:", pdfUrl);
+
+                                  // Create temporary link to download
+                                  const link = document.createElement("a");
+                                  link.href = pdfUrl;
+                                  link.download = `lab-result-${
+                                    patientData?.name || "patient"
+                                  }-${format(
+                                    new Date(
+                                      result.document?.document_date ||
+                                        result.document?.created_at ||
+                                        new Date()
+                                    ),
+                                    "yyyy-MM-dd"
+                                  )}.pdf`;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+
+                                  toast({
+                                    title: "Lab Result Downloaded",
+                                    description:
+                                      "Lab result PDF has been downloaded.",
+                                  });
+                                } else {
+                                  // No saved PDF available
+                                  toast({
+                                    title: "No PDF Available",
+                                    description:
+                                      "No processed PDF found for this lab result. Please re-upload through Lab Results page.",
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                              title="Download Lab Result PDF"
+                            >
+                              <Download className="h-3 w-3" />
                             </Button>
                             {isDoctor && (
                               <Button
