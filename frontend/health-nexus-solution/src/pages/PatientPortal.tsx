@@ -171,6 +171,9 @@ const PatientPortal = () => {
   });
   const [submitting, setSubmitting] = useState(false);
   const [stayAnonymous, setStayAnonymous] = useState(false);
+  const [lastReviewTime, setLastReviewTime] = useState<number | null>(null);
+  const [reviewCooldown, setReviewCooldown] = useState(false);
+  const [cooldownTimeLeft, setCooldownTimeLeft] = useState(0);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [showGreetingCursor, setShowGreetingCursor] = useState(true);
   const [showArrow, setShowArrow] = useState(false);
@@ -2421,18 +2424,121 @@ const PatientPortal = () => {
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
+
+    // Check cooldown period (5 minutes)
+    const COOLDOWN_PERIOD = 5 * 60 * 1000; // 5 minutes in milliseconds
+    const now = Date.now();
+
+    if (lastReviewTime && now - lastReviewTime < COOLDOWN_PERIOD) {
+      const timeLeft = Math.ceil(
+        (COOLDOWN_PERIOD - (now - lastReviewTime)) / 1000 / 60
+      );
+      toast({
+        title: "⏱️ Please Wait",
+        description: `Please wait ${timeLeft} minute(s) before submitting another review to prevent spam.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validation checks
+    if (!stayAnonymous) {
+      if (!reviewForm.name.trim() || reviewForm.name.trim().length < 2) {
+        toast({
+          title: "⚠️ Invalid Name",
+          description: "Please enter a valid name (at least 2 characters).",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!reviewForm.email.trim() || !reviewForm.email.includes("@")) {
+        toast({
+          title: "⚠️ Invalid Email",
+          description: "Please enter a valid email address.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    if (!reviewForm.comment.trim() || reviewForm.comment.trim().length < 10) {
+      toast({
+        title: "⚠️ Comment Too Short",
+        description: "Please write a comment with at least 10 characters.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (reviewForm.comment.trim().length > 1000) {
+      toast({
+        title: "⚠️ Comment Too Long",
+        description: "Comment is too long. Please limit to 1000 characters.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check for repeated characters (simple spam detection)
+    const repeatedCharsPattern = /(.)\1{9,}/; // 10 or more repeated characters
+    if (repeatedCharsPattern.test(reviewForm.comment)) {
+      toast({
+        title: "🚫 Suspicious Pattern Detected",
+        description:
+          "Your comment contains suspicious patterns. Please write a genuine review.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check for duplicate submission (localStorage)
+    const reviewKey = `review_${
+      stayAnonymous ? "anonymous" : reviewForm.email.toLowerCase()
+    }_${reviewForm.rating}`;
+    const lastSubmittedReview = localStorage.getItem(reviewKey);
+
+    if (lastSubmittedReview) {
+      const lastReview = JSON.parse(lastSubmittedReview);
+      if (
+        lastReview.comment === reviewForm.comment.trim() &&
+        now - lastReview.timestamp < 24 * 60 * 60 * 1000 // 24 hours
+      ) {
+        toast({
+          title: "⚠️ Duplicate Review",
+          description:
+            "This review appears to be a duplicate. Please submit a different review or wait 24 hours.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       const reviewData = {
-        name: stayAnonymous ? "Anonymous" : reviewForm.name,
-        email: stayAnonymous ? "" : reviewForm.email,
+        name: stayAnonymous ? "Anonymous" : reviewForm.name.trim(),
+        email: stayAnonymous ? "" : reviewForm.email.trim().toLowerCase(),
         rating: reviewForm.rating,
-        comment: reviewForm.comment,
+        comment: reviewForm.comment.trim(),
         date: new Date().toISOString().slice(0, 10),
         anonymous: stayAnonymous,
       };
 
       const response = await axios.post("clinic/reviews/", reviewData);
+
+      // Store review info to prevent duplicates
+      localStorage.setItem(
+        reviewKey,
+        JSON.stringify({
+          comment: reviewForm.comment.trim(),
+          timestamp: now,
+        })
+      );
+
+      // Set cooldown
+      setLastReviewTime(now);
+      setReviewCooldown(true);
+      setCooldownTimeLeft(COOLDOWN_PERIOD / 1000); // in seconds
 
       // Reset form with 1 star rating
       setReviewForm({ name: "", email: "", rating: 1, comment: "" });
@@ -2442,17 +2548,39 @@ const PatientPortal = () => {
       // Enhanced success message with email confirmation
       const emailSent = response.data?.email_sent;
       if (emailSent) {
-        alert(
-          "Thank you for your review! We have received it and our clinic management team has been notified via email. They may reach out to you directly."
-        );
+        toast({
+          title: "✅ Review Submitted Successfully!",
+          description:
+            "Thank you for your review! We have received it and our clinic management team has been notified via email. They may reach out to you directly.",
+        });
       } else {
-        alert(
-          "Thank you for your review! We have received it and saved it to our system. (Email notification temporarily unavailable, but your review is safely stored)."
-        );
+        toast({
+          title: "✅ Review Submitted Successfully!",
+          description:
+            "Thank you for your review! We have received it and saved it to our system. (Email notification temporarily unavailable, but your review is safely stored).",
+        });
       }
     } catch (err) {
       console.error("Review submission error:", err);
-      alert("Failed to submit review. Please try again later.");
+      if (err.response?.status === 429) {
+        toast({
+          title: "🚫 Too Many Requests",
+          description: "Too many review submissions. Please try again later.",
+          variant: "destructive",
+        });
+      } else if (err.response?.data?.error) {
+        toast({
+          title: "❌ Submission Failed",
+          description: `Failed to submit review: ${err.response.data.error}`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "❌ Submission Failed",
+          description: "Failed to submit review. Please try again later.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setSubmitting(false);
     }
@@ -2515,6 +2643,23 @@ const PatientPortal = () => {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Cooldown timer effect
+  useEffect(() => {
+    if (reviewCooldown && cooldownTimeLeft > 0) {
+      const timer = setInterval(() => {
+        setCooldownTimeLeft((prev) => {
+          if (prev <= 1) {
+            setReviewCooldown(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [reviewCooldown, cooldownTimeLeft]);
 
   if (loading) {
     return (
@@ -3098,13 +3243,28 @@ const PatientPortal = () => {
                       required
                     />
                   </div>
-                  <Button
-                    className="w-full bg-[#79c942] hover:bg-[#6bb33a] text-white text-sm h-8"
-                    type="submit"
-                    disabled={submitting}
-                  >
-                    {submitting ? "Submitting..." : "Submit Review"}
-                  </Button>
+                  <div className="space-y-2">
+                    {reviewCooldown && cooldownTimeLeft > 0 && (
+                      <div className="text-xs text-orange-600 bg-orange-50 p-2 rounded border border-orange-200">
+                        ⏱️ Please wait {Math.floor(cooldownTimeLeft / 60)}:
+                        {String(cooldownTimeLeft % 60).padStart(2, "0")} before
+                        submitting another review
+                      </div>
+                    )}
+                    <Button
+                      className="w-full bg-[#79c942] hover:bg-[#6bb33a] text-white text-sm h-8 disabled:opacity-50 disabled:cursor-not-allowed"
+                      type="submit"
+                      disabled={submitting || reviewCooldown}
+                    >
+                      {submitting
+                        ? "Submitting..."
+                        : reviewCooldown
+                        ? `Wait ${Math.floor(cooldownTimeLeft / 60)}:${String(
+                            cooldownTimeLeft % 60
+                          ).padStart(2, "0")}`
+                        : "Submit Review"}
+                    </Button>
+                  </div>
                 </form>
               </div>
             </div>
@@ -3118,181 +3278,71 @@ const PatientPortal = () => {
           <h2 className="text-3xl font-bold text-center mb-8 md:mb-12 text-[#79c942]">
             Frequently Asked Questions
           </h2>
-          <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-            {/* First Accordion Card (first 5 FAQs) */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">FAQs</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {/* Custom Accordion */}
-                  <div className="border-b">
-                    <details className="group">
-                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
-                        <span className="mr-2">•</span>
-                        <span>What's our operating hours?</span>
-                      </summary>
-                      <div className="pl-4 pb-3 text-gray-600">
-                        Monday - Saturday: 8am - 6pm.
-                        <br />
-                        Sunday (CLOSED)
-                      </div>
-                    </details>
+          {clinic.faqs && clinic.faqs.length > 0 ? (
+            <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+              {/* First Accordion Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">FAQs</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {clinic.faqs
+                      .slice(0, Math.ceil(clinic.faqs.length / 2))
+                      .map((faq, index) => (
+                        <div key={index} className="border-b last:border-b-0">
+                          <details className="group">
+                            <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
+                              <span className="mr-2">•</span>
+                              <span>{faq.question}</span>
+                            </summary>
+                            <div className="pl-4 pb-3 text-gray-600">
+                              {faq.answer}
+                            </div>
+                          </details>
+                        </div>
+                      ))}
                   </div>
-                  {/* First 5 dynamic FAQs */}
-                  {clinic.faqs &&
-                    clinic.faqs.slice(0, 5).map((faq, index) => (
-                      <div key={index} className="border-b last:border-b-0">
-                        <details className="group">
-                          <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
-                            <span className="mr-2">•</span>
-                            <span>{faq.question}</span>
-                          </summary>
-                          <div className="pl-4 pb-3 text-gray-600">
-                            {faq.answer}
-                          </div>
-                        </details>
-                      </div>
-                    ))}
-                  {/* 5 static accordions */}
-                  <div className="border-b">
-                    <details className="group">
-                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
-                        <span className="mr-2">•</span>
-                        <span>How do I book an appointment?</span>
-                      </summary>
-                      <div className="pl-4 pb-3 text-gray-600">
-                        You can book an appointment online or call our clinic
-                        directly.
-                      </div>
-                    </details>
+                </CardContent>
+              </Card>
+              {/* Second Accordion Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">More FAQs</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {clinic.faqs
+                      .slice(Math.ceil(clinic.faqs.length / 2))
+                      .map((faq, index) => (
+                        <div key={index} className="border-b last:border-b-0">
+                          <details className="group">
+                            <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
+                              <span className="mr-2">•</span>
+                              <span>{faq.question}</span>
+                            </summary>
+                            <div className="pl-4 pb-3 text-gray-600">
+                              {faq.answer}
+                            </div>
+                          </details>
+                        </div>
+                      ))}
                   </div>
-                  <div className="border-b">
-                    <details className="group">
-                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
-                        <span className="mr-2">•</span>
-                        <span>Do you accept walk-ins?</span>
-                      </summary>
-                      <div className="pl-4 pb-3 text-gray-600">
-                        Yes, we accept walk-ins but appointments are preferred.
-                      </div>
-                    </details>
-                  </div>
-                  <div className="border-b">
-                    <details className="group">
-                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
-                        <span className="mr-2">•</span>
-                        <span>What insurance do you accept?</span>
-                      </summary>
-                      <div className="pl-4 pb-3 text-gray-600">
-                        We accept most major insurance plans. Please contact us
-                        for details.
-                      </div>
-                    </details>
-                  </div>
-                  <div className="border-b">
-                    <details className="group">
-                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
-                        <span className="mr-2">•</span>
-                        <span>Where are you located?</span>
-                      </summary>
-                      <div className="pl-4 pb-3 text-gray-600">
-                        We are located at {clinic.address}, {clinic.city},{" "}
-                        {clinic.state} {clinic.zip}.
-                      </div>
-                    </details>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            {/* Second Accordion Card (6th and more FAQs + 6 more static accordions) */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">More FAQs</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {/* 6th and more dynamic FAQs */}
-                  {clinic.faqs &&
-                    clinic.faqs.slice(5, 10).map((faq, index) => (
-                      <div key={index} className="border-b last:border-b-0">
-                        <details className="group">
-                          <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
-                            <span className="mr-2">•</span>
-                            <span>{faq.question}</span>
-                          </summary>
-                          <div className="pl-4 pb-3 text-gray-600">
-                            {faq.answer}
-                          </div>
-                        </details>
-                      </div>
-                    ))}
-                  {/* 6 more static accordions */}
-                  <div className="border-b">
-                    <details className="group">
-                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
-                        <span className="mr-2">•</span>
-                        <span>Can I get my lab results online?</span>
-                      </summary>
-                      <div className="pl-4 pb-3 text-gray-600">
-                        Yes, lab results are available through your patient
-                        portal account.
-                      </div>
-                    </details>
-                  </div>
-                  <div className="border-b">
-                    <details className="group">
-                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
-                        <span className="mr-2">•</span>
-                        <span>How do I request prescription refills?</span>
-                      </summary>
-                      <div className="pl-4 pb-3 text-gray-600">
-                        You can request refills by contacting our clinic or
-                        through the portal.
-                      </div>
-                    </details>
-                  </div>
-                  <div className="border-b">
-                    <details className="group">
-                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
-                        <span className="mr-2">•</span>
-                        <span>Are telemedicine appointments available?</span>
-                      </summary>
-                      <div className="pl-4 pb-3 text-gray-600">
-                        Yes, we offer telemedicine appointments for your
-                        convenience.
-                      </div>
-                    </details>
-                  </div>
-                  <div className="border-b">
-                    <details className="group">
-                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
-                        <span className="mr-2">•</span>
-                        <span>How do I access my medical records?</span>
-                      </summary>
-                      <div className="pl-4 pb-3 text-gray-600">
-                        Medical records can be accessed securely through the
-                        patient portal.
-                      </div>
-                    </details>
-                  </div>
-                  <div className="border-b">
-                    <details className="group">
-                      <summary className="cursor-pointer py-3 font-semibold text-[#79c942] group-open:underline list-none flex items-start">
-                        <span className="mr-2">•</span>
-                        <span>What should I bring to my appointment?</span>
-                      </summary>
-                      <div className="pl-4 pb-3 text-gray-600">
-                        Please bring a valid ID, insurance card, and any
-                        rointmen medical documents.
-                      </div>
-                    </details>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <div className="max-w-3xl mx-auto text-center">
+              <Card>
+                <CardContent className="py-8">
+                  <p className="text-gray-600">
+                    No FAQs available at the moment. Please check back later or
+                    contact us directly for any questions.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </section>
 
