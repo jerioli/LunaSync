@@ -73,6 +73,8 @@ export const generateMedicalCertificateHTML = (data: MedicalCertificateTemplateD
           .header-section {
             text-align: center;
             margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #333;
           }
           .clinic-logo {
             max-width: 200px;
@@ -84,8 +86,8 @@ export const generateMedicalCertificateHTML = (data: MedicalCertificateTemplateD
           .clinic-name {
             font-size: 18px;
             font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
+            color: #1a1a1a;
+            margin-bottom: 8px;
           }
           .clinic-subtitle {
             font-size: 12px;
@@ -94,11 +96,13 @@ export const generateMedicalCertificateHTML = (data: MedicalCertificateTemplateD
           }
           .clinic-address {
             font-size: 11px;
-            color: #333;
-            margin-bottom: 5px;
+            color: #555;
+            margin-bottom: 3px;
           }
           .clinic-contact {
             font-size: 11px;
+            color: #555;
+          }
             color: #333;
             margin-bottom: 20px;
           }
@@ -180,13 +184,12 @@ export const generateMedicalCertificateHTML = (data: MedicalCertificateTemplateD
           <div class="header-section">
             <!-- Clinic Logo (centered) -->
             ${data.hospitalLogo ? `<img src="${data.hospitalLogo}" alt="Clinic Logo" class="clinic-logo">` : `
-              <!-- Fallback to clinic name if no logo -->
-              <div class="clinic-name">${data.hospitalName || 'Medical Center'}</div>
-              <div class="clinic-subtitle">MEDICAL AND DIAGNOSTICS CLINIC</div>
+              <div style="width: 80px; height: 80px; background: #f0f0f0; margin: 0 auto 15px;"></div>
             `}
             
-            <div class="clinic-address">${data.hospitalAddress || '123 Health Avenue, Medical District, Cityville, California 12345'}</div>
-            <div class="clinic-contact">${data.hospitalContact || 'Phone: (123) 456-7890 | Email: medinfomatics@healthnexus.com'}</div>
+            <div class="clinic-name">${data.hospitalName || 'Medical Center'}</div>
+            <div class="clinic-address">${data.hospitalAddress || 'Clinic Address'}</div>
+            <div class="clinic-contact">${data.hospitalContact || 'Tel: (000) 000-0000 | Email: info@clinic.com'}</div>
           </div>
 
           <!-- Certificate Title -->

@@ -46,22 +46,19 @@ export const generatePrescriptionHTML = (prescription: any, patientData: any, cl
     </head>
     <body>
       <div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; font-family: Arial, sans-serif;">
-        <!-- Header with Centered Logo -->
-        <div style="text-align: center; margin-bottom: 15px;">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 25px; border-bottom: 2px solid #333; padding-bottom: 15px;">
           ${
             clinicSettings?.logo
               ? `<img src="${getFullLogoUrl(
                   clinicSettings.logo
-                )}" alt="Clinic Logo" style="height: 50px; width: auto; margin: 0 auto 10px; display: block;">`
-              : `<div style="width: 50px; height: 50px; background: #f0f0f0; margin: 0 auto 10px;"></div>`
+                )}" alt="Clinic Logo" style="height: 60px; width: auto; margin: 0 auto 10px; display: block;">`
+              : `<div style="width: 60px; height: 60px; background: #f0f0f0; margin: 0 auto 10px;"></div>`
           }
-        </div>
-
-        <!-- Clinic Address and Contact Info -->
-        <div style="text-align: center; margin-bottom: 20px; font-size: 12px; color: #333;">
-          <div>${clinicSettings?.address || "Clinic Address"}</div>
-          <div style="margin-top: 5px;">
-            Phone: ${clinicSettings?.phone || "(000) 000-0000"} | Email: ${clinicSettings?.email || "info@clinic.com"}
+          <div style="font-size: 16px; font-weight: bold; color: #1a1a1a; margin-bottom: 5px;">${clinicSettings?.clinic_name || "Medical Center"}</div>
+          <div style="font-size: 11px; color: #555; line-height: 1.4;">
+            ${clinicSettings?.address || "Clinic Address"}<br>
+            ${clinicSettings?.phone ? `Tel: ${clinicSettings.phone}` : ""}${clinicSettings?.phone && clinicSettings?.email ? " | " : ""}${clinicSettings?.email ? `Email: ${clinicSettings.email}` : ""}
           </div>
         </div>
 
@@ -289,19 +286,16 @@ export const generateSOAPNoteHTML = (soapNote: any, patientData: any, clinicSett
     </head>
     <body>
       <div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; font-family: Arial, sans-serif;">
-        <!-- Header with Logo and QR -->
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
-          <div>
-            ${clinicSettings?.logo 
-              ? `<img src="${getLogoUrl(clinicSettings.logo)}" alt="Clinic Logo" style="height: 50px; width: auto; margin-bottom: 10px;">` 
-              : `<div style="width: 50px; height: 50px; background: #f0f0f0; margin-bottom: 10px;"></div>`
-            }
-            <div style="font-size: 14px; color: #333;">${clinicSettings?.clinic_name || "Medical Center"}</div>
-          </div>
-          <div style="text-align: center;">
-            <div style="width: 80px; height: 80px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666;">
-              QR CODE
-            </div>
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 25px; border-bottom: 2px solid #333; padding-bottom: 15px;">
+          ${clinicSettings?.logo 
+            ? `<img src="${getLogoUrl(clinicSettings.logo)}" alt="Clinic Logo" style="height: 60px; width: auto; margin: 0 auto 10px; display: block;">` 
+            : `<div style="width: 60px; height: 60px; background: #f0f0f0; margin: 0 auto 10px;"></div>`
+          }
+          <div style="font-size: 16px; font-weight: bold; color: #1a1a1a; margin-bottom: 5px;">${clinicSettings?.clinic_name || "Medical Center"}</div>
+          <div style="font-size: 11px; color: #555; line-height: 1.4;">
+            ${clinicSettings?.address || "Clinic Address"}<br>
+            ${clinicSettings?.phone ? `Tel: ${clinicSettings.phone}` : ""}${clinicSettings?.phone && clinicSettings?.email ? " | " : ""}${clinicSettings?.email ? `Email: ${clinicSettings.email}` : ""}
           </div>
         </div>
 
@@ -312,8 +306,7 @@ export const generateSOAPNoteHTML = (soapNote: any, patientData: any, clinicSett
 
         <!-- Location and Date -->
         <div style="text-align: center; margin-bottom: 30px; font-size: 12px; color: #666;">
-          <div>${clinicSettings?.address || "Clinic Address"}</div>
-          <div style="margin-top: 10px;">
+          <div>
             Created on: ${new Date(soapNote.dateCreated).toLocaleDateString()}
           </div>
           <div>${new Date(soapNote.dateCreated).toLocaleTimeString()} PHT</div>
@@ -327,25 +320,25 @@ export const generateSOAPNoteHTML = (soapNote: any, patientData: any, clinicSett
         </div>
 
         <!-- SOAP Symbol -->
-        <div style="font-size: 24px; font-weight: bold; margin-bottom: 15px; color: #059669;">SOAP</div>
+        <div style="font-size: 22px; font-weight: bold; margin-bottom: 15px; color: #333;">SOAP</div>
 
         <!-- SOAP Details -->
         <div style="margin-bottom: 40px; font-size: 14px; line-height: 1.6;">
           <div style="margin-bottom: 15px;">
-            <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">Subjective:</div>
-            <div style="margin-left: 20px; color: #333; padding: 10px; background: #f0fdf4; border-left: 4px solid #059669;">${soapNote.data?.subjective || "Not recorded"}</div>
+            <div style="font-weight: bold; color: #1a1a1a; margin-bottom: 5px;">Subjective:</div>
+            <div style="margin-left: 20px; color: #333; padding: 10px; background: #f8f9fa; border-left: 4px solid #555;">${soapNote.data?.subjective || "Not recorded"}</div>
           </div>
           <div style="margin-bottom: 15px;">
-            <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">Objective:</div>
-            <div style="margin-left: 20px; color: #333; padding: 10px; background: #f0fdf4; border-left: 4px solid #059669;">${soapNote.data?.objective || "Not recorded"}</div>
+            <div style="font-weight: bold; color: #1a1a1a; margin-bottom: 5px;">Objective:</div>
+            <div style="margin-left: 20px; color: #333; padding: 10px; background: #f8f9fa; border-left: 4px solid #555;">${soapNote.data?.objective || "Not recorded"}</div>
           </div>
           <div style="margin-bottom: 15px;">
-            <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">Assessment:</div>
-            <div style="margin-left: 20px; color: #333; padding: 10px; background: #f0fdf4; border-left: 4px solid #059669;">${soapNote.data?.assessment || "Not recorded"}</div>
+            <div style="font-weight: bold; color: #1a1a1a; margin-bottom: 5px;">Assessment:</div>
+            <div style="margin-left: 20px; color: #333; padding: 10px; background: #f8f9fa; border-left: 4px solid #555;">${soapNote.data?.assessment || "Not recorded"}</div>
           </div>
           <div style="margin-bottom: 15px;">
-            <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">Plan:</div>
-            <div style="margin-left: 20px; color: #333; padding: 10px; background: #f0fdf4; border-left: 4px solid #059669;">${soapNote.data?.plan || "Not recorded"}</div>
+            <div style="font-weight: bold; color: #1a1a1a; margin-bottom: 5px;">Plan:</div>
+            <div style="margin-left: 20px; color: #333; padding: 10px; background: #f8f9fa; border-left: 4px solid #555;">${soapNote.data?.plan || "Not recorded"}</div>
           </div>
         </div>
 
@@ -390,19 +383,16 @@ export const generateLabResultHTML = (labResult: any, patientData: any, clinicSe
     </head>
     <body>
       <div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; font-family: Arial, sans-serif;">
-        <!-- Header with Logo and QR -->
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
-          <div>
-            ${clinicSettings?.logo 
-              ? `<img src="${getLogoUrl(clinicSettings.logo)}" alt="Clinic Logo" style="height: 50px; width: auto; margin-bottom: 10px;">` 
-              : `<div style="width: 50px; height: 50px; background: #f0f0f0; margin-bottom: 10px;"></div>`
-            }
-            <div style="font-size: 14px; color: #333;">${clinicSettings?.clinic_name || "Medical Center"}</div>
-          </div>
-          <div style="text-align: center;">
-            <div style="width: 80px; height: 80px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666;">
-              QR CODE
-            </div>
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 25px; border-bottom: 2px solid #333; padding-bottom: 15px;">
+          ${clinicSettings?.logo 
+            ? `<img src="${getLogoUrl(clinicSettings.logo)}" alt="Clinic Logo" style="height: 60px; width: auto; margin: 0 auto 10px; display: block;">` 
+            : `<div style="width: 60px; height: 60px; background: #f0f0f0; margin: 0 auto 10px;"></div>`
+          }
+          <div style="font-size: 16px; font-weight: bold; color: #1a1a1a; margin-bottom: 5px;">${clinicSettings?.clinic_name || "Medical Center"}</div>
+          <div style="font-size: 11px; color: #555; line-height: 1.4;">
+            ${clinicSettings?.address || "Clinic Address"}<br>
+            ${clinicSettings?.phone ? `Tel: ${clinicSettings.phone}` : ""}${clinicSettings?.phone && clinicSettings?.email ? " | " : ""}${clinicSettings?.email ? `Email: ${clinicSettings.email}` : ""}
           </div>
         </div>
 
@@ -413,7 +403,6 @@ export const generateLabResultHTML = (labResult: any, patientData: any, clinicSe
 
         <!-- Location and Date -->
         <div style="text-align: center; margin-bottom: 30px; font-size: 12px; color: #666;">
-          <div>${clinicSettings?.address || "Clinic Address"}</div>
           <div style="margin-top: 10px;">
             Test Date: ${labResult.document?.document_date ? new Date(labResult.document.document_date).toLocaleDateString() : "Date not available"}
           </div>
@@ -428,7 +417,7 @@ export const generateLabResultHTML = (labResult: any, patientData: any, clinicSe
         </div>
 
         <!-- Test Info -->
-        <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #1e40af;">
+        <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #333;">
           ${labResult.test_name || "Lab Test"}
         </div>
         <div style="font-size: 14px; color: #666; margin-bottom: 20px;">
@@ -437,7 +426,7 @@ export const generateLabResultHTML = (labResult: any, patientData: any, clinicSe
 
         <!-- Test Results -->
         <div style="margin-bottom: 30px;">
-          <div style="font-weight: bold; margin-bottom: 15px; color: #1e40af; font-size: 16px;">Test Results:</div>
+          <div style="font-weight: bold; margin-bottom: 15px; color: #1a1a1a; font-size: 16px;">Test Results:</div>
           ${labResult.test_results && labResult.test_results.length > 0 ? 
             labResult.test_results.map((test: any, index: number) => `
               <div style="margin-bottom: 12px; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #f9fafb;">
@@ -522,19 +511,16 @@ export const generateClinicalNoteHTML = (clinicalNote: any, patientData: any, cl
     </head>
     <body>
       <div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; font-family: Arial, sans-serif;">
-        <!-- Header with Logo and QR -->
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
-          <div>
-            ${clinicSettings?.logo 
-              ? `<img src="${getLogoUrl(clinicSettings.logo)}" alt="Clinic Logo" style="height: 50px; width: auto; margin-bottom: 10px;">` 
-              : `<div style="width: 50px; height: 50px; background: #f0f0f0; margin-bottom: 10px;"></div>`
-            }
-            <div style="font-size: 14px; color: #333;">${clinicSettings?.clinic_name || "Medical Center"}</div>
-          </div>
-          <div style="text-align: center;">
-            <div style="width: 80px; height: 80px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666;">
-              QR CODE
-            </div>
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 25px; border-bottom: 2px solid #333; padding-bottom: 15px;">
+          ${clinicSettings?.logo 
+            ? `<img src="${getLogoUrl(clinicSettings.logo)}" alt="Clinic Logo" style="height: 60px; width: auto; margin: 0 auto 10px; display: block;">` 
+            : `<div style="width: 60px; height: 60px; background: #f0f0f0; margin: 0 auto 10px;"></div>`
+          }
+          <div style="font-size: 16px; font-weight: bold; color: #1a1a1a; margin-bottom: 5px;">${clinicSettings?.clinic_name || "Medical Center"}</div>
+          <div style="font-size: 11px; color: #555; line-height: 1.4;">
+            ${clinicSettings?.address || "Clinic Address"}<br>
+            ${clinicSettings?.phone ? `Tel: ${clinicSettings.phone}` : ""}${clinicSettings?.phone && clinicSettings?.email ? " | " : ""}${clinicSettings?.email ? `Email: ${clinicSettings.email}` : ""}
           </div>
         </div>
 
@@ -560,12 +546,12 @@ export const generateClinicalNoteHTML = (clinicalNote: any, patientData: any, cl
         </div>
 
         <!-- Note Symbol -->
-        <div style="font-size: 24px; font-weight: bold; margin-bottom: 15px; color: #2563eb;">Clinical Note</div>
+        <div style="font-size: 22px; font-weight: bold; margin-bottom: 15px; color: #333;">Clinical Note</div>
 
         <!-- Note Details -->
         <div style="margin-bottom: 40px; font-size: 14px; line-height: 1.6;">
-          <div style="font-weight: bold; margin-bottom: 10px; color: #2563eb; font-size: 16px;">${clinicalNote.data?.title || "Clinical Note"}</div>
-          <div style="margin-left: 20px; color: #333; white-space: pre-wrap; padding: 15px; background: #f8fafc; border-left: 4px solid #2563eb; border-radius: 0 6px 6px 0;">${clinicalNote.data?.content || "No content recorded"}</div>
+          <div style="font-weight: bold; margin-bottom: 10px; color: #1a1a1a; font-size: 16px;">${clinicalNote.data?.title || "Clinical Note"}</div>
+          <div style="margin-left: 20px; color: #333; white-space: pre-wrap; padding: 15px; background: #f8f9fa; border-left: 4px solid #555; border-radius: 0 4px 4px 0;">${clinicalNote.data?.content || "No content recorded"}</div>
         </div>
 
         <!-- Doctor Signature Area -->

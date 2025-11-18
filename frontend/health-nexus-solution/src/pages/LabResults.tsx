@@ -816,12 +816,6 @@ const LabResults = () => {
           <Card>
             <CardHeader className="pb-3">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                  <CardTitle>Lab Results</CardTitle>
-                  <CardDescription>
-                    Manage and view all laboratory results
-                  </CardDescription>
-                </div>
                 <div className="flex gap-2">
                   <div className="relative">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -870,12 +864,6 @@ const LabResults = () => {
             </CardHeader>
             <CardContent>
               <div className="mb-4 flex items-center justify-between text-sm text-muted-foreground">
-                <div>
-                  Showing {startIndex + 1}-{Math.min(endIndex, filteredCount)}{" "}
-                  of {filteredCount} results{" "}
-                  {searchTerm && `for "${searchTerm}"`}
-                  {searchTerm && ` for "${searchTerm}"`}
-                </div>
                 <div>
                   Sorted by {sortField} (
                   {sortDirection === "asc" ? "ascending" : "descending"})

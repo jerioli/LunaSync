@@ -46,6 +46,7 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import jsPDF from "jspdf";
 
 // Type declaration for jsPDF
 declare global {
@@ -296,6 +297,29 @@ const DocumentComparison: React.FC = () => {
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const [authorizedBy, setAuthorizedBy] = useState("");
   const [isSaving, setSaving] = useState(false);
+  const [clinicSettings, setClinicSettings] = useState<any>(null);
+
+  // Fetch clinic settings function
+  const fetchClinicSettings = async () => {
+    try {
+      const response = await fetch(`${ENV.API_URL}/clinic/`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      });
+      const data = await response.json();
+      setClinicSettings(data);
+      return data;
+    } catch (error) {
+      console.error("Error fetching clinic settings:", error);
+      return {};
+    }
+  };
+
+  // Fetch clinic settings on component mount
+  useEffect(() => {
+    fetchClinicSettings();
+  }, []);
 
   // Viewing modal state - REMOVED (no longer needed)
   // const [showViewModal, setShowViewModal] = useState(false);
@@ -970,6 +994,23 @@ const DocumentComparison: React.FC = () => {
       <title>Lab Result Report - ${selectedPatient?.name || "Patient"}</title>
       <meta charset="UTF-8">
       <style>
+        @page {
+          size: A4;
+          margin: 0.4in 0.5in;
+        }
+        
+        @media print {
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+          body {
+            margin: 0;
+            padding: 0;
+          }
+        }
+        
         * {
           margin: 0;
           padding: 0;
@@ -977,57 +1018,49 @@ const DocumentComparison: React.FC = () => {
         }
         
         body { 
-          font-family: 'Times New Roman', serif; 
-          font-size: 11pt;
-          line-height: 1.3;
+          font-family: 'Arial', 'Helvetica', sans-serif; 
+          font-size: 9pt;
+          line-height: 1.25;
           background-color: #ffffff;
           color: #000000;
-          width: 11.5in;
-          min-height: 11in;
+          max-width: 8.5in;
           margin: 0 auto;
-          padding: 0.3in;
-        }
-        
-        .page {
-          width: 100%;
-          min-height: 12.2in;
-          background: white;
-          padding: 0.3in;
-          display: flex;
-          flex-direction: column;
+          padding: 0.4in 0.5in;
         }
         
         .header {
           text-align: center;
-          border-bottom: 2px solid #000;
+          border-bottom: 2px solid #2c5282;
           padding-bottom: 8px;
-          margin-bottom: 12px;
+          margin-bottom: 10px;
         }
         
         .title {
-          font-size: 17pt;
+          font-size: 14pt;
           font-weight: bold;
-          color: #000;
-          margin-bottom: 4px;
+          color: #2c5282;
+          margin-bottom: 3px;
+          letter-spacing: 0.5px;
         }
         
         .date {
-          font-size: 9pt;
-          color: #555;
+          font-size: 8pt;
+          color: #495057;
         }
         
         .info-section {
-          border: 1px solid #ccc;
-          padding: 8px;
-          margin-bottom: 12px;
-          background: #f9f9f9;
+          border: 1px solid #cbd5e0;
+          padding: 6px 8px;
+          margin-bottom: 10px;
+          background: #f8f9fa;
+          border-radius: 3px;
         }
         
         .info-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
-          gap: 20px;
-          font-size: 11pt;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+          font-size: 8.5pt;
         }
         
         .info-item {
@@ -1036,67 +1069,320 @@ const DocumentComparison: React.FC = () => {
         
         .label {
           font-weight: bold;
-          color: #000;
+          color: #2c5282;
           display: inline-block;
-          width: 70px;
+          min-width: 85px;
         }
         
         .results-header {
-          font-size: 13pt;
+          font-size: 10pt;
           font-weight: bold;
-          color: #000;
-          margin: 6px 0 6px 0;
-          border-bottom: 1px solid #ccc;
+          color: #2c5282;
+          margin: 8px 0 6px 0;
+          border-bottom: 1.5px solid #cbd5e0;
           padding-bottom: 3px;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
         }
         
         .content {
           white-space: pre-wrap;
-          font-family: 'Courier New', monospace;
-          font-size: 9pt;
+          font-family: 'Courier New', 'Consolas', monospace;
+          font-size: 7.5pt;
           line-height: 1.2;
-          border: 1px solid #ddd;
-          padding: 12px;
-          background: #fdfdfd;
+          border: 1px solid #e2e8f0;
+          padding: 8px;
+          background: #ffffff;
           word-break: break-word;
           overflow-wrap: break-word;
-          flex: 1;
+          max-height: 6.5in;
+          overflow: hidden;
+        }
+        
+        .footer {
+          margin-top: 10px;
+          padding-top: 6px;
+          border-top: 1px solid #e2e8f0;
+          text-align: center;
+          font-size: 7pt;
+          color: #6c757d;
+        }
+        
+        .confidential {
+          margin-top: 6px;
+          padding: 4px;
+          background: #fff3cd;
+          border: 1px solid #ffc107;
+          border-radius: 2px;
+          font-size: 6.5pt;
+          color: #856404;
         }
       </style>
     </head>
     <body>
-      <div class="page">
-        <div class="header">
-          <h1 class="title">LABORATORY RESULT REPORT</h1>
-          <p class="date">Generated: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
-        </div>
-        
-        <div class="info-section">
-          <div class="info-grid">
-            <div class="info-item">
-              <span class="label">Patient:</span> ${
-                selectedPatient?.name || "Not selected"
-              }
-            </div>
-            <div class="info-item">
-              <span class="label">Test Type:</span> Lab Result
-            </div>
-            <div class="info-item">
-              <span class="label">Authorized:</span> ${
-                authorizedBy || "Not specified"
-              }
-            </div>
-            <div class="info-item">
-              <span class="label">Date:</span> ${new Date().toLocaleDateString()}
-            </div>
+      <div class="header">
+        <h1 class="title">LABORATORY RESULT REPORT</h1>
+        <p class="date">Generated: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+      </div>
+      
+      <div class="info-section">
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Patient:</span> ${
+              selectedPatient?.name || "Not selected"
+            }
+          </div>
+          <div class="info-item">
+            <span class="label">Date:</span> ${new Date().toLocaleDateString()}
+          </div>
+          <div class="info-item">
+            <span class="label">Authorized By:</span> ${
+              authorizedBy || "Not specified"
+            }
+          </div>
+          <div class="info-item">
+            <span class="label">Report ID:</span> LAB-${Date.now().toString().slice(-8)}
           </div>
         </div>
-        
-        <h3 class="results-header">TEST RESULTS</h3>
-        <div class="content">${editableText}</div>
+      </div>
+      
+      <h3 class="results-header">Test Results</h3>
+      <div class="content">${editableText}</div>
+      
+      <div class="footer">
+        <div>This is a computer-generated document.</div>
+        <div class="confidential">
+          <strong>⚠️ CONFIDENTIAL MEDICAL RECORD</strong> - This document contains private health information protected by law.
+        </div>
       </div>
     </body>
     </html>`;
+  };
+
+  // Function to generate actual PDF file
+  const generatePDFFile = async (): Promise<Blob> => {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'in',
+      format: 'a4'
+    });
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 0.5;
+    const contentWidth = pageWidth - (2 * margin);
+    let yPos = 0.3;
+
+    // Helper function to get proper logo URL
+    const getFullLogoUrl = (logo: string) => {
+      if (!logo) return null;
+      if (logo.startsWith("http")) return logo;
+      const baseUrl = ENV.API_URL.replace('/api', '');
+      if (logo.startsWith("/media/"))
+        return `${baseUrl}${logo}`;
+      if (logo.startsWith("branding/"))
+        return `${baseUrl}/media/${logo}`;
+      if (!logo.includes("/"))
+        return `${baseUrl}/media/branding/${logo}`;
+      return `${baseUrl}${logo.startsWith("/") ? logo : "/" + logo}`;
+    };
+
+    // Add logo at the top if clinic settings has logo
+    if (clinicSettings?.logo) {
+      try {
+        const logoUrl = getFullLogoUrl(clinicSettings.logo);
+        if (logoUrl) {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.src = logoUrl;
+          
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+          });
+          
+          // Compress logo by rendering to canvas at smaller size
+          const canvas = document.createElement('canvas');
+          const targetSize = 200; // Increased size in pixels for better quality
+          canvas.width = targetSize;
+          canvas.height = targetSize;
+          const ctx = canvas.getContext('2d');
+          
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, targetSize, targetSize);
+            const compressedLogo = canvas.toDataURL('image/jpeg', 0.7); // JPEG with 70% quality
+            
+            const logoWidth = 1.5; // 1.5 inches width in PDF
+            const logoHeight = 0.6; // 0.6 inches height in PDF
+            doc.addImage(compressedLogo, 'JPEG', pageWidth / 2 - logoWidth / 2, yPos, logoWidth, logoHeight);
+            yPos += logoHeight + 0.08;
+          }
+        }
+      } catch (error) {
+        console.error('Error loading clinic logo:', error);
+        // Continue without logo if there's an error
+      }
+    }
+
+    // Clinic name
+    if (clinicSettings?.name) {
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(26, 26, 26);
+      doc.text(clinicSettings.name, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 0.16;
+    }
+
+    // Clinic address
+    if (clinicSettings?.address) {
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(85, 85, 85);
+      doc.text(clinicSettings.address, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 0.14;
+    }
+
+    // Clinic contact (phone | email)
+    const contactParts = [];
+    if (clinicSettings?.phone) contactParts.push(clinicSettings.phone);
+    if (clinicSettings?.email) contactParts.push(clinicSettings.email);
+    
+    if (contactParts.length > 0) {
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(85, 85, 85);
+      doc.text(contactParts.join(' | '), pageWidth / 2, yPos, { align: 'center' });
+      yPos += 0.15;
+    }
+
+    // Professional border separator
+    doc.setDrawColor(51, 51, 51);
+    doc.setLineWidth(0.02);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 0.15;
+
+    // Header
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(44, 82, 130);
+    doc.text('LABORATORY RESULT REPORT', pageWidth / 2, yPos, { align: 'center' });
+    yPos += 0.2;
+
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(73, 80, 87);
+    const dateTime = `Generated: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`;
+    doc.text(dateTime, pageWidth / 2, yPos, { align: 'center' });
+    yPos += 0.15;
+
+    // Header line
+    doc.setDrawColor(44, 82, 130);
+    doc.setLineWidth(0.02);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 0.15;
+
+    // Info section background
+    doc.setFillColor(248, 249, 250);
+    doc.setDrawColor(203, 213, 224);
+    doc.roundedRect(margin, yPos, contentWidth, 0.6, 0.05, 0.05, 'FD');
+    
+    // Info grid
+    doc.setFontSize(8.5);
+    const infoYStart = yPos + 0.12;
+    
+    // Row 1
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(44, 82, 130);
+    doc.text('Patient:', margin + 0.1, infoYStart);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    doc.text(selectedPatient?.name || 'Not selected', margin + 0.8, infoYStart);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(44, 82, 130);
+    doc.text('Date:', margin + contentWidth / 2 + 0.1, infoYStart);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    doc.text(new Date().toLocaleDateString(), margin + contentWidth / 2 + 0.5, infoYStart);
+
+    // Row 2
+    const infoY2 = infoYStart + 0.2;
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(44, 82, 130);
+    doc.text('Authorized By:', margin + 0.1, infoY2);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    doc.text(authorizedBy || 'Not specified', margin + 1.1, infoY2);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(44, 82, 130);
+    doc.text('Report ID:', margin + contentWidth / 2 + 0.1, infoY2);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    doc.text(`LAB-${Date.now().toString().slice(-8)}`, margin + contentWidth / 2 + 0.75, infoY2);
+
+    yPos += 0.75;
+
+    // Results header
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(44, 82, 130);
+    doc.text('TEST RESULTS', margin, yPos);
+    yPos += 0.05;
+    doc.setDrawColor(203, 213, 224);
+    doc.setLineWidth(0.015);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 0.15;
+
+    // Content area
+    const contentBoxHeight = pageHeight - yPos - margin - 0.4; // Leave space for footer
+    doc.setDrawColor(226, 232, 240);
+    doc.setFillColor(255, 255, 255);
+    doc.rect(margin, yPos, contentWidth, contentBoxHeight, 'FD');
+
+    // Text content
+    doc.setFontSize(7.5);
+    doc.setFont('courier', 'normal');
+    doc.setTextColor(0, 0, 0);
+    
+    const lines = doc.splitTextToSize(editableText, contentWidth - 0.2);
+    const maxLines = Math.floor(contentBoxHeight / 0.12);
+    const displayLines = lines.slice(0, maxLines);
+    
+    let textY = yPos + 0.12;
+    displayLines.forEach((line: string) => {
+      doc.text(line, margin + 0.1, textY);
+      textY += 0.12;
+    });
+
+    // Footer
+    const footerY = pageHeight - margin - 0.5;
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.01);
+    doc.line(margin, footerY, pageWidth - margin, footerY);
+
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(108, 117, 125);
+    doc.text('This is a computer-generated document.', pageWidth / 2, footerY + 0.15, { align: 'center' });
+
+    // Confidential notice box
+    const boxY = footerY + 0.22;
+    const boxHeight = 0.2;
+    doc.setFillColor(255, 243, 205);
+    doc.setDrawColor(255, 193, 7);
+    doc.setLineWidth(0.005);
+    doc.roundedRect(margin, boxY, contentWidth, boxHeight, 0.02, 0.02, 'FD');
+    
+    doc.setFontSize(7);
+    doc.setTextColor(133, 100, 4);
+    doc.setFont('helvetica', 'bold');
+    doc.text('CONFIDENTIAL MEDICAL RECORD', pageWidth / 2, boxY + 0.08, { align: 'center' });
+    doc.setFontSize(6);
+    doc.setFont('helvetica', 'normal');
+    doc.text('This document contains private health information protected by law.', pageWidth / 2, boxY + 0.15, { align: 'center' });
+
+    return doc.output('blob');
   };
 
   // Simplified save function - no modal, direct save
@@ -1115,22 +1401,22 @@ const DocumentComparison: React.FC = () => {
 
     try {
       console.log("=== LAB RESULT SAVE DEBUG START ===");
-      console.log("Generating HTML PDF and saving lab result...");
+      console.log("Generating PDF and saving lab result...");
       console.log("Selected patient ID:", selectedPatientId);
       console.log("Selected patient object:", selectedPatient);
       console.log("Authorized by:", authorizedBy);
 
-      // Generate the professional HTML content
-      const htmlContent = generateProfessionalHTMLPDF();
-
-      // Create a PDF file from HTML content using blob
-      const pdfBlob = new Blob([htmlContent], { type: "text/html" });
+      // Generate the actual PDF file
+      const pdfBlob = await generatePDFFile();
       const pdfFileName = `lab_result_${
         selectedPatient?.name?.replace(/[^a-zA-Z0-9]/g, "_") || "patient"
-      }_${new Date().toISOString().split("T")[0]}.html`;
-      const pdfFile = new File([pdfBlob], pdfFileName, { type: "text/html" });
+      }_${new Date().toISOString().split("T")[0]}.pdf`;
+      const pdfFile = new File([pdfBlob], pdfFileName, {
+        type: "application/pdf",
+      });
 
-      console.log("HTML PDF file created:", pdfFileName);
+      console.log("PDF file created:", pdfFileName);
+      console.log("PDF size:", pdfBlob.size, "bytes");
       console.log("Editable text length:", editableText?.length);
       console.log(
         "Original file:",

@@ -10874,3 +10874,14 @@ INFO 2025-11-18 11:04:04,310 autoreload 5236 17564 Watching for file changes wit
 2025-11-18 11:09:48,155 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
 2025-11-18 11:09:56,880 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\medical_documents\models.py changed, reloading.
 INFO 2025-11-18 11:09:59,467 autoreload 8220 33076 Watching for file changes with StatReloader
+2025-11-18 11:10:01,264 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-18 11:10:01,269 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-11-18 11:10:01,270 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-11-18 11:10:01,270 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-11-18 11:10:01,270 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-11-18 11:10:01,270 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-11-18 11:10:01,277 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-11-18 11:10:01,278 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-11-18 11:10:01,570 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-11-18 11:10:01,571 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-11-18 11:10:01,572 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
