@@ -1,33 +1,43 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { ENV } from '@/config/env';
-import axios from 'axios';
-import { Eye, EyeOff, KeyRound } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ENV } from "@/config/env";
+import axios from "axios";
+import { Eye, EyeOff, KeyRound } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 
 const API_BASE_URL = ENV.API_URL;
 
 const ResetPassword = () => {
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isValidAccess, setIsValidAccess] = useState(true);
-  const [verifiedIdentifier, setVerifiedIdentifier] = useState('');
-  const [identifierType, setIdentifierType] = useState<'email' | 'phone'>('email');
+  const [verifiedIdentifier, setVerifiedIdentifier] = useState("");
+  const [identifierType, setIdentifierType] = useState<"email" | "phone">(
+    "email"
+  );
   const navigate = useNavigate();
   const { uidb64, token } = useParams();
 
   useEffect(() => {
     // Check if this is an OTP-based reset (from forgot password flow)
-    const storedIdentifier = sessionStorage.getItem('verified_identifier');
-    const storedType = sessionStorage.getItem('verified_identifier_type') as 'email' | 'phone';
-    
+    const storedIdentifier = sessionStorage.getItem("verified_identifier");
+    const storedType = sessionStorage.getItem("verified_identifier_type") as
+      | "email"
+      | "phone";
+
     if (storedIdentifier && storedType) {
       // OTP-based reset flow
       setVerifiedIdentifier(storedIdentifier);
@@ -39,8 +49,8 @@ const ResetPassword = () => {
     } else {
       // No valid reset method
       setIsValidAccess(false);
-      toast.error('Invalid reset access');
-      navigate('/forgot-password');
+      toast.error("Invalid reset access");
+      navigate("/forgot-password");
     }
   }, [uidb64, token, navigate]);
 
@@ -49,19 +59,46 @@ const ResetPassword = () => {
 
     // Validation
     if (newPassword !== confirmPassword) {
-      toast.error('Passwords do not match');
+      toast.error("Passwords do not match");
       return;
     }
 
     if (newPassword.length < 8) {
-      toast.error('Password must be at least 8 characters long');
+      toast.error("Password must be at least 8 characters long");
+      return;
+    }
+
+    // Password strength validation
+    const passwordRegex = {
+      uppercase: /[A-Z]/,
+      lowercase: /[a-z]/,
+      number: /[0-9]/,
+      special: /[!@#$%^&*(),.?":{}|<>]/,
+    };
+
+    const missingRequirements = [];
+    if (!passwordRegex.uppercase.test(newPassword)) {
+      missingRequirements.push("one uppercase letter");
+    }
+    if (!passwordRegex.lowercase.test(newPassword)) {
+      missingRequirements.push("one lowercase letter");
+    }
+    if (!passwordRegex.number.test(newPassword)) {
+      missingRequirements.push("one number");
+    }
+    if (!passwordRegex.special.test(newPassword)) {
+      missingRequirements.push("one special character");
+    }
+
+    if (missingRequirements.length > 0) {
+      toast.error(`Password must contain: ${missingRequirements.join(", ")}`);
       return;
     }
 
     setIsLoading(true);
     try {
       let response;
-      
+
       if (verifiedIdentifier) {
         // OTP-based reset flow
         response = await axios.post<{ success: boolean; message?: string }>(
@@ -69,7 +106,7 @@ const ResetPassword = () => {
           {
             identifier: verifiedIdentifier,
             identifier_type: identifierType,
-            new_password: newPassword
+            new_password: newPassword,
           }
         );
       } else if (uidb64 && token) {
@@ -77,23 +114,26 @@ const ResetPassword = () => {
         response = await axios.post<{ success: boolean; message?: string }>(
           `${API_BASE_URL}/password-reset-confirm/${uidb64}/${token}/`,
           {
-            new_password: newPassword
+            new_password: newPassword,
           }
         );
       } else {
-        throw new Error('Invalid reset method');
+        throw new Error("Invalid reset method");
       }
-      
+
       if (response.data.success) {
-        toast.success('Password has been reset successfully');
+        toast.success("Password has been reset successfully");
         // Clear the stored identifier after successful reset
-        sessionStorage.removeItem('verified_identifier');
-        sessionStorage.removeItem('verified_identifier_type');
-        navigate('/login');
+        sessionStorage.removeItem("verified_identifier");
+        sessionStorage.removeItem("verified_identifier_type");
+        navigate("/login");
       }
     } catch (error: any) {
-      console.error('Reset password error:', error.response?.data);
-      toast.error(error.response?.data?.message || 'Failed to reset password. Please try again.');
+      console.error("Reset password error:", error.response?.data);
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to reset password. Please try again."
+      );
       if (error.response?.status === 400) {
         setIsValidAccess(false);
       }
@@ -104,7 +144,7 @@ const ResetPassword = () => {
 
   if (!isValidAccess) {
     return (
-      <div 
+      <div
         className="min-h-screen flex items-center justify-center p-4"
         style={{
           background: "linear-gradient(to bottom, #fff 0%, #79c942 300%)",
@@ -123,8 +163,8 @@ const ResetPassword = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
-              onClick={() => navigate('/forgot-password')} 
+            <Button
+              onClick={() => navigate("/forgot-password")}
               className="w-full bg-[#79c942] hover:bg-[#68ab38]"
             >
               Request New Reset Code
@@ -136,7 +176,7 @@ const ResetPassword = () => {
   }
 
   return (
-    <div 
+    <div
       className="min-h-screen flex items-center justify-center p-4"
       style={{
         background: "linear-gradient(to bottom, #fff 0%, #79c942 300%)",
@@ -156,10 +196,11 @@ const ResetPassword = () => {
             </div>
             <CardTitle>Reset Password</CardTitle>
             <CardDescription>
-              {verifiedIdentifier 
-                ? `Enter your new password for ${identifierType === 'email' ? 'email' : 'phone'}: ${verifiedIdentifier}`
-                : 'Enter your new password below.'
-              }
+              {verifiedIdentifier
+                ? `Enter your new password for ${
+                    identifierType === "email" ? "email" : "phone"
+                  }: ${verifiedIdentifier}`
+                : "Enter your new password below."}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -168,9 +209,9 @@ const ResetPassword = () => {
               <div className="space-y-2">
                 <Label htmlFor="newPassword">New Password</Label>
                 <div className="relative">
-                  <Input 
-                    id="newPassword" 
-                    type={showNewPassword ? 'text' : 'password'}
+                  <Input
+                    id="newPassword"
+                    type={showNewPassword ? "text" : "password"}
                     placeholder="Enter your new password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
@@ -192,7 +233,8 @@ const ResetPassword = () => {
                   </Button>
                 </div>
                 <p className="text-sm text-gray-500">
-                  Password must be at least 8 characters long
+                  Must be at least 8 characters with uppercase, lowercase,
+                  number, and special character
                 </p>
               </div>
 
@@ -200,9 +242,9 @@ const ResetPassword = () => {
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm New Password</Label>
                 <div className="relative">
-                  <Input 
-                    id="confirmPassword" 
-                    type={showConfirmPassword ? 'text' : 'password'}
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
                     placeholder="Confirm your new password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
@@ -225,12 +267,12 @@ const ResetPassword = () => {
                 </div>
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full bg-[#79c942] hover:bg-[#68ab38] text-white transition-colors" 
+              <Button
+                type="submit"
+                className="w-full bg-[#79c942] hover:bg-[#68ab38] text-white transition-colors"
                 disabled={isLoading}
               >
-                {isLoading ? 'Resetting...' : 'Reset Password'}
+                {isLoading ? "Resetting..." : "Reset Password"}
               </Button>
             </form>
           </CardContent>
@@ -240,4 +282,4 @@ const ResetPassword = () => {
   );
 };
 
-export default ResetPassword; 
+export default ResetPassword;

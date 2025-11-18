@@ -1,37 +1,49 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useBranding } from '@/contexts/BrandingContext';
-import { useClinic } from '@/contexts/ClinicContext';
-import { toast } from '@/hooks/use-toast';
-import axios from 'axios';
-import { Eye, EyeOff } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useBranding } from "@/contexts/BrandingContext";
+import { useClinic } from "@/contexts/ClinicContext";
+import { toast } from "@/hooks/use-toast";
+import axios from "axios";
+import { Eye, EyeOff } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const UserSettings = () => {
   const { currentUser, setCurrentUser } = useClinic();
   const { colors } = useBranding();
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState("profile");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  
+
   // Profile settings
   const [profileData, setProfileData] = useState({
-    firstName: '',
-    lastName: '',
-    email: currentUser?.email || '',
-    phone: currentUser?.phone || '',
+    firstName: "",
+    lastName: "",
+    email: currentUser?.email || "",
+    phone: currentUser?.phone || "",
   });
 
   // Password change
   const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
   const [showPasswords, setShowPasswords] = useState({
@@ -53,12 +65,20 @@ const UserSettings = () => {
   // Parse the name field to get first and last names, but prefer existing separate fields
   useEffect(() => {
     if (currentUser) {
-      setProfileData(prev => ({
+      setProfileData((prev) => ({
         ...prev,
-        firstName: currentUser.first_name || (currentUser.name ? currentUser.name.split(' ')[0] : '') || '',
-        lastName: currentUser.last_name || (currentUser.name ? currentUser.name.split(' ').slice(1).join(' ') : '') || '',
-        email: currentUser.email || '',
-        phone: currentUser.phone || '',
+        firstName:
+          currentUser.first_name ||
+          (currentUser.name ? currentUser.name.split(" ")[0] : "") ||
+          "",
+        lastName:
+          currentUser.last_name ||
+          (currentUser.name
+            ? currentUser.name.split(" ").slice(1).join(" ")
+            : "") ||
+          "",
+        email: currentUser.email || "",
+        phone: currentUser.phone || "",
       }));
     }
   }, [currentUser]);
@@ -66,8 +86,12 @@ const UserSettings = () => {
     if (!currentUser) return;
 
     // Validate required fields
-    if (!profileData.firstName.trim() || !profileData.lastName.trim() || 
-        !profileData.email.trim() || !profileData.phone.trim()) {
+    if (
+      !profileData.firstName.trim() ||
+      !profileData.lastName.trim() ||
+      !profileData.email.trim() ||
+      !profileData.phone.trim()
+    ) {
       toast({
         title: "Validation Error",
         description: "All fields are required.",
@@ -86,7 +110,8 @@ const UserSettings = () => {
       });
 
       // Construct the full name for display
-      const fullName = `${profileData.firstName} ${profileData.lastName}`.trim();
+      const fullName =
+        `${profileData.firstName} ${profileData.lastName}`.trim();
 
       // Update current user in context
       setCurrentUser({
@@ -106,7 +131,7 @@ const UserSettings = () => {
         description: "Your profile information has been updated successfully.",
       });
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error("Error updating profile:", error);
       toast({
         title: "Error",
         description: "Failed to update profile. Please try again.",
@@ -121,10 +146,18 @@ const UserSettings = () => {
     // Reset to original values
     if (currentUser) {
       setProfileData({
-        firstName: currentUser.first_name || (currentUser.name ? currentUser.name.split(' ')[0] : '') || '',
-        lastName: currentUser.last_name || (currentUser.name ? currentUser.name.split(' ').slice(1).join(' ') : '') || '',
-        email: currentUser.email || '',
-        phone: currentUser.phone || '',
+        firstName:
+          currentUser.first_name ||
+          (currentUser.name ? currentUser.name.split(" ")[0] : "") ||
+          "",
+        lastName:
+          currentUser.last_name ||
+          (currentUser.name
+            ? currentUser.name.split(" ").slice(1).join(" ")
+            : "") ||
+          "",
+        email: currentUser.email || "",
+        phone: currentUser.phone || "",
       });
     }
     setIsEditingProfile(false);
@@ -134,7 +167,11 @@ const UserSettings = () => {
     if (!currentUser) return;
 
     // Validate required fields
-    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+    if (
+      !passwordData.currentPassword ||
+      !passwordData.newPassword ||
+      !passwordData.confirmPassword
+    ) {
       toast({
         title: "Validation Error",
         description: "All password fields are required.",
@@ -161,28 +198,64 @@ const UserSettings = () => {
       return;
     }
 
+    // Password strength validation
+    const passwordRegex = {
+      uppercase: /[A-Z]/,
+      lowercase: /[a-z]/,
+      number: /[0-9]/,
+      special: /[!@#$%^&*(),.?":{}|<>]/,
+    };
+
+    const missingRequirements = [];
+    if (!passwordRegex.uppercase.test(passwordData.newPassword)) {
+      missingRequirements.push("one uppercase letter");
+    }
+    if (!passwordRegex.lowercase.test(passwordData.newPassword)) {
+      missingRequirements.push("one lowercase letter");
+    }
+    if (!passwordRegex.number.test(passwordData.newPassword)) {
+      missingRequirements.push("one number");
+    }
+    if (!passwordRegex.special.test(passwordData.newPassword)) {
+      missingRequirements.push("one special character");
+    }
+
+    if (missingRequirements.length > 0) {
+      toast({
+        title: "Weak Password",
+        description: `Password must contain: ${missingRequirements.join(
+          ", "
+        )}.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      await axios.post('/auth/change-password/', {
+      await axios.post("/auth/change-password/", {
         current_password: passwordData.currentPassword,
         new_password: passwordData.newPassword,
       });
 
       setPasswordData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
       });
 
       toast({
         title: "Password Changed",
         description: "Your password has been changed successfully.",
       });
-    } catch (error) {
-      console.error('Error changing password:', error);
+    } catch (error: any) {
+      console.error("Error changing password:", error);
+      const errorMessage =
+        error.response?.data?.error ||
+        "Failed to change password. Please check your current password and try again.";
       toast({
         title: "Error",
-        description: "Failed to change password. Please check your current password and try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -204,7 +277,7 @@ const UserSettings = () => {
         description: "Your notification preferences have been updated.",
       });
     } catch (error) {
-      console.error('Error updating preferences:', error);
+      console.error("Error updating preferences:", error);
       toast({
         title: "Error",
         description: "Failed to update preferences. Please try again.",
@@ -237,39 +310,45 @@ const UserSettings = () => {
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
         <TabsList>
-          <TabsTrigger 
+          <TabsTrigger
             value="profile"
             className="transition-colors"
             style={{
-              backgroundColor: activeTab === 'profile' ? colors.primaryColor : undefined,
-              color: activeTab === 'profile' ? 'white' : undefined
+              backgroundColor:
+                activeTab === "profile" ? colors.primaryColor : undefined,
+              color: activeTab === "profile" ? "white" : undefined,
             }}
           >
             Profile
           </TabsTrigger>
-          <TabsTrigger 
+          <TabsTrigger
             value="security"
             className="transition-colors"
             style={{
-              backgroundColor: activeTab === 'security' ? colors.primaryColor : undefined,
-              color: activeTab === 'security' ? 'white' : undefined
+              backgroundColor:
+                activeTab === "security" ? colors.primaryColor : undefined,
+              color: activeTab === "security" ? "white" : undefined,
             }}
           >
             Security
           </TabsTrigger>
-          <TabsTrigger 
+          <TabsTrigger
             value="notifications"
             className="transition-colors"
             style={{
-              backgroundColor: activeTab === 'notifications' ? colors.primaryColor : undefined,
-              color: activeTab === 'notifications' ? 'white' : undefined
+              backgroundColor:
+                activeTab === "notifications" ? colors.primaryColor : undefined,
+              color: activeTab === "notifications" ? "white" : undefined,
             }}
           >
             Notifications
           </TabsTrigger>
-          
         </TabsList>
 
         <TabsContent value="profile" className="space-y-4">
@@ -283,24 +362,34 @@ const UserSettings = () => {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name <span className="text-red-500">*</span></Label>
+                  <Label htmlFor="firstName">
+                    First Name <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="firstName"
                     value={profileData.firstName}
                     onChange={(e) =>
-                      setProfileData({ ...profileData, firstName: e.target.value })
+                      setProfileData({
+                        ...profileData,
+                        firstName: e.target.value,
+                      })
                     }
                     disabled={!isEditingProfile}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name <span className="text-red-500">*</span></Label>
+                  <Label htmlFor="lastName">
+                    Last Name <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="lastName"
                     value={profileData.lastName}
                     onChange={(e) =>
-                      setProfileData({ ...profileData, lastName: e.target.value })
+                      setProfileData({
+                        ...profileData,
+                        lastName: e.target.value,
+                      })
                     }
                     disabled={!isEditingProfile}
                     required
@@ -309,7 +398,9 @@ const UserSettings = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
+                  <Label htmlFor="email">
+                    Email <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="email"
                     type="email"
@@ -322,7 +413,9 @@ const UserSettings = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone <span className="text-red-500">*</span></Label>
+                  <Label htmlFor="phone">
+                    Phone <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="phone"
                     type="tel"
@@ -335,25 +428,20 @@ const UserSettings = () => {
                   />
                 </div>
               </div>
-              
+
               {!isEditingProfile ? (
-                <Button onClick={() => setIsEditingProfile(true)}>
-                  Edit
-                </Button>
+                <Button onClick={() => setIsEditingProfile(true)}>Edit</Button>
               ) : (
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={handleCancelEdit}
                     disabled={loading}
                   >
                     Cancel
                   </Button>
-                  <Button 
-                    onClick={handleProfileUpdate} 
-                    disabled={loading}
-                  >
-                    {loading ? 'Saving...' : 'Save'}
+                  <Button onClick={handleProfileUpdate} disabled={loading}>
+                    {loading ? "Saving..." : "Save"}
                   </Button>
                 </div>
               )}
@@ -371,14 +459,19 @@ const UserSettings = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="currentPassword">Current Password <span className="text-red-500">*</span></Label>
+                <Label htmlFor="currentPassword">
+                  Current Password <span className="text-red-500">*</span>
+                </Label>
                 <div className="relative">
                   <Input
                     id="currentPassword"
-                    type={showPasswords.current ? 'text' : 'password'}
+                    type={showPasswords.current ? "text" : "password"}
                     value={passwordData.currentPassword}
                     onChange={(e) =>
-                      setPasswordData({ ...passwordData, currentPassword: e.target.value })
+                      setPasswordData({
+                        ...passwordData,
+                        currentPassword: e.target.value,
+                      })
                     }
                     required
                   />
@@ -388,7 +481,10 @@ const UserSettings = () => {
                     size="sm"
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() =>
-                      setShowPasswords({ ...showPasswords, current: !showPasswords.current })
+                      setShowPasswords({
+                        ...showPasswords,
+                        current: !showPasswords.current,
+                      })
                     }
                   >
                     {showPasswords.current ? (
@@ -400,14 +496,19 @@ const UserSettings = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="newPassword">New Password <span className="text-red-500">*</span></Label>
+                <Label htmlFor="newPassword">
+                  New Password <span className="text-red-500">*</span>
+                </Label>
                 <div className="relative">
                   <Input
                     id="newPassword"
-                    type={showPasswords.new ? 'text' : 'password'}
+                    type={showPasswords.new ? "text" : "password"}
                     value={passwordData.newPassword}
                     onChange={(e) =>
-                      setPasswordData({ ...passwordData, newPassword: e.target.value })
+                      setPasswordData({
+                        ...passwordData,
+                        newPassword: e.target.value,
+                      })
                     }
                     required
                   />
@@ -417,7 +518,10 @@ const UserSettings = () => {
                     size="sm"
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() =>
-                      setShowPasswords({ ...showPasswords, new: !showPasswords.new })
+                      setShowPasswords({
+                        ...showPasswords,
+                        new: !showPasswords.new,
+                      })
                     }
                   >
                     {showPasswords.new ? (
@@ -427,16 +531,25 @@ const UserSettings = () => {
                     )}
                   </Button>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Must be at least 8 characters with uppercase, lowercase,
+                  number, and special character.
+                </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm New Password <span className="text-red-500">*</span></Label>
+                <Label htmlFor="confirmPassword">
+                  Confirm New Password <span className="text-red-500">*</span>
+                </Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
-                    type={showPasswords.confirm ? 'text' : 'password'}
+                    type={showPasswords.confirm ? "text" : "password"}
                     value={passwordData.confirmPassword}
                     onChange={(e) =>
-                      setPasswordData({ ...passwordData, confirmPassword: e.target.value })
+                      setPasswordData({
+                        ...passwordData,
+                        confirmPassword: e.target.value,
+                      })
                     }
                     required
                   />
@@ -446,7 +559,10 @@ const UserSettings = () => {
                     size="sm"
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() =>
-                      setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })
+                      setShowPasswords({
+                        ...showPasswords,
+                        confirm: !showPasswords.confirm,
+                      })
                     }
                   >
                     {showPasswords.confirm ? (
@@ -458,7 +574,7 @@ const UserSettings = () => {
                 </div>
               </div>
               <Button onClick={handlePasswordChange} disabled={loading}>
-                {loading ? 'Changing...' : 'Change Password'}
+                {loading ? "Changing..." : "Change Password"}
               </Button>
             </CardContent>
           </Card>
@@ -545,14 +661,13 @@ const UserSettings = () => {
                 />
               </div>
               <Button onClick={handleNotificationUpdate} disabled={loading}>
-                {loading ? 'Updating...' : 'Update Preferences'}
+                {loading ? "Updating..." : "Update Preferences"}
               </Button>
             </CardContent>
           </Card>
         </TabsContent>
 
-      
-        {currentUser.role === 'doctor' && (
+        {currentUser.role === "doctor" && (
           <TabsContent value="doctor" className="space-y-4">
             <Card>
               <CardHeader>
@@ -601,7 +716,7 @@ const UserSettings = () => {
           </TabsContent>
         )}
 
-        {currentUser.role === 'receptionist' && (
+        {currentUser.role === "receptionist" && (
           <TabsContent value="receptionist" className="space-y-4">
             <Card>
               <CardHeader>
