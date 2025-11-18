@@ -1,0 +1,28 @@
+nohup: ignoring input
+INFO 2025-11-18 11:14:14,546 iprog_sms_service 447623 124114257485952 iProg SMS service initialized successfully
+[2025-11-18 11:14:14,588: INFO/MainProcess] beat: Starting...
+[2025-11-18 11:14:14,592: ERROR/MainProcess] Removing corrupted schedule file 'celerybeat-schedule': error('db type could not be determined')
+Traceback (most recent call last):
+  File "/home/lunasynccapstone/LunaSync/capstone/venv/lib/python3.12/site-packages/celery/beat.py", line 532, in setup_schedule
+    self._store = self._open_schedule()
+                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lunasynccapstone/LunaSync/capstone/venv/lib/python3.12/site-packages/celery/beat.py", line 522, in _open_schedule
+    return self.persistence.open(self.schedule_filename, writeback=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/shelve.py", line 243, in open
+    return DbfilenameShelf(filename, flag, protocol, writeback)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/shelve.py", line 227, in __init__
+    Shelf.__init__(self, dbm.open(filename, flag), protocol, writeback)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/dbm/__init__.py", line 89, in open
+    raise error[0]("db type could not be determined")
+dbm.error: db type could not be determined
+[2025-11-18 11:20:00,002: INFO/MainProcess] Scheduler: Sending due task send-appointment-reminders-every-10-minutes (appointments.tasks.send_appointment_reminders_task)
+[2025-11-18 11:30:00,000: INFO/MainProcess] Scheduler: Sending due task send-appointment-reminders-every-10-minutes (appointments.tasks.send_appointment_reminders_task)
+[2025-11-18 11:40:00,000: INFO/MainProcess] Scheduler: Sending due task send-appointment-reminders-every-10-minutes (appointments.tasks.send_appointment_reminders_task)
+[2025-11-18 11:50:00,000: INFO/MainProcess] Scheduler: Sending due task send-appointment-reminders-every-10-minutes (appointments.tasks.send_appointment_reminders_task)
+[2025-11-18 12:00:00,000: INFO/MainProcess] Scheduler: Sending due task send-appointment-reminders-every-10-minutes (appointments.tasks.send_appointment_reminders_task)
+[2025-11-18 12:10:00,000: INFO/MainProcess] Scheduler: Sending due task send-appointment-reminders-every-10-minutes (appointments.tasks.send_appointment_reminders_task)
+[2025-11-18 12:20:00,000: INFO/MainProcess] Scheduler: Sending due task send-appointment-reminders-every-10-minutes (appointments.tasks.send_appointment_reminders_task)
+[2025-11-18 12:30:00,000: INFO/MainProcess] Scheduler: Sending due task send-appointment-reminders-every-10-minutes (appointments.tasks.send_appointment_reminders_task)
