@@ -45,7 +45,7 @@ import { useClinic } from "@/contexts/ClinicContext";
 import { useToast } from "@/hooks/use-toast";
 import { medicalDocumentsAPI } from "@/lib/medicalDocumentsAPI";
 import { Patient } from "@/lib/mock-data";
-import { axiosInstance } from "@/services/api";
+import { axiosInstance, api } from "@/services/api";
 import { type LabResult as APILabResult } from "@/services/medicalDocumentsAPI";
 import { parseApiError } from "@/utils/errorHandler";
 import {
@@ -339,6 +339,12 @@ const PatientManagement = () => {
   };
 
   const handleTemplateSave = async () => {
+    console.log(
+      "🔵 handleTemplateSave CLICKED - selectedTemplate:",
+      selectedTemplate
+    );
+    console.log("🔵 Template Data:", templateData);
+
     if (selectedTemplate === "E-Prescription") {
       // Save prescription with all medications to the database
       try {
@@ -408,6 +414,9 @@ const PatientManagement = () => {
           notes: "",
           nameType: "Generic",
         });
+        setTemplateData({});
+        setSelectedTemplate("");
+        setShowTemplateForm(false);
       } catch (error: any) {
         toast({
           title: "Error",
@@ -417,7 +426,32 @@ const PatientManagement = () => {
         });
       }
     } else if (selectedTemplate === "SOAP Note" && templateData) {
+      console.log("🟢 STARTING SOAP Note save process...");
       try {
+        // Validate patient ID
+        const patientId = patientData?.id
+          ? typeof patientData.id === "string"
+            ? parseInt(patientData.id)
+            : patientData.id
+          : 0;
+        console.log(
+          "📋 Patient ID being used:",
+          patientId,
+          "(from patientData.id:",
+          patientData?.id,
+          ")"
+        );
+
+        if (!patientId || patientId === 0) {
+          toast({
+            title: "Validation Error",
+            description:
+              "Invalid patient ID. Please refresh the page and try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+
         // Validate that at least one SOAP field has content
         const hasContent =
           templateData.subjective ||
@@ -435,7 +469,8 @@ const PatientManagement = () => {
         }
 
         const soapData = {
-          patient: parseInt(id || "0"),
+          patient: patientId,
+          created_by: currentUser?.id, // Add current user ID
           title: "SOAP Note",
           description: "SOAP Note created from patient management",
           document_date: new Date().toISOString(),
@@ -444,13 +479,27 @@ const PatientManagement = () => {
           assessment: templateData.assessment || "",
           plan: templateData.plan || "",
           status: "approved",
+          // Add optional fields that may be required
+          chief_complaint: "",
+          history_present_illness: "",
+          vital_signs: {}, // Empty object for vital signs
         };
 
         console.log("Sending SOAP data:", soapData);
+        console.log(
+          "Patient ID type:",
+          typeof soapData.patient,
+          "Value:",
+          soapData.patient
+        );
+
         const response = await axiosInstance.post(
           "/medical-documents/soap-notes/",
           soapData
         );
+
+        console.log("SOAP Note created successfully! Response:", response.data);
+        console.log("Created SOAP Note ID:", response.data.id);
 
         toast({
           title: "Success",
@@ -458,22 +507,61 @@ const PatientManagement = () => {
         });
 
         // Refresh SOAP notes list
+        console.log("About to call loadAllDocuments()...");
         await loadAllDocuments();
+        console.log("loadAllDocuments() completed");
+
+        // Reset form after successful submission
+        console.log("🔄 Resetting form state...");
+        setTemplateData({});
+        setSelectedTemplate("");
+        setShowTemplateForm(false);
+        console.log("✅ SOAP Note save process COMPLETED");
       } catch (error: any) {
+        console.error("SOAP Note submission error:", error);
+        console.error("Error response data:", error.response?.data);
+        console.error("Error response status:", error.response?.status);
+        console.error("Error response headers:", error.response?.headers);
+
+        let errorMessage = "Failed to save SOAP note";
+
+        if (error.response?.data) {
+          // Handle various error response formats
+          if (error.response.data.detail) {
+            errorMessage = error.response.data.detail;
+          } else if (error.response.data.message) {
+            errorMessage = error.response.data.message;
+          } else if (typeof error.response.data === "string") {
+            errorMessage = error.response.data;
+          } else if (typeof error.response.data === "object") {
+            // Handle field validation errors
+            const errors = Object.entries(error.response.data)
+              .map(([field, messages]) => {
+                if (Array.isArray(messages)) {
+                  return `${field}: ${messages.join(", ")}`;
+                }
+                return `${field}: ${messages}`;
+              })
+              .join("; ");
+            errorMessage = errors || "Validation error occurred";
+          }
+        }
+
         toast({
           title: "Error",
-          description:
-            error.response?.data?.detail || "Failed to save SOAP note",
+          description: errorMessage,
           variant: "destructive",
         });
       }
     } else if (selectedTemplate === "Clinical Notes") {
       await saveClinicalNoteToDatabase();
+      // Reset form for clinical notes
+      setTemplateData({});
+      setSelectedTemplate("");
+      setShowTemplateForm(false);
     }
 
-    setTemplateData({});
-    setSelectedTemplate("");
-    setShowTemplateForm(false);
+    // Form reset is now handled within each template's success block
   };
 
   const handlePrescriptionChange = (field: string, value: any) => {
@@ -3557,6 +3645,10 @@ const PatientManagement = () => {
 
   // Function to load all documents from database
   const loadAllDocuments = async () => {
+    console.log(
+      "📂 loadAllDocuments STARTED - patientData.id:",
+      patientData?.id
+    );
     if (!patientData?.id) return; // Use patientData.id instead of id parameter
 
     try {
@@ -3624,9 +3716,11 @@ const PatientManagement = () => {
       setPrescriptions(mappedPrescriptions);
 
       // Load SOAP notes
+      console.log("📝 Loading SOAP notes for patient:", patientData.id);
       const soapResponse = await medicalDocumentsAPI.getSOAPNotesByPatient(
         patientData.id
       );
+      console.log("📝 SOAP notes received:", soapResponse.length, "notes");
       const mappedSoapNotes = soapResponse.map((soap: any) => ({
         id: soap.id,
         type: "soap",
@@ -3643,7 +3737,13 @@ const PatientManagement = () => {
         backendId: soap.id,
         documentId: soap.document?.id,
       }));
+      console.log(
+        "📝 Setting SOAP notes state with:",
+        mappedSoapNotes.length,
+        "notes"
+      );
       setSoapNotes(mappedSoapNotes);
+      console.log("✅ SOAP notes state updated");
 
       // Load clinical notes
       const clinicalResponse =
@@ -5900,7 +6000,10 @@ const PatientManagement = () => {
                         Cancel
                       </Button>
                       <Button
-                        onClick={handleTemplateSave}
+                        onClick={() => {
+                          console.log("🟡 SOAP Note Save button clicked!");
+                          handleTemplateSave();
+                        }}
                         className="hover:bg-[#1EAEDB]"
                       >
                         Save

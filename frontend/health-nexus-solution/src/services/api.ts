@@ -466,6 +466,24 @@ export const api = {
       const response = await axiosInstance.post('/security-testing/', { test_type: testType });
       return response.data;
     }
+  },
+  medicalDocuments: {
+    createSoapNote: async (data: any) => {
+      const response = await axiosInstance.post('/medical-documents/soap-notes/', data);
+      return response.data;
+    },
+    createPrescription: async (data: any) => {
+      const response = await axiosInstance.post('/medical-documents/prescriptions/', data);
+      return response.data;
+    },
+    createClinicalNote: async (data: any) => {
+      const response = await axiosInstance.post('/medical-documents/clinical-notes/', data);
+      return response.data;
+    },
+    getMedicalCertificates: async (patientId: number) => {
+      const response = await axiosInstance.get(`/medical-documents/medical-certificates/?patient_id=${patientId}`);
+      return response.data;
+    }
   }
 };
 

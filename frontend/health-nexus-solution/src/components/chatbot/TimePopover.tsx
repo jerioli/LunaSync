@@ -1,7 +1,11 @@
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Clock } from 'lucide-react';
-import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Clock } from "lucide-react";
+import { useState } from "react";
 
 interface TimeSlot {
   time: string;
@@ -17,17 +21,20 @@ interface TimePopoverProps {
   disabled?: boolean;
 }
 
-export const TimePopover = ({ 
-  times, 
+export const TimePopover = ({
+  times,
   timeSlots,
-  selectedTime, 
-  onTimeSelect, 
-  disabled = false 
+  selectedTime,
+  onTimeSelect,
+  disabled = false,
 }: TimePopoverProps) => {
   const [open, setOpen] = useState(false);
 
   // Convert times array to timeSlots format for backward compatibility
-  const actualTimeSlots = timeSlots || (times?.map(time => ({ time, available: true, booked: false })) || []);
+  const actualTimeSlots =
+    timeSlots ||
+    times?.map((time) => ({ time, available: true, booked: false })) ||
+    [];
 
   const handleTimeSelect = (time: string, isAvailable: boolean) => {
     if (isAvailable) {
@@ -45,13 +52,15 @@ export const TimePopover = ({
     <div className="mt-3">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className={`w-full justify-start text-left font-normal bg-white min-w-0 ${
-              disabled ? 'opacity-50 cursor-not-allowed' : ''
+              disabled ? "opacity-50 cursor-not-allowed" : ""
             }`}
             disabled={disabled}
-            title={selectedTime ? formatTimeDisplay(selectedTime) : "Select a time"}
+            title={
+              selectedTime ? formatTimeDisplay(selectedTime) : "Select a time"
+            }
           >
             <Clock className="mr-2 h-4 w-4 flex-shrink-0" />
             <span className="truncate">
@@ -59,8 +68,30 @@ export const TimePopover = ({
             </span>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-80 max-w-[90vw] p-2" align="start" side="top">
-          <div className="flex flex-col gap-1 max-h-60 overflow-y-auto min-w-0">
+        <PopoverContent
+          className="w-80 max-w-[90vw] p-2"
+          align="start"
+          side="top"
+          onWheel={(e) => {
+            // Prevent scroll from propagating to parent
+            e.stopPropagation();
+          }}
+          onTouchMove={(e) => {
+            // Prevent scroll from propagating to parent on mobile
+            e.stopPropagation();
+          }}
+        >
+          <div
+            className="flex flex-col gap-1 max-h-60 overflow-y-auto min-w-0"
+            onWheel={(e) => {
+              // Prevent wheel event from propagating to body
+              e.stopPropagation();
+            }}
+            onTouchMove={(e) => {
+              // Prevent touch scroll from propagating to body
+              e.stopPropagation();
+            }}
+          >
             <div className="text-sm font-medium text-gray-700 px-2 py-1 border-b">
               Time Slots
             </div>
@@ -73,34 +104,40 @@ export const TimePopover = ({
                 {actualTimeSlots.map((slot) => {
                   const isSelected = selectedTime === slot.time;
                   const isAvailable = slot.available && !slot.booked;
-                  
+
                   return (
                     <Button
                       key={slot.time}
                       variant={isSelected ? "default" : "ghost"}
                       className={`justify-center text-center h-auto p-2 text-xs min-w-0 truncate whitespace-nowrap relative ${
-                        !isAvailable 
-                          ? 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-500' 
-                          : 'hover:bg-gray-100'
+                        !isAvailable
+                          ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-500"
+                          : "hover:bg-gray-100"
                       }`}
                       onClick={() => handleTimeSelect(slot.time, isAvailable)}
                       disabled={!isAvailable}
                       title={
-                        slot.booked 
+                        slot.booked
                           ? `${formatTimeDisplay(slot.time)} - Booked`
-                          : !slot.available 
-                            ? `${formatTimeDisplay(slot.time)} - Unavailable`
-                            : formatTimeDisplay(slot.time)
+                          : !slot.available
+                          ? `${formatTimeDisplay(slot.time)} - Unavailable`
+                          : formatTimeDisplay(slot.time)
                       }
                     >
                       <div className="flex flex-col items-center min-w-0">
                         <Clock className="h-3 w-3 mb-1 flex-shrink-0" />
-                        <span className="truncate max-w-full">{formatTimeDisplay(slot.time)}</span>
+                        <span className="truncate max-w-full">
+                          {formatTimeDisplay(slot.time)}
+                        </span>
                         {slot.booked && (
-                          <span className="text-[10px] text-red-600 font-medium mt-0.5">BOOKED</span>
+                          <span className="text-[10px] text-red-600 font-medium mt-0.5">
+                            BOOKED
+                          </span>
                         )}
                         {!slot.available && !slot.booked && (
-                          <span className="text-[10px] text-gray-500 font-medium mt-0.5">N/A</span>
+                          <span className="text-[10px] text-gray-500 font-medium mt-0.5">
+                            N/A
+                          </span>
                         )}
                       </div>
                     </Button>

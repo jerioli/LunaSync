@@ -85,7 +85,6 @@ const patientSchema = z.object({
   email: z.string().email("Invalid email address"),
   address: z.string().min(1, "Home address is required"),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
-  age: z.string().min(1, "Age is required"),
   religion: z.string().min(1, "Religion is required"),
   maritalStatus: z
     .enum(["single", "married", "divorced", "widowed", "prefer_not_to_say"])
@@ -206,6 +205,7 @@ const PatientPortal = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingTimeSlots, setIsLoadingTimeSlots] = useState(false);
   const [doctorAvailableDates, setDoctorAvailableDates] = useState<Date[]>([]);
+  const [allAvailableDates, setAllAvailableDates] = useState<Date[]>([]); // For date-first flow
   const [isLoadingDates, setIsLoadingDates] = useState(false);
   const [doctorDatesCache, setDoctorDatesCache] = useState<{
     [doctorId: string]: Date[];
@@ -219,6 +219,10 @@ const PatientPortal = () => {
   // New patient terms and conditions
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [noMiddleName, setNoMiddleName] = useState(false);
+
+  // Notification preferences
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [smsNotifications, setSmsNotifications] = useState(false);
 
   // Forgot Patient ID states
   const [showForgotPatientId, setShowForgotPatientId] = useState(false);
@@ -247,7 +251,6 @@ const PatientPortal = () => {
       email: "",
       address: "",
       dateOfBirth: "",
-      age: "",
       religion: "",
       maritalStatus: "single",
     },
@@ -895,6 +898,70 @@ const PatientPortal = () => {
     }
   };
 
+  // Fetch all available dates from all doctors (for date-first flow)
+  const fetchAllAvailableDates = async () => {
+    setIsLoadingDates(true);
+    try {
+      // Get all doctors with availability
+      const allDoctors = doctors.filter((doc: any) => doc.id);
+
+      if (allDoctors.length === 0) {
+        console.log("No doctors available");
+        setAllAvailableDates([]);
+        return;
+      }
+
+      const dateSet = new Set<string>();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Fetch dates from all doctors
+      const datePromises = allDoctors.map(async (doctor: any) => {
+        try {
+          const response = await api.availability.getAvailableDates(doctor.id);
+
+          if (!response || !Array.isArray(response) || response.length === 0) {
+            return [];
+          }
+
+          return response
+            .map((dateStr: string) => {
+              const date = new Date(dateStr);
+              date.setHours(0, 0, 0, 0);
+              return date;
+            })
+            .filter((date) => date >= today);
+        } catch (error) {
+          console.error(`Error fetching dates for doctor ${doctor.id}:`, error);
+          return [];
+        }
+      });
+
+      const allDatesArrays = await Promise.all(datePromises);
+      const allDates = allDatesArrays.flat();
+
+      // Deduplicate dates using Set
+      allDates.forEach((date) => {
+        dateSet.add(date.toISOString().split("T")[0]);
+      });
+
+      // Convert back to Date objects and sort
+      const uniqueDates = Array.from(dateSet)
+        .map((dateStr) => new Date(dateStr))
+        .sort((a, b) => a.getTime() - b.getTime());
+
+      console.log(
+        `Found ${uniqueDates.length} unique available dates from ${allDoctors.length} doctors`
+      );
+      setAllAvailableDates(uniqueDates);
+    } catch (error) {
+      console.error("Error fetching all available dates:", error);
+      setAllAvailableDates([]);
+    } finally {
+      setIsLoadingDates(false);
+    }
+  };
+
   // Generate available dates for the next 60 days
   // Available dates - use doctor-specific dates when available, fallback to hardcoded
   const availableDates = useMemo(() => {
@@ -903,18 +970,19 @@ const PatientPortal = () => {
       return doctorAvailableDates;
     }
 
-    // Fallback to hardcoded dates (for date-first flow or when no doctor schedule)
-    const dates: Date[] = [];
-    const today = new Date();
-
-    for (let i = 0; i < 60; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
-      dates.push(date);
+    // If in date-first flow and we have fetched all available dates, use those
+    if (bookingPreference === "datetime" && allAvailableDates.length > 0) {
+      return allAvailableDates;
     }
 
-    return dates;
-  }, [selectedDoctor, doctorAvailableDates]);
+    // Return empty array instead of generating hardcoded dates
+    return [];
+  }, [
+    selectedDoctor,
+    doctorAvailableDates,
+    bookingPreference,
+    allAvailableDates,
+  ]);
 
   // Keep the function for backward compatibility
   const generateAvailableDates = useCallback((): Date[] => {
@@ -1650,7 +1718,6 @@ const PatientPortal = () => {
         date_of_birth: isExistingPatient
           ? selectedPatient?.dateOfBirth || selectedPatient?.date_of_birth
           : patientData.dateOfBirth,
-        age: isExistingPatient ? selectedPatient?.age || null : patientData.age,
         religion: isExistingPatient
           ? selectedPatient?.religion || null
           : patientData.religion,
@@ -1674,6 +1741,9 @@ const PatientPortal = () => {
         status: "pending",
         is_pending_confirmation: true,
         notes: notes || "",
+        // Notification preferences (for new patients)
+        emailNotifications: isExistingPatient ? undefined : emailNotifications,
+        smsNotifications: isExistingPatient ? undefined : smsNotifications,
       };
 
       // Create appointment using the same API as chatbot
@@ -1946,14 +2016,6 @@ const PatientPortal = () => {
             toast({
               title: "Required Field",
               description: "Date of birth is required",
-              variant: "destructive",
-            });
-            return;
-          }
-          if (!formData.age?.trim()) {
-            toast({
-              title: "Required Field",
-              description: "Age is required",
               variant: "destructive",
             });
             return;
@@ -2453,90 +2515,6 @@ const PatientPortal = () => {
 
     return () => clearInterval(interval);
   }, []);
-
-  // Helper component for personal info fields
-  const PersonalInfoFields = ({ disabled }: { disabled: boolean }) => (
-    <div
-      className={`space-y-4 ${
-        disabled ? "opacity-50 pointer-events-none" : ""
-      }`}
-    >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input placeholder="First Name" disabled={disabled} required />
-        <Input placeholder="Suffix" disabled={disabled} required />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input placeholder="Middle Name" disabled={disabled} required />
-        <Input
-          type="date"
-          placeholder="Birthdate"
-          disabled={disabled}
-          required
-        />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input placeholder="Last Name" disabled={disabled} required />
-        <Input placeholder="Age" disabled={disabled} required />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input placeholder="Religion" disabled={disabled} required />
-        <Select disabled={disabled} required>
-          <SelectTrigger>
-            <SelectValue placeholder="Sex" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="male">Male</SelectItem>
-            <SelectItem value="female">Female</SelectItem>
-            <SelectItem value="prefernot">Prefer not to say</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input placeholder="Phone Number" disabled={disabled} required />
-        <Select disabled={disabled} required>
-          <SelectTrigger>
-            <SelectValue placeholder="Marital Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="single">Single</SelectItem>
-            <SelectItem value="married">Married</SelectItem>
-            <SelectItem value="widowed">Widowed</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <Input placeholder="Email Address" disabled={disabled} required />
-      <Textarea placeholder="Home Address" disabled={disabled} required />
-    </div>
-  );
-
-  // Tooltip component
-  const ConsentTooltip = ({ text }: { text: string }) => {
-    const [open, setOpen] = useState(false);
-
-    return (
-      <span
-        className="relative inline-flex align-middle ml-1"
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
-      >
-        <button
-          type="button"
-          tabIndex={0}
-          className="outline-none focus:ring-2 focus:ring-[#79c942] rounded bg-transparent border-none p-0"
-          aria-label="Show consent information"
-          onClick={() => setOpen((prev) => !prev)}
-          onBlur={() => setOpen(false)}
-        >
-          <Info className="h-4 w-4 text-[#79c942] cursor-pointer" />
-        </button>
-        {open && (
-          <span className="absolute left-1/2 top-full z-50 -translate-x-1/2 mt-2 w-[320px] bg-white text-gray-700 text-[8px] rounded shadow-lg p-3 border border-gray-200 whitespace-pre-line">
-            {text}
-          </span>
-        )}
-      </span>
-    );
-  };
 
   if (loading) {
     return (
@@ -3751,7 +3729,11 @@ const PatientPortal = () => {
                         ? "bg-[#79c942] hover:bg-[#68ab38]"
                         : ""
                     }`}
-                    onClick={() => setBookingPreference("datetime")}
+                    onClick={() => {
+                      setBookingPreference("datetime");
+                      // Fetch all available dates when date-first is selected
+                      fetchAllAvailableDates();
+                    }}
                   >
                     <div className="text-center">
                       <Calendar className="w-8 h-8 mx-auto mb-2" />
@@ -3811,52 +3793,69 @@ const PatientPortal = () => {
                     <h3 className="text-lg font-semibold text-center mb-4">
                       Select Date
                     </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                      {availableDates.slice(0, 30).map((date) => {
-                        const isSelected =
-                          selectedDate &&
-                          date.getFullYear() === selectedDate.getFullYear() &&
-                          date.getMonth() === selectedDate.getMonth() &&
-                          date.getDate() === selectedDate.getDate();
-
-                        return (
-                          <Button
-                            key={date.toISOString()}
-                            variant={isSelected ? "default" : "outline"}
-                            className={`p-3 h-auto text-center ${
-                              isSelected
-                                ? "bg-[#79c942] hover:bg-[#68ab38]"
-                                : ""
-                            }`}
-                            onClick={() => {
-                              setSelectedDate(date);
-                              setSelectedDoctor(null); // Reset doctor when date changes
-                              setSelectedTimeSlot(""); // Reset time slot when date changes
-                              toast({
-                                title: "Date Selected",
-                                description: `Date selected: ${format(
-                                  date,
-                                  "MMM dd, yyyy"
-                                )}`,
-                              });
-                            }}
-                          >
-                            <div>
-                              <div className="font-semibold text-sm">
-                                {format(date, "MMM dd")}
-                              </div>
-                              <div className="text-xs opacity-75">
-                                {format(date, "EEE")}
-                              </div>
-                            </div>
-                          </Button>
-                        );
-                      })}
-                    </div>
-                    {selectedDate && (
-                      <div className="text-center text-sm text-gray-600 mt-4">
-                        Selected: {format(selectedDate, "MMMM do, yyyy")}
+                    {isLoadingDates ? (
+                      <div className="text-center text-gray-500 py-8">
+                        <div className="flex items-center justify-center space-x-2">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#79c942]"></div>
+                          <span>Loading available dates...</span>
+                        </div>
                       </div>
+                    ) : availableDates.length === 0 ? (
+                      <div className="text-center text-gray-500 py-8">
+                        <div className="text-lg font-medium mb-2">
+                          No available dates
+                        </div>
+                        <div className="text-sm">
+                          No doctors have available appointments scheduled.
+                          Please contact the clinic or try again later.
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                          {availableDates.slice(0, 30).map((date) => {
+                            const isSelected =
+                              selectedDate &&
+                              date.getFullYear() ===
+                                selectedDate.getFullYear() &&
+                              date.getMonth() === selectedDate.getMonth() &&
+                              date.getDate() === selectedDate.getDate();
+
+                            return (
+                              <Button
+                                key={date.toISOString()}
+                                variant={isSelected ? "default" : "outline"}
+                                className={`p-3 h-auto text-center ${
+                                  isSelected
+                                    ? "bg-[#79c942] hover:bg-[#68ab38]"
+                                    : ""
+                                }`}
+                                onClick={() => {
+                                  setSelectedDate(date);
+                                  setSelectedDoctor(null); // Reset doctor when date changes
+                                  setSelectedTimeSlot(""); // Reset time slot when date changes
+                                  toast({
+                                    title: "Date Selected",
+                                    description: `Date selected: ${format(
+                                      date,
+                                      "MMM dd, yyyy"
+                                    )}`,
+                                  });
+                                }}
+                              >
+                                <div>
+                                  <div className="font-semibold text-sm">
+                                    {format(date, "MMM dd")}
+                                  </div>
+                                  <div className="text-xs opacity-75">
+                                    {format(date, "EEE")}
+                                  </div>
+                                </div>
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      </>
                     )}
                   </>
                 )}
@@ -4450,21 +4449,6 @@ const PatientPortal = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-1">
-                          Age *
-                        </label>
-                        <Input
-                          type="number"
-                          {...patientForm.register("age")}
-                          placeholder="Enter your age"
-                        />
-                        {patientForm.formState.errors.age && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {patientForm.formState.errors.age.message}
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">
                           Sex *
                         </label>
                         <Select
@@ -4574,6 +4558,54 @@ const PatientPortal = () => {
                             {patientForm.formState.errors.address.message}
                           </p>
                         )}
+                      </div>
+
+                      {/* Notification Preferences */}
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium mb-3">
+                          Notification Preferences
+                        </label>
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-3">
+                            <input
+                              type="checkbox"
+                              id="email-notifications"
+                              checked={emailNotifications}
+                              onChange={(e) =>
+                                setEmailNotifications(e.target.checked)
+                              }
+                              className="h-4 w-4 text-[#79c942] focus:ring-[#79c942] border-gray-300 rounded"
+                            />
+                            <label
+                              htmlFor="email-notifications"
+                              className="text-sm text-gray-700"
+                            >
+                              📧 Send appointment confirmations via Email
+                            </label>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <input
+                              type="checkbox"
+                              id="sms-notifications"
+                              checked={smsNotifications}
+                              onChange={(e) =>
+                                setSmsNotifications(e.target.checked)
+                              }
+                              className="h-4 w-4 text-[#79c942] focus:ring-[#79c942] border-gray-300 rounded"
+                            />
+                            <label
+                              htmlFor="sms-notifications"
+                              className="text-sm text-gray-700"
+                            >
+                              💬 Send appointment confirmations via SMS/Text
+                              Message
+                            </label>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-2">
+                            You can choose how you'd like to receive appointment
+                            confirmations and reminders.
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </>
