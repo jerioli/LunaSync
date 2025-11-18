@@ -202,7 +202,7 @@ class LabResultCreateSerializer(serializers.ModelSerializer):
         model = LabResult
         fields = [
             # LabResult fields
-            'test_name', 'test_category', 'specimen_type', 'laboratory_name', 
+            'test_name', 'specimen_type', 'laboratory_name', 
             'laboratory_address', 'lab_reference_number', 'collection_date', 
             'received_date', 'reported_date', 'test_results',
             # Document creation fields (write_only)

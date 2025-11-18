@@ -39,8 +39,8 @@ class MedicalDocumentAdmin(admin.ModelAdmin):
 
 @admin.register(LabResult)
 class LabResultAdmin(admin.ModelAdmin):
-    list_display = ('test_name', 'get_patient_name', 'test_category', 'laboratory_name', 'collection_date')
-    list_filter = ('test_category', 'specimen_type', 'collection_date')
+    list_display = ('test_name', 'get_patient_name', 'laboratory_name', 'collection_date')
+    list_filter = ('specimen_type', 'collection_date')
     search_fields = ('test_name', 'laboratory_name', 'document__patient__name')
     
     def get_patient_name(self, obj):

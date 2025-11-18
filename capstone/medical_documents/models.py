@@ -124,7 +124,6 @@ class LabResult(models.Model):
     
     # Test information
     test_name = EncryptedCharField(max_length=800)
-    test_category = models.CharField(max_length=50, choices=TEST_CATEGORIES)
     specimen_type = models.CharField(max_length=50, choices=SPECIMEN_TYPES)
     
     # Laboratory information

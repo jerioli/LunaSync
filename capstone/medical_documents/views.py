@@ -236,9 +236,6 @@ class LabResultViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(document__patient_id=patient_id)
         
         # Filter by test category
-        test_category = self.request.query_params.get('test_category')
-        if test_category:
-            queryset = queryset.filter(test_category=test_category)
         
         # Filter by date range
         start_date = self.request.query_params.get('start_date')
