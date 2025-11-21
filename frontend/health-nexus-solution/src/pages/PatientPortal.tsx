@@ -727,6 +727,26 @@ const PatientPortal = () => {
         const hour = parseInt(hours);
         const isLunchBreak = hour === 12;
 
+        // Filter out past time slots if the selected date is today
+        const today = new Date();
+        const isToday =
+          dateString ===
+          `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
+            2,
+            "0"
+          )}-${String(today.getDate()).padStart(2, "0")}`;
+
+        let isPastTime = false;
+        if (isToday) {
+          const currentTime = new Date();
+          const [slotHours, slotMinutes] = slot.start_time
+            .split(":")
+            .map(Number);
+          const slotTime = new Date();
+          slotTime.setHours(slotHours, slotMinutes, 0, 0);
+          isPastTime = slotTime <= currentTime;
+        }
+
         // Debug logging for lunch break filtering
         if (isLunchBreak) {
           console.log(
@@ -734,8 +754,14 @@ const PatientPortal = () => {
           );
         }
 
-        // Only show slots that are NOT booked AND NOT lunch break
-        return !isBooked && !isLunchBreak;
+        if (isPastTime && isToday) {
+          console.log(
+            `Filtering out past time slot: ${slot.start_time} (current time passed)`
+          );
+        }
+
+        // Only show slots that are NOT booked AND NOT lunch break AND NOT in the past (for today)
+        return !isBooked && !isLunchBreak && !isPastTime;
       });
 
       // Format time slots for display (matching chatbot format)
@@ -895,11 +921,15 @@ const PatientPortal = () => {
 
       // Filter to only include dates within the next 2 weeks (same as chatbot)
       const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset to midnight for date comparison
       const twoWeeksFromNow = new Date();
       twoWeeksFromNow.setDate(today.getDate() + 14);
+      twoWeeksFromNow.setHours(23, 59, 59, 999); // End of day
 
       const filteredDates = availableDates.filter((date) => {
-        return date >= today && date <= twoWeeksFromNow;
+        const compareDate = new Date(date);
+        compareDate.setHours(0, 0, 0, 0);
+        return compareDate >= today && compareDate <= twoWeeksFromNow;
       });
 
       console.log("Doctor available dates:", filteredDates);
@@ -2637,6 +2667,9 @@ const PatientPortal = () => {
     }
   };
 
+  // Add state for active section
+  const [activeSection, setActiveSection] = useState("home");
+
   // Show arrow only when user is near the bottom (footer)
   useEffect(() => {
     const handleScroll = () => {
@@ -2649,6 +2682,25 @@ const PatientPortal = () => {
 
       // Show arrow if the top of the footer is visible in the viewport
       setShowArrow(footerRect.top < windowHeight && footerRect.bottom > 0);
+
+      // Detect active section for smooth navigation highlighting
+      const sections = [
+        "home",
+        "about",
+        "services",
+        "reviews",
+        "faqs",
+        "contact",
+      ];
+      const scrollPosition = window.scrollY + 100; // Offset for header
+
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const section = document.getElementById(sections[i]);
+        if (section && section.offsetTop <= scrollPosition) {
+          setActiveSection(sections[i]);
+          break;
+        }
+      }
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -2753,7 +2805,8 @@ const PatientPortal = () => {
                   { label: "FAQs", href: "#faqs" },
                   { label: "Contact Us", href: "#contact" },
                 ].map((item) => {
-                  const isActive = window.location.hash === item.href;
+                  const sectionId = item.href.substring(1); // Remove # from href
+                  const isActive = activeSection === sectionId;
                   return (
                     <NavigationMenuItem key={item.href} className="flex">
                       <NavigationMenuLink
@@ -2762,15 +2815,16 @@ const PatientPortal = () => {
                           bg-transparent
                           px-2 py-1
                           font-medium
-                          transition-colors
+                          transition-all duration-300 ease-in-out
                           flex items-center
                           whitespace-nowrap
+                          transform hover:scale-105
                           ${
                             isActive
-                              ? "text-[#79c942] underline underline-offset-8 font-semibold"
+                              ? "text-[#79c942] underline underline-offset-8 font-semibold bg-green-50 shadow-sm rounded-md"
                               : "text-black"
                           }
-                          hover:text-[#79c942] hover:bg-transparent hover:underline hover:underline-offset-8
+                          hover:text-[#79c942] hover:bg-green-50 hover:underline hover:underline-offset-8 hover:shadow-sm hover:rounded-md
                         `}
                         style={{
                           textDecorationColor: isActive ? "#79c942" : undefined,

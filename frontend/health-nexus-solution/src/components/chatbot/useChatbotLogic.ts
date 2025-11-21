@@ -4126,7 +4126,22 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
                     slot.is_booked === "YES" ||
                     slot.is_booked === "Yes"
                   );
-                  return !isBooked;
+
+                  // Filter out past time slots if the selected date is today
+                  const today = new Date();
+                  const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                  const isToday = dateString === todayString;
+                  
+                  let isPastTime = false;
+                  if (isToday) {
+                    const currentTime = new Date();
+                    const [slotHours, slotMinutes] = slot.start_time.split(':').map(Number);
+                    const slotTime = new Date();
+                    slotTime.setHours(slotHours, slotMinutes, 0, 0);
+                    isPastTime = slotTime <= currentTime;
+                  }
+
+                  return !isBooked && !isPastTime;
                 });
                 
                 if (availableSlots.length > 0) {
@@ -4273,7 +4288,22 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
                     slot.is_booked === "YES" ||
                     slot.is_booked === "Yes"
                   );
-                  return !isBooked;
+
+                  // Filter out past time slots if the selected date is today
+                  const today = new Date();
+                  const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                  const isToday = dateString === todayString;
+                  
+                  let isPastTime = false;
+                  if (isToday) {
+                    const currentTime = new Date();
+                    const [slotHours, slotMinutes] = slot.start_time.split(':').map(Number);
+                    const slotTime = new Date();
+                    slotTime.setHours(slotHours, slotMinutes, 0, 0);
+                    isPastTime = slotTime <= currentTime;
+                  }
+
+                  return !isBooked && !isPastTime;
                 });
                 
                 // If there are available slots, return the doctor
@@ -4361,7 +4391,22 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           slot.is_booked === "YES" ||
           slot.is_booked === "Yes"
         );
-        return !isBooked;
+
+        // Filter out past time slots if the selected date is today
+        const today = new Date();
+        const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        const isToday = dateString === todayString;
+        
+        let isPastTime = false;
+        if (isToday) {
+          const currentTime = new Date();
+          const [slotHours, slotMinutes] = slot.start_time.split(':').map(Number);
+          const slotTime = new Date();
+          slotTime.setHours(slotHours, slotMinutes, 0, 0);
+          isPastTime = slotTime <= currentTime;
+        }
+
+        return !isBooked && !isPastTime;
       });
      
       // Filter out booked slots and format for display

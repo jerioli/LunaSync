@@ -101,48 +101,28 @@ export const TimePopover = ({
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 min-w-0">
-                {actualTimeSlots.map((slot) => {
-                  const isSelected = selectedTime === slot.time;
-                  const isAvailable = slot.available && !slot.booked;
+                {actualTimeSlots
+                  .filter((slot) => slot.available && !slot.booked) // Only show available, non-booked slots
+                  .map((slot) => {
+                    const isSelected = selectedTime === slot.time;
 
-                  return (
-                    <Button
-                      key={slot.time}
-                      variant={isSelected ? "default" : "ghost"}
-                      className={`justify-center text-center h-auto p-2 text-xs min-w-0 truncate whitespace-nowrap relative ${
-                        !isAvailable
-                          ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-500"
-                          : "hover:bg-gray-100"
-                      }`}
-                      onClick={() => handleTimeSelect(slot.time, isAvailable)}
-                      disabled={!isAvailable}
-                      title={
-                        slot.booked
-                          ? `${formatTimeDisplay(slot.time)} - Booked`
-                          : !slot.available
-                          ? `${formatTimeDisplay(slot.time)} - Unavailable`
-                          : formatTimeDisplay(slot.time)
-                      }
-                    >
-                      <div className="flex flex-col items-center min-w-0">
-                        <Clock className="h-3 w-3 mb-1 flex-shrink-0" />
-                        <span className="truncate max-w-full">
-                          {formatTimeDisplay(slot.time)}
-                        </span>
-                        {slot.booked && (
-                          <span className="text-[10px] text-red-600 font-medium mt-0.5">
-                            BOOKED
+                    return (
+                      <Button
+                        key={slot.time}
+                        variant={isSelected ? "default" : "ghost"}
+                        className="justify-center text-center h-auto p-2 text-xs min-w-0 truncate whitespace-nowrap hover:bg-gray-100"
+                        onClick={() => handleTimeSelect(slot.time, true)}
+                        title={formatTimeDisplay(slot.time)}
+                      >
+                        <div className="flex flex-col items-center min-w-0">
+                          <Clock className="h-3 w-3 mb-1 flex-shrink-0" />
+                          <span className="truncate max-w-full">
+                            {formatTimeDisplay(slot.time)}
                           </span>
-                        )}
-                        {!slot.available && !slot.booked && (
-                          <span className="text-[10px] text-gray-500 font-medium mt-0.5">
-                            N/A
-                          </span>
-                        )}
-                      </div>
-                    </Button>
-                  );
-                })}
+                        </div>
+                      </Button>
+                    );
+                  })}
               </div>
             )}
           </div>
