@@ -41,6 +41,7 @@ const Appointments = () => {
   const [localPatients, setLocalPatients] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [loadingAppointments, setLoadingAppointments] = useState(new Set());
 
   const isReceptionist = currentUser?.role === "receptionist";
   const isDoctor = currentUser?.role === "doctor";
@@ -470,7 +471,7 @@ const Appointments = () => {
     const today = new Date();
 
     if (activeTab === "upcoming") {
-      // For upcoming appointments, check if the date is today or future, regardless of time
+      // For upcoming appointments, filter out past dates and past times for today
       const appointmentDateOnly = new Date(appointment.date);
       const todayDateOnly = new Date(
         today.getFullYear(),
@@ -478,23 +479,42 @@ const Appointments = () => {
         today.getDate()
       );
 
-      const result =
-        appointmentDateOnly >= todayDateOnly &&
-        appointment.status === "scheduled";
-      console.log(
-        "Upcoming filter result:",
-        result,
-        "for appointment:",
-        appointment.id
-      );
-      console.log(
-        "Appointment date only:",
-        appointmentDateOnly,
-        "Today date only:",
-        todayDateOnly
-      );
-      console.log("Appointment status:", appointment.status);
-      return result;
+      // If appointment is in future dates, show it
+      if (
+        appointmentDateOnly > todayDateOnly &&
+        appointment.status === "scheduled"
+      ) {
+        console.log("Future appointment, showing:", appointment.id);
+        return true;
+      }
+
+      // If appointment is today, check if time hasn't passed
+      if (
+        appointmentDateOnly.getTime() === todayDateOnly.getTime() &&
+        appointment.status === "scheduled"
+      ) {
+        const appointmentDateTime = new Date(
+          `${appointment.date}T${appointment.time}`
+        );
+        const currentTime = new Date();
+
+        // Only show appointments that are still in the future (haven't passed current time)
+        const isFutureTime = appointmentDateTime > currentTime;
+
+        console.log("Today's appointment time check:", {
+          appointmentId: appointment.id,
+          appointmentDateTime: appointmentDateTime.toISOString(),
+          currentTime: currentTime.toISOString(),
+          isFutureTime,
+          willShow: isFutureTime,
+        });
+
+        return isFutureTime;
+      }
+
+      // Past dates should not be shown
+      console.log("Past appointment, hiding:", appointment.id);
+      return false;
     } else if (activeTab === "pending") {
       // Only receptionists and admins can see pending appointments
       console.log("=== PENDING FILTER DEBUG ===");
@@ -699,6 +719,18 @@ const Appointments = () => {
 
   // Local handler for status updates
   const handleStatusUpdate = async (appointmentId, status) => {
+    // Add appointment to loading state
+    setLoadingAppointments((prev) => new Set(prev).add(appointmentId));
+
+    // Show loading toast for user feedback
+    const loadingToastId = toast.loading(
+      status === "scheduled"
+        ? "Confirming appointment..."
+        : status === "cancelled"
+        ? "Declining appointment and sending notification..."
+        : "Updating appointment status..."
+    );
+
     try {
       console.log("Attempting to update appointment status:", {
         appointmentId,
@@ -707,10 +739,17 @@ const Appointments = () => {
         payload: { status: status },
       });
 
+      // Get appointment details for notification purposes
+      const appointment = appointments.find(
+        (appt) => appt.id === appointmentId
+      );
+
       const response = await axiosInstance.post(
         `appointments/update-status/${appointmentId}/`,
         {
           status: status,
+          send_notification: status === "cancelled" || status === "scheduled", // Send notifications for confirm/decline
+          notification_type: status === "cancelled" ? "decline" : "confirm",
         }
       );
 
@@ -723,24 +762,65 @@ const Appointments = () => {
         )
       );
 
-      const statusMessages = {
-        scheduled: "Appointment has been confirmed",
-        completed: "Appointment marked as completed",
-        cancelled: "Appointment has been cancelled",
-        "no-show": "Patient marked as no-show",
-        pending: "Appointment marked as pending",
-        ongoing: "Patient has been checked in",
-      };
+      // Dismiss loading toast
+      toast.dismiss(loadingToastId);
 
-      // Enhanced success message for confirmations
-      if (status === "scheduled" && response.data.email_sent) {
-        toast.success(
-          "Appointment confirmed! Patient has been notified via email."
-        );
-      } else if (status === "scheduled" && response.data.patient_created) {
-        toast.success("Appointment confirmed and patient record created!");
+      // Enhanced success messages based on status and response
+      if (status === "scheduled") {
+        if (response.data.email_sent && response.data.sms_sent) {
+          toast.success(
+            "✅ Appointment confirmed! Patient notified via email and SMS.",
+            { duration: 4000 }
+          );
+        } else if (response.data.email_sent) {
+          toast.success(
+            "✅ Appointment confirmed! Patient notified via email.",
+            { duration: 4000 }
+          );
+        } else if (response.data.sms_sent) {
+          toast.success("✅ Appointment confirmed! Patient notified via SMS.", {
+            duration: 4000,
+          });
+        } else if (response.data.patient_created) {
+          toast.success(
+            "✅ Appointment confirmed and patient record created!",
+            { duration: 4000 }
+          );
+        } else {
+          toast.success("✅ Appointment confirmed successfully!", {
+            duration: 3000,
+          });
+        }
+      } else if (status === "cancelled") {
+        if (response.data.email_sent && response.data.sms_sent) {
+          toast.success(
+            "📧 Appointment declined. Patient notified via email and SMS.",
+            { duration: 4000 }
+          );
+        } else if (response.data.email_sent) {
+          toast.success(
+            "📧 Appointment declined. Patient notified via email.",
+            { duration: 4000 }
+          );
+        } else if (response.data.sms_sent) {
+          toast.success("📱 Appointment declined. Patient notified via SMS.", {
+            duration: 4000,
+          });
+        } else {
+          toast.success("❌ Appointment declined successfully.", {
+            duration: 3000,
+          });
+        }
       } else {
-        toast.success(statusMessages[status]);
+        const statusMessages = {
+          completed: "✅ Appointment marked as completed",
+          "no-show": "❌ Patient marked as no-show",
+          pending: "⏳ Appointment marked as pending",
+          ongoing: "🏥 Patient has been checked in",
+        };
+        toast.success(statusMessages[status] || "Status updated successfully", {
+          duration: 3000,
+        });
       }
 
       // Refresh appointments to get updated data with complete patient information
@@ -756,15 +836,34 @@ const Appointments = () => {
         statusText: error.response?.statusText,
       });
 
+      // Dismiss loading toast
+      toast.dismiss(loadingToastId);
+
       // Show more specific error message
       if (error.response?.status === 400) {
         const errorMsg =
           error.response?.data?.detail ||
           error.response?.data?.error ||
           "Invalid request. The status might not be supported.";
-        toast.error(`Failed to update appointment: ${errorMsg}`);
+        toast.error(`❌ Failed to update appointment: ${errorMsg}`, {
+          duration: 5000,
+        });
+      } else if (error.response?.status === 404) {
+        toast.error("❌ Appointment not found. It may have been deleted.", {
+          duration: 4000,
+        });
       } else {
+        toast.error("❌ Failed to update appointment. Please try again.", {
+          duration: 4000,
+        });
       }
+    } finally {
+      // Remove appointment from loading state
+      setLoadingAppointments((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(appointmentId);
+        return newSet;
+      });
     }
   };
 
@@ -901,6 +1000,7 @@ const Appointments = () => {
     }
 
     if (activeTab === "pending" && canManageAppointments) {
+      const isLoading = loadingAppointments.has(appointment.id);
       return (
         <div className="flex gap-2">
           <Button
@@ -908,16 +1008,18 @@ const Appointments = () => {
             size="sm"
             className={buttonClass}
             onClick={() => handleStatusUpdate(appointment.id, "scheduled")}
+            disabled={isLoading}
           >
-            Confirm
+            {isLoading ? "Confirming..." : "Confirm"}
           </Button>
           <Button
             variant="destructive"
             size="sm"
             className={buttonClass}
             onClick={() => handleStatusUpdate(appointment.id, "cancelled")}
+            disabled={isLoading}
           >
-            Decline
+            {isLoading ? "Declining..." : "Decline"}
           </Button>
         </div>
       );
