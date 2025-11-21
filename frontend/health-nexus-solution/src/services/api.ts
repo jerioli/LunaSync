@@ -120,7 +120,7 @@ function showSessionExpiredModal() {
       Session Expired
     </h2>
     <p style="font-size: 16px; color: #6b7280; margin-bottom: 24px; line-height: 1.5;">
-      Your session has timed out for security reasons. Please log in again to continue.
+      Your session has timed out due to inactivity. Please log in again to continue using the system.
     </p>
     <button id="session-expired-btn" style="
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

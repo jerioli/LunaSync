@@ -898,13 +898,27 @@ const DocumentComparison: React.FC = () => {
     }
 
     // Create object URL for the uploaded image
-    const imageUrl = URL.createObjectURL(state.originalFile);
-    setOriginalImageUrl(imageUrl);
+    // Check if file is TIFF format
+    const fileType = state.originalFile.type;
+    const fileName = state.originalFile.name.toLowerCase();
+    const isTiff =
+      fileType === "image/tiff" ||
+      fileType === "image/tif" ||
+      fileName.endsWith(".tiff") ||
+      fileName.endsWith(".tif");
+
+    if (isTiff) {
+      // For TIFF files, use a placeholder or text indicator since browsers don't support TIFF natively
+      setOriginalImageUrl(""); // Empty URL will trigger fallback display
+    } else {
+      const imageUrl = URL.createObjectURL(state.originalFile);
+      setOriginalImageUrl(imageUrl);
+    }
 
     // Cleanup function to revoke object URL
     return () => {
-      if (imageUrl) {
-        URL.revokeObjectURL(imageUrl);
+      if (!isTiff && originalImageUrl) {
+        URL.revokeObjectURL(originalImageUrl);
       }
     };
   }, [state, navigate, patients]);
@@ -1141,7 +1155,9 @@ const DocumentComparison: React.FC = () => {
             }
           </div>
           <div class="info-item">
-            <span class="label">Report ID:</span> LAB-${Date.now().toString().slice(-8)}
+            <span class="label">Report ID:</span> LAB-${Date.now()
+              .toString()
+              .slice(-8)}
           </div>
         </div>
       </div>
@@ -1162,28 +1178,25 @@ const DocumentComparison: React.FC = () => {
   // Function to generate actual PDF file
   const generatePDFFile = async (): Promise<Blob> => {
     const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'in',
-      format: 'a4'
+      orientation: "portrait",
+      unit: "in",
+      format: "a4",
     });
 
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 0.5;
-    const contentWidth = pageWidth - (2 * margin);
+    const contentWidth = pageWidth - 2 * margin;
     let yPos = 0.3;
 
     // Helper function to get proper logo URL
     const getFullLogoUrl = (logo: string) => {
       if (!logo) return null;
       if (logo.startsWith("http")) return logo;
-      const baseUrl = ENV.API_URL.replace('/api', '');
-      if (logo.startsWith("/media/"))
-        return `${baseUrl}${logo}`;
-      if (logo.startsWith("branding/"))
-        return `${baseUrl}/media/${logo}`;
-      if (!logo.includes("/"))
-        return `${baseUrl}/media/branding/${logo}`;
+      const baseUrl = ENV.API_URL.replace("/api", "");
+      if (logo.startsWith("/media/")) return `${baseUrl}${logo}`;
+      if (logo.startsWith("branding/")) return `${baseUrl}/media/${logo}`;
+      if (!logo.includes("/")) return `${baseUrl}/media/branding/${logo}`;
       return `${baseUrl}${logo.startsWith("/") ? logo : "/" + logo}`;
     };
 
@@ -1193,33 +1206,40 @@ const DocumentComparison: React.FC = () => {
         const logoUrl = getFullLogoUrl(clinicSettings.logo);
         if (logoUrl) {
           const img = new Image();
-          img.crossOrigin = 'anonymous';
+          img.crossOrigin = "anonymous";
           img.src = logoUrl;
-          
+
           await new Promise((resolve, reject) => {
             img.onload = resolve;
             img.onerror = reject;
           });
-          
+
           // Compress logo by rendering to canvas at smaller size
-          const canvas = document.createElement('canvas');
+          const canvas = document.createElement("canvas");
           const targetSize = 200; // Increased size in pixels for better quality
           canvas.width = targetSize;
           canvas.height = targetSize;
-          const ctx = canvas.getContext('2d');
-          
+          const ctx = canvas.getContext("2d");
+
           if (ctx) {
             ctx.drawImage(img, 0, 0, targetSize, targetSize);
-            const compressedLogo = canvas.toDataURL('image/jpeg', 0.7); // JPEG with 70% quality
-            
+            const compressedLogo = canvas.toDataURL("image/jpeg", 0.7); // JPEG with 70% quality
+
             const logoWidth = 1.5; // 1.5 inches width in PDF
             const logoHeight = 0.6; // 0.6 inches height in PDF
-            doc.addImage(compressedLogo, 'JPEG', pageWidth / 2 - logoWidth / 2, yPos, logoWidth, logoHeight);
+            doc.addImage(
+              compressedLogo,
+              "JPEG",
+              pageWidth / 2 - logoWidth / 2,
+              yPos,
+              logoWidth,
+              logoHeight
+            );
             yPos += logoHeight + 0.08;
           }
         }
       } catch (error) {
-        console.error('Error loading clinic logo:', error);
+        console.error("Error loading clinic logo:", error);
         // Continue without logo if there's an error
       }
     }
@@ -1227,18 +1247,20 @@ const DocumentComparison: React.FC = () => {
     // Clinic name
     if (clinicSettings?.name) {
       doc.setFontSize(13);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont("helvetica", "bold");
       doc.setTextColor(26, 26, 26);
-      doc.text(clinicSettings.name, pageWidth / 2, yPos, { align: 'center' });
+      doc.text(clinicSettings.name, pageWidth / 2, yPos, { align: "center" });
       yPos += 0.16;
     }
 
     // Clinic address
     if (clinicSettings?.address) {
       doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont("helvetica", "normal");
       doc.setTextColor(85, 85, 85);
-      doc.text(clinicSettings.address, pageWidth / 2, yPos, { align: 'center' });
+      doc.text(clinicSettings.address, pageWidth / 2, yPos, {
+        align: "center",
+      });
       yPos += 0.14;
     }
 
@@ -1246,12 +1268,14 @@ const DocumentComparison: React.FC = () => {
     const contactParts = [];
     if (clinicSettings?.phone) contactParts.push(clinicSettings.phone);
     if (clinicSettings?.email) contactParts.push(clinicSettings.email);
-    
+
     if (contactParts.length > 0) {
       doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont("helvetica", "normal");
       doc.setTextColor(85, 85, 85);
-      doc.text(contactParts.join(' | '), pageWidth / 2, yPos, { align: 'center' });
+      doc.text(contactParts.join(" | "), pageWidth / 2, yPos, {
+        align: "center",
+      });
       yPos += 0.15;
     }
 
@@ -1263,16 +1287,18 @@ const DocumentComparison: React.FC = () => {
 
     // Header
     doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont("helvetica", "bold");
     doc.setTextColor(44, 82, 130);
-    doc.text('LABORATORY RESULT REPORT', pageWidth / 2, yPos, { align: 'center' });
+    doc.text("LABORATORY RESULT REPORT", pageWidth / 2, yPos, {
+      align: "center",
+    });
     yPos += 0.2;
 
     doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont("helvetica", "normal");
     doc.setTextColor(73, 80, 87);
     const dateTime = `Generated: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`;
-    doc.text(dateTime, pageWidth / 2, yPos, { align: 'center' });
+    doc.text(dateTime, pageWidth / 2, yPos, { align: "center" });
     yPos += 0.15;
 
     // Header line
@@ -1284,50 +1310,58 @@ const DocumentComparison: React.FC = () => {
     // Info section background
     doc.setFillColor(248, 249, 250);
     doc.setDrawColor(203, 213, 224);
-    doc.roundedRect(margin, yPos, contentWidth, 0.6, 0.05, 0.05, 'FD');
-    
+    doc.roundedRect(margin, yPos, contentWidth, 0.6, 0.05, 0.05, "FD");
+
     // Info grid
     doc.setFontSize(8.5);
     const infoYStart = yPos + 0.12;
-    
-    // Row 1
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(44, 82, 130);
-    doc.text('Patient:', margin + 0.1, infoYStart);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 0, 0);
-    doc.text(selectedPatient?.name || 'Not selected', margin + 0.8, infoYStart);
 
-    doc.setFont('helvetica', 'bold');
+    // Row 1
+    doc.setFont("helvetica", "bold");
     doc.setTextColor(44, 82, 130);
-    doc.text('Date:', margin + contentWidth / 2 + 0.1, infoYStart);
-    doc.setFont('helvetica', 'normal');
+    doc.text("Patient:", margin + 0.1, infoYStart);
+    doc.setFont("helvetica", "normal");
     doc.setTextColor(0, 0, 0);
-    doc.text(new Date().toLocaleDateString(), margin + contentWidth / 2 + 0.5, infoYStart);
+    doc.text(selectedPatient?.name || "Not selected", margin + 0.8, infoYStart);
+
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(44, 82, 130);
+    doc.text("Date:", margin + contentWidth / 2 + 0.1, infoYStart);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(0, 0, 0);
+    doc.text(
+      new Date().toLocaleDateString(),
+      margin + contentWidth / 2 + 0.5,
+      infoYStart
+    );
 
     // Row 2
     const infoY2 = infoYStart + 0.2;
-    doc.setFont('helvetica', 'bold');
+    doc.setFont("helvetica", "bold");
     doc.setTextColor(44, 82, 130);
-    doc.text('Authorized By:', margin + 0.1, infoY2);
-    doc.setFont('helvetica', 'normal');
+    doc.text("Authorized By:", margin + 0.1, infoY2);
+    doc.setFont("helvetica", "normal");
     doc.setTextColor(0, 0, 0);
-    doc.text(authorizedBy || 'Not specified', margin + 1.1, infoY2);
+    doc.text(authorizedBy || "Not specified", margin + 1.1, infoY2);
 
-    doc.setFont('helvetica', 'bold');
+    doc.setFont("helvetica", "bold");
     doc.setTextColor(44, 82, 130);
-    doc.text('Report ID:', margin + contentWidth / 2 + 0.1, infoY2);
-    doc.setFont('helvetica', 'normal');
+    doc.text("Report ID:", margin + contentWidth / 2 + 0.1, infoY2);
+    doc.setFont("helvetica", "normal");
     doc.setTextColor(0, 0, 0);
-    doc.text(`LAB-${Date.now().toString().slice(-8)}`, margin + contentWidth / 2 + 0.75, infoY2);
+    doc.text(
+      `LAB-${Date.now().toString().slice(-8)}`,
+      margin + contentWidth / 2 + 0.75,
+      infoY2
+    );
 
     yPos += 0.75;
 
     // Results header
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont("helvetica", "bold");
     doc.setTextColor(44, 82, 130);
-    doc.text('TEST RESULTS', margin, yPos);
+    doc.text("TEST RESULTS", margin, yPos);
     yPos += 0.05;
     doc.setDrawColor(203, 213, 224);
     doc.setLineWidth(0.015);
@@ -1338,17 +1372,17 @@ const DocumentComparison: React.FC = () => {
     const contentBoxHeight = pageHeight - yPos - margin - 0.4; // Leave space for footer
     doc.setDrawColor(226, 232, 240);
     doc.setFillColor(255, 255, 255);
-    doc.rect(margin, yPos, contentWidth, contentBoxHeight, 'FD');
+    doc.rect(margin, yPos, contentWidth, contentBoxHeight, "FD");
 
     // Text content
     doc.setFontSize(7.5);
-    doc.setFont('courier', 'normal');
+    doc.setFont("courier", "normal");
     doc.setTextColor(0, 0, 0);
-    
+
     const lines = doc.splitTextToSize(editableText, contentWidth - 0.2);
     const maxLines = Math.floor(contentBoxHeight / 0.12);
     const displayLines = lines.slice(0, maxLines);
-    
+
     let textY = yPos + 0.12;
     displayLines.forEach((line: string) => {
       doc.text(line, margin + 0.1, textY);
@@ -1362,9 +1396,14 @@ const DocumentComparison: React.FC = () => {
     doc.line(margin, footerY, pageWidth - margin, footerY);
 
     doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont("helvetica", "normal");
     doc.setTextColor(108, 117, 125);
-    doc.text('This is a computer-generated document.', pageWidth / 2, footerY + 0.15, { align: 'center' });
+    doc.text(
+      "This is a computer-generated document.",
+      pageWidth / 2,
+      footerY + 0.15,
+      { align: "center" }
+    );
 
     // Confidential notice box
     const boxY = footerY + 0.22;
@@ -1372,17 +1411,24 @@ const DocumentComparison: React.FC = () => {
     doc.setFillColor(255, 243, 205);
     doc.setDrawColor(255, 193, 7);
     doc.setLineWidth(0.005);
-    doc.roundedRect(margin, boxY, contentWidth, boxHeight, 0.02, 0.02, 'FD');
-    
+    doc.roundedRect(margin, boxY, contentWidth, boxHeight, 0.02, 0.02, "FD");
+
     doc.setFontSize(7);
     doc.setTextColor(133, 100, 4);
-    doc.setFont('helvetica', 'bold');
-    doc.text('CONFIDENTIAL MEDICAL RECORD', pageWidth / 2, boxY + 0.08, { align: 'center' });
+    doc.setFont("helvetica", "bold");
+    doc.text("CONFIDENTIAL MEDICAL RECORD", pageWidth / 2, boxY + 0.08, {
+      align: "center",
+    });
     doc.setFontSize(6);
-    doc.setFont('helvetica', 'normal');
-    doc.text('This document contains private health information protected by law.', pageWidth / 2, boxY + 0.15, { align: 'center' });
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      "This document contains private health information protected by law.",
+      pageWidth / 2,
+      boxY + 0.15,
+      { align: "center" }
+    );
 
-    return doc.output('blob');
+    return doc.output("blob");
   };
 
   // Simplified save function - no modal, direct save
@@ -2254,27 +2300,6 @@ ${editableText}`;
                 >
                   Reset
                 </button>
-                <button
-                  className="px-2 py-1 text-xs border border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded"
-                  onClick={handleCleanText}
-                  title="Clean OCR text - remove excessive blank lines"
-                >
-                  Clean Text
-                </button>
-                <button
-                  className="px-2 py-1 text-xs border border-gray-300 hover:bg-gray-100 rounded"
-                  onClick={handlePreview}
-                  title="Preview document"
-                >
-                  Preview
-                </button>
-                <button
-                  className="px-2 py-1 text-xs border border-gray-300 hover:bg-gray-100 rounded"
-                  onClick={downloadCorrectedText}
-                  title="Download document"
-                >
-                  Download
-                </button>
               </div>
             </CardTitle>
           </CardHeader>
@@ -2426,16 +2451,51 @@ ${editableText}`;
                   height: `${100 / zoomLevel}%`,
                 }}
               >
-                <img
-                  src={originalImageUrl}
-                  alt="Original Document"
-                  className="w-full h-auto object-contain"
-                  style={{
-                    backgroundColor: "#ffffff",
-                    userSelect: "none",
-                    pointerEvents: "none",
-                  }}
-                />
+                {originalImageUrl ? (
+                  <img
+                    src={originalImageUrl}
+                    alt="Original Document"
+                    className="w-full h-auto object-contain"
+                    style={{
+                      backgroundColor: "#ffffff",
+                      userSelect: "none",
+                      pointerEvents: "none",
+                    }}
+                    onError={(e) => {
+                      // Handle image load errors
+                      e.currentTarget.style.display = "none";
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        parent.innerHTML =
+                          '<div style="padding: 20px; text-align: center; color: #666;"><p style="font-size: 14px; font-weight: 500;">📄 TIFF Document</p><p style="font-size: 12px; margin-top: 10px;">Preview not available for TIFF files</p><p style="font-size: 11px; margin-top: 5px; color: #999;">The document has been processed successfully</p></div>';
+                      }
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      padding: "20px",
+                      textAlign: "center",
+                      color: "#666",
+                    }}
+                  >
+                    <p style={{ fontSize: "14px", fontWeight: "500" }}>
+                      📄 TIFF Document
+                    </p>
+                    <p style={{ fontSize: "12px", marginTop: "10px" }}>
+                      Preview not available for TIFF files
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "11px",
+                        marginTop: "5px",
+                        color: "#999",
+                      }}
+                    >
+                      The document has been processed successfully
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 

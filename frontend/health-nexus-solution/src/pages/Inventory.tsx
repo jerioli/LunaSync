@@ -70,11 +70,7 @@ interface MedicineTransaction {
   created_at: string;
 }
 
-type SortField =
-  | "name"
-  | "dosage"
-  | "category"
-  | "created_at";
+type SortField = "name" | "dosage" | "category" | "created_at";
 type SortDirection = "asc" | "desc";
 
 const Inventory = () => {
@@ -103,7 +99,7 @@ const Inventory = () => {
     name: "",
     dosage: "",
     description: "",
-    category: "tablet", // Default category for medicines
+    category: "tablet", // Default dosage form for medicines
   });
 
   // Check permissions - allow doctors and admins by default, others need permission
@@ -114,7 +110,10 @@ const Inventory = () => {
 
   // Debug logging
   console.log("[MEDICINE RECORDS FRONTEND] Current user:", currentUser);
-  console.log("[MEDICINE RECORDS FRONTEND] Can manage medicines:", canManageMedicines);
+  console.log(
+    "[MEDICINE RECORDS FRONTEND] Can manage medicines:",
+    canManageMedicines
+  );
   console.log("[MEDICINE RECORDS FRONTEND] Axios defaults:", {
     baseURL: axios.defaults.baseURL,
     withCredentials: axios.defaults.withCredentials,
@@ -123,7 +122,9 @@ const Inventory = () => {
   // Check if user is authenticated
   useEffect(() => {
     if (!currentUser) {
-      console.log("[MEDICINE RECORDS FRONTEND] No current user, might need to login");
+      console.log(
+        "[MEDICINE RECORDS FRONTEND] No current user, might need to login"
+      );
       return;
     }
     if (!canManageMedicines) {
@@ -132,7 +133,9 @@ const Inventory = () => {
       );
       return;
     }
-    console.log("[MEDICINE RECORDS FRONTEND] User authenticated, fetching data");
+    console.log(
+      "[MEDICINE RECORDS FRONTEND] User authenticated, fetching data"
+    );
     fetchMedicineRecords();
     fetchTransactions();
   }, [currentUser, canManageMedicines]);
@@ -169,7 +172,9 @@ const Inventory = () => {
   const fetchTransactions = async () => {
     // Don't fetch if user doesn't have permission
     if (!canManageMedicines) {
-      console.log("[MEDICINE RECORDS FRONTEND] No permission to fetch transactions");
+      console.log(
+        "[MEDICINE RECORDS FRONTEND] No permission to fetch transactions"
+      );
       return;
     }
 
@@ -188,14 +193,22 @@ const Inventory = () => {
   // Form validation
   const validateForm = () => {
     const errors: string[] = [];
-    const validCategories = ["tablet", "capsule", "syrup", "injection", "cream", "drops", "other"];
+    const validCategories = [
+      "tablet",
+      "capsule",
+      "syrup",
+      "injection",
+      "cream",
+      "drops",
+      "other",
+    ];
 
     if (!formData.name.trim()) errors.push("Medicine name is required");
-    if (!formData.dosage.trim()) errors.push("Dosage is required");
+    if (!formData.dosage.trim()) errors.push("Dosage strength is required");
     if (!formData.category.trim()) {
-      errors.push("Category is required");
+      errors.push("Dosage form is required");
     } else if (!validCategories.includes(formData.category)) {
-      errors.push("Please select a valid category");
+      errors.push("Please select a valid dosage form");
     }
 
     return errors;
@@ -267,7 +280,8 @@ const Inventory = () => {
 
   // Handle delete
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this medicine record?")) return;
+    if (!confirm("Are you sure you want to delete this medicine record?"))
+      return;
 
     try {
       const response = await axios.delete(`/inventory/medicines/${id}/`, {
@@ -404,8 +418,10 @@ const Inventory = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold">Medicine Records</h1>
-          <p className="text-gray-600">Manage medicine database for e-prescription creation</p>
+          <h1 className="text-2xl font-bold">Doctor Inventory</h1>
+          <p className="text-gray-600">
+            Manage medicine database for e-prescription creation
+          </p>
         </div>
         <Button onClick={() => setIsAddModalOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
@@ -419,7 +435,9 @@ const Inventory = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Medicines</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Total Medicines
+                </p>
                 <p className="text-2xl font-bold">{medicineRecords.length}</p>
               </div>
               <Package className="h-8 w-8 text-blue-500" />
@@ -430,7 +448,9 @@ const Inventory = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Categories</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Dosage Forms
+                </p>
                 <p className="text-2xl font-bold text-green-600">
                   {categories.length}
                 </p>
@@ -443,7 +463,9 @@ const Inventory = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Recent Additions</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Recent Additions
+                </p>
                 <p className="text-2xl font-bold text-blue-600">
                   {
                     medicineRecords.filter((item) => {
@@ -478,10 +500,10 @@ const Inventory = () => {
             </div>
             <Select value={filterCategory} onValueChange={setFilterCategory}>
               <SelectTrigger className="w-full md:w-[200px]">
-                <SelectValue placeholder="Filter by category" />
+                <SelectValue placeholder="Filter by dosage form" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="all">All Dosage Forms</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
@@ -530,7 +552,7 @@ const Inventory = () => {
                     onClick={() => handleSort("dosage")}
                   >
                     <div className="flex items-center gap-2">
-                      Dosage
+                      Dosage Strength
                       <ArrowUpDown className="h-4 w-4" />
                     </div>
                   </TableHead>
@@ -539,7 +561,7 @@ const Inventory = () => {
                     onClick={() => handleSort("category")}
                   >
                     <div className="flex items-center gap-2">
-                      Category
+                      Dosage Form
                       <ArrowUpDown className="h-4 w-4" />
                     </div>
                   </TableHead>
@@ -671,7 +693,7 @@ const Inventory = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="dosage">Dosage *</Label>
+                <Label htmlFor="dosage">Dosage Strength *</Label>
                 <Input
                   id="dosage"
                   value={formData.dosage}
@@ -683,7 +705,7 @@ const Inventory = () => {
                 />
               </div>
               <div className="md:col-span-2">
-                <Label htmlFor="category">Category *</Label>
+                <Label htmlFor="category">Dosage Form *</Label>
                 <Select
                   value={formData.category}
                   onValueChange={(value) =>
@@ -692,7 +714,7 @@ const Inventory = () => {
                   required
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
+                    <SelectValue placeholder="Select a dosage form" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="tablet">Tablet</SelectItem>

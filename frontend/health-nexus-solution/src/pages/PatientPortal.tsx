@@ -452,7 +452,7 @@ const PatientPortal = () => {
         console.log("Fetching doctors available on date:", dateString);
 
         // Get all doctors first
-        const doctorsResponse = await axiosInstance.get("/users/doctors/");
+        const doctorsResponse = await axiosInstance.get("doctors/");
         const allDoctors = doctorsResponse.data;
 
         // Filter doctors who have availability on this date
@@ -473,8 +473,25 @@ const PatientPortal = () => {
                 availability.time_slots &&
                 Array.isArray(availability.time_slots)
               ) {
+                // Filter out booked slots and lunch break (12:00 PM - 1:00 PM)
                 const availableSlots = availability.time_slots.filter(
-                  (slot) => !slot.is_booked && slot.is_available
+                  (slot) => {
+                    // Skip if slot is booked
+                    if (slot.is_booked) {
+                      return false;
+                    }
+
+                    // Parse start time to check for lunch break
+                    const startTime = slot.start_time;
+                    const [hours, minutes] = startTime.split(":").map(Number);
+
+                    // Skip lunch break slots (12:00 PM - 1:00 PM)
+                    if (hours === 12) {
+                      return false;
+                    }
+
+                    return true;
+                  }
                 );
 
                 if (availableSlots.length > 0) {
@@ -868,10 +885,11 @@ const PatientPortal = () => {
         return;
       }
 
-      // Convert date strings to Date objects (same as chatbot)
+      // Convert date strings to Date objects
       const availableDates = response.map((dateStr: string) => {
-        // Create date in Pacific Time to match chatbot
-        const date = new Date(dateStr + "T00:00:00-08:00");
+        // Parse date string as YYYY-MM-DD and create date object
+        const [year, month, day] = dateStr.split("-").map(Number);
+        const date = new Date(year, month - 1, day);
         return date;
       });
 
@@ -929,8 +947,9 @@ const PatientPortal = () => {
 
           return response
             .map((dateStr: string) => {
-              const date = new Date(dateStr);
-              date.setHours(0, 0, 0, 0);
+              // Parse date string as YYYY-MM-DD and create date object
+              const [year, month, day] = dateStr.split("-").map(Number);
+              const date = new Date(year, month - 1, day);
               return date;
             })
             .filter((date) => date >= today);
@@ -943,14 +962,21 @@ const PatientPortal = () => {
       const allDatesArrays = await Promise.all(datePromises);
       const allDates = allDatesArrays.flat();
 
-      // Deduplicate dates using Set
+      // Deduplicate dates using Set with formatted date strings
       allDates.forEach((date) => {
-        dateSet.add(date.toISOString().split("T")[0]);
+        // Format as YYYY-MM-DD without timezone conversion
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        dateSet.add(`${year}-${month}-${day}`);
       });
 
       // Convert back to Date objects and sort
       const uniqueDates = Array.from(dateSet)
-        .map((dateStr) => new Date(dateStr))
+        .map((dateStr) => {
+          const [year, month, day] = dateStr.split("-").map(Number);
+          return new Date(year, month - 1, day);
+        })
         .sort((a, b) => a.getTime() - b.getTime());
 
       console.log(
@@ -1738,7 +1764,14 @@ const PatientPortal = () => {
             "prefer_not_to_say"
           : patientData.maritalStatus || "prefer_not_to_say",
         appointment_type: selectedAppointmentType,
-        date: selectedDate?.toISOString().split("T")[0] || "",
+        date: selectedDate
+          ? `${selectedDate.getFullYear()}-${String(
+              selectedDate.getMonth() + 1
+            ).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(
+              2,
+              "0"
+            )}`
+          : "",
         time: formattedTime,
         doctor_id: parseInt(selectedDoctor.id),
         status: "pending",
@@ -3760,7 +3793,13 @@ const PatientPortal = () => {
                         ? "bg-[#79c942] hover:bg-[#68ab38]"
                         : ""
                     }`}
-                    onClick={() => setBookingPreference("doctor")}
+                    onClick={() => {
+                      setBookingPreference("doctor");
+                      // Reset selections when switching to doctor-first
+                      setSelectedDate(undefined);
+                      setSelectedDoctor(null);
+                      setSelectedTimeSlot("");
+                    }}
                   >
                     <div className="text-center">
                       <User className="w-8 h-8 mx-auto mb-2" />
@@ -3781,6 +3820,10 @@ const PatientPortal = () => {
                     }`}
                     onClick={() => {
                       setBookingPreference("datetime");
+                      // Reset date selection when switching to date-first
+                      setSelectedDate(undefined);
+                      setSelectedDoctor(null);
+                      setSelectedTimeSlot("");
                       // Fetch all available dates when date-first is selected
                       fetchAllAvailableDates();
                     }}
@@ -4161,7 +4204,29 @@ const PatientPortal = () => {
                       <div className="text-sm text-gray-700 space-y-2">
                         <p>
                           Before proceeding with your appointment request,
-                          please read and accept our terms and conditions:
+                          please read and accept our{" "}
+                          <a
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              window.open("/terms-and-conditions", "_blank");
+                            }}
+                            className="text-[#79c942] hover:text-[#6bb33a] underline font-medium"
+                          >
+                            Terms and Conditions
+                          </a>{" "}
+                          and{" "}
+                          <a
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              window.open("/privacy-policy", "_blank");
+                            }}
+                            className="text-[#79c942] hover:text-[#6bb33a] underline font-medium"
+                          >
+                            Privacy Policy
+                          </a>
+                          :
                         </p>
                         <ul className="list-disc list-inside space-y-1 ml-4">
                           <li>

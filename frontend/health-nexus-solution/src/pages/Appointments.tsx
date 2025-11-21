@@ -3,13 +3,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -41,7 +40,7 @@ const Appointments = () => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [localPatients, setLocalPatients] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const isReceptionist = currentUser?.role === "receptionist";
   const isDoctor = currentUser?.role === "doctor";
@@ -61,12 +60,12 @@ const Appointments = () => {
     );
     const now = new Date();
 
-    // Add a grace period of 2 hours before marking as overdue
-    // This prevents immediate deletion of recently scheduled appointments
-    const gracePeriodMs = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+    // Add a grace period of 1 hour before marking as overdue for ongoing appointments
+    // This gives reasonable time for the appointment to be completed
+    const gracePeriodMs = 1 * 60 * 60 * 1000; // 1 hour in milliseconds
     const overdueTime = appointmentDateTime.getTime() + gracePeriodMs;
 
-    // Only consider appointments overdue if they're more than 2 hours past their scheduled time
+    // Consider appointments overdue if they're more than 1 hour past their scheduled time
     return now.getTime() > overdueTime;
   };
 
@@ -241,20 +240,14 @@ const Appointments = () => {
             appointment.time
           );
 
-          // Only delete appointments that are:
+          // Delete appointments that are:
           // 1. Truly overdue (past their time + grace period)
-          // 2. In pending or ongoing status (not scheduled appointments)
-          // 3. Not from today (to avoid deleting same-day appointments)
-          const appointmentDate = new Date(appointment.date);
-          const today = new Date();
-          const isFromToday =
-            appointmentDate.toDateString() === today.toDateString();
-
+          // 2. In pending, ongoing, or scheduled status (not completed/cancelled)
           const shouldDelete =
             isOverdue &&
-            !isFromToday && // Don't delete today's appointments
             (appointment.status === "pending" ||
-              appointment.status === "ongoing"); // Only delete pending/ongoing, not scheduled
+              appointment.status === "ongoing" ||
+              appointment.status === "scheduled");
 
           if (shouldDelete) {
             console.log(
@@ -337,20 +330,14 @@ const Appointments = () => {
               appointment.time
             );
 
-            // Only delete appointments that are:
+            // Delete appointments that are:
             // 1. Truly overdue (past their time + grace period)
-            // 2. In pending or ongoing status (not scheduled appointments)
-            // 3. Not from today (to avoid deleting same-day appointments)
-            const appointmentDate = new Date(appointment.date);
-            const today = new Date();
-            const isFromToday =
-              appointmentDate.toDateString() === today.toDateString();
-
+            // 2. In pending, ongoing, or scheduled status (not completed/cancelled)
             const shouldDelete =
               isOverdue &&
-              !isFromToday && // Don't delete today's appointments
               (appointment.status === "pending" ||
-                appointment.status === "ongoing"); // Only delete pending/ongoing, not scheduled
+                appointment.status === "ongoing" ||
+                appointment.status === "scheduled");
 
             return shouldDelete;
           }
@@ -565,18 +552,29 @@ const Appointments = () => {
     return false;
   });
 
-  const totalPages = Math.ceil(filteredAppointments.length / pageSize);
+  const totalPages = Math.ceil(filteredAppointments.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
   const paginatedAppointments = filteredAppointments.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
+    startIndex,
+    endIndex
   );
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(parseInt(value));
+    setCurrentPage(1);
+  };
 
   // Debug pagination for pending appointments
   if (activeTab === "pending") {
     console.log("=== PAGINATION DEBUG ===");
     console.log("Filtered appointments count:", filteredAppointments.length);
     console.log("Current page:", currentPage);
-    console.log("Page size:", pageSize);
+    console.log("Items per page:", itemsPerPage);
     console.log("Paginated appointments count:", paginatedAppointments.length);
     console.log("Paginated appointments:", paginatedAppointments);
     console.log("=== END PAGINATION DEBUG ===");
@@ -1140,86 +1138,135 @@ const Appointments = () => {
                     </CardContent>
                   </Card>
                 ) : (
-                  <Card>
-                    <CardContent className="p-0">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-[200px]">
-                              <div className="flex items-center gap-2">
-                                <User className="h-4 w-4" />
-                                Patient
-                              </div>
-                            </TableHead>
-                            <TableHead>
-                              <div className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4" />
-                                Date
-                              </div>
-                            </TableHead>
-                            <TableHead>
-                              <div className="flex items-center gap-2">
-                                <Clock className="h-4 w-4" />
-                                Time
-                              </div>
-                            </TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Doctor</TableHead>
-                            <TableHead>Status</TableHead>
-                            {getDisplayNotes(
-                              paginatedAppointments[0]?.notes
-                            ) && <TableHead>Notes</TableHead>}
-                            <TableHead className="text-right">
-                              Actions
-                            </TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {paginatedAppointments.map((appointment) => (
-                            <TableRow key={appointment.id}>
-                              <TableCell className="font-medium">
-                                {getPatientName(
-                                  appointment.patientId,
-                                  appointment
-                                )}
-                                {/* Show "New Patient" badge for first-time patients from portal/chatbot */}
-                                {appointment.patient_name &&
-                                  !appointment.patientId && (
-                                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                      New Patient
-                                    </span>
-                                  )}
-                              </TableCell>
-                              <TableCell>
-                                {formatDate(appointment.date)}
-                              </TableCell>
-                              <TableCell>
-                                {formatTime(appointment.time)}
-                              </TableCell>
-                              <TableCell>{appointment.type}</TableCell>
-                              <TableCell>
-                                {getDoctorName(
-                                  appointment.doctorId,
-                                  appointment
-                                )}
-                              </TableCell>
-                              <TableCell>
-                                {getStatusBadge(appointment.status)}
-                              </TableCell>
-                              {getDisplayNotes(appointment.notes) && (
-                                <TableCell className="max-w-[200px] truncate">
-                                  {getDisplayNotes(appointment.notes)}
-                                </TableCell>
-                              )}
-                              <TableCell className="text-right">
-                                {renderActionButtons(appointment)}
-                              </TableCell>
+                  <>
+                    <Card>
+                      <CardContent className="p-0">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-[200px]">
+                                <div className="flex items-center gap-2">
+                                  <User className="h-4 w-4" />
+                                  Patient
+                                </div>
+                              </TableHead>
+                              <TableHead>
+                                <div className="flex items-center gap-2">
+                                  <Calendar className="h-4 w-4" />
+                                  Date
+                                </div>
+                              </TableHead>
+                              <TableHead>
+                                <div className="flex items-center gap-2">
+                                  <Clock className="h-4 w-4" />
+                                  Time
+                                </div>
+                              </TableHead>
+                              <TableHead>Type</TableHead>
+                              <TableHead>Doctor</TableHead>
+                              <TableHead>Status</TableHead>
+                              {getDisplayNotes(
+                                paginatedAppointments[0]?.notes
+                              ) && <TableHead>Notes</TableHead>}
+                              <TableHead className="text-right">
+                                Actions
+                              </TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </CardContent>
-                  </Card>
+                          </TableHeader>
+                          <TableBody>
+                            {paginatedAppointments.map((appointment) => (
+                              <TableRow key={appointment.id}>
+                                <TableCell className="font-medium">
+                                  {getPatientName(
+                                    appointment.patientId,
+                                    appointment
+                                  )}
+                                  {/* Show "New Patient" badge for first-time patients from portal/chatbot */}
+                                  {appointment.patient_name &&
+                                    !appointment.patientId && (
+                                      <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                        New Patient
+                                      </span>
+                                    )}
+                                </TableCell>
+                                <TableCell>
+                                  {formatDate(appointment.date)}
+                                </TableCell>
+                                <TableCell>
+                                  {formatTime(appointment.time)}
+                                </TableCell>
+                                <TableCell>{appointment.type}</TableCell>
+                                <TableCell>
+                                  {getDoctorName(
+                                    appointment.doctorId,
+                                    appointment
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  {getStatusBadge(appointment.status)}
+                                </TableCell>
+                                {getDisplayNotes(appointment.notes) && (
+                                  <TableCell className="max-w-[200px] truncate">
+                                    {getDisplayNotes(appointment.notes)}
+                                  </TableCell>
+                                )}
+                                <TableCell className="text-right">
+                                  {renderActionButtons(appointment)}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </CardContent>
+                    </Card>
+                    {filteredAppointments.length > 0 && (
+                      <div className="flex items-center justify-between px-2 py-4">
+                        <div className="flex items-center space-x-2">
+                          <p className="text-sm text-muted-foreground">Show</p>
+                          <Select
+                            value={itemsPerPage.toString()}
+                            onValueChange={handleItemsPerPageChange}
+                          >
+                            <SelectTrigger className="h-8 w-16">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="5">5</SelectItem>
+                              <SelectItem value="10">10</SelectItem>
+                              <SelectItem value="20">20</SelectItem>
+                              <SelectItem value="50">50</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-sm text-muted-foreground">
+                            entries
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-6 lg:space-x-8">
+                          <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                            Page {currentPage} of {totalPages}
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handlePageChange(currentPage - 1)}
+                              disabled={currentPage <= 1}
+                            >
+                              Previous
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handlePageChange(currentPage + 1)}
+                              disabled={currentPage >= totalPages}
+                            >
+                              Next
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </TabsContent>
             )}
@@ -1306,40 +1353,50 @@ const Appointments = () => {
                       </Table>
                     </CardContent>
                   </Card>
-                  {totalPages > 1 && (
-                    <Pagination className="mt-4">
-                      <PaginationContent>
-                        <PaginationItem>
-                          <PaginationPrevious
-                            onClick={() =>
-                              setCurrentPage((p) => Math.max(1, p - 1))
-                            }
-                            aria-disabled={currentPage === 1}
-                            tabIndex={currentPage === 1 ? -1 : 0}
-                          />
-                        </PaginationItem>
-                        {Array.from({ length: totalPages }, (_, i) => (
-                          <PaginationItem key={i + 1}>
-                            <PaginationLink
-                              isActive={currentPage === i + 1}
-                              onClick={() => setCurrentPage(i + 1)}
-                              href="#"
-                            >
-                              {i + 1}
-                            </PaginationLink>
-                          </PaginationItem>
-                        ))}
-                        <PaginationItem>
-                          <PaginationNext
-                            onClick={() =>
-                              setCurrentPage((p) => Math.min(totalPages, p + 1))
-                            }
-                            aria-disabled={currentPage === totalPages}
-                            tabIndex={currentPage === totalPages ? -1 : 0}
-                          />
-                        </PaginationItem>
-                      </PaginationContent>
-                    </Pagination>
+                  {filteredAppointments.length > 0 && (
+                    <div className="flex items-center justify-between px-2 py-4">
+                      <div className="flex items-center space-x-2">
+                        <p className="text-sm text-muted-foreground">Show</p>
+                        <Select
+                          value={itemsPerPage.toString()}
+                          onValueChange={handleItemsPerPageChange}
+                        >
+                          <SelectTrigger className="h-8 w-16">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-sm text-muted-foreground">entries</p>
+                      </div>
+                      <div className="flex items-center space-x-6 lg:space-x-8">
+                        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                          Page {currentPage} of {totalPages}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage <= 1}
+                          >
+                            Previous
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage >= totalPages}
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </>
               )}
@@ -1427,40 +1484,50 @@ const Appointments = () => {
                       </Table>
                     </CardContent>
                   </Card>
-                  {totalPages > 1 && (
-                    <Pagination className="mt-4">
-                      <PaginationContent>
-                        <PaginationItem>
-                          <PaginationPrevious
-                            onClick={() =>
-                              setCurrentPage((p) => Math.max(1, p - 1))
-                            }
-                            aria-disabled={currentPage === 1}
-                            tabIndex={currentPage === 1 ? -1 : 0}
-                          />
-                        </PaginationItem>
-                        {Array.from({ length: totalPages }, (_, i) => (
-                          <PaginationItem key={i + 1}>
-                            <PaginationLink
-                              isActive={currentPage === i + 1}
-                              onClick={() => setCurrentPage(i + 1)}
-                              href="#"
-                            >
-                              {i + 1}
-                            </PaginationLink>
-                          </PaginationItem>
-                        ))}
-                        <PaginationItem>
-                          <PaginationNext
-                            onClick={() =>
-                              setCurrentPage((p) => Math.min(totalPages, p + 1))
-                            }
-                            aria-disabled={currentPage === totalPages}
-                            tabIndex={currentPage === totalPages ? -1 : 0}
-                          />
-                        </PaginationItem>
-                      </PaginationContent>
-                    </Pagination>
+                  {filteredAppointments.length > 0 && (
+                    <div className="flex items-center justify-between px-2 py-4">
+                      <div className="flex items-center space-x-2">
+                        <p className="text-sm text-muted-foreground">Show</p>
+                        <Select
+                          value={itemsPerPage.toString()}
+                          onValueChange={handleItemsPerPageChange}
+                        >
+                          <SelectTrigger className="h-8 w-16">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-sm text-muted-foreground">entries</p>
+                      </div>
+                      <div className="flex items-center space-x-6 lg:space-x-8">
+                        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                          Page {currentPage} of {totalPages}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage <= 1}
+                          >
+                            Previous
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage >= totalPages}
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </>
               )}
@@ -1474,66 +1541,118 @@ const Appointments = () => {
                   </CardContent>
                 </Card>
               ) : (
-                <Card>
-                  <CardContent className="p-0">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[200px]">
-                            <div className="flex items-center gap-2">
-                              <User className="h-4 w-4" />
-                              Patient
-                            </div>
-                          </TableHead>
-                          <TableHead>
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4" />
-                              Date
-                            </div>
-                          </TableHead>
-                          <TableHead>
-                            <div className="flex items-center gap-2">
-                              <Clock className="h-4 w-4" />
-                              Time
-                            </div>
-                          </TableHead>
-                          <TableHead>Type</TableHead>
-                          <TableHead>Doctor</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredAppointments.map((appointment) => (
-                          <TableRow key={appointment.id}>
-                            <TableCell className="font-medium">
-                              {getPatientName(
-                                appointment.patientId,
-                                appointment
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {formatDate(appointment.date)}
-                            </TableCell>
-                            <TableCell>
-                              {formatTime(appointment.time)}
-                            </TableCell>
-                            <TableCell>{appointment.type}</TableCell>
-                            <TableCell>
-                              {getDoctorName(appointment.doctorId, appointment)}
-                            </TableCell>
-                            <TableCell>
-                              {getStatusBadge(appointment.status)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {renderActionButtons(appointment)}
-                            </TableCell>
+                <>
+                  <Card>
+                    <CardContent className="p-0">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[200px]">
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4" />
+                                Patient
+                              </div>
+                            </TableHead>
+                            <TableHead>
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                Date
+                              </div>
+                            </TableHead>
+                            <TableHead>
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4" />
+                                Time
+                              </div>
+                            </TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Doctor</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">
+                              Actions
+                            </TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
+                        </TableHeader>
+                        <TableBody>
+                          {paginatedAppointments.map((appointment) => (
+                            <TableRow key={appointment.id}>
+                              <TableCell className="font-medium">
+                                {getPatientName(
+                                  appointment.patientId,
+                                  appointment
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {formatDate(appointment.date)}
+                              </TableCell>
+                              <TableCell>
+                                {formatTime(appointment.time)}
+                              </TableCell>
+                              <TableCell>{appointment.type}</TableCell>
+                              <TableCell>
+                                {getDoctorName(
+                                  appointment.doctorId,
+                                  appointment
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {getStatusBadge(appointment.status)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {renderActionButtons(appointment)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                  {filteredAppointments.length > 0 && (
+                    <div className="flex items-center justify-between px-2 py-4">
+                      <div className="flex items-center space-x-2">
+                        <p className="text-sm text-muted-foreground">Show</p>
+                        <Select
+                          value={itemsPerPage.toString()}
+                          onValueChange={handleItemsPerPageChange}
+                        >
+                          <SelectTrigger className="h-8 w-16">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-sm text-muted-foreground">entries</p>
+                      </div>
+                      <div className="flex items-center space-x-6 lg:space-x-8">
+                        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                          Page {currentPage} of {totalPages}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage <= 1}
+                          >
+                            Previous
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage >= totalPages}
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </TabsContent>
 
@@ -1545,62 +1664,112 @@ const Appointments = () => {
                   </CardContent>
                 </Card>
               ) : (
-                <Card>
-                  <CardContent className="p-0">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[200px]">
-                            <div className="flex items-center gap-2">
-                              <User className="h-4 w-4" />
-                              Patient
-                            </div>
-                          </TableHead>
-                          <TableHead>
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4" />
-                              Date
-                            </div>
-                          </TableHead>
-                          <TableHead>
-                            <div className="flex items-center gap-2">
-                              <Clock className="h-4 w-4" />
-                              Time
-                            </div>
-                          </TableHead>
-                          <TableHead>Type</TableHead>
-                          <TableHead>Doctor</TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredAppointments.map((appointment) => (
-                          <TableRow key={appointment.id}>
-                            <TableCell className="font-medium">
-                              {getPatientName(
-                                appointment.patientId,
-                                appointment
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {formatDate(appointment.date)}
-                            </TableCell>
-                            <TableCell>
-                              {formatTime(appointment.time)}
-                            </TableCell>
-                            <TableCell>{appointment.type}</TableCell>
-                            <TableCell>
-                              {getDoctorName(appointment.doctorId, appointment)}
-                            </TableCell>
-                            <TableCell>
-                              {getStatusBadge(appointment.status)}
-                            </TableCell>
+                <>
+                  <Card>
+                    <CardContent className="p-0">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[200px]">
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4" />
+                                Patient
+                              </div>
+                            </TableHead>
+                            <TableHead>
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                Date
+                              </div>
+                            </TableHead>
+                            <TableHead>
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4" />
+                                Time
+                              </div>
+                            </TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Doctor</TableHead>
+                            <TableHead>Status</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
+                        </TableHeader>
+                        <TableBody>
+                          {paginatedAppointments.map((appointment) => (
+                            <TableRow key={appointment.id}>
+                              <TableCell className="font-medium">
+                                {getPatientName(
+                                  appointment.patientId,
+                                  appointment
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {formatDate(appointment.date)}
+                              </TableCell>
+                              <TableCell>
+                                {formatTime(appointment.time)}
+                              </TableCell>
+                              <TableCell>{appointment.type}</TableCell>
+                              <TableCell>
+                                {getDoctorName(
+                                  appointment.doctorId,
+                                  appointment
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {getStatusBadge(appointment.status)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                  {filteredAppointments.length > 0 && (
+                    <div className="flex items-center justify-between px-2 py-4">
+                      <div className="flex items-center space-x-2">
+                        <p className="text-sm text-muted-foreground">Show</p>
+                        <Select
+                          value={itemsPerPage.toString()}
+                          onValueChange={handleItemsPerPageChange}
+                        >
+                          <SelectTrigger className="h-8 w-16">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-sm text-muted-foreground">entries</p>
+                      </div>
+                      <div className="flex items-center space-x-6 lg:space-x-8">
+                        <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                          Page {currentPage} of {totalPages}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage <= 1}
+                          >
+                            Previous
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage >= totalPages}
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </TabsContent>
           </Tabs>

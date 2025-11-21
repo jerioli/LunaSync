@@ -100,6 +100,15 @@ const Schedule: React.FC = () => {
   const [endTime, setEndTime] = useState("17:00");
   const [scheduleSlots, setScheduleSlots] = useState<ScheduleSlot[]>([]);
 
+  // Helper to check if a date is in the past
+  const isDateInPast = (dateString: string): boolean => {
+    const date = new Date(dateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0);
+    return date < today;
+  };
+
   // Calendar view state
   const [viewDate, setViewDate] = useState(new Date());
   const [startCalendarOpen, setStartCalendarOpen] = useState(false);
@@ -366,10 +375,23 @@ const Schedule: React.FC = () => {
         });
       }
 
+      // Filter out past dates
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const filterFutureAvailability = (availability: any[]) => {
+        return availability.filter((item: any) => {
+          const itemDate = new Date(item.date);
+          itemDate.setHours(0, 0, 0, 0);
+          return itemDate >= today;
+        });
+      };
+
       // Handle both paginated and non-paginated responses
       if (data.results) {
         // Paginated response
-        setExistingAvailability(data.results);
+        const futureResults = filterFutureAvailability(data.results);
+        setExistingAvailability(futureResults);
         setPagination((prev) => ({
           ...prev,
           currentPage: page,
@@ -378,16 +400,17 @@ const Schedule: React.FC = () => {
         }));
       } else {
         // Non-paginated response - implement client-side pagination
+        const futureData = filterFutureAvailability(data);
         const startIndex = (page - 1) * pagination.itemsPerPage;
         const endIndex = startIndex + pagination.itemsPerPage;
-        const paginatedData = data.slice(startIndex, endIndex);
+        const paginatedData = futureData.slice(startIndex, endIndex);
 
         setExistingAvailability(paginatedData);
         setPagination((prev) => ({
           ...prev,
           currentPage: page,
-          totalPages: Math.ceil(data.length / prev.itemsPerPage),
-          totalItems: data.length,
+          totalPages: Math.ceil(futureData.length / prev.itemsPerPage),
+          totalItems: futureData.length,
         }));
       }
     } catch (error: any) {
@@ -504,6 +527,22 @@ const Schedule: React.FC = () => {
     // Validate date range
     const start = new Date(startDate);
     const end = new Date(endDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    if (start < today) {
+      console.log("❌ Start date is in the past");
+      toast({
+        title: "Invalid date",
+        description:
+          "Cannot create schedule for past dates. Please select today or a future date.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (end < start) {
       console.log("❌ End date is before start date");
       toast({
@@ -906,6 +945,7 @@ const Schedule: React.FC = () => {
                                       ).padStart(2, "0")}`;
                                       const isSelected = dateStr === startDate;
                                       const isToday = dateStr === todayStr;
+                                      const isPast = isDateInPast(dateStr);
 
                                       days.push(
                                         <Button
@@ -916,12 +956,17 @@ const Schedule: React.FC = () => {
                                               ? "bg-blue-500 text-white hover:bg-blue-600"
                                               : isToday
                                               ? "bg-blue-100 text-blue-600"
+                                              : isPast
+                                              ? "text-gray-300 cursor-not-allowed hover:bg-transparent"
                                               : "hover:bg-gray-100"
                                           }`}
                                           onClick={() => {
-                                            setStartDate(dateStr);
-                                            setStartCalendarOpen(false);
+                                            if (!isPast) {
+                                              setStartDate(dateStr);
+                                              setStartCalendarOpen(false);
+                                            }
                                           }}
+                                          disabled={isPast}
                                         >
                                           {day}
                                         </Button>
@@ -1075,6 +1120,7 @@ const Schedule: React.FC = () => {
                                       ).padStart(2, "0")}`;
                                       const isSelected = dateStr === endDate;
                                       const isToday = dateStr === todayStr;
+                                      const isPast = isDateInPast(dateStr);
 
                                       days.push(
                                         <Button
@@ -1085,12 +1131,17 @@ const Schedule: React.FC = () => {
                                               ? "bg-blue-500 text-white hover:bg-blue-600"
                                               : isToday
                                               ? "bg-blue-100 text-blue-600"
+                                              : isPast
+                                              ? "text-gray-300 cursor-not-allowed hover:bg-transparent"
                                               : "hover:bg-gray-100"
                                           }`}
                                           onClick={() => {
-                                            setEndDate(dateStr);
-                                            setEndCalendarOpen(false);
+                                            if (!isPast) {
+                                              setEndDate(dateStr);
+                                              setEndCalendarOpen(false);
+                                            }
                                           }}
+                                          disabled={isPast}
                                         >
                                           {day}
                                         </Button>

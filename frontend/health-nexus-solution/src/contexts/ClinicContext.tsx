@@ -150,9 +150,12 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({
           // Automatically refresh user data to get complete permissions
           try {
             console.log("[DEBUG] ClinicContext - Auto-refreshing user data...");
-            const userResponse = await fetch(`${ENV.API_URL}/auth/current-user/`, {
-              credentials: "include",
-            });
+            const userResponse = await fetch(
+              `${ENV.API_URL}/auth/current-user/`,
+              {
+                credentials: "include",
+              }
+            );
             const userData = await userResponse.json();
             console.log(
               "[DEBUG] ClinicContext - Fresh user data from backend:",
@@ -322,6 +325,20 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({
 
   const addLabResult = (labResult: LabResult) => {
     setLabResultsList([...labResultsList, labResult]);
+  };
+
+  const updateLabResult = (id: string, updatedData: Partial<LabResult>) => {
+    setLabResultsList(
+      labResultsList.map((result) =>
+        result.id === id ? { ...result, ...updatedData } : result
+      )
+    );
+  };
+
+  const deleteLabResult = (id: string) => {
+    setLabResultsList((prevResults) =>
+      prevResults.filter((result) => result.id !== id)
+    );
   };
 
   const updatePatient = (id: string, updatedData: Partial<Patient>) => {
@@ -512,6 +529,8 @@ export const ClinicProvider: React.FC<{ children: ReactNode }> = ({
         updateAppointment,
         addPrescription,
         addLabResult,
+        updateLabResult,
+        deleteLabResult,
 
         updatePatient,
         deletePatient,

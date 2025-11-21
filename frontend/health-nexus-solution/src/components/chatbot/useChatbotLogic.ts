@@ -885,7 +885,7 @@ export const useChatbotLogic = () => {
                     addBotMessage('This includes your full name, phone number, and appointment details. Your information will be kept secure and used only for healthcare purposes.');
                     
                     setTimeout(() => {
-                      addBotMessage('Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
+                      addBotMessage('Please read and agree to our Terms and Conditions and Privacy Policy. Click the links to view them in a new tab:', [
                         { label: '✓ I agree to Terms & Conditions and Privacy Policy', value: 'agree-terms' },
                         { label: '✗ I do not agree', value: 'decline-terms' }
                       ]);
@@ -910,7 +910,7 @@ export const useChatbotLogic = () => {
                   addBotMessage('This includes your full name, phone number, and appointment details. Your information will be kept secure and used only for healthcare purposes.');
                   
                   setTimeout(() => {
-                    addBotMessage('Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
+                    addBotMessage('Please read and agree to our Terms and Conditions and Privacy Policy. Click the links to view them in a new tab:', [
                       { label: '✓ I agree to Terms & Conditions and Privacy Policy', value: 'agree-terms' },
                       { label: '✗ I do not agree', value: 'decline-terms' }
                     ]);
@@ -1472,9 +1472,9 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       const checkDate = new Date();
       checkDate.setDate(today.getDate() + i);
       
-      if (checkDate.getDay() === 0 || checkDate.getDay() === 6) continue;
+      // Allow all days including weekends - doctors may have weekend availability
       
-      const dateString = checkDate.toISOString().split('T')[0];
+      const dateString = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
       const appointmentsOnDate = appointments.filter(app => app.date === dateString);
       
       if (appointmentsOnDate.length < 8) {
@@ -1940,7 +1940,16 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       // Handle first visit selection
       addMessage('user', 'This is my first visit');
       setTimeout(() => {
-        addBotMessage('Welcome! Before we proceed, I need to inform you that we will be collecting some personal information to process your appointment request. Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
+        const termsMessage = {
+          text: 'Welcome! Before we proceed, I need to inform you that we will be collecting some personal information to process your appointment request. Please confirm that you agree to our ',
+          links: [
+            { text: 'Terms and Conditions', url: '/terms-and-conditions' },
+            { text: ' and ' },
+            { text: 'Privacy Policy', url: '/privacy-policy' },
+            { text: ':' }
+          ]
+        };
+        addBotMessage('Welcome! Before we proceed, I need to inform you that we will be collecting some personal information to process your appointment request. Please read and agree to our Terms and Conditions and Privacy Policy. Click the links to view them in a new tab:', [
           { label: '✓ I agree', value: 'agree-terms' },
           { label: '✗ I do not agree', value: 'decline-terms' }
         ]);
@@ -2036,8 +2045,10 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
             return;
           }
 
-          // Format the date to YYYY-MM-DD string
-          const formattedDate = appointmentForm.date.toISOString().split('T')[0];
+          // Format the date to YYYY-MM-DD string without timezone conversion
+          const formattedDate = appointmentForm.date
+            ? `${appointmentForm.date.getFullYear()}-${String(appointmentForm.date.getMonth() + 1).padStart(2, '0')}-${String(appointmentForm.date.getDate()).padStart(2, '0')}`
+            : '';
 
           // Format time to 24-hour format with seconds
           const [time, period] = appointmentForm.time.split(' ');
@@ -2059,7 +2070,10 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
             suffix: appointmentForm.suffix,
             patient_email: appointmentForm.email,
             patient_phone: appointmentForm.phone,
-            date_of_birth: appointmentForm.dateOfBirth ? new Date(appointmentForm.dateOfBirth).toISOString().split('T')[0] : null,
+            date_of_birth: appointmentForm.dateOfBirth ? (() => {
+              const dob = new Date(appointmentForm.dateOfBirth);
+              return `${dob.getFullYear()}-${String(dob.getMonth() + 1).padStart(2, '0')}-${String(dob.getDate()).padStart(2, '0')}`;
+            })() : null,
             gender: appointmentForm.gender === 'Prefer not to say' ? 'prefer_not_to_say' : (appointmentForm.gender ? appointmentForm.gender.toLowerCase() : null),
             address: appointmentForm.address || null,
             marital_status: appointmentForm.maritalStatus === 'Prefer not to say' ? 'prefer_not_to_say' : (appointmentForm.maritalStatus ? appointmentForm.maritalStatus.toLowerCase() : null),
@@ -2877,7 +2891,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
            addBotMessage('This includes your full name, phone number, and appointment details. Your information will be kept secure and used only for healthcare purposes.');
             
             setTimeout(() => {
-              addBotMessage( 'Please confirm that you agree to our Terms and Conditions and Privacy Policy:', [
+              addBotMessage( 'Please read and agree to our Terms and Conditions and Privacy Policy. Click the links to view them in a new tab:', [
                 { label: '✓ I agree to Terms & Conditions and Privacy Policy', value: 'agree-terms' },
                 { label: '✗ I do not agree', value: 'decline-terms' }
               ]);
@@ -3153,8 +3167,10 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
   const submitAppointmentRequest = async () => {
     try {
     
-      // Format the date to YYYY-MM-DD string
-      const formattedDate = appointmentForm.date!.toISOString().split('T')[0];
+      // Format the date to YYYY-MM-DD string without timezone conversion
+      const formattedDate = appointmentForm.date
+        ? `${appointmentForm.date.getFullYear()}-${String(appointmentForm.date.getMonth() + 1).padStart(2, '0')}-${String(appointmentForm.date.getDate()).padStart(2, '0')}`
+        : '';
 
       // Format time to 24-hour format with seconds
       const [time, period] = appointmentForm.time.split(' ');
@@ -3212,20 +3228,20 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
             if (/^\d{4}-\d{2}-\d{2}$/.test(dobValue)) {
               dateString = dobValue;
             } else {
-              // Try to parse and reformat
+              // Try to parse and reformat without timezone conversion
               const tempDate = new Date(dobValue);
               if (!isNaN(tempDate.getTime())) {
-                dateString = tempDate.toISOString().split('T')[0];
+                dateString = `${tempDate.getFullYear()}-${String(tempDate.getMonth() + 1).padStart(2, '0')}-${String(tempDate.getDate()).padStart(2, '0')}`;
               } else {
                 console.error('[DEBUG] Invalid date string:', dobValue);
                 dateString = ''; // Set to empty string for invalid dates
               }
             }
           } else if (dobValue && Object.prototype.toString.call(dobValue) === '[object Date]') {
-            // If it's a Date object, convert to string
+            // If it's a Date object, convert to string without timezone conversion
             const dateObj = dobValue as Date;
             if (!isNaN(dateObj.getTime())) {
-              dateString = dateObj.toISOString().split('T')[0];
+              dateString = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
             } else {
               console.error('[DEBUG] Invalid Date object:', dobValue);
               dateString = ''; // Set to empty string for invalid dates
@@ -3234,7 +3250,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
             // Try to create a Date object from whatever it is
             const tempDate = new Date(dobValue as any);
             if (!isNaN(tempDate.getTime())) {
-              dateString = tempDate.toISOString().split('T')[0];
+              dateString = `${tempDate.getFullYear()}-${String(tempDate.getMonth() + 1).padStart(2, '0')}-${String(tempDate.getDate()).padStart(2, '0')}`;
             } else {
               console.error('[DEBUG] Could not convert to date:', dobValue);
               dateString = ''; // Set to empty string for invalid dates
@@ -4074,13 +4090,12 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       let datesFound = 0;
       const maxDates = 7; // Stop after finding 7 available dates
       
-      // Check each date in the next 2 weeks
-      for (let i = 1; i <= daysToCheck && datesFound < maxDates; i++) {
+      // Check each date in the next 2 weeks (starting from today)
+      for (let i = 0; i <= daysToCheck && datesFound < maxDates; i++) {
         const checkDate = new Date(today);
         checkDate.setDate(today.getDate() + i);
         
-        // Skip weekends
-        if (checkDate.getDay() === 0 || checkDate.getDay() === 6) continue;
+        // Allow all days including weekends - doctors may have weekend availability
         
         const year = checkDate.getFullYear();
         const month = String(checkDate.getMonth() + 1).padStart(2, '0');
@@ -4172,21 +4187,25 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         return [];
       }
 
-      // Convert date strings to Date objects in Pacific Time
+      // Convert date strings to Date objects
       const availableDates = response.map((dateStr: string) => {
-        // Create date in Pacific Time
-        const date = new Date(dateStr + 'T00:00:00-08:00');
-        
+        // Parse date string as YYYY-MM-DD and create date object
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
         return date;
       });
 
       // Filter to only include dates within the next 2 weeks (14 days)
       const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset to midnight for date comparison
       const twoWeeksFromNow = new Date();
       twoWeeksFromNow.setDate(today.getDate() + 14);
+      twoWeeksFromNow.setHours(23, 59, 59, 999); // End of day
       
       const filteredDates = availableDates.filter(date => {
-        return date >= today && date <= twoWeeksFromNow;
+        const compareDate = new Date(date);
+        compareDate.setHours(0, 0, 0, 0);
+        return compareDate >= today && compareDate <= twoWeeksFromNow;
       });
       
       return filteredDates;

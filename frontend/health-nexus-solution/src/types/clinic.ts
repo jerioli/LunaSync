@@ -42,6 +42,8 @@ export interface ClinicContextType {
   updateAppointment: (id: string, updatedData: Partial<Appointment>) => void;
   addPrescription: (prescription: Prescription) => void;
   addLabResult: (labResult: LabResult) => void;
+  updateLabResult: (id: string, updatedData: Partial<LabResult>) => void;
+  deleteLabResult: (id: string) => void;
   updatePatient: (id: string, updatedData: Partial<Patient>) => void;
   deletePatient: (id: string) => void;
   clinicCustomization: ClinicCustomization;

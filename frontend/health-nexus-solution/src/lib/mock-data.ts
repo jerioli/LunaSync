@@ -101,6 +101,7 @@ export type LabResult = {
   type: string;
   resultUrl: string | null;
   notes?: string;
+  content?: string; // Document text content for editing
   authorizedBy?: string;
   structuredData?: Array<{
     test_name: string;
