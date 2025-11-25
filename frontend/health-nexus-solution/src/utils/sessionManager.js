@@ -11,26 +11,8 @@ axios.defaults.headers.common['Content-Type'] = 'application/json';
 axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = 'X-CSRFToken';
 
-// Add response interceptor to handle session timeout
-axios.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // Handle 401 Unauthorized - session expired
-    if (error.response?.status === 401) {
-      console.warn('🔒 Session expired or unauthorized');
-      
-      // Clear session data
-      clearAuthData();
-      
-      // Show session expired modal if not already on login page
-      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-        showSessionExpiredModal();
-      }
-    }
-    
-    return Promise.reject(error);
-  }
-);
+// NOTE: Removed global axios interceptor to prevent conflicts with axiosInstance
+// Session timeout handling is now managed by the axiosInstance in api.ts
 
 // Function to show session expired modal
 function showSessionExpiredModal() {

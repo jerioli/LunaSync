@@ -47,17 +47,27 @@ axiosInstance.interceptors.response.use(
     
     // Handle common errors
     if (error.response?.status === 401) {
-      // Unauthorized - session expired or invalid
-      console.warn('🔒 Session expired or unauthorized');
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+      const isLoginPage = currentPath.includes('/login') || currentPath.includes('/forgot-password');
+      const isPublicEndpoint = error.config?.url?.includes('/medical-certificates/') && error.config?.url?.includes('public');
       
-      // Clear session data
-      localStorage.removeItem('sessionId');
-      localStorage.removeItem('user');
-      
-      // Show session expired modal
-      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-        // Create and show session expired modal
-        showSessionExpiredModal();
+      // Only trigger session expired modal for authenticated routes
+      if (!isLoginPage && !isPublicEndpoint) {
+        console.warn('🔒 Session expired or unauthorized for authenticated route');
+        
+        // Add a small delay to prevent race conditions with rapid API calls
+        setTimeout(() => {
+          // Check if we're still not on login page (user might have already been redirected)
+          const newPath = typeof window !== 'undefined' ? window.location.pathname : '';
+          if (!newPath.includes('/login') && !newPath.includes('/forgot-password')) {
+            // Clear session data
+            localStorage.removeItem('sessionId');
+            localStorage.removeItem('user');
+            
+            // Show session expired modal
+            showSessionExpiredModal();
+          }
+        }, 100);
       }
     }
     
@@ -65,8 +75,17 @@ axiosInstance.interceptors.response.use(
   }
 );
 
+// Flag to prevent multiple session expired modals
+let sessionExpiredModalShown = false;
+
 // Function to show session expired modal
 function showSessionExpiredModal() {
+  // Prevent multiple modals
+  if (sessionExpiredModalShown) {
+    return;
+  }
+  sessionExpiredModalShown = true;
+  
   // Remove any existing modal
   const existingModal = document.getElementById('session-expired-modal');
   if (existingModal) {
@@ -147,6 +166,7 @@ function showSessionExpiredModal() {
   if (button) {
     button.addEventListener('click', () => {
       modalOverlay.remove();
+      sessionExpiredModalShown = false; // Reset the flag
       window.location.href = '/login';
     });
   }
@@ -155,6 +175,7 @@ function showSessionExpiredModal() {
   setTimeout(() => {
     if (document.getElementById('session-expired-modal')) {
       modalOverlay.remove();
+      sessionExpiredModalShown = false; // Reset the flag
       window.location.href = '/login';
     }
   }, 5000);

@@ -306,9 +306,10 @@ const MedicalCertificateManagement: React.FC = () => {
       console.log("=== FETCHING MEDICAL CERTIFICATES ===");
       console.log("Current timestamp:", new Date().toISOString());
 
-      // Add cache busting parameter
+      // Add cache busting parameter and longer timeout for this specific request
       const response = await axiosInstance.get("/medical-certificates/", {
         params: { _t: Date.now() },
+        timeout: 15000, // 15 second timeout for this request
       });
 
       console.log("Full response:", response);
@@ -339,8 +340,16 @@ const MedicalCertificateManagement: React.FC = () => {
     } catch (error) {
       console.error("Error fetching medical certificate requests:", error);
       console.error("Error details:", error.response || error.message);
-      setRequests([]); // Set empty array on error
-      toast.error("Failed to load medical certificate requests");
+      
+      // Only show error toast for non-authentication errors
+      if (error.response?.status !== 401) {
+        setRequests([]); // Set empty array on error
+        if (error.code === 'ECONNABORTED') {
+          toast.error("Request timeout. Please check your internet connection and try again.");
+        } else {
+          toast.error("Failed to load medical certificate requests");
+        }
+      }
     } finally {
       setLoading(false);
     }
