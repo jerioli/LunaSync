@@ -2,8 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LUNASync - Medical Clinic Management System</title>
+    <title>LUNASync Medical System 🩺</title>
     <meta name="description" content="Complete medical clinic management solution with patient management, appointment scheduling, medical records, and OCR processing capabilities. Streamline your healthcare practice with LUNASync." />
     <meta name="author" content="LUNASync Team" />
     <meta name="application-name" content="LUNASync" />
@@ -12,14 +13,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="LUNASync" />
- <!-- Favicon Links -->
-    <link rel="icon" type="image/x-icon" href="/favicon_circular_new.ico" />
-    <link rel="icon" type="image/svg+xml" href="/logo-512.svg" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/logo-512.svg" />
+ <!-- Additional Favicon Links -->
     <link rel="manifest" href="/site.webmanifest" />
     
     <!-- Open Graph / Facebook -->
@@ -49,6 +43,16 @@
 
   <body>
     <div id="root"></div>
+    
+    <!-- Force favicon loading with JavaScript -->
+    <script>
+      // Force favicon to load
+      var link = document.createElement('link');
+      link.type = 'image/x-icon';
+      link.rel = 'shortcut icon';
+      link.href = '/favicon.ico?' + Date.now();
+      document.getElementsByTagName('head')[0].appendChild(link);
+    </script>
     
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>

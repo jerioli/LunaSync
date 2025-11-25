@@ -28285,3 +28285,62 @@ rest_framework.exceptions.ValidationError: [ErrorDetail(string='Appointment date
 2025-11-21 14:33:37,787 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 3279
 2025-11-21 14:33:37,804 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 3279
 INFO 2025-11-25 11:54:11,062 autoreload 18728 10100 Watching for file changes with StatReloader
+2025-11-25 12:58:43,091 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-25 12:58:43,145 - django.request - WARNING - Unauthorized: /api/auth/current-user/
+2025-11-25 12:58:43,147 - django.server - WARNING - "GET /api/auth/current-user/ HTTP/1.1" 401 35
+2025-11-25 12:58:43,515 - django.server - INFO - "OPTIONS /api/appointments/list/ HTTP/1.1" 200 0
+2025-11-25 12:58:43,515 - django.server - INFO - "OPTIONS /api/patients/ HTTP/1.1" 200 0
+2025-11-25 12:58:43,519 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-25 12:58:43,519 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-25 12:58:43,526 - django.request - WARNING - Forbidden: /api/patients/
+2025-11-25 12:58:43,527 - appointments.views - INFO - Starting list method...
+2025-11-25 12:58:43,528 - appointments.views - INFO - Starting to fetch appointments...
+2025-11-25 12:58:43,533 - django.server - WARNING - "GET /api/patients/ HTTP/1.1" 403 58
+2025-11-25 12:58:43,550 - appointments.views - INFO - Successfully accessed database
+2025-11-25 12:58:43,552 - appointments.views - INFO - Found 5 appointments after filtering
+2025-11-25 12:58:43,614 - appointments.views - INFO - Sample appointment: id=1, status=completed, date=2025-11-17
+2025-11-25 12:58:43,615 - appointments.views - INFO - Patient: Jerry N/A. Olivarez
+2025-11-25 12:58:43,615 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-25 12:58:43,615 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-25 12:58:43,616 - appointments.views - INFO - Sample appointment: id=6, status=cancelled, date=2025-11-21
+2025-11-25 12:58:43,616 - appointments.views - INFO - Patient: None
+2025-11-25 12:58:43,616 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-25 12:58:43,616 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-25 12:58:43,616 - appointments.views - INFO - Sample appointment: id=7, status=cancelled, date=2025-11-21
+2025-11-25 12:58:43,616 - appointments.views - INFO - Patient: None
+2025-11-25 12:58:43,617 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-25 12:58:43,617 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-25 12:58:43,625 - appointments.views - INFO - Testing serialization with first appointment: 1
+2025-11-25 12:58:43,667 - appointments.views - INFO - Successfully serialized first appointment: {'id': 1, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Jerry N/A Olivarez', 'patient_id': 'P-20251115-0496', 'patient_email': 'jeri.olivarez@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2014-07-15', 'gender': 'male', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-17', 'time': '09:00:00', 'status': 'completed', 'created_at': '2025-11-17T01:43:32.896605+08:00', 'display_patient_name': 'Jerry N/A. Olivarez', 'display_doctor_name': 'Jeri Oli', 'display_time': '09:00 AM', 'display_date': 'November 17, 2025', 'doctor': 3, 'doctor_name': 'Jeri Oli', 'patient': 1}
+2025-11-25 12:58:43,786 - appointments.views - INFO - Successfully serialized all appointments. Count: 5
+2025-11-25 12:58:43,788 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 3279
+2025-11-25 12:58:46,110 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-25 12:58:46,112 - django.request - WARNING - Unauthorized: /api/auth/current-user/
+2025-11-25 12:58:46,113 - django.server - WARNING - "GET /api/auth/current-user/ HTTP/1.1" 401 35
+2025-11-25 12:58:46,287 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-25 12:58:46,287 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-11-25 12:58:46,289 - django.request - WARNING - Forbidden: /api/patients/
+2025-11-25 12:58:46,288 - appointments.views - INFO - Starting list method...
+2025-11-25 12:58:46,290 - appointments.views - INFO - Starting to fetch appointments...
+2025-11-25 12:58:46,291 - django.server - WARNING - "GET /api/patients/ HTTP/1.1" 403 58
+2025-11-25 12:58:46,292 - appointments.views - INFO - Successfully accessed database
+2025-11-25 12:58:46,294 - appointments.views - INFO - Found 5 appointments after filtering
+2025-11-25 12:58:46,296 - appointments.views - INFO - Sample appointment: id=1, status=completed, date=2025-11-17
+2025-11-25 12:58:46,297 - appointments.views - INFO - Patient: Jerry N/A. Olivarez
+2025-11-25 12:58:46,297 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-25 12:58:46,297 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-25 12:58:46,298 - appointments.views - INFO - Sample appointment: id=6, status=cancelled, date=2025-11-21
+2025-11-25 12:58:46,298 - appointments.views - INFO - Patient: None
+2025-11-25 12:58:46,298 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-25 12:58:46,298 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-25 12:58:46,299 - appointments.views - INFO - Sample appointment: id=7, status=cancelled, date=2025-11-21
+2025-11-25 12:58:46,299 - appointments.views - INFO - Patient: None
+2025-11-25 12:58:46,299 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-11-25 12:58:46,300 - appointments.views - INFO - Appointment Type: Consultation
+2025-11-25 12:58:46,302 - appointments.views - INFO - Testing serialization with first appointment: 1
+2025-11-25 12:58:46,303 - appointments.views - INFO - Successfully serialized first appointment: {'id': 1, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Jerry N/A Olivarez', 'patient_id': 'P-20251115-0496', 'patient_email': 'jeri.olivarez@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2014-07-15', 'gender': 'male', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-17', 'time': '09:00:00', 'status': 'completed', 'created_at': '2025-11-17T01:43:32.896605+08:00', 'display_patient_name': 'Jerry N/A. Olivarez', 'display_doctor_name': 'Jeri Oli', 'display_time': '09:00 AM', 'display_date': 'November 17, 2025', 'doctor': 3, 'doctor_name': 'Jeri Oli', 'patient': 1}
+2025-11-25 12:58:46,307 - appointments.views - INFO - Successfully serialized all appointments. Count: 5
+2025-11-25 12:58:46,309 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 3279
+2025-11-25 12:58:49,176 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-logout/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": false}
+2025-11-25 12:58:49,177 - accounts.session_views - INFO - User None logged out. Session None cleared.
+2025-11-25 12:58:49,189 - django.server - INFO - "POST /api/auth/session-logout/ HTTP/1.1" 200 52

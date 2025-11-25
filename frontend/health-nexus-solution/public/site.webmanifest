@@ -10,8 +10,8 @@
   "categories": ["medical", "healthcare", "productivity", "business"],
   "icons": [
     {
-      "src": "/favicon_circular_new.ico",
-      "sizes": "48x48",
+      "src": "/favicon_circular_new12.ico",
+      "sizes": "16x16 32x32 48x48",
       "type": "image/x-icon"
     },
     {
