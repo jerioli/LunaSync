@@ -161,9 +161,23 @@ export const AppSidebar = () => {
     setOpenMobile(false); // Close sidebar on menu click
   };
   return (
-    <Sidebar key={permissionKey} collapsible="icon" className="[&[data-state=collapsed]]:w-16">
+    <Sidebar key={permissionKey} collapsible="icon" className="[&[data-state=collapsed]]:w-24">
       <SidebarHeader className={cn("flex flex-col items-center gap-2", open ? "p-4" : "p-3")}>
-        <div className={cn("text-xl font-bold text-[#79c942] transition-all duration-200", open ? "opacity-100 h-auto mb-2" : "opacity-0 h-6 overflow-hidden mb-0")}>LUNASync</div>
+        {/* Show favicon when collapsed, LUNASync text when expanded */}
+        {open ? (
+          <div className="text-xl font-bold text-[#79c942] transition-all duration-200 opacity-100 h-auto mb-2">
+            LUNASync
+          </div>
+        ) : (
+          <div className="transition-all duration-200 opacity-100 h-auto mb-2 flex items-center justify-center mt-3">
+            <img 
+              src="/favicon.ico" 
+              alt="LUNASync" 
+              className="w-10 h-10"
+              style={{ imageRendering: 'crisp-edges' }}
+            />
+          </div>
+        )}
         <Link
           to="/user-settings"
           className={cn(
