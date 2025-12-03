@@ -26,6 +26,7 @@ class CustomUser(AbstractUser):
     )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='doctor')
     force_password_change = models.BooleanField(default=False)  # Flag for first-time login
+    is_default_account = models.BooleanField(default=False)  # Flag to mark default/system accounts that should be restricted
     
     # Permission fields for granular access control
     can_manage_appointments = models.BooleanField(default=False)
@@ -46,6 +47,28 @@ class CustomUser(AbstractUser):
     
     def __str__(self):
         return f"{self.username} ({self.role})"
+    
+    def is_restricted_default_account(self):
+        """
+        Check if this is a default/system account that should have restricted access.
+        Default accounts are not allowed to access sensitive superadmin features.
+        """
+        return self.is_default_account or (
+            self.role == 'superadmin' and 
+            self.username.lower() in ['superadmin', 'admin', 'default_admin', 'default_superadmin']
+        )
+    
+    def can_access_superadmin_features(self):
+        """
+        Check if this user can access true superadmin features.
+        Only non-default superadmin accounts can access these features.
+        """
+        return (
+            self.role == 'superadmin' and 
+            not self.is_restricted_default_account() and
+            self.can_manage_permissions and 
+            self.can_view_audit_logs
+        )
     
     def save(self, *args, **kwargs):
         # Only set default permissions on creation

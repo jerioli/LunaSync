@@ -33560,3 +33560,483 @@ INFO 2025-12-04 05:01:43,555 autoreload 21688 9624 Watching for file changes wit
 2025-12-04 05:01:46,376 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
 2025-12-04 05:01:46,398 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 119
 2025-12-04 05:01:46,417 - django.server - INFO - "GET /api/clinics/current/ HTTP/1.1" 200 2850
+2025-12-04 05:02:15,363 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764795735053 HTTP/1.1" 200 0
+2025-12-04 05:02:15,364 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764795735053 HTTP/1.1" 200 0
+2025-12-04 05:02:15,676 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:02:15,676 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:02:15,685 - django.server - INFO - "GET /api/medical-certificates/?_t=1764795735053 HTTP/1.1" 200 47027
+2025-12-04 05:02:15,689 - django.server - INFO - "GET /api/medical-certificates/?_t=1764795735053 HTTP/1.1" 200 47027
+2025-12-04 05:02:44,395 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764795764089 HTTP/1.1" 200 0
+2025-12-04 05:02:44,742 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:02:44,766 - django.server - INFO - "GET /api/medical-certificates/?_t=1764795764089 HTTP/1.1" 200 47027
+2025-12-04 05:02:45,385 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764795765058 HTTP/1.1" 200 0
+2025-12-04 05:02:45,706 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:02:45,717 - django.server - INFO - "GET /api/medical-certificates/?_t=1764795765058 HTTP/1.1" 200 47027
+2025-12-04 05:03:15,047 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764795795043 HTTP/1.1" 200 0
+2025-12-04 05:03:15,048 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764795795043 HTTP/1.1" 200 0
+2025-12-04 05:03:15,056 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:03:15,056 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:03:15,065 - django.server - INFO - "GET /api/medical-certificates/?_t=1764795795043 HTTP/1.1" 200 47027
+2025-12-04 05:03:15,073 - django.server - INFO - "GET /api/medical-certificates/?_t=1764795795043 HTTP/1.1" 200 47027
+2025-12-04 05:03:45,051 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764795825046 HTTP/1.1" 200 0
+2025-12-04 05:03:45,051 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764795825046 HTTP/1.1" 200 0
+2025-12-04 05:03:45,058 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:03:45,058 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:03:45,078 - django.server - INFO - "GET /api/medical-certificates/?_t=1764795825046 HTTP/1.1" 200 47027
+2025-12-04 05:03:45,094 - django.server - INFO - "GET /api/medical-certificates/?_t=1764795825046 HTTP/1.1" 200 47027
+2025-12-04 05:04:15,048 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764795855044 HTTP/1.1" 200 0
+2025-12-04 05:04:15,050 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764795855045 HTTP/1.1" 200 0
+2025-12-04 05:04:15,057 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:04:15,057 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:04:15,066 - django.server - INFO - "GET /api/medical-certificates/?_t=1764795855044 HTTP/1.1" 200 47027
+2025-12-04 05:04:15,077 - django.server - INFO - "GET /api/medical-certificates/?_t=1764795855045 HTTP/1.1" 200 47027
+2025-12-04 05:04:52,353 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764795892044 HTTP/1.1" 200 0
+2025-12-04 05:04:52,354 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764795892045 HTTP/1.1" 200 0
+2025-12-04 05:04:52,661 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:04:52,669 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:04:52,672 - django.server - INFO - "GET /api/medical-certificates/?_t=1764795892044 HTTP/1.1" 200 47027
+2025-12-04 05:04:52,691 - django.server - INFO - "GET /api/medical-certificates/?_t=1764795892045 HTTP/1.1" 200 47027
+2025-12-04 05:05:52,070 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764795952059 HTTP/1.1" 200 0
+2025-12-04 05:05:52,071 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764795952058 HTTP/1.1" 200 0
+2025-12-04 05:05:52,091 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:05:52,091 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:05:52,106 - django.server - INFO - "GET /api/medical-certificates/?_t=1764795952059 HTTP/1.1" 200 47027
+2025-12-04 05:05:52,118 - django.server - INFO - "GET /api/medical-certificates/?_t=1764795952058 HTTP/1.1" 200 47027
+2025-12-04 05:06:52,434 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796012073 HTTP/1.1" 200 0
+2025-12-04 05:06:52,446 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796012105 HTTP/1.1" 200 0
+2025-12-04 05:06:52,784 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:06:52,785 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:06:52,807 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796012073 HTTP/1.1" 200 47027
+2025-12-04 05:06:52,813 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796012105 HTTP/1.1" 200 47027
+2025-12-04 05:07:52,051 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796072046 HTTP/1.1" 200 0
+2025-12-04 05:07:52,052 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796072046 HTTP/1.1" 200 0
+2025-12-04 05:07:52,066 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:07:52,066 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:07:52,080 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796072046 HTTP/1.1" 200 47027
+2025-12-04 05:07:52,085 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796072046 HTTP/1.1" 200 47027
+2025-12-04 05:08:15,050 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796095045 HTTP/1.1" 200 0
+2025-12-04 05:08:15,057 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:08:15,063 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796095045 HTTP/1.1" 200 47027
+2025-12-04 05:08:45,055 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796125051 HTTP/1.1" 200 0
+2025-12-04 05:08:45,063 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:08:45,078 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796125051 HTTP/1.1" 200 47027
+2025-12-04 05:08:52,056 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796132052 HTTP/1.1" 200 0
+2025-12-04 05:08:52,062 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:08:52,071 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796132052 HTTP/1.1" 200 47027
+2025-12-04 05:09:52,358 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796192044 HTTP/1.1" 200 0
+2025-12-04 05:09:52,360 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796192044 HTTP/1.1" 200 0
+2025-12-04 05:09:52,678 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:09:52,679 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:09:52,718 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796192044 HTTP/1.1" 200 47027
+2025-12-04 05:09:52,723 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796192044 HTTP/1.1" 200 47027
+2025-12-04 05:10:38,117 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796237800 HTTP/1.1" 200 0
+2025-12-04 05:10:38,436 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:10:38,446 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796237800 HTTP/1.1" 200 47027
+2025-12-04 05:10:44,085 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796244081 HTTP/1.1" 200 0
+2025-12-04 05:10:44,091 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:10:44,098 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796244081 HTTP/1.1" 200 47027
+2025-12-04 05:10:52,371 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796252055 HTTP/1.1" 200 0
+2025-12-04 05:10:52,686 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:10:52,693 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796252055 HTTP/1.1" 200 47027
+2025-12-04 05:11:15,058 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796275054 HTTP/1.1" 200 0
+2025-12-04 05:11:15,071 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:11:15,079 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796275054 HTTP/1.1" 200 47027
+2025-12-04 05:11:45,369 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796305060 HTTP/1.1" 200 0
+2025-12-04 05:11:45,690 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:11:45,706 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796305060 HTTP/1.1" 200 47027
+2025-12-04 05:11:52,364 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796312053 HTTP/1.1" 200 0
+2025-12-04 05:11:52,687 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:11:52,694 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796312053 HTTP/1.1" 200 47027
+2025-12-04 05:12:15,362 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796335048 HTTP/1.1" 200 0
+2025-12-04 05:12:15,690 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:12:15,699 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796335048 HTTP/1.1" 200 47027
+2025-12-04 05:12:52,367 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796372051 HTTP/1.1" 200 0
+2025-12-04 05:12:52,384 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796372066 HTTP/1.1" 200 0
+2025-12-04 05:12:52,679 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:12:52,688 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796372051 HTTP/1.1" 200 47027
+2025-12-04 05:12:52,695 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:12:52,704 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796372066 HTTP/1.1" 200 47027
+2025-12-04 05:13:19,831 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\medical_documents\views.py changed, reloading.
+INFO 2025-12-04 05:13:22,091 autoreload 19068 27900 Watching for file changes with StatReloader
+2025-12-04 05:13:52,360 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796432046 HTTP/1.1" 200 0
+2025-12-04 05:13:52,384 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796432053 HTTP/1.1" 200 0
+2025-12-04 05:13:52,710 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:13:52,710 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:13:52,727 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796432053 HTTP/1.1" 200 47027
+2025-12-04 05:13:52,736 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796432046 HTTP/1.1" 200 47027
+2025-12-04 05:13:55,701 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\accounts\views.py changed, reloading.
+INFO 2025-12-04 05:13:56,828 autoreload 23612 2796 Watching for file changes with StatReloader
+2025-12-04 05:14:31,283 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\accounts\views.py changed, reloading.
+INFO 2025-12-04 05:14:32,492 autoreload 27336 26912 Watching for file changes with StatReloader
+2025-12-04 05:14:48,209 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\accounts\views.py changed, reloading.
+INFO 2025-12-04 05:14:49,281 autoreload 16852 10964 Watching for file changes with StatReloader
+2025-12-04 05:14:52,494 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796492092 HTTP/1.1" 200 0
+2025-12-04 05:14:52,514 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796492159 HTTP/1.1" 200 0
+2025-12-04 05:14:52,846 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:14:52,846 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:14:52,862 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796492159 HTTP/1.1" 200 47027
+2025-12-04 05:14:52,870 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796492092 HTTP/1.1" 200 47027
+2025-12-04 05:15:02,126 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\systemlogs\views.py changed, reloading.
+INFO 2025-12-04 05:15:03,487 autoreload 20680 24616 Watching for file changes with StatReloader
+2025-12-04 05:15:11,341 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\systemlogs\views.py changed, reloading.
+INFO 2025-12-04 05:15:12,485 autoreload 29140 15276 Watching for file changes with StatReloader
+2025-12-04 05:15:34,780 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796534458 HTTP/1.1" 200 0
+2025-12-04 05:15:35,174 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:15:35,195 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796534458 HTTP/1.1" 200 47027
+2025-12-04 05:15:45,052 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796545049 HTTP/1.1" 200 0
+2025-12-04 05:15:45,059 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:15:45,066 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796545049 HTTP/1.1" 200 47027
+2025-12-04 05:15:47,477 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\accounts\views.py changed, reloading.
+INFO 2025-12-04 05:15:49,156 autoreload 30188 8336 Watching for file changes with StatReloader
+2025-12-04 05:15:52,416 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796552072 HTTP/1.1" 200 0
+2025-12-04 05:15:52,756 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:15:52,775 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796552072 HTTP/1.1" 200 47027
+2025-12-04 05:15:58,716 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\accounts\views.py changed, reloading.
+INFO 2025-12-04 05:15:59,843 autoreload 9856 16484 Watching for file changes with StatReloader
+2025-12-04 05:16:03,859 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\medical_documents\views.py changed, reloading.
+INFO 2025-12-04 05:16:04,966 autoreload 21684 19416 Watching for file changes with StatReloader
+2025-12-04 05:16:15,368 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796575050 HTTP/1.1" 200 0
+2025-12-04 05:16:15,702 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:16:15,715 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796575050 HTTP/1.1" 200 47027
+2025-12-04 05:16:52,367 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796612054 HTTP/1.1" 200 0
+2025-12-04 05:16:52,368 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796612055 HTTP/1.1" 200 0
+2025-12-04 05:16:52,679 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:16:52,680 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:16:52,718 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796612055 HTTP/1.1" 200 47027
+2025-12-04 05:16:52,737 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796612054 HTTP/1.1" 200 47027
+2025-12-04 05:17:39,859 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\accounts\models.py changed, reloading.
+INFO 2025-12-04 05:17:41,885 autoreload 22940 9352 Watching for file changes with StatReloader
+2025-12-04 05:17:52,370 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796672056 HTTP/1.1" 200 0
+2025-12-04 05:17:52,451 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796672091 HTTP/1.1" 200 0
+2025-12-04 05:17:53,457 - django.request - ERROR - Internal Server Error: /api/medical-certificates/
+Traceback (most recent call last):
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such column: Users.is_default_account
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\utils\deprecation.py", line 119, in __call__
+    response = self.process_request(request)
+  File "C:\Users\Cheliza Rose\LunaSync-1\capstone\security_app\security_middleware.py", line 67, in process_request
+    self.log_request_safely(request)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\Cheliza Rose\LunaSync-1\capstone\security_app\security_middleware.py", line 101, in log_request_safely
+    'user_id': getattr(request.user, 'id', None) if hasattr(request, 'user') else None,
+               ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\utils\functional.py", line 251, in inner
+    self._setup()
+    ~~~~~~~~~~~^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\utils\functional.py", line 404, in _setup
+    self._wrapped = self._setupfunc()
+                    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\middleware.py", line 40, in <lambda>
+    request.user = SimpleLazyObject(lambda: get_user(request))
+                                            ~~~~~~~~^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\middleware.py", line 20, in get_user
+    request._cached_user = auth.get_user(request)
+                           ~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\__init__.py", line 311, in get_user
+    user = backend.get_user(user_id)
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\backends.py", line 232, in get_user
+    user = UserModel._default_manager.get(pk=user_id)
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\query.py", line 629, in get
+    num = len(clone)
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\query.py", line 366, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\query.py", line 1949, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\sql\compiler.py", line 1623, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such column: Users.is_default_account
+2025-12-04 05:17:53,457 - django.request - ERROR - Internal Server Error: /api/medical-certificates/
+Traceback (most recent call last):
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such column: Users.is_default_account
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\utils\deprecation.py", line 119, in __call__
+    response = self.process_request(request)
+  File "C:\Users\Cheliza Rose\LunaSync-1\capstone\security_app\security_middleware.py", line 67, in process_request
+    self.log_request_safely(request)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\Cheliza Rose\LunaSync-1\capstone\security_app\security_middleware.py", line 101, in log_request_safely
+    'user_id': getattr(request.user, 'id', None) if hasattr(request, 'user') else None,
+               ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\utils\functional.py", line 251, in inner
+    self._setup()
+    ~~~~~~~~~~~^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\utils\functional.py", line 404, in _setup
+    self._wrapped = self._setupfunc()
+                    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\middleware.py", line 40, in <lambda>
+    request.user = SimpleLazyObject(lambda: get_user(request))
+                                            ~~~~~~~~^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\middleware.py", line 20, in get_user
+    request._cached_user = auth.get_user(request)
+                           ~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\__init__.py", line 311, in get_user
+    user = backend.get_user(user_id)
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\backends.py", line 232, in get_user
+    user = UserModel._default_manager.get(pk=user_id)
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\query.py", line 629, in get
+    num = len(clone)
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\query.py", line 366, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\query.py", line 1949, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\sql\compiler.py", line 1623, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such column: Users.is_default_account
+2025-12-04 05:17:53,469 - django.server - ERROR - "GET /api/medical-certificates/?_t=1764796672056 HTTP/1.1" 500 191340
+2025-12-04 05:17:53,470 - django.server - ERROR - "GET /api/medical-certificates/?_t=1764796672091 HTTP/1.1" 500 191478
+2025-12-04 05:18:04,514 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\accounts\models.py changed, reloading.
+INFO 2025-12-04 05:18:05,873 autoreload 30304 27532 Watching for file changes with StatReloader
+2025-12-04 05:18:52,400 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796732060 HTTP/1.1" 200 0
+2025-12-04 05:18:52,403 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796732065 HTTP/1.1" 200 0
+2025-12-04 05:18:52,909 - django.request - ERROR - Internal Server Error: /api/medical-certificates/
+Traceback (most recent call last):
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such column: Users.is_default_account
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\utils\deprecation.py", line 119, in __call__
+    response = self.process_request(request)
+  File "C:\Users\Cheliza Rose\LunaSync-1\capstone\security_app\security_middleware.py", line 67, in process_request
+    self.log_request_safely(request)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\Cheliza Rose\LunaSync-1\capstone\security_app\security_middleware.py", line 101, in log_request_safely
+    'user_id': getattr(request.user, 'id', None) if hasattr(request, 'user') else None,
+               ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\utils\functional.py", line 251, in inner
+    self._setup()
+    ~~~~~~~~~~~^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\utils\functional.py", line 404, in _setup
+    self._wrapped = self._setupfunc()
+                    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\middleware.py", line 40, in <lambda>
+    request.user = SimpleLazyObject(lambda: get_user(request))
+                                            ~~~~~~~~^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\middleware.py", line 20, in get_user
+    request._cached_user = auth.get_user(request)
+                           ~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\__init__.py", line 311, in get_user
+    user = backend.get_user(user_id)
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\backends.py", line 232, in get_user
+    user = UserModel._default_manager.get(pk=user_id)
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\query.py", line 629, in get
+    num = len(clone)
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\query.py", line 366, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\query.py", line 1949, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\sql\compiler.py", line 1623, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such column: Users.is_default_account
+2025-12-04 05:18:52,909 - django.request - ERROR - Internal Server Error: /api/medical-certificates/
+Traceback (most recent call last):
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such column: Users.is_default_account
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\utils\deprecation.py", line 119, in __call__
+    response = self.process_request(request)
+  File "C:\Users\Cheliza Rose\LunaSync-1\capstone\security_app\security_middleware.py", line 67, in process_request
+    self.log_request_safely(request)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\Cheliza Rose\LunaSync-1\capstone\security_app\security_middleware.py", line 101, in log_request_safely
+    'user_id': getattr(request.user, 'id', None) if hasattr(request, 'user') else None,
+               ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\utils\functional.py", line 251, in inner
+    self._setup()
+    ~~~~~~~~~~~^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\utils\functional.py", line 404, in _setup
+    self._wrapped = self._setupfunc()
+                    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\middleware.py", line 40, in <lambda>
+    request.user = SimpleLazyObject(lambda: get_user(request))
+                                            ~~~~~~~~^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\middleware.py", line 20, in get_user
+    request._cached_user = auth.get_user(request)
+                           ~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\__init__.py", line 311, in get_user
+    user = backend.get_user(user_id)
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\contrib\auth\backends.py", line 232, in get_user
+    user = UserModel._default_manager.get(pk=user_id)
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\query.py", line 629, in get
+    num = len(clone)
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\query.py", line 366, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\query.py", line 1949, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\models\sql\compiler.py", line 1623, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\Cheliza Rose\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such column: Users.is_default_account
+2025-12-04 05:18:52,920 - django.server - ERROR - "GET /api/medical-certificates/?_t=1764796732065 HTTP/1.1" 500 191478
+2025-12-04 05:18:52,922 - django.server - ERROR - "GET /api/medical-certificates/?_t=1764796732060 HTTP/1.1" 500 191340
