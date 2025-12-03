@@ -13,7 +13,7 @@ class MedicalCertificateRequest(models.Model):
     
     STATUS_CHOICES = [
         ('pending', 'Pending'),
-        ('receptionist_approved', 'Receptionist Approved'),
+        ('on_process', 'On Process'),
         ('doctor_approved', 'Doctor Approved'),
         ('completed', 'Completed'),
         ('rejected', 'Rejected'),
@@ -31,6 +31,11 @@ class MedicalCertificateRequest(models.Model):
     email = EncryptedCharField(max_length=600)  # Encrypted email
     phone = EncryptedCharField(max_length=100)  # Encrypted phone
     additional_info = EncryptedTextField(blank=True, null=True)  # Encrypted additional info
+    
+    # Notification preferences
+    email_notifications = models.BooleanField(default=True)  # Email notifications preference
+    sms_notifications = models.BooleanField(default=False)  # SMS notifications preference
+    
     id_verification = models.FileField(upload_to='medical_requests/id_verification/', null=True, blank=True)
     id_verification_front = models.FileField(upload_to='medical_requests/id_verification/', null=True, blank=True)
     id_verification_back = models.FileField(upload_to='medical_requests/id_verification/', null=True, blank=True)
@@ -38,8 +43,8 @@ class MedicalCertificateRequest(models.Model):
     
     # Processing fields
     requested_at = models.DateTimeField(auto_now_add=True)
-    receptionist_approved_at = models.DateTimeField(null=True, blank=True)
-    receptionist_approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_certificates')
+    on_process_at = models.DateTimeField(null=True, blank=True)
+    on_process_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='on_process_certificates')
     doctor_approved_at = models.DateTimeField(null=True, blank=True)
     doctor_approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='doctor_approved_certificates')
     completed_at = models.DateTimeField(null=True, blank=True)
@@ -58,7 +63,7 @@ class MedicalCertificateRequest(models.Model):
 class PrescriptionRequest(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
-        ('receptionist_approved', 'Receptionist Approved'),
+        ('on_process', 'On Process'),
         ('doctor_approved', 'Doctor Approved'),
         ('completed', 'Completed'),
         ('rejected', 'Rejected'),
@@ -73,6 +78,11 @@ class PrescriptionRequest(models.Model):
     email = EncryptedCharField(max_length=600)  # Encrypted email
     phone = EncryptedCharField(max_length=100)  # Encrypted phone
     additional_notes = EncryptedTextField(blank=True, null=True)  # Encrypted additional notes
+    
+    # Notification preferences
+    email_notifications = models.BooleanField(default=True)  # Email notifications preference
+    sms_notifications = models.BooleanField(default=False)  # SMS notifications preference
+    
     id_verification = models.FileField(upload_to='medical_requests/id_verification/', null=True, blank=True)
     id_verification_front = models.FileField(upload_to='medical_requests/id_verification/', null=True, blank=True)
     id_verification_back = models.FileField(upload_to='medical_requests/id_verification/', null=True, blank=True)
@@ -81,8 +91,8 @@ class PrescriptionRequest(models.Model):
     
     # Processing fields
     requested_at = models.DateTimeField(auto_now_add=True)
-    receptionist_approved_at = models.DateTimeField(null=True, blank=True)
-    receptionist_approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_prescriptions')
+    on_process_at = models.DateTimeField(null=True, blank=True)
+    on_process_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='on_process_prescriptions')
     doctor_approved_at = models.DateTimeField(null=True, blank=True)
     doctor_approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='doctor_approved_prescriptions')
     completed_at = models.DateTimeField(null=True, blank=True)

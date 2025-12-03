@@ -1,18 +1,18 @@
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ENV } from "@/config/env";
@@ -21,19 +21,19 @@ import { Patient } from "@/lib/mock-data";
 import { axiosInstance } from "@/services/api";
 import { HTMLToPDFConverter } from "@/utils/htmlToPdf";
 import {
-    generateMedicalCertificateHTML,
-    MedicalCertificateTemplateData,
+  generateMedicalCertificateHTML,
+  MedicalCertificateTemplateData,
 } from "@/utils/medicalCertificateTemplate";
 import { formatPatientNameWithFullMiddle } from "@/utils/patientNameUtils";
 import { format } from "date-fns";
 import {
-    Download,
-    Eye,
-    FileCheck,
-    FileText,
-    Mail,
-    Save,
-    Trash2
+  Download,
+  Eye,
+  FileCheck,
+  FileText,
+  Mail,
+  Save,
+  Trash2,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
@@ -117,7 +117,7 @@ const MedicalCertificateGenerator: React.FC<
     typeof onDeleteCertificate
   );
   const { currentUser } = useClinic();
-  
+
   // Helper function to get patient's full name for medical certificates
   const getPatientFullName = () => {
     return formatPatientNameWithFullMiddle(patient);
@@ -135,10 +135,9 @@ const MedicalCertificateGenerator: React.FC<
   const getLogoUrl = (logo: string) => {
     if (!logo) return null;
     if (logo.startsWith("http")) return logo;
-    const baseUrl = ENV.API_URL.replace('/api', '');
+    const baseUrl = ENV.API_URL.replace("/api", "");
     if (logo.startsWith("/media/")) return `${baseUrl}${logo}`;
-    if (logo.startsWith("branding/"))
-      return `${baseUrl}/media/${logo}`;
+    if (logo.startsWith("branding/")) return `${baseUrl}/media/${logo}`;
     return `${baseUrl}${logo}`;
   };
   const [certificateData, setCertificateData] =
@@ -337,9 +336,9 @@ const MedicalCertificateGenerator: React.FC<
         title: `Medical Certificate - ${getPatientFullName()}`,
         description: `${certificateType
           .replace("_", " ")
-          .replace(/\b\w/g, (l) => l.toUpperCase())} certificate for ${
-          getPatientFullName()
-        }`,
+          .replace(/\b\w/g, (l) =>
+            l.toUpperCase()
+          )} certificate for ${getPatientFullName()}`,
         certificate_type: certificateType,
         purpose:
           certificateData.fitForWork === "fit_physical_activities"
@@ -434,9 +433,9 @@ Fitness Status: ${certificateData.fitForWork}
         title: `Medical Certificate - ${getPatientFullName()}`,
         description: `${certificateType
           .replace("_", " ")
-          .replace(/\b\w/g, (l) => l.toUpperCase())} certificate for ${
-          getPatientFullName()
-        }`,
+          .replace(/\b\w/g, (l) =>
+            l.toUpperCase()
+          )} certificate for ${getPatientFullName()}`,
         certificate_type: certificateType,
         purpose:
           certificateData.fitForWork === "fit_physical_activities"
@@ -520,7 +519,10 @@ Best regards,
 ${certificateData.hospitalName}`,
       };
 
-      await axiosInstance.post("/send-medical-certificate-email/", emailData);
+      await axiosInstance.post(
+        "/medical-documents/send-medical-certificate-email/",
+        emailData
+      );
 
       setShowForm(false);
       setShowPreview(false);
@@ -617,10 +619,10 @@ ${certificateData.hospitalName}`,
                 onClick={async () => {
                   const htmlContent = generateCertificateHTML();
                   await HTMLToPDFConverter.viewPDFFromHTML(htmlContent, {
-                    format: 'a4',
-                    orientation: 'portrait',
+                    format: "a4",
+                    orientation: "portrait",
                     margin: 10,
-                    scale: 2
+                    scale: 2,
                   });
                 }}
                 className="flex-1"
@@ -633,12 +635,16 @@ ${certificateData.hospitalName}`,
                 onClick={async () => {
                   const htmlContent = generateCertificateHTML();
                   const filename = `medical-certificate-${certificateData.patientName}-${certificateData.dateIssued}.pdf`;
-                  await HTMLToPDFConverter.downloadPDFFromHTML(htmlContent, filename, {
-                    format: 'a4',
-                    orientation: 'portrait',
-                    margin: 10,
-                    scale: 2
-                  });
+                  await HTMLToPDFConverter.downloadPDFFromHTML(
+                    htmlContent,
+                    filename,
+                    {
+                      format: "a4",
+                      orientation: "portrait",
+                      margin: 10,
+                      scale: 2,
+                    }
+                  );
                 }}
               >
                 <Download className="mr-2 h-4 w-4" />
@@ -683,9 +689,9 @@ ${certificateData.hospitalName}`,
                 Medical Certificate Information
               </h3>
               <p className="text-sm text-muted-foreground">
-                Fill out the required medical information for {getPatientFullName()}.
-                Hospital, doctor, and patient information will be
-                auto-populated.
+                Fill out the required medical information for{" "}
+                {getPatientFullName()}. Hospital, doctor, and patient
+                information will be auto-populated.
               </p>
 
               <div className="space-y-4">
@@ -898,51 +904,80 @@ ${certificateData.hospitalName}`,
 
                         // Generate HTML content using existing template
                         let htmlContent = certificate.content;
-                        
+
                         if (!htmlContent && certificate.data) {
-                          const logoUrl = clinicInfo?.logo ? getLogoUrl(clinicInfo.logo) : null;
-                          
+                          const logoUrl = clinicInfo?.logo
+                            ? getLogoUrl(clinicInfo.logo)
+                            : null;
+
                           const templateData: MedicalCertificateTemplateData = {
-                            hospitalName: clinicInfo?.clinic_name || "HealthNexus Medical Center",
-                            hospitalAddress: clinicInfo 
+                            hospitalName:
+                              clinicInfo?.clinic_name ||
+                              "HealthNexus Medical Center",
+                            hospitalAddress: clinicInfo
                               ? `${clinicInfo.address}, ${clinicInfo.city}, ${clinicInfo.state} ${clinicInfo.zip}`
                               : "123 Medical Plaza, City, State 12345",
-                            hospitalContact: clinicInfo?.phone || "(123) 456-7890",
+                            hospitalContact:
+                              clinicInfo?.phone || "(123) 456-7890",
                             hospitalLicense: "",
                             hospitalLogo: logoUrl,
                             doctorName: getDoctorName(),
                             doctorLicense: doctorInfo?.license || "",
                             doctorPRC: doctorInfo?.prc || "",
                             doctorPTR: doctorInfo?.ptr || "",
-                            patientName: certificate.data.patientName || `${patient.first_name} ${patient.last_name}`,
-                            patientAge: certificate.data.patientAge || 
-                              (patient.date_of_birth ? 
-                                String(new Date().getFullYear() - new Date(patient.date_of_birth).getFullYear()) : ""),
-                            patientAddress: certificate.data.patientAddress || patient.address || "",
-                            patientSex: certificate.data.patientSex || patient.gender || "",
-                            chiefComplaint: certificate.data.chiefComplaint || "",
+                            patientName:
+                              certificate.data.patientName ||
+                              `${patient.first_name} ${patient.last_name}`,
+                            patientAge:
+                              certificate.data.patientAge ||
+                              (patient.date_of_birth
+                                ? String(
+                                    new Date().getFullYear() -
+                                      new Date(
+                                        patient.date_of_birth
+                                      ).getFullYear()
+                                  )
+                                : ""),
+                            patientAddress:
+                              certificate.data.patientAddress ||
+                              patient.address ||
+                              "",
+                            patientSex:
+                              certificate.data.patientSex ||
+                              patient.gender ||
+                              "",
+                            chiefComplaint:
+                              certificate.data.chiefComplaint || "",
                             diagnosis: certificate.data.diagnosis || "",
-                            medicalRecommendations: certificate.data.medicalRecommendations || "",
+                            medicalRecommendations:
+                              certificate.data.medicalRecommendations || "",
                             restFromDate: certificate.data.restFromDate || "",
                             restToDate: certificate.data.restToDate || "",
                             fitForWork: certificate.data.fitForWork || "fit",
                             limitations: certificate.data.limitations || "",
                             followUpDate: certificate.data.followUpDate || "",
-                            dateIssued: certificate.data.dateIssued || new Date().toISOString().split('T')[0],
-                            certificateType: certificate.data.certificateType || "general",
+                            dateIssued:
+                              certificate.data.dateIssued ||
+                              new Date().toISOString().split("T")[0],
+                            certificateType:
+                              certificate.data.certificateType || "general",
                           };
-                          
-                          htmlContent = generateMedicalCertificateHTML(templateData);
+
+                          htmlContent =
+                            generateMedicalCertificateHTML(templateData);
                         }
 
                         if (htmlContent) {
                           // Convert HTML to PDF and view
-                          await HTMLToPDFConverter.viewPDFFromHTML(htmlContent, {
-                            format: 'a4',
-                            orientation: 'portrait',
-                            margin: 10,
-                            scale: 2
-                          });
+                          await HTMLToPDFConverter.viewPDFFromHTML(
+                            htmlContent,
+                            {
+                              format: "a4",
+                              orientation: "portrait",
+                              margin: 10,
+                              scale: 2,
+                            }
+                          );
                         } else {
                           console.error("No certificate content available");
                         }
@@ -968,41 +1003,67 @@ ${certificateData.hospitalName}`,
 
                         // Generate HTML content using existing template
                         let htmlContent = certificate.content;
-                        
+
                         if (!htmlContent && certificate.data) {
-                          const logoUrl = clinicInfo?.logo ? getLogoUrl(clinicInfo.logo) : null;
-                          
+                          const logoUrl = clinicInfo?.logo
+                            ? getLogoUrl(clinicInfo.logo)
+                            : null;
+
                           const templateData: MedicalCertificateTemplateData = {
-                            hospitalName: clinicInfo?.clinic_name || "HealthNexus Medical Center",
-                            hospitalAddress: clinicInfo 
+                            hospitalName:
+                              clinicInfo?.clinic_name ||
+                              "HealthNexus Medical Center",
+                            hospitalAddress: clinicInfo
                               ? `${clinicInfo.address}, ${clinicInfo.city}, ${clinicInfo.state} ${clinicInfo.zip}`
                               : "123 Medical Plaza, City, State 12345",
-                            hospitalContact: clinicInfo?.phone || "(123) 456-7890",
+                            hospitalContact:
+                              clinicInfo?.phone || "(123) 456-7890",
                             hospitalLicense: "",
                             hospitalLogo: logoUrl,
                             doctorName: getDoctorName(),
                             doctorLicense: doctorInfo?.license || "",
                             doctorPRC: doctorInfo?.prc || "",
                             doctorPTR: doctorInfo?.ptr || "",
-                            patientName: certificate.data.patientName || `${patient.first_name} ${patient.last_name}`,
-                            patientAge: certificate.data.patientAge || 
-                              (patient.date_of_birth ? 
-                                String(new Date().getFullYear() - new Date(patient.date_of_birth).getFullYear()) : ""),
-                            patientAddress: certificate.data.patientAddress || patient.address || "",
-                            patientSex: certificate.data.patientSex || patient.gender || "",
-                            chiefComplaint: certificate.data.chiefComplaint || "",
+                            patientName:
+                              certificate.data.patientName ||
+                              `${patient.first_name} ${patient.last_name}`,
+                            patientAge:
+                              certificate.data.patientAge ||
+                              (patient.date_of_birth
+                                ? String(
+                                    new Date().getFullYear() -
+                                      new Date(
+                                        patient.date_of_birth
+                                      ).getFullYear()
+                                  )
+                                : ""),
+                            patientAddress:
+                              certificate.data.patientAddress ||
+                              patient.address ||
+                              "",
+                            patientSex:
+                              certificate.data.patientSex ||
+                              patient.gender ||
+                              "",
+                            chiefComplaint:
+                              certificate.data.chiefComplaint || "",
                             diagnosis: certificate.data.diagnosis || "",
-                            medicalRecommendations: certificate.data.medicalRecommendations || "",
+                            medicalRecommendations:
+                              certificate.data.medicalRecommendations || "",
                             restFromDate: certificate.data.restFromDate || "",
                             restToDate: certificate.data.restToDate || "",
                             fitForWork: certificate.data.fitForWork || "fit",
                             limitations: certificate.data.limitations || "",
                             followUpDate: certificate.data.followUpDate || "",
-                            dateIssued: certificate.data.dateIssued || new Date().toISOString().split('T')[0],
-                            certificateType: certificate.data.certificateType || "general",
+                            dateIssued:
+                              certificate.data.dateIssued ||
+                              new Date().toISOString().split("T")[0],
+                            certificateType:
+                              certificate.data.certificateType || "general",
                           };
-                          
-                          htmlContent = generateMedicalCertificateHTML(templateData);
+
+                          htmlContent =
+                            generateMedicalCertificateHTML(templateData);
                         }
 
                         if (htmlContent) {
@@ -1013,16 +1074,22 @@ ${certificateData.hospitalName}`,
                               .toISOString()
                               .split("T")[0]
                           }.pdf`;
-                          
+
                           // Convert HTML to PDF and download
-                          await HTMLToPDFConverter.downloadPDFFromHTML(htmlContent, filename, {
-                            format: 'a4',
-                            orientation: 'portrait',
-                            margin: 10,
-                            scale: 2
-                          });
+                          await HTMLToPDFConverter.downloadPDFFromHTML(
+                            htmlContent,
+                            filename,
+                            {
+                              format: "a4",
+                              orientation: "portrait",
+                              margin: 10,
+                              scale: 2,
+                            }
+                          );
                         } else {
-                          console.error("No certificate content available for download");
+                          console.error(
+                            "No certificate content available for download"
+                          );
                         }
                       }}
                       title="Download Certificate (PDF)"

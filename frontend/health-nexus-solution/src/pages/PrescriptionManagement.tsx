@@ -85,12 +85,12 @@ interface PrescriptionRequest {
   additional_notes: string;
   status:
     | "pending"
-    | "receptionist_approved"
+    | "on_process"
     | "doctor_approved"
     | "completed"
     | "rejected";
   requested_at: string;
-  receptionist_approved_at?: string;
+  on_process_at?: string;
   doctor_approved_at?: string;
   prescription_content?: string;
   doctor_notes?: string;
@@ -614,9 +614,9 @@ const PrescriptionManagement: React.FC = () => {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       pending: { color: "bg-yellow-100 text-yellow-800", label: "Pending" },
-      receptionist_approved: {
+      on_process: {
         color: "bg-blue-100 text-blue-800",
-        label: "Receptionist Approved",
+        label: "On Process",
       },
       doctor_approved: {
         color: "bg-green-100 text-green-800",
@@ -714,9 +714,7 @@ const PrescriptionManagement: React.FC = () => {
                 <SelectContent>
                   <SelectItem value="all">All Requests</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="receptionist_approved">
-                    Receptionist Approved
-                  </SelectItem>
+                  <SelectItem value="on_process">On Process</SelectItem>
                   <SelectItem value="doctor_approved">
                     Doctor Approved
                   </SelectItem>
@@ -1040,7 +1038,7 @@ const PrescriptionManagement: React.FC = () => {
                                   {/* Action buttons - simplified */}
                                   {(selectedRequest.status === "pending" ||
                                     selectedRequest.status ===
-                                      "receptionist_approved") && (
+                                      "on_process") && (
                                     <div className="flex flex-col gap-2 pt-3 border-t">
                                       {isRequestPatientSoftDeleted(
                                         selectedRequest
@@ -1115,7 +1113,7 @@ const PrescriptionManagement: React.FC = () => {
                                       {/* Doctor approval - Simple button to open separate modal */}
                                       {currentUserRole === "doctor" &&
                                         selectedRequest.status ===
-                                          "receptionist_approved" && (
+                                          "on_process" && (
                                           <div className="space-y-2">
                                             <Button
                                               onClick={() =>

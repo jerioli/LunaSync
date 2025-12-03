@@ -36,8 +36,8 @@ export const generateMedicalCertificateHTML = (data: MedicalCertificateTemplateD
       <head>
         <style>
           @page {
-            size: A4;
-            margin: 0.5in;
+            size: A4 landscape;
+            margin: 0.25in;
           }
           @media print {
             body { margin: 0; padding: 0; }
@@ -46,6 +46,8 @@ export const generateMedicalCertificateHTML = (data: MedicalCertificateTemplateD
               border: none !important;
               margin: 0;
               padding: 0;
+              height: 50vh;
+              max-height: 14.8cm;
             }
           }
           body {
@@ -56,75 +58,77 @@ export const generateMedicalCertificateHTML = (data: MedicalCertificateTemplateD
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            min-height: 100vh;
-            padding-top: 20px;
+            min-height: 50vh;
+            padding-top: 10px;
           }
           .certificate-container {
-            width: 21cm;
-            min-height: 29.7cm;
+            width: 29.7cm;
+            height: 14.8cm;
+            max-height: 14.8cm;
             background: white;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             border: 1px solid #ddd;
-            padding: 40px;
+            padding: 15px;
             box-sizing: border-box;
-            font-size: 11px;
-            line-height: 1.4;
+            font-size: 9px;
+            line-height: 1.2;
+            overflow: hidden;
           }
           .header-section {
             text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #333;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1.5px solid #333;
           }
           .clinic-logo {
-            max-width: 200px;
-            max-height: 80px;
-            margin: 0 auto 15px auto;
+            max-width: 120px;
+            max-height: 50px;
+            margin: 0 auto 8px auto;
             display: block;
             text-align: center;
           }
           .clinic-name {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: bold;
             color: #1a1a1a;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
           }
           .clinic-subtitle {
-            font-size: 12px;
+            font-size: 10px;
             color: #666;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
           }
           .clinic-address {
-            font-size: 11px;
+            font-size: 9px;
             color: #555;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
           }
           .clinic-contact {
-            font-size: 11px;
+            font-size: 9px;
             color: #555;
           }
             color: #333;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
           }
           .certificate-title {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             text-decoration: underline;
-            margin: 20px 0;
+            margin: 10px 0;
             text-align: center;
           }
           .date-time-row {
-            margin-bottom: 25px;
-            font-size: 11px;
+            margin-bottom: 15px;
+            font-size: 9px;
           }
           .date-time-left {
             text-align: left;
-            line-height: 1.4;
+            line-height: 1.2;
           }
           .main-content {
-            margin-bottom: 20px;
-            font-size: 11px;
-            line-height: 1.5;
+            margin-bottom: 15px;
+            font-size: 9px;
+            line-height: 1.3;
             text-align: justify;
           }
           .underline {
@@ -133,48 +137,22 @@ export const generateMedicalCertificateHTML = (data: MedicalCertificateTemplateD
           }
           .section-title {
             font-weight: bold;
-            margin-top: 20px;
-            margin-bottom: 10px;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            font-size: 9px;
           }
           .section-content {
-            min-height: 40px;
+            min-height: 20px;
             border-bottom: 1px solid #000;
-            padding-bottom: 5px;
-            margin-bottom: 15px;
+            padding-bottom: 3px;
+            margin-bottom: 8px;
+            font-size: 8px;
           }
           .certificate-purpose {
-            margin-top: 30px;
-            margin-bottom: 40px;
-            font-size: 11px;
+            margin-top: 15px;
+            margin-bottom: 20px;
+            font-size: 9px;
             text-align: justify;
-          }
-          .signature-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-top: 60px;
-          }
-          .left-note {
-            font-size: 10px;
-            color: #666;
-            align-self: flex-end;
-          }
-          .doctor-signature {
-            text-align: center;
-            min-width: 250px;
-          }
-          .signature-line {
-            border-bottom: 1px solid #000;
-            height: 40px;
-            margin-bottom: 8px;
-          }
-          .doctor-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-          }
-          .doctor-credentials {
-            font-size: 10px;
-            line-height: 1.3;
           }
         </style>
       </head>
@@ -273,12 +251,12 @@ export const generateMedicalCertificateHTML = (data: MedicalCertificateTemplateD
           </div>
 
           <!-- Signature Section -->
-          <div class="signature-section">
-            <div class="left-note">Not for Legal Purposes</div>
-            <div class="doctor-signature">
-              <div class="signature-line"></div>
-              <div class="doctor-title">${data.doctorName || 'Doctor Name'}, M.D.</div>
-              <div class="doctor-credentials">
+          <div style="margin-top: 40px; padding: 20px 0; display: flex; justify-content: space-between; align-items: flex-end; width: 100%;">
+            <div style="font-size: 8px; color: #666; align-self: flex-end;">Not for Legal Purposes</div>
+            <div style="text-align: right; width: 250px; margin-left: auto;">
+              <div style="border-bottom: 1px solid #000; height: 25px; margin-bottom: 5px; width: 100%;"></div>
+              <div style="font-weight: bold; margin-bottom: 3px; font-size: 8px; text-align: right;">${data.doctorName || 'Doctor Name'}, M.D.</div>
+              <div style="font-size: 8px; line-height: 1.3; text-align: right;">
                 <div><strong>License No:</strong> ${data.doctorLicense || '___________________'}</div>
                 <div><strong>PTR No:</strong> ${data.doctorPTR || '___________________'}</div>
               </div>

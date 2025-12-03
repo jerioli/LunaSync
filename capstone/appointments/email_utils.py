@@ -704,6 +704,7 @@ Best regards,
     except Exception as email_error:
         logger.error(f"Failed to send appointment declined email: {str(email_error)}")
         return False
+def send_otp_email(to_email, otp_code, clinic_settings=None):
     """
     Send OTP verification email to user with comprehensive debugging
     
@@ -728,9 +729,9 @@ Best regards,
         
         # Log the final result for backward compatibility
         if success:
-            logger.info(f"✅ OTP email sent successfully to {to_email}")
+            logger.info(f"OTP email sent successfully to {to_email}")
         else:
-            logger.error(f"❌ Failed to send OTP email to {to_email}: {message}")
+            logger.error(f"Failed to send OTP email to {to_email}: {message}")
             
         return success, message
         
@@ -758,7 +759,7 @@ Best regards,
             <html>
             <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <div style="padding: 30px; text-align: center; background: #2563eb; color: white;">
-                    <h1>🔐 Verification Code</h1>
+                    <h1>Verification Code</h1>
                 </div>
                 <div style="padding: 30px; background: white;">
                     <h2>Account Verification</h2>
@@ -772,7 +773,7 @@ Best regards,
             </html>
             """
             
-            plain_text = f"Your verification code is: {otp_code}\n\nThis code expires in 10 minutes."
+            plain_text = f"Your verification code is: {otp_code}\\n\\nThis code expires in 10 minutes."
             
             email = EmailMultiAlternatives(
                 subject=subject,
@@ -785,10 +786,10 @@ Best regards,
             result = email.send()
             
             if result:
-                logger.info(f"✅ Fallback OTP email sent successfully to {to_email}")
+                logger.info(f"Fallback OTP email sent successfully to {to_email}")
                 return True, "OTP email sent successfully"
             else:
-                logger.error(f"❌ Fallback OTP email failed for {to_email}")
+                logger.error(f"Fallback OTP email failed for {to_email}")
                 return False, "Failed to send OTP email"
                 
         except Exception as fallback_error:

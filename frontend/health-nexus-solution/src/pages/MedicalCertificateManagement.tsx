@@ -68,12 +68,12 @@ interface MedicalCertificateRequest {
   additional_info: string;
   status:
     | "pending"
-    | "receptionist_approved"
+    | "on_process"
     | "doctor_approved"
     | "completed"
     | "rejected";
   requested_at: string;
-  receptionist_approved_at?: string;
+  on_process_at?: string;
   doctor_approved_at?: string;
   certificate_content?: string;
   doctor_notes?: string;
@@ -539,7 +539,47 @@ const MedicalCertificateManagement: React.FC = () => {
         }
       );
 
-      toast.success("Certificate generated and sent successfully");
+      // Send email with the medical certificate
+      try {
+        const emailData = {
+          patient_email: selectedRequest.email,
+          patient_name: selectedRequest.patient_name,
+          certificate_html: certificate.content,
+          certificate_type: selectedRequest.request_type,
+          doctor_name:
+            currentUser?.first_name && currentUser?.last_name
+              ? `Dr. ${currentUser.first_name} ${currentUser.last_name}`
+              : "Health Nexus Medical Team",
+          hospital_name:
+            clinicInfo?.clinic_name || "HealthNexus Medical Center",
+          fitness_status:
+            certificate.data.fitForWork === "fit"
+              ? "Fit for work"
+              : certificate.data.fitForWork === "unfit"
+              ? "Unfit for work"
+              : certificate.data.fitForWork === "limited"
+              ? "Fit with limitations"
+              : "Fit for work",
+          patient_dob: selectedRequest.date_of_birth,
+        };
+
+        console.log("Sending email with data:", emailData);
+
+        // Use the correct medical certificate email endpoint
+        await axiosInstance.post(
+          "/medical-documents/send-medical-certificate-email/",
+          emailData
+        );
+
+        toast.success("Certificate generated and email sent successfully!");
+      } catch (emailError) {
+        console.error("Email sending failed:", emailError);
+        toast.success(
+          "Certificate generated successfully, but email sending failed"
+        );
+        toast.error("Please send the certificate manually via email");
+      }
+
       setShowCertificateGenerator(false);
 
       // Refresh the requests list to show updated data
@@ -593,7 +633,47 @@ const MedicalCertificateManagement: React.FC = () => {
         }
       );
 
-      toast.success("Certificate generated and sent successfully");
+      // Send email with the medical certificate
+      try {
+        const emailData = {
+          patient_email: selectedRequest.email,
+          patient_name: selectedRequest.patient_name,
+          certificate_html: certificateHTML,
+          certificate_type: selectedRequest.request_type,
+          doctor_name:
+            currentUser?.first_name && currentUser?.last_name
+              ? `Dr. ${currentUser.first_name} ${currentUser.last_name}`
+              : "Health Nexus Medical Team",
+          hospital_name:
+            clinicInfo?.clinic_name || "HealthNexus Medical Center",
+          fitness_status:
+            certificateFormData.fitForWork === "fit"
+              ? "Fit for work"
+              : certificateFormData.fitForWork === "unfit"
+              ? "Unfit for work"
+              : certificateFormData.fitForWork === "limited"
+              ? "Fit with limitations"
+              : "Fit for work",
+          patient_dob: selectedRequest.date_of_birth,
+        };
+
+        console.log("Sending email with data:", emailData);
+
+        // Use the correct medical certificate email endpoint
+        await axiosInstance.post(
+          "/medical-documents/send-medical-certificate-email/",
+          emailData
+        );
+
+        toast.success("Certificate generated and email sent successfully!");
+      } catch (emailError) {
+        console.error("Email sending failed:", emailError);
+        toast.success(
+          "Certificate generated successfully, but email sending failed"
+        );
+        toast.error("Please send the certificate manually via email");
+      }
+
       setShowCertificateForm(false);
       setShowPreview(false);
 
@@ -682,8 +762,16 @@ const MedicalCertificateManagement: React.FC = () => {
         payload.certificate_content = certificateContent;
         payload.doctor_notes = doctorNotes;
       } else if (action === "reject") {
-        payload.rejection_reason = rejectionReason;
+        // Make sure we have a rejection reason
+        if (!rejectionReason.trim()) {
+          toast.error("Please provide a rejection reason before rejecting");
+          return;
+        }
+        payload.rejection_reason = rejectionReason.trim();
+        console.log("Sending rejection with reason:", payload.rejection_reason);
       }
+
+      console.log("Sending payload:", payload);
 
       const response = await axiosInstance.post(
         `/medical-certificates/${requestId}/approve/`,
@@ -710,9 +798,9 @@ const MedicalCertificateManagement: React.FC = () => {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       pending: { color: "bg-yellow-100 text-yellow-800", label: "Pending" },
-      receptionist_approved: {
+      on_process: {
         color: "bg-blue-100 text-blue-800",
-        label: "Receptionist Approved",
+        label: "On Process",
       },
       doctor_approved: {
         color: "bg-green-100 text-green-800",
@@ -812,9 +900,7 @@ const MedicalCertificateManagement: React.FC = () => {
                 <SelectContent>
                   <SelectItem value="all">All Requests</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="receptionist_approved">
-                    Receptionist Approved
-                  </SelectItem>
+                  <SelectItem value="on_process">On Process</SelectItem>
                   <SelectItem value="doctor_approved">
                     Doctor Approved
                   </SelectItem>
@@ -1113,6 +1199,36 @@ const MedicalCertificateManagement: React.FC = () => {
                                     </div>
                                   )}
 
+                                  {/* Rejection Reason - Show for rejected requests */}
+                                  {selectedRequest.status === "rejected" &&
+                                    selectedRequest.rejection_reason && (
+                                      <div>
+                                        <Label className="font-medium text-xs text-muted-foreground">
+                                          Rejection Reason
+                                        </Label>
+                                        <p className="text-sm mt-1 p-3 bg-red-50 border border-red-200 rounded text-red-700">
+                                          <span className="font-medium">
+                                            Rejected:{" "}
+                                          </span>
+                                          {selectedRequest.rejection_reason}
+                                        </p>
+                                      </div>
+                                    )}
+
+                                  {/* Doctor Notes - Show for doctor approved requests */}
+                                  {selectedRequest.status ===
+                                    "doctor_approved" &&
+                                    selectedRequest.doctor_notes && (
+                                      <div>
+                                        <Label className="font-medium text-xs text-muted-foreground">
+                                          Doctor Notes
+                                        </Label>
+                                        <p className="text-sm mt-1 p-3 bg-blue-50 border border-blue-200 rounded text-blue-700">
+                                          {selectedRequest.doctor_notes}
+                                        </p>
+                                      </div>
+                                    )}
+
                                   {/* ID Verification Images - Compact version */}
                                   {(selectedRequest.id_verification_front ||
                                     selectedRequest.id_verification_back) && (
@@ -1182,7 +1298,7 @@ const MedicalCertificateManagement: React.FC = () => {
                                   {/* Action buttons - simplified */}
                                   {(selectedRequest.status === "pending" ||
                                     selectedRequest.status ===
-                                      "receptionist_approved") && (
+                                      "on_process") && (
                                     <div className="flex flex-col gap-2 pt-3 border-t">
                                       {isRequestPatientSoftDeleted(
                                         selectedRequest
@@ -1223,16 +1339,10 @@ const MedicalCertificateManagement: React.FC = () => {
                                               <Button
                                                 variant="destructive"
                                                 onClick={() => {
-                                                  if (rejectionReason.trim()) {
-                                                    handleApprove(
-                                                      selectedRequest.id,
-                                                      "reject"
-                                                    );
-                                                  } else {
-                                                    toast.error(
-                                                      "Please provide a rejection reason"
-                                                    );
-                                                  }
+                                                  handleApprove(
+                                                    selectedRequest.id,
+                                                    "reject"
+                                                  );
                                                 }}
                                                 size="sm"
                                                 className="flex-1"
@@ -1255,7 +1365,7 @@ const MedicalCertificateManagement: React.FC = () => {
 
                                         {currentUserRole === "doctor" &&
                                           selectedRequest.status ===
-                                            "receptionist_approved" && (
+                                            "on_process" && (
                                             <>
                                               <Button
                                                 onClick={() =>
@@ -1282,16 +1392,10 @@ const MedicalCertificateManagement: React.FC = () => {
                                               <Button
                                                 variant="destructive"
                                                 onClick={() => {
-                                                  if (rejectionReason.trim()) {
-                                                    handleApprove(
-                                                      selectedRequest.id,
-                                                      "reject"
-                                                    );
-                                                  } else {
-                                                    toast.error(
-                                                      "Please provide a rejection reason"
-                                                    );
-                                                  }
+                                                  handleApprove(
+                                                    selectedRequest.id,
+                                                    "reject"
+                                                  );
                                                 }}
                                                 size="sm"
                                                 className="flex-1"
@@ -1314,15 +1418,26 @@ const MedicalCertificateManagement: React.FC = () => {
                                       </div>
 
                                       {/* Compact rejection reason input */}
-                                      <Textarea
-                                        value={rejectionReason}
-                                        onChange={(e) =>
-                                          setRejectionReason(e.target.value)
-                                        }
-                                        placeholder="Rejection reason (if rejecting)..."
-                                        rows={2}
-                                        className="text-sm"
-                                      />
+                                      <div className="space-y-2">
+                                        <label className="text-sm font-medium text-gray-700">
+                                          Rejection Reason{" "}
+                                          <span className="text-red-500">
+                                            *
+                                          </span>
+                                          <span className="text-gray-500 font-normal">
+                                            (required for rejection)
+                                          </span>
+                                        </label>
+                                        <Textarea
+                                          value={rejectionReason}
+                                          onChange={(e) =>
+                                            setRejectionReason(e.target.value)
+                                          }
+                                          placeholder="Please provide a reason for rejection..."
+                                          rows={3}
+                                          className="text-sm"
+                                        />
+                                      </div>
                                     </div>
                                   )}
                                 </div>

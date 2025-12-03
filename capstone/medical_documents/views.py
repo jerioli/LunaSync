@@ -24,6 +24,7 @@ from .serializers import (
 )
 from patients.models import Patient
 import logging
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -503,18 +504,12 @@ class PhysicalExaminationViewSet(viewsets.ModelViewSet):
 def send_medical_certificate_email_endpoint(request):
     """
     Endpoint to send medical certificate email with PDF attachment
+    Handles data sent from frontend for immediate email sending
     """
     from django.http import JsonResponse
     from django.core.mail import EmailMultiAlternatives
     from django.conf import settings
-    from reportlab.lib.pagesizes import A4
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.lib import colors
-    from io import BytesIO
     import json
-    import re
-    import html
     
     if request.method != 'POST':
         return JsonResponse({'error': 'Only POST method allowed'}, status=405)
@@ -522,180 +517,90 @@ def send_medical_certificate_email_endpoint(request):
     try:
         logger.info("Processing email request for medical certificate")
         
-        # Try to get the most recent medical certificate
+        # Parse request data from frontend
         try:
-            certificate_document = MedicalCertificate.objects.select_related('document', 'document__patient', 'document__doctor').latest('created_at')
-            logger.info(f"Found latest certificate document: {certificate_document.id}")
-        except MedicalCertificate.DoesNotExist:
-            logger.error("No medical certificates found")
-            return JsonResponse({'error': 'No medical certificates found'}, status=404)
-        except Exception as e:
-            logger.error(f"Error retrieving certificate: {e}")
-            return JsonResponse({'error': f'Error retrieving certificate: {str(e)}'}, status=500)
+            data = json.loads(request.body)
+            logger.info(f"Received email data: {data.keys()}")
+        except json.JSONDecodeError:
+            logger.error("Invalid JSON in request body")
+            return JsonResponse({'error': 'Invalid JSON data'}, status=400)
         
-        # Get patient information
-        patient = certificate_document.document.patient
-        patient_name = patient.name if hasattr(patient, 'name') else f"{patient.first_name} {patient.last_name}"
-        patient_email = patient.email
+        # Extract required fields
+        patient_email = data.get('patient_email')
+        patient_name = data.get('patient_name')
+        certificate_html = data.get('certificate_html')
+        doctor_name = data.get('doctor_name', 'Health Nexus Medical Team')
+        hospital_name = data.get('hospital_name', 'HealthNexus Medical Center')
+        patient_dob = data.get('patient_dob')
+        fitness_status = data.get('fitness_status', 'Fit for work')
+        certificate_type = data.get('certificate_type', 'Medical Certificate')
         
-        # Get doctor information
-        doctor = certificate_document.document.doctor
-        doctor_name = doctor.name if hasattr(doctor, 'name') else f"Dr. {doctor.first_name} {doctor.last_name}"
-        hospital_name = "Health Nexus Medical Center"
+        # Validate required fields
+        if not patient_email or not patient_name or not certificate_html:
+            logger.error("Missing required fields for medical certificate email")
+            return JsonResponse({'error': 'Missing required fields: patient_email, patient_name, and certificate_html are required'}, status=400)
         
-        logger.info(f"Sending email to patient: {patient_name} ({patient_email})")
+        logger.info(f"Sending medical certificate email to: {patient_email} for patient: {patient_name}")
         
-        # Email configuration
-        subject = f"Medical Certificate - {patient_name}"
-        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@healthnexus.com')
-        to_email = [patient_email]
-        
-        # Basic text content
-        text_content = f"""
-        Dear {patient_name},
-        
-        Please find your medical certificate attached to this email as a PDF.
-        
-        If you have any questions, please contact us.
-        
-        Best regards,
-        {doctor_name}
-        {hospital_name}
-        """
-        
-        # Create email message
-        msg = EmailMultiAlternatives(subject, text_content, from_email, to_email)
-        
-        # Generate PDF from HTML content
-        if certificate_document.document.content:
-            try:
-                # Create PDF buffer
-                buffer = BytesIO()
-                doc = SimpleDocTemplate(buffer, pagesize=A4, 
-                                      rightMargin=72, leftMargin=72,
-                                      topMargin=72, bottomMargin=72)
-                styles = getSampleStyleSheet()
-                story = []
-                
-                # Get the HTML content
-                html_content = certificate_document.document.content
-                logger.info(f"Converting HTML content to PDF (length: {len(html_content)} chars)")
-                
-                # Create custom styles
-                header_style = ParagraphStyle('HeaderStyle',
-                                            parent=styles['Heading1'],
-                                            fontSize=18,
-                                            spaceAfter=30,
-                                            alignment=1,
-                                            textColor=colors.black)
-                
-                clinic_style = ParagraphStyle('ClinicStyle',
-                                            parent=styles['Normal'],
-                                            fontSize=12,
-                                            spaceAfter=20,
-                                            alignment=1,
-                                            textColor=colors.blue)
-                
-                content_style = ParagraphStyle('ContentStyle',
-                                             parent=styles['Normal'],
-                                             fontSize=11,
-                                             spaceAfter=12)
-                
-                signature_style = ParagraphStyle('SignatureStyle',
-                                                parent=styles['Normal'],
-                                                fontSize=10,
-                                                spaceAfter=6,
-                                                alignment=2)
-                
-                # Clean HTML content
-                clean_content = html.unescape(html_content)
-                clean_content = re.sub(r'<br\s*/?>', '\n', clean_content)
-                clean_content = re.sub(r'<p[^>]*>', '\n', clean_content)
-                clean_content = re.sub(r'</p>', '\n', clean_content)
-                clean_content = re.sub(r'<[^>]+>', '', clean_content)
-                clean_content = re.sub(r'\n\s*\n', '\n\n', clean_content)
-                clean_content = clean_content.strip()
-                
-                # Add clinic header
-                story.append(Paragraph("Medratrics Medical Diagnostic Center", clinic_style))
-                story.append(Paragraph("123 Health Avenue, Medical District, Cityville, California 12345", content_style))
-                story.append(Paragraph("Phone: (123) 456-7890 | Email: medratrics@healthnexus.com", content_style))
-                story.append(Spacer(1, 20))
-                
-                # Add main title
-                story.append(Paragraph("MEDICAL CERTIFICATE", header_style))
-                story.append(Spacer(1, 30))
-                
-                # Add content
-                lines = clean_content.split('\n')
-                for line in lines:
-                    line = line.strip()
-                    if line:
-                        story.append(Paragraph(line, content_style))
-                        story.append(Spacer(1, 6))
-                
-                # Add signature section
-                story.append(Spacer(1, 40))
-                story.append(Paragraph("_" * 30, signature_style))
-                story.append(Paragraph("Dr. Queenie Torrejos", signature_style))
-                story.append(Paragraph("Attending Physician", signature_style))
-                story.append(Paragraph("License No. 4324", signature_style))
-                
-                # Build PDF
-                doc.build(story)
-                pdf_content = buffer.getvalue()
-                buffer.close()
-                
-                # Attach PDF to email
-                filename = f"medical_certificate_{patient_name.replace(' ', '_')}.pdf"
-                msg.attach(filename, pdf_content, 'application/pdf')
-                logger.info(f"Generated and attached PDF: {filename} (size: {len(pdf_content)} bytes)")
-                
-            except Exception as e:
-                logger.error(f"Error generating PDF: {e}")
-                return JsonResponse({'error': f'Error generating PDF: {str(e)}'}, status=500)
-        
-        # Create HTML email content
-        html_email_content = f"""
-        <html>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; margin: 20px;">
-            <div style="max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #ccc;">
-                <h2 style="text-align: center; color: #333;">Medical Certificate</h2>
-                <p>Dear {patient_name},</p>
-                <p>Please find your medical certificate attached as a PDF to this email.</p>
-                <div style="border: 2px solid #333; padding: 20px; margin: 20px 0; background-color: #f9f9f9;">
-                    {certificate_document.document.content}
-                </div>
-                <p>Best regards,<br>
-                {doctor_name}<br>
-                {hospital_name}</p>
-            </div>
-        </body>
-        </html>
-        """
-        
-        # Attach HTML alternative
-        msg.attach_alternative(html_email_content, "text/html")
-        logger.info("Added HTML certificate content to email")
-        
-        # Send the email
+        # Use the medical_requests email utility function to send the email
         try:
-            msg.send()
-            logger.info(f"Medical certificate email sent successfully to {patient_email}")
-            return JsonResponse({
-                'message': 'Medical certificate email sent successfully',
-                'status': 'sent',
-                'certificate_id': str(certificate_document.id),
-                'pdf_attached': True
-            })
-        except Exception as e:
-            logger.error(f"Error sending email: {e}")
-            return JsonResponse({'error': f'Failed to send email: {str(e)}'}, status=500)
+            from medical_requests.email_utils import send_medical_certificate_email
+            from django.utils import timezone
             
+            # Create a mock certificate request object with the data we have
+            class MockCertificateRequest:
+                def __init__(self, data):
+                    self.patient_name = data.get('patient_name')
+                    self.date_of_birth = data.get('patient_dob')
+                    self.request_type = data.get('certificate_type', 'Medical Certificate')
+                    self.doctor_approved_at = timezone.now()
+                    self.doctor_notes = data.get('doctor_notes', '')
+                    
+                def get_request_type_display(self):
+                    return self.request_type
+            
+            mock_request = MockCertificateRequest(data)
+            
+            # Use the existing medical certificate email utility function with the provided HTML
+            logger.info("Using medical certificate email utility function for PDF generation and email sending")
+            email_result = send_medical_certificate_email(
+                patient_email=patient_email,
+                patient_name=patient_name,
+                certificate_html=certificate_html,
+                doctor_name=doctor_name,
+                hospital_name=hospital_name,
+                patient_dob=patient_dob,
+                fitness_status=fitness_status,
+                certificate_request=mock_request
+            )
+            
+            if email_result:
+                logger.info(f"Medical certificate email sent successfully to {patient_email}")
+                return JsonResponse({
+                    'message': 'Medical certificate email sent successfully with PDF attachment',
+                    'status': 'sent',
+                    'patient_email': patient_email,
+                    'pdf_generated': True,
+                    'method': 'medical_requests_utility'
+                }, status=200)
+            else:
+                logger.error(f"Failed to send medical certificate email to {patient_email}")
+                return JsonResponse({'error': 'Failed to send email'}, status=500)
+                
+        except ImportError:
+            logger.error("Email utility function not available")
+            return JsonResponse({'error': 'Email functionality not available'}, status=500)
+        except Exception as e:
+            logger.error(f"Error sending email: {str(e)}")
+            import traceback
+            logger.error(f"Email error traceback: {traceback.format_exc()}")
+            return JsonResponse({'error': f'Failed to send email: {str(e)}'}, status=500)
+        
     except Exception as e:
-        logger.error(f"Error in email endpoint: {str(e)}")
-        return JsonResponse({'error': f'Failed to send email: {str(e)}'}, status=500)
-
+        logger.error(f"Unexpected error in email endpoint: {str(e)}")
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
+        return JsonResponse({'error': f'Internal server error: {str(e)}'}, status=500)
 
 @csrf_exempt 
 def prescription_requests_endpoint(request):
@@ -724,7 +629,7 @@ def prescription_requests_endpoint(request):
                 'additional_notes': req.additional_notes,
                 'status': req.status,
                 'requested_at': req.requested_at.isoformat() if req.requested_at else None,
-                'receptionist_approved_at': req.receptionist_approved_at.isoformat() if req.receptionist_approved_at else None,
+                'on_process_at': req.on_process_at.isoformat() if req.on_process_at else None,
                 'doctor_approved_at': req.doctor_approved_at.isoformat() if req.doctor_approved_at else None,
                 'prescription_content': req.prescription_content,
                 'doctor_notes': req.doctor_notes,
@@ -813,7 +718,7 @@ def medical_certificates_endpoint(request):
                 'additional_info': req.additional_info,
                 'status': req.status,
                 'requested_at': req.requested_at.isoformat() if req.requested_at else None,
-                'receptionist_approved_at': req.receptionist_approved_at.isoformat() if req.receptionist_approved_at else None,
+                'on_process_at': req.on_process_at.isoformat() if req.on_process_at else None,
                 'doctor_approved_at': req.doctor_approved_at.isoformat() if req.doctor_approved_at else None,
                 'certificate_content': req.certificate_content,
                 'doctor_notes': req.doctor_notes,
@@ -913,10 +818,20 @@ def approve_prescription_endpoint(request, request_id):
             logger.info(f"Action: {action}")
             
             if action == 'receptionist_approve':
-                prescription_request.status = 'receptionist_approved'
-                prescription_request.receptionist_approved_at = timezone.now()
+                prescription_request.status = 'on_process'
+                prescription_request.on_process_at = timezone.now()
                 if request.user.is_authenticated:
-                    prescription_request.receptionist_approved_by = request.user
+                    prescription_request.on_process_by = request.user
+                    
+                # Send notification about status change
+                send_status_notification(
+                    request, 'on_process', 
+                    prescription_request.email, 
+                    prescription_request.phone,
+                    prescription_request.patient_name,
+                    prescription_request.email_notifications,
+                    prescription_request.sms_notifications
+                )
                     
             elif action == 'doctor_approve':
                 logger.info(f"Starting doctor approval for prescription request {request_id}")
@@ -926,6 +841,16 @@ def approve_prescription_endpoint(request, request_id):
                     prescription_request.doctor_approved_by = request.user
                 prescription_request.prescription_content = data.get('prescription_content', '')
                 prescription_request.doctor_notes = data.get('doctor_notes', '')
+                
+                # Send notification about status change
+                send_status_notification(
+                    request, 'doctor_approved', 
+                    prescription_request.email, 
+                    prescription_request.phone,
+                    prescription_request.patient_name,
+                    prescription_request.email_notifications,
+                    prescription_request.sms_notifications
+                )
                 
                 logger.info(f"Prescription content: {prescription_request.prescription_content}")
                 logger.info(f"Patient name to search: {prescription_request.patient_name}")
@@ -1162,6 +1087,17 @@ def approve_prescription_endpoint(request, request_id):
                 prescription_request.status = 'rejected'
                 prescription_request.rejection_reason = data.get('rejection_reason', '')
                 
+                # Send notification about status change
+                send_status_notification(
+                    request, 'rejected', 
+                    prescription_request.email, 
+                    prescription_request.phone,
+                    prescription_request.patient_name,
+                    prescription_request.email_notifications,
+                    prescription_request.sms_notifications,
+                    prescription_request.rejection_reason
+                )
+                
             prescription_request.save()
             
             return JsonResponse({
@@ -1203,10 +1139,20 @@ def approve_medical_certificate_endpoint(request, request_id):
             action = data.get('action')
             
             if action == 'receptionist_approve':
-                cert_request.status = 'receptionist_approved'
-                cert_request.receptionist_approved_at = timezone.now()
+                cert_request.status = 'on_process'
+                cert_request.on_process_at = timezone.now()
                 if request.user.is_authenticated:
-                    cert_request.receptionist_approved_by = request.user
+                    cert_request.on_process_by = request.user
+                    
+                # Send notification about status change
+                send_status_notification(
+                    request, 'on_process', 
+                    cert_request.email, 
+                    cert_request.phone,
+                    cert_request.patient_name,
+                    cert_request.email_notifications,
+                    cert_request.sms_notifications
+                )
                     
             elif action == 'doctor_approve':
                 cert_request.status = 'doctor_approved'
@@ -1216,9 +1162,30 @@ def approve_medical_certificate_endpoint(request, request_id):
                 cert_request.certificate_content = data.get('certificate_content', '')
                 cert_request.doctor_notes = data.get('doctor_notes', '')
                 
+                # Send notification about status change
+                send_status_notification(
+                    request, 'doctor_approved', 
+                    cert_request.email, 
+                    cert_request.phone,
+                    cert_request.patient_name,
+                    cert_request.email_notifications,
+                    cert_request.sms_notifications
+                )
+                
             elif action == 'reject':
                 cert_request.status = 'rejected'
                 cert_request.rejection_reason = data.get('rejection_reason', '')
+                
+                # Send notification about status change
+                send_status_notification(
+                    request, 'rejected', 
+                    cert_request.email, 
+                    cert_request.phone,
+                    cert_request.patient_name,
+                    cert_request.email_notifications,
+                    cert_request.sms_notifications,
+                    cert_request.rejection_reason
+                )
                 
             cert_request.save()
             
@@ -1398,3 +1365,239 @@ def create_prescription_endpoint(request):
             return JsonResponse({'error': f'Failed to create prescription: {str(e)}'}, status=400)
     
     return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+def get_clinic_settings():
+    """
+    Get clinic settings from database with fallback to defaults
+    """
+    try:
+        from clinic.models import ClinicSettings
+        clinic_settings = ClinicSettings.objects.first()
+        if clinic_settings:
+            return {
+                'clinic_name': clinic_settings.clinic_name,
+                'address': clinic_settings.address,
+                'city': clinic_settings.city,
+                'state': clinic_settings.state,
+                'zip': clinic_settings.zip,
+                'phone': clinic_settings.phone,
+                'email': clinic_settings.email,
+                'website': clinic_settings.website,
+                'primary_color': clinic_settings.primary_color,
+            }
+    except Exception:
+        pass
+    
+    # Fallback to defaults if clinic settings not found
+    return {
+        'clinic_name': 'HealthNexus Medical Center',
+        'address': '123 Health Avenue, Medical District',
+        'city': 'Cityville',
+        'state': 'California',
+        'zip': '12345',
+        'phone': '(123) 456-7890',
+        'email': 'info@healthnexus.com',
+        'website': 'www.healthnexus.com',
+        'primary_color': '#1976d2',
+    }
+
+def create_email_template(notification_type, patient_name, clinic_settings, rejection_reason=None):
+    """
+    Create HTML email template for status notifications
+    """
+    primary_color = clinic_settings.get('primary_color', '#1976d2')
+    clinic_name = clinic_settings.get('clinic_name', 'HealthNexus Medical Center')
+    clinic_phone = clinic_settings.get('phone', '(123) 456-7890')
+    clinic_address = clinic_settings.get('address', '123 Health Avenue')
+    clinic_city = clinic_settings.get('city', 'Cityville')
+    clinic_state = clinic_settings.get('state', 'California')
+    clinic_zip = clinic_settings.get('zip', '12345')
+    full_address = f"{clinic_address}, {clinic_city}, {clinic_state} {clinic_zip}"
+    
+    # Define notification content based on type
+    content_map = {
+        'on_process': {
+            'subject': 'Request Being Processed',
+            'title': 'Request Being Processed',
+            'message': 'Your request is now being processed. We will notify you once it\'s ready for pickup or has been completed.',
+            'additional_info': 'Thank you for your patience. We appreciate your trust in our healthcare services.',
+            'icon': '🔄',
+            'status_color': '#ff9800'
+        },
+        'doctor_approved': {
+            'subject': 'Request Approved by Doctor',
+            'title': 'Request Approved',
+            'message': 'Great news! Your request has been approved by our doctor and is ready for pickup.',
+            'additional_info': 'Please visit our clinic during business hours to collect your documents.',
+            'icon': '✅',
+            'status_color': '#4caf50'
+        },
+        'completed': {
+            'subject': 'Request Completed',
+            'title': 'Request Completed',
+            'message': 'Your request has been completed and is ready for pickup.',
+            'additional_info': 'Please visit our clinic during business hours to collect your documents.',
+            'icon': '🎉',
+            'status_color': '#4caf50'
+        },
+        'rejected': {
+            'subject': 'Request Update Required',
+            'title': 'Request Needs Attention',
+            'message': 'We need to discuss your request with you.',
+            'additional_info': f'Please contact our clinic for more information about your request.{f" Rejection reason: {rejection_reason}" if rejection_reason else ""}',
+            'icon': '⚠️',
+            'status_color': '#f44336'
+        }
+    }
+    
+    content = content_map.get(notification_type, content_map['on_process'])
+    
+    # For rejected requests, customize the message to include the rejection reason
+    if notification_type == 'rejected' and rejection_reason:
+        content['message'] = f'Unfortunately, your request has been rejected. Reason: {rejection_reason}'
+        content['additional_info'] = 'Please contact our clinic if you have any questions about this decision or if you would like to submit a new request.'
+    
+    html_template = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{content['subject']}</title>
+        <style>
+            body {{ font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }}
+            .container {{ max-width: 600px; margin: 0 auto; background-color: white; }}
+            .header {{ background-color: {primary_color}; color: white; text-align: center; padding: 30px; }}
+            .header h1 {{ margin: 0; font-size: 28px; }}
+            .header .clinic-name {{ font-size: 16px; margin-top: 5px; opacity: 0.9; }}
+            .content {{ padding: 40px 30px; }}
+            .status-badge {{ display: inline-block; background-color: {content['status_color']}; color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; margin-bottom: 20px; }}
+            .message {{ font-size: 16px; line-height: 1.6; margin-bottom: 20px; }}
+            .patient-name {{ color: {primary_color}; font-weight: bold; }}
+            .additional-info {{ background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid {primary_color}; }}
+            .footer {{ background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef; }}
+            .clinic-info {{ margin-top: 15px; font-size: 14px; color: #666; }}
+            .contact-info {{ display: inline-block; margin: 0 10px; }}
+            .divider {{ width: 50px; height: 3px; background-color: {primary_color}; margin: 20px auto; border-radius: 2px; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>{content['icon']} {content['title']}</h1>
+                <div class="clinic-name">{clinic_name}</div>
+            </div>
+            
+            <div class="content">
+                <div class="status-badge">{content['title']}</div>
+                
+                <p class="message">
+                    Dear <span class="patient-name">{patient_name or 'Valued Patient'}</span>,
+                </p>
+                
+                <p class="message">
+                    {content['message']}
+                </p>
+                
+                <div class="additional-info">
+                    <strong>📋 Next Steps:</strong><br>
+                    {content['additional_info']}
+                </div>
+                
+                <div class="divider"></div>
+                
+                <p style="font-size: 14px; color: #666; text-align: center;">
+                    Thank you for choosing {clinic_name} for your healthcare needs.
+                </p>
+            </div>
+            
+            <div class="footer">
+                <strong>{clinic_name}</strong>
+                <div class="clinic-info">
+                    <div class="contact-info">📍 {full_address}</div>
+                    <div class="contact-info">📞 {clinic_phone}</div>
+                </div>
+                <p style="font-size: 12px; color: #999; margin-top: 15px;">
+                    This is an automated message. Please do not reply to this email.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    return content['subject'], html_template
+
+def send_status_notification(request, notification_type, patient_email, patient_phone=None, patient_name=None, email_notifications=True, sms_notifications=False, rejection_reason=None):
+    """
+    Send enhanced notification when status changes for medical certificate or prescription requests
+    """
+    from django.core.mail import EmailMultiAlternatives
+    from django.conf import settings
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    
+    try:
+        # Get clinic settings
+        clinic_settings = get_clinic_settings()
+        clinic_name = clinic_settings.get('clinic_name', 'HealthNexus Medical Center')
+        
+        # Send email notification if enabled
+        if email_notifications and patient_email:
+            try:
+                # Create email template
+                subject, html_content = create_email_template(notification_type, patient_name, clinic_settings, rejection_reason)
+                
+                # Create plain text version as fallback
+                plain_messages = {
+                    'on_process': f'Dear {patient_name or "Patient"},\n\nYour request is now being processed. We will notify you once it\'s ready for pickup or has been completed.\n\nThank you for your patience.\n\nBest regards,\n{clinic_name}',
+                    'doctor_approved': f'Dear {patient_name or "Patient"},\n\nYour request has been approved by the doctor and is ready for pickup. Please visit our clinic during business hours.\n\nBest regards,\n{clinic_name}',
+                    'completed': f'Dear {patient_name or "Patient"},\n\nYour request has been completed and is ready for pickup. Please visit our clinic during business hours.\n\nBest regards,\n{clinic_name}',
+                    'rejected': f'Dear {patient_name or "Patient"},\n\nYour request has been rejected. {f"Reason: {rejection_reason}" if rejection_reason else "Please contact our clinic for more information."}\n\nBest regards,\n{clinic_name}'
+                }
+                
+                plain_text = plain_messages.get(notification_type, plain_messages['on_process'])
+                
+                # Create and send email
+                email = EmailMultiAlternatives(
+                    subject=subject,
+                    body=plain_text,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[patient_email]
+                )
+                email.attach_alternative(html_content, "text/html")
+                email.send()
+                
+                logger.info(f"Enhanced email notification sent to {patient_email} for {notification_type}")
+                
+            except Exception as e:
+                logger.error(f"Failed to send email notification to {patient_email}: {str(e)}")
+                import traceback
+                logger.error(f"Email error traceback: {traceback.format_exc()}")
+        
+        # Send SMS notification if enabled and phone number is provided
+        if sms_notifications and patient_phone:
+            try:
+                # Define SMS messages
+                sms_messages = {
+                    'on_process': f'Dear {patient_name or "Patient"}, your medical request is now being processed at {clinic_name}. You will be notified when ready.',
+                    'doctor_approved': f'Good news! Your medical request has been approved at {clinic_name} and is ready for pickup during business hours.',
+                    'completed': f'Your medical request at {clinic_name} has been completed and is ready for pickup during business hours.',
+                    'rejected': f'Please contact {clinic_name} at {clinic_settings.get("phone", "(123) 456-7890")} regarding your medical request.'
+                }
+                
+                sms_body = sms_messages.get(notification_type, sms_messages['on_process'])
+                
+                # SMS implementation would go here
+                # For now, just log that SMS would be sent
+                logger.info(f"SMS notification would be sent to {patient_phone} for {notification_type}: {sms_body}")
+                
+            except Exception as e:
+                logger.error(f"Failed to send SMS notification to {patient_phone}: {str(e)}")
+                
+    except Exception as e:
+        logger.error(f"Error sending status notification: {str(e)}")
+        import traceback
+        logger.error(f"Notification error traceback: {traceback.format_exc()}")

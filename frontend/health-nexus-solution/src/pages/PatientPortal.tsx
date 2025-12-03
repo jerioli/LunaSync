@@ -116,6 +116,8 @@ const medicalCertSchema = z.object({
   email: z.string().email("Invalid email address"),
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
   additionalInfo: z.string().optional(),
+  emailNotifications: z.boolean().default(true),
+  smsNotifications: z.boolean().default(false),
 });
 
 const prescriptionSchema = z.object({
@@ -132,6 +134,8 @@ const prescriptionSchema = z.object({
   email: z.string().email("Invalid email address"),
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
   additionalNotes: z.string().optional(),
+  emailNotifications: z.boolean().default(true),
+  smsNotifications: z.boolean().default(false),
 });
 
 type MedicalCertFormData = z.infer<typeof medicalCertSchema>;
@@ -304,6 +308,11 @@ const PatientPortal = () => {
   // Medical Certificate delivery method
   const [medCertDeliveryMethod, setMedCertDeliveryMethod] = useState("pickup");
 
+  // Medical Certificate notification preferences
+  const [medCertEmailNotifications, setMedCertEmailNotifications] =
+    useState(true);
+  const [medCertSmsNotifications, setMedCertSmsNotifications] = useState(false);
+
   // Prescription wizard states
   const [prescriptionStep, setPrescriptionStep] = useState(1);
   const [prescriptionIsExistingPatient, setPrescriptionIsExistingPatient] =
@@ -339,6 +348,12 @@ const PatientPortal = () => {
     phone: "",
   });
   const [prescriptionForgotIdSubmitting, setPrescriptionForgotIdSubmitting] =
+    useState(false);
+
+  // Prescription notification preferences
+  const [prescriptionEmailNotifications, setPrescriptionEmailNotifications] =
+    useState(true);
+  const [prescriptionSmsNotifications, setPrescriptionSmsNotifications] =
     useState(false);
 
   // Form handling for medical cert and prescription

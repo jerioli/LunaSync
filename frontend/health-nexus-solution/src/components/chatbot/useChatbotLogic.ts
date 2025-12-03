@@ -175,7 +175,9 @@ export const useChatbotLogic = () => {
     idVerificationBack: null,
     idVerificationFrontPreview: null,
     idVerificationBackPreview: null,
-    additionalInfo: ''
+    additionalInfo: '',
+    emailNotifications: true,
+    smsNotifications: false,
   });
 
   // Form state for prescription requests
@@ -199,7 +201,9 @@ export const useChatbotLogic = () => {
     idVerificationBackPreview: null,
     prescriptionImage: null,
     prescriptionImagePreview: null,
-    additionalNotes: ''
+    additionalNotes: '',
+    emailNotifications: true,
+    smsNotifications: false,
   });
 
   // Add FAQ chat mode

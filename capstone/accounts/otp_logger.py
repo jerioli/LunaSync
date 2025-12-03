@@ -35,40 +35,40 @@ class OTPEmailDebugger:
         config = {}
         
         self.logger.info("=" * 60)
-        self.logger.info("🔍 VALIDATING SMTP CONFIGURATION")
+        self.logger.info("[DEBUG] VALIDATING SMTP CONFIGURATION")
         self.logger.info("=" * 60)
         
         # Check EMAIL_BACKEND
         backend = getattr(settings, 'EMAIL_BACKEND', None)
         config['backend'] = backend
-        self.logger.info(f"📧 EMAIL_BACKEND: {backend}")
+        self.logger.info(f"[EMAIL] EMAIL_BACKEND: {backend}")
         
         if backend != 'django.core.mail.backends.smtp.EmailBackend':
-            self.logger.warning(f"⚠️  EMAIL_BACKEND is not SMTP: {backend}")
+            self.logger.warning(f"[WARNING] EMAIL_BACKEND is not SMTP: {backend}")
         
         # Check SMTP Host
         host = getattr(settings, 'EMAIL_HOST', None)
         config['host'] = host
-        self.logger.info(f"🌐 EMAIL_HOST: {host}")
+        self.logger.info(f"[NETWORK] EMAIL_HOST: {host}")
         
         if not host:
-            self.logger.error("❌ EMAIL_HOST is not configured!")
+            self.logger.error("[ERROR] EMAIL_HOST is not configured!")
             
         # Check SMTP Port
         port = getattr(settings, 'EMAIL_PORT', None)
         config['port'] = port
-        self.logger.info(f"🔌 EMAIL_PORT: {port}")
+        self.logger.info(f"[PORT] EMAIL_PORT: {port}")
         
         # Check TLS/SSL settings
         use_tls = getattr(settings, 'EMAIL_USE_TLS', False)
         use_ssl = getattr(settings, 'EMAIL_USE_SSL', False)
         config['use_tls'] = use_tls
         config['use_ssl'] = use_ssl
-        self.logger.info(f"🔐 EMAIL_USE_TLS: {use_tls}")
-        self.logger.info(f"🔐 EMAIL_USE_SSL: {use_ssl}")
+        self.logger.info(f"[TLS] EMAIL_USE_TLS: {use_tls}")
+        self.logger.info(f"[SSL] EMAIL_USE_SSL: {use_ssl}")
         
         if use_tls and use_ssl:
-            self.logger.warning("⚠️  Both TLS and SSL are enabled - this may cause conflicts!")
+            self.logger.warning("[WARNING] Both TLS and SSL are enabled - this may cause conflicts!")
         
         # Check authentication
         username = getattr(settings, 'EMAIL_HOST_USER', None)
@@ -76,21 +76,21 @@ class OTPEmailDebugger:
         config['username'] = username
         config['password'] = '***HIDDEN***' if password else None
         
-        self.logger.info(f"👤 EMAIL_HOST_USER: {username}")
-        self.logger.info(f"🔑 EMAIL_HOST_PASSWORD: {'✅ Set' if password else '❌ Not Set'}")
+        self.logger.info(f"[USER] EMAIL_HOST_USER: {username}")
+        self.logger.info(f"[PASSWORD] EMAIL_HOST_PASSWORD: {'[SET]' if password else '[NOT_SET]'}")
         
         if not username or not password:
-            self.logger.error("❌ Email authentication credentials are incomplete!")
+            self.logger.error("[ERROR] Email authentication credentials are incomplete!")
         
         # Check timeout
         timeout = getattr(settings, 'EMAIL_TIMEOUT', None)
         config['timeout'] = timeout
-        self.logger.info(f"⏱️  EMAIL_TIMEOUT: {timeout}")
+        self.logger.info(f"[TIMEOUT] EMAIL_TIMEOUT: {timeout}")
         
         # Check from email
         from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None)
         config['from_email'] = from_email
-        self.logger.info(f"📤 DEFAULT_FROM_EMAIL: {from_email}")
+        self.logger.info(f"[FROM] DEFAULT_FROM_EMAIL: {from_email}")
         
         self.logger.info("=" * 60)
         
@@ -100,12 +100,12 @@ class OTPEmailDebugger:
         """
         Test SMTP server connection step by step
         """
-        self.logger.info("🔄 TESTING SMTP CONNECTION")
+        self.logger.info("[PROCESS] TESTING SMTP CONNECTION")
         self.logger.info("-" * 40)
         
         try:
             # Test basic socket connection
-            self.logger.info(f"🌐 Testing socket connection to {self.smtp_config['host']}:{self.smtp_config['port']}")
+            self.logger.info(f"[NETWORK] Testing socket connection to {self.smtp_config['host']}:{self.smtp_config['port']}")
             
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(10)
@@ -113,52 +113,52 @@ class OTPEmailDebugger:
             sock.close()
             
             if result == 0:
-                self.logger.info("✅ Socket connection successful")
+                self.logger.info("[SUCCESS] Socket connection successful")
             else:
-                self.logger.error(f"❌ Socket connection failed with code: {result}")
+                self.logger.error(f"[ERROR] Socket connection failed with code: {result}")
                 return False
                 
             # Test SMTP connection
-            self.logger.info("🔄 Establishing SMTP connection...")
+            self.logger.info("[PROCESS] Establishing SMTP connection...")
             
             if self.smtp_config['use_ssl']:
                 smtp_server = smtplib.SMTP_SSL(self.smtp_config['host'], self.smtp_config['port'])
-                self.logger.info("🔐 Using SSL connection")
+                self.logger.info("[SSL] Using SSL connection")
             else:
                 smtp_server = smtplib.SMTP(self.smtp_config['host'], self.smtp_config['port'])
-                self.logger.info("📡 Using plain SMTP connection")
+                self.logger.info("[SMTP] Using plain SMTP connection")
                 
                 if self.smtp_config['use_tls']:
-                    self.logger.info("🔄 Starting TLS...")
+                    self.logger.info("[PROCESS] Starting TLS...")
                     smtp_server.starttls()
-                    self.logger.info("✅ TLS enabled")
+                    self.logger.info("[SUCCESS] TLS enabled")
             
             # Test authentication
             if self.smtp_config['username'] and settings.EMAIL_HOST_PASSWORD:
-                self.logger.info("🔄 Testing authentication...")
+                self.logger.info("[PROCESS] Testing authentication...")
                 smtp_server.login(self.smtp_config['username'], settings.EMAIL_HOST_PASSWORD)
-                self.logger.info("✅ Authentication successful")
+                self.logger.info("[SUCCESS] Authentication successful")
             
             smtp_server.quit()
-            self.logger.info("✅ SMTP connection test completed successfully")
+            self.logger.info("[SUCCESS] SMTP connection test completed successfully")
             return True
             
         except smtplib.SMTPAuthenticationError as e:
-            self.logger.error(f"❌ SMTP Authentication failed: {e}")
-            self.logger.error("💡 Check your email credentials and app-specific password")
+            self.logger.error(f"[ERROR] SMTP Authentication failed: {e}")
+            self.logger.error("[HINT] Check your email credentials and app-specific password")
             return False
         except smtplib.SMTPConnectError as e:
-            self.logger.error(f"❌ SMTP Connection failed: {e}")
-            self.logger.error("💡 Check your SMTP host and port settings")
+            self.logger.error(f"[ERROR] SMTP Connection failed: {e}")
+            self.logger.error("[HINT] Check your SMTP host and port settings")
             return False
         except smtplib.SMTPException as e:
-            self.logger.error(f"❌ SMTP Error: {e}")
+            self.logger.error(f"[ERROR] SMTP Error: {e}")
             return False
         except socket.timeout:
-            self.logger.error("❌ Connection timeout - check network connectivity")
+            self.logger.error("[ERROR] Connection timeout - check network connectivity")
             return False
         except Exception as e:
-            self.logger.error(f"❌ Unexpected error during SMTP test: {e}")
+            self.logger.error(f"[ERROR] Unexpected error during SMTP test: {e}")
             return False
     
     def debug_otp_email_send(self, to_email, otp_code, identifier_type='email'):
@@ -174,10 +174,10 @@ class OTPEmailDebugger:
             tuple: (success: bool, message: str, details: dict)
         """
         self.logger.info("=" * 80)
-        self.logger.info(f"🚀 STARTING OTP EMAIL SEND DEBUG SESSION")
-        self.logger.info(f"📧 To: {to_email}")
-        self.logger.info(f"🔢 OTP: {otp_code}")
-        self.logger.info(f"📱 Type: {identifier_type}")
+        self.logger.info(f"[START] STARTING OTP EMAIL SEND DEBUG SESSION")
+        self.logger.info(f"[EMAIL] To: {to_email}")
+        self.logger.info(f"[CODE] OTP: {otp_code}")
+        self.logger.info(f"[TYPE] Type: {identifier_type}")
         self.logger.info("=" * 80)
         
         debug_details = {
@@ -192,24 +192,24 @@ class OTPEmailDebugger:
         
         try:
             # Step 1: Validate email address
-            self.logger.info("🔍 STEP 1: Validating email address")
+            self.logger.info("[STEP1] STEP 1: Validating email address")
             if not to_email or '@' not in to_email:
                 error_msg = f"Invalid email address: {to_email}"
                 self.logger.error(f"❌ {error_msg}")
                 debug_details['errors'].append(error_msg)
                 return False, error_msg, debug_details
             
-            self.logger.info(f"✅ Email address validation passed: {to_email}")
+            self.logger.info(f"[SUCCESS] Email address validation passed: {to_email}")
             debug_details['steps_completed'].append('email_validation')
             
             # Step 2: Check clinic settings
-            self.logger.info("🔍 STEP 2: Loading clinic settings")
+            self.logger.info("[STEP2] STEP 2: Loading clinic settings")
             try:
                 from clinic.models import ClinicSettings
                 clinic_settings = ClinicSettings.objects.first()
                 if clinic_settings:
                     clinic_name = clinic_settings.clinic_name
-                    self.logger.info(f"✅ Clinic settings loaded: {clinic_name}")
+                    self.logger.info(f"[SUCCESS] Clinic settings loaded: {clinic_name}")
                 else:
                     clinic_name = 'HealthNexus Medical Center'
                     self.logger.warning("⚠️  No clinic settings found, using default")

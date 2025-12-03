@@ -90,6 +90,8 @@ export type MedicalRecordRequestForm = {
   idVerificationFrontPreview: string | null;
   idVerificationBackPreview: string | null;
   additionalInfo: string;
+  emailNotifications: boolean;
+  smsNotifications: boolean;
 };
 
 export type PrescriptionRequestForm = {
@@ -113,6 +115,8 @@ export type PrescriptionRequestForm = {
   prescriptionImage: File | null;
   prescriptionImagePreview: string | null;
   additionalNotes: string;
+  emailNotifications: boolean;
+  smsNotifications: boolean;
 };
 
 // Define time slot type for doctor availability
