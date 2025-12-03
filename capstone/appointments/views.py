@@ -20,6 +20,7 @@ from .email_utils import send_appointment_confirmation_email
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.core.exceptions import ValidationError
+from django.db import models
 
 logger = logging.getLogger(__name__)
 
@@ -220,8 +221,15 @@ class AppointmentListView(ListAPIView):
 
             # Try to fetch appointments with related data
             try:
-                # Start with all appointments
+                # Start with all appointments, but exclude those for soft-deleted patients
                 queryset = Appointment.objects.all().select_related('patient', 'doctor')
+                
+                # Filter out appointments for soft-deleted patients
+                # Include appointments without a patient (pending) or with non-deleted patients
+                queryset = queryset.filter(
+                    models.Q(patient__isnull=True) |  # Pending appointments without patient record
+                    models.Q(patient__is_deleted=False)  # Appointments with non-deleted patients
+                )
                 
                 # Get status filter from query params or URL kwargs
                 status_filter = self.request.GET.get('status') or self.kwargs.get('status')
@@ -400,6 +408,8 @@ class AppointmentUpdateStatusView(APIView):
         try:
             appointment = Appointment.objects.get(id=appointment_id)
             new_status = request.data.get('status')
+            send_notification = request.data.get('send_notification', False)
+            notification_type = request.data.get('notification_type', '')
             
             if not new_status:
                 return Response(
@@ -428,6 +438,22 @@ class AppointmentUpdateStatusView(APIView):
                 response_data['patient_created'] = hasattr(appointment, '_patient_created')
                 
                 return Response(response_data)
+            # Handle notification for declined, cancelled, or no-show appointments
+            elif send_notification and new_status in ['cancelled', 'no-show']:
+                # Send notifications before updating status
+                email_sent, sms_sent = self._handle_appointment_notification(
+                    appointment, new_status, notification_type
+                )
+                
+                appointment.status = new_status
+                appointment.save(skip_validation=True)
+                
+                serializer = AppointmentSerializer(appointment, context={'request': request})
+                response_data = serializer.data
+                response_data['email_sent'] = email_sent
+                response_data['sms_sent'] = sms_sent
+                
+                return Response(response_data)
             else:
                 # Regular status update
                 appointment.status = new_status
@@ -448,6 +474,146 @@ class AppointmentUpdateStatusView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+    
+    def _handle_appointment_notification(self, appointment, new_status, notification_type):
+        """Handle sending email and SMS notifications for declined/cancelled appointments"""
+        try:
+            from .email_utils import send_appointment_declined_email
+            from accounts.iprog_sms_service import iprog_sms_service
+            from clinic.models import ClinicSettings
+            
+            email_sent = False
+            sms_sent = False
+            
+            # Get patient information
+            patient = None
+            patient_email = None
+            patient_phone = None
+            patient_name = None
+            
+            logger.info(f"=== APPOINTMENT NOTIFICATION DEBUG ===")
+            logger.info(f"Appointment ID: {appointment.id}")
+            logger.info(f"New Status: {new_status}")
+            logger.info(f"Notification Type: {notification_type}")
+            logger.info(f"Appointment Patient: {appointment.patient}")
+            logger.info(f"Patient Email Field: {getattr(appointment, 'patient_email', 'NOT SET')}")
+            logger.info(f"Patient Phone Field: {getattr(appointment, 'patient_phone', 'NOT SET')}")
+            
+            # Try to get patient information from different sources
+            if appointment.patient:
+                # Patient is linked to appointment
+                patient = appointment.patient
+                patient_email = patient.email
+                patient_phone = patient.phone
+                patient_name = patient.name if hasattr(patient, 'name') else patient.get_full_name()
+                logger.info(f"Using linked patient: {patient_name} ({patient_email}, {patient_phone})")
+            elif hasattr(appointment, 'patient_email') and appointment.patient_email:
+                # Use appointment patient fields
+                patient_email = appointment.patient_email
+                patient_phone = getattr(appointment, 'patient_phone', None)
+                patient_name = getattr(appointment, 'patient_name', 'Patient')
+                logger.info(f"Using appointment fields: {patient_name} ({patient_email}, {patient_phone})")
+            
+            if not patient_email:
+                logger.warning(f"No email found for appointment {appointment.id}, cannot send notification")
+                return False, False
+            
+            # Send email notification
+            try:
+                if patient:
+                    email_sent = send_appointment_declined_email(appointment, patient)
+                else:
+                    # Create a simple patient-like object for email sending
+                    class PatientData:
+                        def __init__(self, email, name):
+                            self.email = email
+                            self.name = name
+                    
+                    patient_obj = PatientData(patient_email, patient_name)
+                    email_sent = send_appointment_declined_email(appointment, patient_obj)
+                
+                if email_sent:
+                    logger.info(f"Email notification sent to {patient_email}")
+                else:
+                    logger.warning(f"Failed to send email notification to {patient_email}")
+            except Exception as email_error:
+                logger.error(f"Error sending email notification: {str(email_error)}")
+                email_sent = False
+            
+            # Send SMS notification if phone number is available
+            if patient_phone:
+                try:
+                    clinic_settings = ClinicSettings.objects.first()
+                    clinic_name = clinic_settings.clinic_name if clinic_settings else 'HealthNexus Medical Center'
+                    
+                    # Format appointment details
+                    appointment_date = appointment.date.strftime('%B %d, %Y')
+                    appointment_time = appointment.time.strftime('%I:%M %p')
+                    
+                    # Create SMS message based on status
+                    if new_status == 'cancelled':
+                        sms_message = f"""Appointment Update
+
+Your appointment has been declined.
+
+Date: {appointment_date}
+Time: {appointment_time}
+Type: {appointment.appointment_type}
+
+You can reschedule by contacting:
+{clinic_name}
+Phone: {clinic_settings.phone if clinic_settings else '(123) 456-7890'}"""
+                    elif new_status == 'no-show':
+                        sms_message = f"""Appointment Update
+
+You were marked as no-show for your appointment.
+
+Date: {appointment_date}
+Time: {appointment_time}
+Type: {appointment.appointment_type}
+
+Please contact us to reschedule:
+{clinic_name}
+Phone: {clinic_settings.phone if clinic_settings else '(123) 456-7890'}"""
+                    else:
+                        sms_message = f"""Appointment Update
+
+Your appointment status has been updated.
+
+Date: {appointment_date}
+Time: {appointment_time}
+Type: {appointment.appointment_type}
+
+Contact us for details:
+{clinic_name}
+Phone: {clinic_settings.phone if clinic_settings else '(123) 456-7890'}"""
+                    
+                    # Send SMS
+                    success, message, reference_id = iprog_sms_service.send_sms(
+                        patient_phone,
+                        sms_message
+                    )
+                    
+                    if success:
+                        sms_sent = True
+                        logger.info(f"SMS notification sent to {patient_phone}")
+                        if reference_id:
+                            logger.info(f"SMS Reference ID: {reference_id}")
+                    else:
+                        logger.warning(f"Failed to send SMS notification: {message}")
+                        
+                except Exception as sms_error:
+                    logger.error(f"Error sending SMS notification: {str(sms_error)}")
+                    sms_sent = False
+            else:
+                logger.info(f"No phone number available for SMS notification")
+            
+            return email_sent, sms_sent
+            
+        except Exception as e:
+            logger.error(f"Error handling appointment notification: {str(e)}")
+            logger.error(traceback.format_exc())
+            return False, False
     
     def _handle_appointment_confirmation(self, appointment):
         """Handle patient creation and email sending when confirming a pending appointment"""

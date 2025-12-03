@@ -93,7 +93,11 @@ export const AppSidebar = () => {
 
       // Scheduler - only for receptionists and admins
       ["receptionist", "admin"].includes(currentUser.role)
-        ? { title: "Scheduler", icon: Calendar, path: "/receptionist-scheduler" }
+        ? {
+            title: "Scheduler",
+            icon: Calendar,
+            path: "/receptionist-scheduler",
+          }
         : null,
 
       // Lab Results - Only for doctors and admins (not superadmin, not receptionist)
@@ -161,8 +165,14 @@ export const AppSidebar = () => {
     setOpenMobile(false); // Close sidebar on menu click
   };
   return (
-    <Sidebar key={permissionKey} collapsible="icon" className="[&[data-state=collapsed]]:w-24">
-      <SidebarHeader className={cn("flex flex-col items-center gap-2", open ? "p-4" : "p-3")}>
+    <Sidebar
+      key={permissionKey}
+      collapsible="icon"
+      className="[&[data-state=collapsed]]:w-24"
+    >
+      <SidebarHeader
+        className={cn("flex flex-col items-center gap-2", open ? "p-4" : "p-3")}
+      >
         {/* Show favicon when collapsed, LUNASync text when expanded */}
         {open ? (
           <div className="text-xl font-bold text-[#79c942] transition-all duration-200 opacity-100 h-auto mb-2">
@@ -170,11 +180,11 @@ export const AppSidebar = () => {
           </div>
         ) : (
           <div className="transition-all duration-200 opacity-100 h-auto mb-2 flex items-center justify-center mt-3">
-            <img 
-              src="/favicon.ico" 
-              alt="LUNASync" 
+            <img
+              src="/favicon.ico"
+              alt="LUNASync"
               className="w-10 h-10"
-              style={{ imageRendering: 'crisp-edges' }}
+              style={{ imageRendering: "crisp-edges" }}
             />
           </div>
         )}
@@ -186,11 +196,18 @@ export const AppSidebar = () => {
           )}
           title="Go to Settings"
         >
-          <Avatar className={cn("transition-all duration-200", open ? "" : "w-8 h-8")}>
+          <Avatar
+            className={cn("transition-all duration-200", open ? "" : "w-8 h-8")}
+          >
             <AvatarImage src={currentUser.image} alt={currentUser.name} />
             <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
           </Avatar>
-          <div className={cn("transition-all duration-200", open ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden")}>
+          <div
+            className={cn(
+              "transition-all duration-200",
+              open ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden"
+            )}
+          >
             <div className="font-medium">{currentUser.name}</div>
             <div className="text-xs text-muted-foreground capitalize">
               {currentUser.role}
@@ -198,14 +215,34 @@ export const AppSidebar = () => {
           </div>
         </Link>
       </SidebarHeader>
-      <SidebarContent className={cn("transition-all duration-200", open ? "pt-0" : "pt-4")}>
+      <SidebarContent
+        className={cn("transition-all duration-200", open ? "pt-0" : "pt-4")}
+      >
         <SidebarGroup>
-          <SidebarGroupLabel className={cn("transition-all duration-200", open ? "opacity-100 h-auto" : "opacity-0 h-0 overflow-hidden")}>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent className={cn("transition-all duration-200", open ? "mt-0" : "mt-2")}>
+          <SidebarGroupLabel
+            className={cn(
+              "transition-all duration-200",
+              open ? "opacity-100 h-auto" : "opacity-0 h-0 overflow-hidden"
+            )}
+          >
+            Navigation
+          </SidebarGroupLabel>
+          <SidebarGroupContent
+            className={cn(
+              "transition-all duration-200",
+              open ? "mt-0" : "mt-2"
+            )}
+          >
             <SidebarMenu>
               {menuItems.map((item) =>
                 item.subItems ? (
-                  <SidebarMenuItem key={item.title} className={cn("transition-all duration-200", !open && "mb-2")}>
+                  <SidebarMenuItem
+                    key={item.title}
+                    className={cn(
+                      "transition-all duration-200",
+                      !open && "mb-2"
+                    )}
+                  >
                     {/* When sidebar is collapsed, show dropdown menu */}
                     {!open ? (
                       <DropdownMenu>
@@ -217,7 +254,11 @@ export const AppSidebar = () => {
                             <item.icon className="h-5 w-5 flex-shrink-0" />
                           </SidebarMenuButton>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent side="right" align="start" className="ml-2">
+                        <DropdownMenuContent
+                          side="right"
+                          align="start"
+                          className="ml-2"
+                        >
                           {item.subItems.map((sub) => (
                             <DropdownMenuItem key={sub.title} asChild>
                               <Link
@@ -241,8 +282,12 @@ export const AppSidebar = () => {
                           title={item.title}
                         >
                           <item.icon className="h-5 w-5 flex-shrink-0" />
-                          <span className="transition-all duration-200 opacity-100 w-auto">{item.title}</span>
-                          <span className="ml-auto transition-all duration-200 opacity-100 w-auto">{openDocMgmt ? "▲" : "▼"}</span>
+                          <span className="transition-all duration-200 opacity-100 w-auto">
+                            {item.title}
+                          </span>
+                          <span className="ml-auto transition-all duration-200 opacity-100 w-auto">
+                            {openDocMgmt ? "▲" : "▼"}
+                          </span>
                         </SidebarMenuButton>
                         {/* Sub-menu for document management */}
                         {openDocMgmt && (
@@ -259,19 +304,24 @@ export const AppSidebar = () => {
                                         : ""
                                     )}
                                     style={{
-                                      backgroundColor: location.pathname === sub.path ? colors.primaryColor : undefined,
+                                      backgroundColor:
+                                        location.pathname === sub.path
+                                          ? colors.primaryColor
+                                          : undefined,
                                       ...(location.pathname !== sub.path && {
-                                        transition: 'background-color 0.2s'
-                                      })
+                                        transition: "background-color 0.2s",
+                                      }),
                                     }}
                                     onMouseEnter={(e) => {
                                       if (location.pathname !== sub.path) {
-                                        e.currentTarget.style.backgroundColor = colors.primaryColor;
+                                        e.currentTarget.style.backgroundColor =
+                                          colors.primaryColor;
                                       }
                                     }}
                                     onMouseLeave={(e) => {
                                       if (location.pathname !== sub.path) {
-                                        e.currentTarget.style.backgroundColor = '';
+                                        e.currentTarget.style.backgroundColor =
+                                          "";
                                       }
                                     }}
                                     onClick={handleMenuClick}
@@ -289,38 +339,55 @@ export const AppSidebar = () => {
                     )}
                   </SidebarMenuItem>
                 ) : (
-                  <SidebarMenuItem key={item.title} className={cn("transition-all duration-200", !open && "mb-2")}>
+                  <SidebarMenuItem
+                    key={item.title}
+                    className={cn(
+                      "transition-all duration-200",
+                      !open && "mb-2"
+                    )}
+                  >
                     <SidebarMenuButton asChild>
                       <Link
                         to={item.path}
                         className={cn(
                           "flex items-center gap-2 hover:text-white w-full transition-all duration-200",
-                          location.pathname === item.path
-                            ? "text-white"
-                            : "",
+                          location.pathname === item.path ? "text-white" : "",
                           !open && "justify-center h-12"
                         )}
                         style={{
-                          backgroundColor: location.pathname === item.path ? colors.primaryColor : undefined,
+                          backgroundColor:
+                            location.pathname === item.path
+                              ? colors.primaryColor
+                              : undefined,
                           ...(location.pathname !== item.path && {
-                            transition: 'background-color 0.2s'
-                          })
+                            transition: "background-color 0.2s",
+                          }),
                         }}
                         onMouseEnter={(e) => {
                           if (location.pathname !== item.path) {
-                            e.currentTarget.style.backgroundColor = colors.primaryColor;
+                            e.currentTarget.style.backgroundColor =
+                              colors.primaryColor;
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (location.pathname !== item.path) {
-                            e.currentTarget.style.backgroundColor = '';
+                            e.currentTarget.style.backgroundColor = "";
                           }
                         }}
                         onClick={handleMenuClick}
                         title={!open ? item.title : undefined}
                       >
                         <item.icon className="h-5 w-5 flex-shrink-0" />
-                        <span className={cn("transition-all duration-200", open ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden")}>{item.title}</span>
+                        <span
+                          className={cn(
+                            "transition-all duration-200",
+                            open
+                              ? "opacity-100 w-auto"
+                              : "opacity-0 w-0 overflow-hidden"
+                          )}
+                        >
+                          {item.title}
+                        </span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

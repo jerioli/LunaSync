@@ -30,6 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ENV } from "@/config/env";
 import { useClinic } from "@/contexts/ClinicContext";
 import { axiosInstance } from "@/services/api";
+import { isPatientSoftDeletedById } from "@/utils/patientNameUtils";
 import {
   ArrowUpDown,
   CheckCircle,
@@ -108,7 +109,7 @@ type SortField =
 type SortDirection = "asc" | "desc";
 
 const PrescriptionManagement: React.FC = () => {
-  const { currentUser } = useClinic();
+  const { currentUser, patients: clinicPatients } = useClinic();
   const [requests, setRequests] = useState<PrescriptionRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] =
@@ -200,6 +201,19 @@ const PrescriptionManagement: React.FC = () => {
   useEffect(() => {
     fetchRequests();
     fetchPatients();
+  }, []);
+
+  // Ensure patients are fetched for soft delete checks
+  useEffect(() => {
+    const fetchPatientsData = async () => {
+      try {
+        const response = await axiosInstance.get("patients/");
+        // Update local patients state if needed
+      } catch (error) {
+        console.error("Error fetching patients for soft delete check:", error);
+      }
+    };
+    fetchPatientsData();
   }, []);
 
   const fetchRequests = async () => {
@@ -621,6 +635,30 @@ const PrescriptionManagement: React.FC = () => {
 
   const currentUserRole = currentUser?.role;
 
+  // Helper function to check if a patient is soft-deleted based on name and DOB
+  const isRequestPatientSoftDeleted = (
+    request: PrescriptionRequest
+  ): boolean => {
+    if (!Array.isArray(clinicPatients) || clinicPatients.length === 0) {
+      return false;
+    }
+
+    // Find the patient by name and date of birth
+    const patient = clinicPatients.find((p) => {
+      // Compare name (handle various name formats)
+      const patientName = (p.name || "").toLowerCase().trim();
+      const requestName = (request.patient_name || "").toLowerCase().trim();
+
+      // Compare date of birth
+      const patientDOB = p.date_of_birth;
+      const requestDOB = request.date_of_birth;
+
+      return patientName === requestName && patientDOB === requestDOB;
+    });
+
+    return patient?.is_deleted === true;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -774,303 +812,359 @@ const PrescriptionManagement: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredRequests.map((request) => (
-                  <TableRow key={request.id}>
-                    <TableCell className="font-medium">
-                      {request.patient_name}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(request.status)}</TableCell>
-                    <TableCell>
-                      {new Date(request.requested_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedRequest(request)}
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              View
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-2xl max-h-[70vh] overflow-y-auto">
-                            <DialogHeader>
-                              <DialogTitle>Prescription Details</DialogTitle>
-                            </DialogHeader>
-                            {selectedRequest && (
-                              <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-3 text-sm">
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      Patient
-                                    </Label>
-                                    <p className="font-medium">
-                                      {selectedRequest.patient_name}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      Medication
-                                    </Label>
-                                    <p className="font-medium">
-                                      {selectedRequest.medication_name}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      DOB
-                                    </Label>
-                                    <p className="text-sm">
-                                      {selectedRequest.date_of_birth}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      Email
-                                    </Label>
-                                    <p className="text-sm">
-                                      {selectedRequest.email}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      Phone
-                                    </Label>
-                                    <p className="text-sm">
-                                      {selectedRequest.phone}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      Dosage
-                                    </Label>
-                                    <p className="text-sm">
-                                      {selectedRequest.dosage}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      Frequency
-                                    </Label>
-                                    <p className="text-sm">
-                                      {selectedRequest.frequency}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      Duration
-                                    </Label>
-                                    <p className="text-sm">
-                                      {selectedRequest.duration}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      Status
-                                    </Label>
-                                    <div className="mt-1">
-                                      {getStatusBadge(selectedRequest.status)}
+                {filteredRequests.map((request) => {
+                  const isPatientDeleted = isRequestPatientSoftDeleted(request);
+
+                  return (
+                    <TableRow key={request.id}>
+                      <TableCell className="font-medium">
+                        {request.patient_name}
+                        {isPatientDeleted && (
+                          <span className="ml-2 text-xs text-red-600 font-normal">
+                            (Patient Deleted)
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(request.status)}</TableCell>
+                      <TableCell>
+                        {new Date(request.requested_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedRequest(request)}
+                                disabled={isPatientDeleted}
+                                title={
+                                  isPatientDeleted
+                                    ? "Cannot view details - patient has been deleted"
+                                    : "View prescription details"
+                                }
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                View
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl max-h-[70vh] overflow-y-auto">
+                              <DialogHeader>
+                                <DialogTitle>Prescription Details</DialogTitle>
+                              </DialogHeader>
+                              {selectedRequest && (
+                                <div className="space-y-4">
+                                  <div className="grid grid-cols-2 gap-3 text-sm">
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        Patient
+                                      </Label>
+                                      <p className="font-medium">
+                                        {selectedRequest.patient_name}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        Medication
+                                      </Label>
+                                      <p className="font-medium">
+                                        {selectedRequest.medication_name}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        DOB
+                                      </Label>
+                                      <p className="text-sm">
+                                        {selectedRequest.date_of_birth}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        Email
+                                      </Label>
+                                      <p className="text-sm">
+                                        {selectedRequest.email}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        Phone
+                                      </Label>
+                                      <p className="text-sm">
+                                        {selectedRequest.phone}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        Dosage
+                                      </Label>
+                                      <p className="text-sm">
+                                        {selectedRequest.dosage}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        Frequency
+                                      </Label>
+                                      <p className="text-sm">
+                                        {selectedRequest.frequency}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        Duration
+                                      </Label>
+                                      <p className="text-sm">
+                                        {selectedRequest.duration}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        Status
+                                      </Label>
+                                      <div className="mt-1">
+                                        {getStatusBadge(selectedRequest.status)}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
 
-                                {selectedRequest.additional_notes && (
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      Additional Notes
-                                    </Label>
-                                    <p className="text-sm mt-1 p-2 bg-gray-50 rounded text-muted-foreground">
-                                      {selectedRequest.additional_notes}
-                                    </p>
-                                  </div>
-                                )}
-
-                                {/* ID Verification Images - Compact */}
-                                {(selectedRequest.id_verification_front ||
-                                  selectedRequest.id_verification_back) && (
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      ID Verification
-                                    </Label>
-                                    <div className="mt-2 flex gap-2">
-                                      {selectedRequest.id_verification_front && (
-                                        <div className="flex-1">
-                                          <p className="text-xs text-gray-500 mb-1">
-                                            Front
-                                          </p>
-                                          <img
-                                            src={getImageUrl(
-                                              selectedRequest.id_verification_front
-                                            )}
-                                            alt="ID Front"
-                                            className="w-full h-20 object-contain rounded border cursor-pointer hover:opacity-80"
-                                            onClick={() =>
-                                              window.open(
-                                                getImageUrl(
-                                                  selectedRequest.id_verification_front
-                                                ),
-                                                "_blank"
-                                              )
-                                            }
-                                            onError={(e) =>
-                                              ((
-                                                e.target as HTMLImageElement
-                                              ).style.display = "none")
-                                            }
-                                          />
-                                        </div>
-                                      )}
-                                      {selectedRequest.id_verification_back && (
-                                        <div className="flex-1">
-                                          <p className="text-xs text-gray-500 mb-1">
-                                            Back
-                                          </p>
-                                          <img
-                                            src={getImageUrl(
-                                              selectedRequest.id_verification_back
-                                            )}
-                                            alt="ID Back"
-                                            className="w-full h-20 object-contain rounded border cursor-pointer hover:opacity-80"
-                                            onClick={() =>
-                                              window.open(
-                                                getImageUrl(
-                                                  selectedRequest.id_verification_back
-                                                ),
-                                                "_blank"
-                                              )
-                                            }
-                                            onError={(e) =>
-                                              ((
-                                                e.target as HTMLImageElement
-                                              ).style.display = "none")
-                                            }
-                                          />
-                                        </div>
-                                      )}
+                                  {selectedRequest.additional_notes && (
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        Additional Notes
+                                      </Label>
+                                      <p className="text-sm mt-1 p-2 bg-gray-50 rounded text-muted-foreground">
+                                        {selectedRequest.additional_notes}
+                                      </p>
                                     </div>
-                                  </div>
-                                )}
+                                  )}
 
-                                {/* Prescription Image - Compact */}
-                                {selectedRequest.prescription_image && (
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      Prescription Image
-                                    </Label>
-                                    <div className="mt-2">
-                                      <img
-                                        src={getImageUrl(
-                                          selectedRequest.prescription_image
-                                        )}
-                                        alt="Prescription"
-                                        className="w-full h-24 object-contain rounded border cursor-pointer hover:opacity-80"
-                                        onClick={() =>
-                                          window.open(
-                                            getImageUrl(
-                                              selectedRequest.prescription_image
-                                            ),
-                                            "_blank"
-                                          )
-                                        }
-                                        onError={(e) =>
-                                          ((
-                                            e.target as HTMLImageElement
-                                          ).style.display = "none")
-                                        }
-                                      />
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Action buttons - simplified */}
-                                {(selectedRequest.status === "pending" ||
-                                  selectedRequest.status ===
-                                    "receptionist_approved") && (
-                                  <div className="flex flex-col gap-2 pt-3 border-t">
-                                    <div className="flex gap-2">
-                                      {currentUserRole === "receptionist" &&
-                                        selectedRequest.status ===
-                                          "pending" && (
-                                          <>
-                                            <Button
+                                  {/* ID Verification Images - Compact */}
+                                  {(selectedRequest.id_verification_front ||
+                                    selectedRequest.id_verification_back) && (
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        ID Verification
+                                      </Label>
+                                      <div className="mt-2 flex gap-2">
+                                        {selectedRequest.id_verification_front && (
+                                          <div className="flex-1">
+                                            <p className="text-xs text-gray-500 mb-1">
+                                              Front
+                                            </p>
+                                            <img
+                                              src={getImageUrl(
+                                                selectedRequest.id_verification_front
+                                              )}
+                                              alt="ID Front"
+                                              className="w-full h-20 object-contain rounded border cursor-pointer hover:opacity-80"
                                               onClick={() =>
-                                                handleApprove(
-                                                  selectedRequest.id,
-                                                  "receptionist_approve"
+                                                window.open(
+                                                  getImageUrl(
+                                                    selectedRequest.id_verification_front
+                                                  ),
+                                                  "_blank"
                                                 )
                                               }
-                                              className="bg-blue-600 hover:bg-blue-700 flex-1"
-                                              size="sm"
-                                            >
-                                              <CheckCircle className="h-4 w-4 mr-1" />
-                                              Approve
-                                            </Button>
-                                            <Button
-                                              variant="destructive"
-                                              onClick={() => {
-                                                if (rejectionReason.trim()) {
-                                                  handleApprove(
-                                                    selectedRequest.id,
-                                                    "reject"
-                                                  );
-                                                } else {
-                                                  toast.error(
-                                                    "Please provide a rejection reason"
-                                                  );
-                                                }
-                                              }}
-                                              size="sm"
-                                              className="flex-1"
-                                            >
-                                              <XCircle className="h-4 w-4 mr-1" />
-                                              Reject
-                                            </Button>
-                                          </>
+                                              onError={(e) =>
+                                                ((
+                                                  e.target as HTMLImageElement
+                                                ).style.display = "none")
+                                              }
+                                            />
+                                          </div>
                                         )}
+                                        {selectedRequest.id_verification_back && (
+                                          <div className="flex-1">
+                                            <p className="text-xs text-gray-500 mb-1">
+                                              Back
+                                            </p>
+                                            <img
+                                              src={getImageUrl(
+                                                selectedRequest.id_verification_back
+                                              )}
+                                              alt="ID Back"
+                                              className="w-full h-20 object-contain rounded border cursor-pointer hover:opacity-80"
+                                              onClick={() =>
+                                                window.open(
+                                                  getImageUrl(
+                                                    selectedRequest.id_verification_back
+                                                  ),
+                                                  "_blank"
+                                                )
+                                              }
+                                              onError={(e) =>
+                                                ((
+                                                  e.target as HTMLImageElement
+                                                ).style.display = "none")
+                                              }
+                                            />
+                                          </div>
+                                        )}
+                                      </div>
                                     </div>
+                                  )}
 
-                                    {/* Doctor approval - Simple button to open separate modal */}
-                                    {currentUserRole === "doctor" &&
-                                      selectedRequest.status ===
-                                        "receptionist_approved" && (
-                                        <div className="space-y-2">
-                                          <Button
-                                            onClick={() =>
-                                              handleShowDoctorApprovalForm(
-                                                selectedRequest
-                                              )
-                                            }
-                                            className="w-full bg-green-600 hover:bg-green-700"
-                                          >
-                                            <Mail className="h-4 w-4 mr-1" />
-                                            Review & Approve Prescription
-                                          </Button>
+                                  {/* Prescription Image - Compact */}
+                                  {selectedRequest.prescription_image && (
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        Prescription Image
+                                      </Label>
+                                      <div className="mt-2">
+                                        <img
+                                          src={getImageUrl(
+                                            selectedRequest.prescription_image
+                                          )}
+                                          alt="Prescription"
+                                          className="w-full h-24 object-contain rounded border cursor-pointer hover:opacity-80"
+                                          onClick={() =>
+                                            window.open(
+                                              getImageUrl(
+                                                selectedRequest.prescription_image
+                                              ),
+                                              "_blank"
+                                            )
+                                          }
+                                          onError={(e) =>
+                                            ((
+                                              e.target as HTMLImageElement
+                                            ).style.display = "none")
+                                          }
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Action buttons - simplified */}
+                                  {(selectedRequest.status === "pending" ||
+                                    selectedRequest.status ===
+                                      "receptionist_approved") && (
+                                    <div className="flex flex-col gap-2 pt-3 border-t">
+                                      {isRequestPatientSoftDeleted(
+                                        selectedRequest
+                                      ) && (
+                                        <div className="text-sm text-red-600 font-medium p-2 bg-red-50 border border-red-200 rounded">
+                                          ⚠️ This patient has been deleted.
+                                          Actions are disabled.
                                         </div>
                                       )}
+                                      <div className="flex gap-2">
+                                        {currentUserRole === "receptionist" &&
+                                          selectedRequest.status ===
+                                            "pending" && (
+                                            <>
+                                              <Button
+                                                onClick={() =>
+                                                  handleApprove(
+                                                    selectedRequest.id,
+                                                    "receptionist_approve"
+                                                  )
+                                                }
+                                                className="bg-blue-600 hover:bg-blue-700 flex-1"
+                                                size="sm"
+                                                disabled={isRequestPatientSoftDeleted(
+                                                  selectedRequest
+                                                )}
+                                                title={
+                                                  isRequestPatientSoftDeleted(
+                                                    selectedRequest
+                                                  )
+                                                    ? "Cannot approve - patient has been deleted"
+                                                    : "Approve prescription request"
+                                                }
+                                              >
+                                                <CheckCircle className="h-4 w-4 mr-1" />
+                                                Approve
+                                              </Button>
+                                              <Button
+                                                variant="destructive"
+                                                onClick={() => {
+                                                  if (rejectionReason.trim()) {
+                                                    handleApprove(
+                                                      selectedRequest.id,
+                                                      "reject"
+                                                    );
+                                                  } else {
+                                                    toast.error(
+                                                      "Please provide a rejection reason"
+                                                    );
+                                                  }
+                                                }}
+                                                size="sm"
+                                                className="flex-1"
+                                                disabled={isRequestPatientSoftDeleted(
+                                                  selectedRequest
+                                                )}
+                                                title={
+                                                  isRequestPatientSoftDeleted(
+                                                    selectedRequest
+                                                  )
+                                                    ? "Cannot reject - patient has been deleted"
+                                                    : "Reject prescription request"
+                                                }
+                                              >
+                                                <XCircle className="h-4 w-4 mr-1" />
+                                                Reject
+                                              </Button>
+                                            </>
+                                          )}
+                                      </div>
 
-                                    {/* Compact rejection reason input */}
-                                    <Textarea
-                                      value={rejectionReason}
-                                      onChange={(e) =>
-                                        setRejectionReason(e.target.value)
-                                      }
-                                      placeholder="Rejection reason (if rejecting)..."
-                                      rows={2}
-                                      className="text-sm"
-                                    />
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                                      {/* Doctor approval - Simple button to open separate modal */}
+                                      {currentUserRole === "doctor" &&
+                                        selectedRequest.status ===
+                                          "receptionist_approved" && (
+                                          <div className="space-y-2">
+                                            <Button
+                                              onClick={() =>
+                                                handleShowDoctorApprovalForm(
+                                                  selectedRequest
+                                                )
+                                              }
+                                              className="w-full bg-green-600 hover:bg-green-700"
+                                              disabled={isRequestPatientSoftDeleted(
+                                                selectedRequest
+                                              )}
+                                              title={
+                                                isRequestPatientSoftDeleted(
+                                                  selectedRequest
+                                                )
+                                                  ? "Cannot review - patient has been deleted"
+                                                  : "Review and approve prescription"
+                                              }
+                                            >
+                                              <Mail className="h-4 w-4 mr-1" />
+                                              Review & Approve Prescription
+                                            </Button>
+                                          </div>
+                                        )}
+
+                                      {/* Compact rejection reason input */}
+                                      <Textarea
+                                        value={rejectionReason}
+                                        onChange={(e) =>
+                                          setRejectionReason(e.target.value)
+                                        }
+                                        placeholder="Rejection reason (if rejecting)..."
+                                        rows={2}
+                                        className="text-sm"
+                                        disabled={isRequestPatientSoftDeleted(
+                                          selectedRequest
+                                        )}
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}

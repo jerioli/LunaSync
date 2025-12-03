@@ -27,6 +27,7 @@ class PatientSerializer(SecureBaseSerializer):
             'medical_info',
             'physical_examination',
             'registration_date',
+            'is_deleted',  # Include soft delete status
         ]
         # Remove json_fields since we're using custom fields now
     

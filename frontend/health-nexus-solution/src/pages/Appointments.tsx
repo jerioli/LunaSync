@@ -21,7 +21,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useBranding } from "@/contexts/BrandingContext";
 import { useClinic } from "@/hooks/useClinicContext";
 import { axiosInstance } from "@/services/api";
-import { getPatientNameFromAppointment } from "@/utils/patientNameUtils";
+import {
+  getPatientNameFromAppointment,
+  isAppointmentPatientSoftDeleted,
+} from "@/utils/patientNameUtils";
 import { Calendar, CalendarCheck, Clock, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -728,6 +731,8 @@ const Appointments = () => {
         ? "Confirming appointment..."
         : status === "cancelled"
         ? "Declining appointment and sending notification..."
+        : status === "no-show"
+        ? "Marking as no-show and sending notification..."
         : "Updating appointment status..."
     );
 
@@ -748,8 +753,16 @@ const Appointments = () => {
         `appointments/update-status/${appointmentId}/`,
         {
           status: status,
-          send_notification: status === "cancelled" || status === "scheduled", // Send notifications for confirm/decline
-          notification_type: status === "cancelled" ? "decline" : "confirm",
+          send_notification:
+            status === "cancelled" ||
+            status === "scheduled" ||
+            status === "no-show", // Send notifications for confirm/decline/no-show
+          notification_type:
+            status === "cancelled"
+              ? "decline"
+              : status === "no-show"
+              ? "no-show"
+              : "confirm",
         }
       );
 
@@ -811,10 +824,32 @@ const Appointments = () => {
             duration: 3000,
           });
         }
+      } else if (status === "no-show") {
+        if (response.data.email_sent && response.data.sms_sent) {
+          toast.success(
+            "📧 Patient marked as no-show. Patient notified via email and SMS.",
+            { duration: 4000 }
+          );
+        } else if (response.data.email_sent) {
+          toast.success(
+            "📧 Patient marked as no-show. Patient notified via email.",
+            { duration: 4000 }
+          );
+        } else if (response.data.sms_sent) {
+          toast.success(
+            "📱 Patient marked as no-show. Patient notified via SMS.",
+            {
+              duration: 4000,
+            }
+          );
+        } else {
+          toast.success("❌ Patient marked as no-show.", {
+            duration: 3000,
+          });
+        }
       } else {
         const statusMessages = {
           completed: "✅ Appointment marked as completed",
-          "no-show": "❌ Patient marked as no-show",
           pending: "⏳ Appointment marked as pending",
           ongoing: "🏥 Patient has been checked in",
         };
@@ -968,6 +1003,24 @@ const Appointments = () => {
 
   // Render action buttons for each appointment
   const renderActionButtons = (appointment) => {
+    // Check if the patient for this appointment is soft-deleted
+    // Use the backend field first, then fallback to local checking
+    const isPatientDeleted =
+      appointment.patient_is_deleted ||
+      isAppointmentPatientSoftDeleted(appointment, [
+        ...(localPatients || []),
+        ...(patients || []),
+      ]);
+
+    // Show warning message if patient is soft deleted
+    if (isPatientDeleted) {
+      return (
+        <div className="flex items-center gap-2 text-amber-600">
+          <span className="text-sm font-medium">⚠️ Patient Deleted</span>
+        </div>
+      );
+    }
+
     if (activeTab === "upcoming" && canManageAppointments) {
       return (
         <div className="flex gap-2">

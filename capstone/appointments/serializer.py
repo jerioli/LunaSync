@@ -44,6 +44,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
     display_doctor_name = serializers.SerializerMethodField(read_only=True)
     display_time = serializers.SerializerMethodField(read_only=True)
     display_date = serializers.SerializerMethodField(read_only=True)
+    patient_is_deleted = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Appointment
@@ -54,7 +55,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
             'appointment_type', 'doctor_id', 'date', 'time',
             'status', 'created_at',
             'display_patient_name', 'display_doctor_name',
-            'display_time', 'display_date'
+            'display_time', 'display_date', 'patient_is_deleted'
         ]
         read_only_fields = ['id', 'created_at']
         extra_kwargs = {
@@ -98,6 +99,16 @@ class AppointmentSerializer(serializers.ModelSerializer):
         except Exception as e:
             logger.error(f"Error formatting date: {str(e)}")
             return "N/A"
+    
+    def get_patient_is_deleted(self, obj):
+        """Get whether the patient for this appointment is soft deleted"""
+        try:
+            if obj.patient:
+                return obj.patient.is_deleted
+            return False
+        except Exception as e:
+            logger.error(f"Error checking patient deletion status: {str(e)}")
+            return False
 
     def to_representation(self, instance):
         try:

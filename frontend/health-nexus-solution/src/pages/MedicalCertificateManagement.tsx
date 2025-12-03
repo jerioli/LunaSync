@@ -1,4 +1,3 @@
-
 import MedicalCertificateGenerator from "@/components/patients/MedicalCertificateGenerator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,6 +34,7 @@ import {
   generateMedicalCertificateHTML,
   MedicalCertificateTemplateData,
 } from "@/utils/medicalCertificateTemplate";
+import { isPatientSoftDeletedById } from "@/utils/patientNameUtils";
 import { format } from "date-fns";
 import {
   ArrowUpDown,
@@ -136,7 +136,7 @@ type SortField =
 type SortDirection = "asc" | "desc";
 
 const MedicalCertificateManagement: React.FC = () => {
-  const { currentUser } = useClinic();
+  const { currentUser, patients } = useClinic();
   const navigate = useNavigate();
   const [requests, setRequests] = useState<MedicalCertificateRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -162,27 +162,27 @@ const MedicalCertificateManagement: React.FC = () => {
     }
     // If it starts with /media/, add the base URL
     if (imagePath.startsWith("/media/")) {
-      const baseUrl = ENV.API_URL.replace('/api', '');
+      const baseUrl = ENV.API_URL.replace("/api", "");
       finalUrl = `${baseUrl}${imagePath}`;
       console.log("Starts with /media/, constructed URL:", finalUrl);
       return finalUrl;
     }
     // If it starts with medical_requests/, add the full path
     if (imagePath.startsWith("medical_requests/")) {
-      const baseUrl = ENV.API_URL.replace('/api', '');
+      const baseUrl = ENV.API_URL.replace("/api", "");
       finalUrl = `${baseUrl}/media/${imagePath}`;
       console.log("Starts with medical_requests/, constructed URL:", finalUrl);
       return finalUrl;
     }
     // If it's just a filename, assume it's in medical_requests folder
     if (!imagePath.includes("/")) {
-      const baseUrl = ENV.API_URL.replace('/api', '');
+      const baseUrl = ENV.API_URL.replace("/api", "");
       finalUrl = `${baseUrl}/media/medical_requests/${imagePath}`;
       console.log("Just filename, constructed URL:", finalUrl);
       return finalUrl;
     }
     // Otherwise, add base URL
-    const baseUrl = ENV.API_URL.replace('/api', '');
+    const baseUrl = ENV.API_URL.replace("/api", "");
     finalUrl = `${baseUrl}${
       imagePath.startsWith("/") ? imagePath : "/" + imagePath
     }`;
@@ -195,10 +195,9 @@ const MedicalCertificateManagement: React.FC = () => {
   const getLogoUrl = (logo: string) => {
     if (!logo) return null;
     if (logo.startsWith("http")) return logo;
-    const baseUrl = ENV.API_URL.replace('/api', '');
+    const baseUrl = ENV.API_URL.replace("/api", "");
     if (logo.startsWith("/media/")) return `${baseUrl}${logo}`;
-    if (logo.startsWith("branding/"))
-      return `${baseUrl}/media/${logo}`;
+    if (logo.startsWith("branding/")) return `${baseUrl}/media/${logo}`;
     return `${baseUrl}${logo}`;
   };
 
@@ -206,9 +205,11 @@ const MedicalCertificateManagement: React.FC = () => {
   const [doctorNotes, setDoctorNotes] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [filterDeliveryMethod, setFilterDeliveryMethod] = useState<string>("all");
+  const [filterDeliveryMethod, setFilterDeliveryMethod] =
+    useState<string>("all");
   const [showCertificateForm, setShowCertificateForm] = useState(false);
-  const [showCertificateGenerator, setShowCertificateGenerator] = useState(false);
+  const [showCertificateGenerator, setShowCertificateGenerator] =
+    useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [clinicInfo, setClinicInfo] = useState<ClinicInfo | null>(null);
   const [doctorInfo, setDoctorInfo] = useState<DoctorInfo | null>(null);
@@ -262,6 +263,19 @@ const MedicalCertificateManagement: React.FC = () => {
     }, 30000); // Refresh every 30 seconds
 
     return () => clearInterval(interval);
+  }, []);
+
+  // Fetch patients to ensure we have the latest patient data including soft delete status
+  useEffect(() => {
+    const fetchPatientsData = async () => {
+      try {
+        const response = await axiosInstance.get("patients/");
+        // The patient data will be automatically updated in the clinic context
+      } catch (error) {
+        console.error("Error fetching patients for soft delete check:", error);
+      }
+    };
+    fetchPatientsData();
   }, []);
 
   const fetchClinicInfo = async () => {
@@ -340,12 +354,14 @@ const MedicalCertificateManagement: React.FC = () => {
     } catch (error) {
       console.error("Error fetching medical certificate requests:", error);
       console.error("Error details:", error.response || error.message);
-      
+
       // Only show error toast for non-authentication errors
       if (error.response?.status !== 401) {
         setRequests([]); // Set empty array on error
-        if (error.code === 'ECONNABORTED') {
-          toast.error("Request timeout. Please check your internet connection and try again.");
+        if (error.code === "ECONNABORTED") {
+          toast.error(
+            "Request timeout. Please check your internet connection and try again."
+          );
         } else {
           toast.error("Failed to load medical certificate requests");
         }
@@ -413,7 +429,8 @@ const MedicalCertificateManagement: React.FC = () => {
         filterStatus === "all" || request.status === filterStatus;
 
       const matchesDeliveryMethod =
-        filterDeliveryMethod === "all" || request.delivery_method === filterDeliveryMethod;
+        filterDeliveryMethod === "all" ||
+        request.delivery_method === filterDeliveryMethod;
 
       return matchesSearch && matchesStatus && matchesDeliveryMethod;
     })
@@ -432,7 +449,13 @@ const MedicalCertificateManagement: React.FC = () => {
   // Reset current page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, filterStatus, filterDeliveryMethod, sortField, sortDirection]);
+  }, [
+    searchQuery,
+    filterStatus,
+    filterDeliveryMethod,
+    sortField,
+    sortDirection,
+  ]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -446,48 +469,55 @@ const MedicalCertificateManagement: React.FC = () => {
   const fetchPatientData = async (patientName: string, dateOfBirth: string) => {
     try {
       // Try to fetch patient by name and date of birth
-      const response = await axiosInstance.get('/patients/', {
+      const response = await axiosInstance.get("/patients/", {
         params: {
           search: patientName,
-          date_of_birth: dateOfBirth
-        }
+          date_of_birth: dateOfBirth,
+        },
       });
-      
+
       if (response.data && response.data.length > 0) {
         // Find the best match
-        const patient = response.data.find((p: any) => 
-          p.name.toLowerCase() === patientName.toLowerCase() && 
-          p.date_of_birth === dateOfBirth
-        ) || response.data[0];
-        
+        const patient =
+          response.data.find(
+            (p: any) =>
+              p.name.toLowerCase() === patientName.toLowerCase() &&
+              p.date_of_birth === dateOfBirth
+          ) || response.data[0];
+
         return patient;
       }
     } catch (error) {
-      console.error('Error fetching patient data:', error);
+      console.error("Error fetching patient data:", error);
     }
-    
+
     // If no patient found, create a mock patient object with available data
     return {
       name: patientName,
       date_of_birth: dateOfBirth,
-      email: '',
-      phone: '',
-      gender: '',
-      address: '',
-      id: null
+      email: "",
+      phone: "",
+      gender: "",
+      address: "",
+      id: null,
     };
   };
 
-  const handleCreateCertificate = async (request: MedicalCertificateRequest) => {
+  const handleCreateCertificate = async (
+    request: MedicalCertificateRequest
+  ) => {
     try {
       // Fetch full patient data
-      const patientData = await fetchPatientData(request.patient_name, request.date_of_birth);
-      
+      const patientData = await fetchPatientData(
+        request.patient_name,
+        request.date_of_birth
+      );
+
       setCurrentPatient(patientData);
       setSelectedRequest(request);
       setShowCertificateGenerator(true);
     } catch (error) {
-      console.error('Error preparing certificate generation:', error);
+      console.error("Error preparing certificate generation:", error);
       toast.error("Failed to load patient data for certificate generation");
     }
   };
@@ -497,7 +527,7 @@ const MedicalCertificateManagement: React.FC = () => {
 
     try {
       setLoading(true);
-      
+
       // Update the request with certificate content
       const response = await axiosInstance.post(
         `/medical-certificates/${selectedRequest.id}/approve/`,
@@ -511,7 +541,7 @@ const MedicalCertificateManagement: React.FC = () => {
 
       toast.success("Certificate generated and sent successfully");
       setShowCertificateGenerator(false);
-      
+
       // Refresh the requests list to show updated data
       setTimeout(() => {
         fetchRequests();
@@ -712,6 +742,30 @@ const MedicalCertificateManagement: React.FC = () => {
 
   const currentUserRole = currentUser?.role;
 
+  // Helper function to check if a patient is soft-deleted based on name and DOB
+  const isRequestPatientSoftDeleted = (
+    request: MedicalCertificateRequest
+  ): boolean => {
+    if (!Array.isArray(patients) || patients.length === 0) {
+      return false;
+    }
+
+    // Find the patient by name and date of birth
+    const patient = patients.find((p) => {
+      // Compare name (handle various name formats)
+      const patientName = (p.name || "").toLowerCase().trim();
+      const requestName = (request.patient_name || "").toLowerCase().trim();
+
+      // Compare date of birth
+      const patientDOB = p.date_of_birth;
+      const requestDOB = request.date_of_birth;
+
+      return patientName === requestName && patientDOB === requestDOB;
+    });
+
+    return patient?.is_deleted === true;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -729,7 +783,6 @@ const MedicalCertificateManagement: React.FC = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              
               <p className="text-sm text-muted-foreground mt-1">
                 Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{" "}
                 {totalItems} medical certificate requests
@@ -770,7 +823,10 @@ const MedicalCertificateManagement: React.FC = () => {
                 </SelectContent>
               </Select>
 
-              <Select value={filterDeliveryMethod} onValueChange={setFilterDeliveryMethod}>
+              <Select
+                value={filterDeliveryMethod}
+                onValueChange={setFilterDeliveryMethod}
+              >
                 <SelectTrigger className="w-[200px]">
                   <SelectValue />
                 </SelectTrigger>
@@ -823,7 +879,9 @@ const MedicalCertificateManagement: React.FC = () => {
           ) : totalItems === 0 ? (
             <div className="text-center py-8">
               <div className="text-muted-foreground">
-                {searchQuery || filterStatus !== "all" || filterDeliveryMethod !== "all" ? (
+                {searchQuery ||
+                filterStatus !== "all" ||
+                filterDeliveryMethod !== "all" ? (
                   <>
                     <p className="text-lg font-medium">
                       No medical certificate requests found
@@ -912,289 +970,370 @@ const MedicalCertificateManagement: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredRequests.map((request) => (
-                  <TableRow key={request.id}>
-                    <TableCell className="font-medium">
-                      {request.patient_name}
-                    </TableCell>
-                    <TableCell>
-                      {getRequestTypeLabel(request.request_type)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={request.delivery_method === 'pickup' ? 'default' : 'secondary'}>
-                        {request.delivery_method === 'pickup' ? 'Pickup' : 'Email'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{request.email}</TableCell>
-                    <TableCell>{getStatusBadge(request.status)}</TableCell>
-                    <TableCell>
-                      {new Date(request.requested_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedRequest(request)}
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              View
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-2xl max-h-[70vh] overflow-y-auto">
-                            <DialogHeader>
-                              <DialogTitle>Request Details</DialogTitle>
-                            </DialogHeader>
-                            {selectedRequest && (
-                              <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-3 text-sm">
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      Patient
-                                    </Label>
-                                    <p className="font-medium">
-                                      {selectedRequest.patient_name}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      Type
-                                    </Label>
-                                    <p className="font-medium">
-                                      {getRequestTypeLabel(
-                                        selectedRequest.request_type
-                                      )}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      DOB
-                                    </Label>
-                                    <p className="text-sm">
-                                      {selectedRequest.date_of_birth}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      Email
-                                    </Label>
-                                    <p className="text-sm">
-                                      {selectedRequest.email}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      Phone
-                                    </Label>
-                                    <p className="text-sm">
-                                      {selectedRequest.phone}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      Status
-                                    </Label>
-                                    <div className="mt-1">
-                                      {getStatusBadge(selectedRequest.status)}
+                {filteredRequests.map((request) => {
+                  const isPatientDeleted = isRequestPatientSoftDeleted(request);
+
+                  return (
+                    <TableRow key={request.id}>
+                      <TableCell className="font-medium">
+                        {request.patient_name}
+                        {isPatientDeleted && (
+                          <span className="ml-2 text-xs text-red-600 font-normal">
+                            (Patient Deleted)
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {getRequestTypeLabel(request.request_type)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            request.delivery_method === "pickup"
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
+                          {request.delivery_method === "pickup"
+                            ? "Pickup"
+                            : "Email"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{request.email}</TableCell>
+                      <TableCell>{getStatusBadge(request.status)}</TableCell>
+                      <TableCell>
+                        {new Date(request.requested_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedRequest(request)}
+                                disabled={isPatientDeleted}
+                                title={
+                                  isPatientDeleted
+                                    ? "Cannot view details - patient has been deleted"
+                                    : "View request details"
+                                }
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                View
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl max-h-[70vh] overflow-y-auto">
+                              <DialogHeader>
+                                <DialogTitle>Request Details</DialogTitle>
+                              </DialogHeader>
+                              {selectedRequest && (
+                                <div className="space-y-4">
+                                  <div className="grid grid-cols-2 gap-3 text-sm">
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        Patient
+                                      </Label>
+                                      <p className="font-medium">
+                                        {selectedRequest.patient_name}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        Type
+                                      </Label>
+                                      <p className="font-medium">
+                                        {getRequestTypeLabel(
+                                          selectedRequest.request_type
+                                        )}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        DOB
+                                      </Label>
+                                      <p className="text-sm">
+                                        {selectedRequest.date_of_birth}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        Email
+                                      </Label>
+                                      <p className="text-sm">
+                                        {selectedRequest.email}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        Phone
+                                      </Label>
+                                      <p className="text-sm">
+                                        {selectedRequest.phone}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        Status
+                                      </Label>
+                                      <div className="mt-1">
+                                        {getStatusBadge(selectedRequest.status)}
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        Delivery Method
+                                      </Label>
+                                      <div className="mt-1">
+                                        <Badge
+                                          variant={
+                                            selectedRequest.delivery_method ===
+                                            "pickup"
+                                              ? "default"
+                                              : "secondary"
+                                          }
+                                        >
+                                          {selectedRequest.delivery_method ===
+                                          "pickup"
+                                            ? "Pickup from Clinic"
+                                            : "Send via Email"}
+                                        </Badge>
+                                      </div>
                                     </div>
                                   </div>
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      Delivery Method
-                                    </Label>
-                                    <div className="mt-1">
-                                      <Badge variant={selectedRequest.delivery_method === 'pickup' ? 'default' : 'secondary'}>
-                                        {selectedRequest.delivery_method === 'pickup' ? 'Pickup from Clinic' : 'Send via Email'}
-                                      </Badge>
+
+                                  {selectedRequest.additional_info && (
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        Additional Info
+                                      </Label>
+                                      <p className="text-sm mt-1 p-2 bg-gray-50 rounded text-muted-foreground">
+                                        {selectedRequest.additional_info}
+                                      </p>
                                     </div>
-                                  </div>
-                                </div>
+                                  )}
 
-                                {selectedRequest.additional_info && (
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      Additional Info
-                                    </Label>
-                                    <p className="text-sm mt-1 p-2 bg-gray-50 rounded text-muted-foreground">
-                                      {selectedRequest.additional_info}
-                                    </p>
-                                  </div>
-                                )}
-
-                                {/* ID Verification Images - Compact version */}
-                                {(selectedRequest.id_verification_front ||
-                                  selectedRequest.id_verification_back) && (
-                                  <div>
-                                    <Label className="font-medium text-xs text-muted-foreground">
-                                      ID Verification
-                                    </Label>
-                                    <div className="mt-2 flex gap-2">
-                                      {selectedRequest.id_verification_front && (
-                                        <div className="flex-1">
-                                          <p className="text-xs text-gray-500 mb-1">
-                                            Front
-                                          </p>
-                                          <img
-                                            src={getImageUrl(
-                                              selectedRequest.id_verification_front
-                                            )}
-                                            alt="ID Front"
-                                            className="w-full h-20 object-contain rounded border cursor-pointer hover:opacity-80"
-                                            onClick={() =>
-                                              window.open(
-                                                getImageUrl(
-                                                  selectedRequest.id_verification_front
-                                                ),
-                                                "_blank"
-                                              )
-                                            }
-                                            onError={(e) =>
-                                              ((
-                                                e.target as HTMLImageElement
-                                              ).style.display = "none")
-                                            }
-                                          />
-                                        </div>
-                                      )}
-                                      {selectedRequest.id_verification_back && (
-                                        <div className="flex-1">
-                                          <p className="text-xs text-gray-500 mb-1">
-                                            Back
-                                          </p>
-                                          <img
-                                            src={getImageUrl(
-                                              selectedRequest.id_verification_back
-                                            )}
-                                            alt="ID Back"
-                                            className="w-full h-20 object-contain rounded border cursor-pointer hover:opacity-80"
-                                            onClick={() =>
-                                              window.open(
-                                                getImageUrl(
-                                                  selectedRequest.id_verification_back
-                                                ),
-                                                "_blank"
-                                              )
-                                            }
-                                            onError={(e) =>
-                                              ((
-                                                e.target as HTMLImageElement
-                                              ).style.display = "none")
-                                            }
-                                          />
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Action buttons - simplified */}
-                                {(selectedRequest.status === "pending" ||
-                                  selectedRequest.status ===
-                                    "receptionist_approved") && (
-                                  <div className="flex flex-col gap-2 pt-3 border-t">
-                                    <div className="flex gap-2">
-                                      {currentUserRole === "receptionist" &&
-                                        selectedRequest.status ===
-                                          "pending" && (
-                                          <>
-                                            <Button
+                                  {/* ID Verification Images - Compact version */}
+                                  {(selectedRequest.id_verification_front ||
+                                    selectedRequest.id_verification_back) && (
+                                    <div>
+                                      <Label className="font-medium text-xs text-muted-foreground">
+                                        ID Verification
+                                      </Label>
+                                      <div className="mt-2 flex gap-2">
+                                        {selectedRequest.id_verification_front && (
+                                          <div className="flex-1">
+                                            <p className="text-xs text-gray-500 mb-1">
+                                              Front
+                                            </p>
+                                            <img
+                                              src={getImageUrl(
+                                                selectedRequest.id_verification_front
+                                              )}
+                                              alt="ID Front"
+                                              className="w-full h-20 object-contain rounded border cursor-pointer hover:opacity-80"
                                               onClick={() =>
-                                                handleApprove(
-                                                  selectedRequest.id,
-                                                  "receptionist_approve"
+                                                window.open(
+                                                  getImageUrl(
+                                                    selectedRequest.id_verification_front
+                                                  ),
+                                                  "_blank"
                                                 )
                                               }
-                                              className="bg-blue-600 hover:bg-blue-700 flex-1"
-                                              size="sm"
-                                            >
-                                              <CheckCircle className="h-4 w-4 mr-1" />
-                                              Approve
-                                            </Button>
-                                            <Button
-                                              variant="destructive"
-                                              onClick={() => {
-                                                if (rejectionReason.trim()) {
+                                              onError={(e) =>
+                                                ((
+                                                  e.target as HTMLImageElement
+                                                ).style.display = "none")
+                                              }
+                                            />
+                                          </div>
+                                        )}
+                                        {selectedRequest.id_verification_back && (
+                                          <div className="flex-1">
+                                            <p className="text-xs text-gray-500 mb-1">
+                                              Back
+                                            </p>
+                                            <img
+                                              src={getImageUrl(
+                                                selectedRequest.id_verification_back
+                                              )}
+                                              alt="ID Back"
+                                              className="w-full h-20 object-contain rounded border cursor-pointer hover:opacity-80"
+                                              onClick={() =>
+                                                window.open(
+                                                  getImageUrl(
+                                                    selectedRequest.id_verification_back
+                                                  ),
+                                                  "_blank"
+                                                )
+                                              }
+                                              onError={(e) =>
+                                                ((
+                                                  e.target as HTMLImageElement
+                                                ).style.display = "none")
+                                              }
+                                            />
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Action buttons - simplified */}
+                                  {(selectedRequest.status === "pending" ||
+                                    selectedRequest.status ===
+                                      "receptionist_approved") && (
+                                    <div className="flex flex-col gap-2 pt-3 border-t">
+                                      {isRequestPatientSoftDeleted(
+                                        selectedRequest
+                                      ) && (
+                                        <div className="text-sm text-red-600 font-medium p-2 bg-red-50 border border-red-200 rounded">
+                                          ⚠️ This patient has been deleted.
+                                          Actions are disabled.
+                                        </div>
+                                      )}
+                                      <div className="flex gap-2">
+                                        {currentUserRole === "receptionist" &&
+                                          selectedRequest.status ===
+                                            "pending" && (
+                                            <>
+                                              <Button
+                                                onClick={() =>
                                                   handleApprove(
                                                     selectedRequest.id,
-                                                    "reject"
-                                                  );
-                                                } else {
-                                                  toast.error(
-                                                    "Please provide a rejection reason"
-                                                  );
+                                                    "receptionist_approve"
+                                                  )
                                                 }
-                                              }}
-                                              size="sm"
-                                              className="flex-1"
-                                            >
-                                              <XCircle className="h-4 w-4 mr-1" />
-                                              Reject
-                                            </Button>
-                                          </>
-                                        )}
-
-                                      {currentUserRole === "doctor" &&
-                                        selectedRequest.status ===
-                                          "receptionist_approved" && (
-                                          <>
-                                            <Button
-                                              onClick={() =>
-                                                handleCreateCertificate(
+                                                className="bg-blue-600 hover:bg-blue-700 flex-1"
+                                                size="sm"
+                                                disabled={isRequestPatientSoftDeleted(
                                                   selectedRequest
-                                                )
-                                              }
-                                              className="bg-blue-600 hover:bg-blue-700 flex-1"
-                                              size="sm"
-                                            >
-                                              <FileText className="h-4 w-4 mr-1" />
-                                              Generate Certificate
-                                            </Button>
-                                            <Button
-                                              variant="destructive"
-                                              onClick={() => {
-                                                if (rejectionReason.trim()) {
-                                                  handleApprove(
-                                                    selectedRequest.id,
-                                                    "reject"
-                                                  );
-                                                } else {
-                                                  toast.error(
-                                                    "Please provide a rejection reason"
-                                                  );
+                                                )}
+                                                title={
+                                                  isRequestPatientSoftDeleted(
+                                                    selectedRequest
+                                                  )
+                                                    ? "Cannot approve - patient has been deleted"
+                                                    : "Approve request"
                                                 }
-                                              }}
-                                              size="sm"
-                                              className="flex-1"
-                                            >
-                                              <XCircle className="h-4 w-4 mr-1" />
-                                              Reject
-                                            </Button>
-                                          </>
-                                        )}
-                                    </div>
+                                              >
+                                                <CheckCircle className="h-4 w-4 mr-1" />
+                                                Approve
+                                              </Button>
+                                              <Button
+                                                variant="destructive"
+                                                onClick={() => {
+                                                  if (rejectionReason.trim()) {
+                                                    handleApprove(
+                                                      selectedRequest.id,
+                                                      "reject"
+                                                    );
+                                                  } else {
+                                                    toast.error(
+                                                      "Please provide a rejection reason"
+                                                    );
+                                                  }
+                                                }}
+                                                size="sm"
+                                                className="flex-1"
+                                                disabled={isRequestPatientSoftDeleted(
+                                                  selectedRequest
+                                                )}
+                                                title={
+                                                  isRequestPatientSoftDeleted(
+                                                    selectedRequest
+                                                  )
+                                                    ? "Cannot reject - patient has been deleted"
+                                                    : "Reject request"
+                                                }
+                                              >
+                                                <XCircle className="h-4 w-4 mr-1" />
+                                                Reject
+                                              </Button>
+                                            </>
+                                          )}
 
-                                    {/* Compact rejection reason input */}
-                                    <Textarea
-                                      value={rejectionReason}
-                                      onChange={(e) =>
-                                        setRejectionReason(e.target.value)
-                                      }
-                                      placeholder="Rejection reason (if rejecting)..."
-                                      rows={2}
-                                      className="text-sm"
-                                    />
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                                        {currentUserRole === "doctor" &&
+                                          selectedRequest.status ===
+                                            "receptionist_approved" && (
+                                            <>
+                                              <Button
+                                                onClick={() =>
+                                                  handleCreateCertificate(
+                                                    selectedRequest
+                                                  )
+                                                }
+                                                className="bg-blue-600 hover:bg-blue-700 flex-1"
+                                                size="sm"
+                                                disabled={isRequestPatientSoftDeleted(
+                                                  selectedRequest
+                                                )}
+                                                title={
+                                                  isRequestPatientSoftDeleted(
+                                                    selectedRequest
+                                                  )
+                                                    ? "Cannot generate certificate - patient has been deleted"
+                                                    : "Generate medical certificate"
+                                                }
+                                              >
+                                                <FileText className="h-4 w-4 mr-1" />
+                                                Generate Certificate
+                                              </Button>
+                                              <Button
+                                                variant="destructive"
+                                                onClick={() => {
+                                                  if (rejectionReason.trim()) {
+                                                    handleApprove(
+                                                      selectedRequest.id,
+                                                      "reject"
+                                                    );
+                                                  } else {
+                                                    toast.error(
+                                                      "Please provide a rejection reason"
+                                                    );
+                                                  }
+                                                }}
+                                                size="sm"
+                                                className="flex-1"
+                                                disabled={isRequestPatientSoftDeleted(
+                                                  selectedRequest
+                                                )}
+                                                title={
+                                                  isRequestPatientSoftDeleted(
+                                                    selectedRequest
+                                                  )
+                                                    ? "Cannot reject - patient has been deleted"
+                                                    : "Reject request"
+                                                }
+                                              >
+                                                <XCircle className="h-4 w-4 mr-1" />
+                                                Reject
+                                              </Button>
+                                            </>
+                                          )}
+                                      </div>
+
+                                      {/* Compact rejection reason input */}
+                                      <Textarea
+                                        value={rejectionReason}
+                                        onChange={(e) =>
+                                          setRejectionReason(e.target.value)
+                                        }
+                                        placeholder="Rejection reason (if rejecting)..."
+                                        rows={2}
+                                        className="text-sm"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
@@ -1489,12 +1628,15 @@ const MedicalCertificateManagement: React.FC = () => {
       </Dialog>
 
       {/* Medical Certificate Generator Dialog */}
-      <Dialog open={showCertificateGenerator} onOpenChange={setShowCertificateGenerator}>
+      <Dialog
+        open={showCertificateGenerator}
+        onOpenChange={setShowCertificateGenerator}
+      >
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>Generate Medical Certificate</DialogTitle>
           </DialogHeader>
-          
+
           {currentPatient && (
             <div className="overflow-y-auto max-h-[80vh]">
               <MedicalCertificateGenerator

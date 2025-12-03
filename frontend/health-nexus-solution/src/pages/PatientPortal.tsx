@@ -5293,14 +5293,14 @@ const PatientPortal = () => {
                               htmlFor="email"
                               className="text-sm text-gray-700"
                             >
-                              Receive via email
+                              Receive an e-medical certificate
                             </label>
                           </div>
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
                           {medCertDeliveryMethod === "pickup"
                             ? "You will be notified when your medical certificate is ready for pickup"
-                            : "Medical certificate will be sent to your registered email address"}
+                            : "An e-medical certificate will be sent to your registered email address"}
                         </div>
                       </div>
                     </div>
@@ -5425,7 +5425,7 @@ const PatientPortal = () => {
                       <p>
                         {medCertDeliveryMethod === "pickup"
                           ? "Pick up at clinic"
-                          : "Receive via email"}
+                          : "Receive an e-medical certificate"}
                       </p>
                     </div>
                     <div>

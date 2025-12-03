@@ -13,7 +13,55 @@ export interface PatientNameData {
   fullName?: string;
   patient_name?: string;
   display_patient_name?: string;
+  is_deleted?: boolean;
 }
+
+/**
+ * Checks if a patient is soft-deleted
+ */
+export const isPatientSoftDeleted = (patient: any): boolean => {
+  // Check if the patient object has the is_deleted field and it's true
+  return Boolean(patient?.is_deleted);
+};
+
+/**
+ * Finds a patient by ID from a list of patients and checks if they're soft-deleted
+ */
+export const isPatientSoftDeletedById = (patientId: any, patients: any[]): boolean => {
+  if (!patientId || !Array.isArray(patients)) {
+    return false;
+  }
+
+  // Find the patient in the list
+  const patient = patients.find(p => 
+    String(p.id) === String(patientId) || 
+    p.id === patientId
+  );
+
+  return isPatientSoftDeleted(patient);
+};
+
+/**
+ * Gets patient from appointment and checks if they're soft-deleted
+ */
+export const isAppointmentPatientSoftDeleted = (appointment: any, patients: any[]): boolean => {
+  // If appointment has a patient object directly
+  if (appointment?.patient && typeof appointment.patient === 'object') {
+    return isPatientSoftDeleted(appointment.patient);
+  }
+
+  // If appointment has a patient ID, find the patient in the list
+  if (appointment?.patientId) {
+    return isPatientSoftDeletedById(appointment.patientId, patients);
+  }
+
+  // If appointment has a patient field that's an ID
+  if (appointment?.patient && (typeof appointment.patient === 'string' || typeof appointment.patient === 'number')) {
+    return isPatientSoftDeletedById(appointment.patient, patients);
+  }
+
+  return false;
+};
 
 /**
  * Formats a patient name with only the middle initial (first letter + dot)
