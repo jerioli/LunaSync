@@ -34040,3 +34040,71 @@ Traceback (most recent call last):
 django.db.utils.OperationalError: no such column: Users.is_default_account
 2025-12-04 05:18:52,920 - django.server - ERROR - "GET /api/medical-certificates/?_t=1764796732065 HTTP/1.1" 500 191478
 2025-12-04 05:18:52,922 - django.server - ERROR - "GET /api/medical-certificates/?_t=1764796732060 HTTP/1.1" 500 191340
+2025-12-04 05:19:35,662 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796775345 HTTP/1.1" 200 0
+2025-12-04 05:19:36,052 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:19:36,086 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796775345 HTTP/1.1" 200 47027
+2025-12-04 05:19:45,055 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796785049 HTTP/1.1" 200 0
+2025-12-04 05:19:45,062 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:19:45,069 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796785049 HTTP/1.1" 200 47027
+2025-12-04 05:19:52,371 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796792055 HTTP/1.1" 200 0
+2025-12-04 05:19:52,680 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:19:52,688 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796792055 HTTP/1.1" 200 47027
+2025-12-04 05:20:15,364 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796815053 HTTP/1.1" 200 0
+2025-12-04 05:20:15,674 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:20:15,679 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796815053 HTTP/1.1" 200 47027
+2025-12-04 05:20:52,357 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796852050 HTTP/1.1" 200 0
+2025-12-04 05:20:52,381 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796852062 HTTP/1.1" 200 0
+2025-12-04 05:20:52,668 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:20:52,677 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796852050 HTTP/1.1" 200 47027
+2025-12-04 05:20:52,693 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:20:52,698 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796852062 HTTP/1.1" 200 47027
+2025-12-04 05:21:33,541 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796893216 HTTP/1.1" 200 0
+2025-12-04 05:21:33,852 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:21:33,867 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796893216 HTTP/1.1" 200 47027
+2025-12-04 05:21:45,048 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796905042 HTTP/1.1" 200 0
+2025-12-04 05:21:45,057 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:21:45,066 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796905042 HTTP/1.1" 200 47027
+2025-12-04 05:21:52,364 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796912045 HTTP/1.1" 200 0
+2025-12-04 05:21:52,688 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:21:52,695 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796912045 HTTP/1.1" 200 47027
+2025-12-04 05:22:15,063 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796935057 HTTP/1.1" 200 0
+2025-12-04 05:22:15,072 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:22:15,082 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796935057 HTTP/1.1" 200 47027
+2025-12-04 05:22:45,366 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796965054 HTTP/1.1" 200 0
+2025-12-04 05:22:45,699 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:22:45,720 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796965054 HTTP/1.1" 200 47027
+2025-12-04 05:22:52,371 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764796972057 HTTP/1.1" 200 0
+2025-12-04 05:22:52,703 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:22:52,721 - django.server - INFO - "GET /api/medical-certificates/?_t=1764796972057 HTTP/1.1" 200 47027
+2025-12-04 05:23:34,185 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\accounts\migrations\0021_restrict_default_superadmin.py changed, reloading.
+INFO 2025-12-04 05:23:35,762 autoreload 27552 16820 Watching for file changes with StatReloader
+2025-12-04 05:23:52,365 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764797032050 HTTP/1.1" 200 0
+2025-12-04 05:23:52,368 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764797032054 HTTP/1.1" 200 0
+2025-12-04 05:23:52,707 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:23:52,707 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:23:52,722 - django.server - INFO - "GET /api/medical-certificates/?_t=1764797032054 HTTP/1.1" 200 47027
+2025-12-04 05:23:52,733 - django.server - INFO - "GET /api/medical-certificates/?_t=1764797032050 HTTP/1.1" 200 47027
+2025-12-04 05:24:32,755 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764797072444 HTTP/1.1" 200 0
+2025-12-04 05:24:33,068 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:24:33,075 - django.server - INFO - "GET /api/medical-certificates/?_t=1764797072444 HTTP/1.1" 200 47027
+2025-12-04 05:24:44,079 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764797084076 HTTP/1.1" 200 0
+2025-12-04 05:24:44,085 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:24:44,093 - django.server - INFO - "GET /api/medical-certificates/?_t=1764797084076 HTTP/1.1" 200 47027
+2025-12-04 05:24:52,366 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764797092053 HTTP/1.1" 200 0
+2025-12-04 05:24:52,678 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:24:52,685 - django.server - INFO - "GET /api/medical-certificates/?_t=1764797092053 HTTP/1.1" 200 47027
+2025-12-04 05:25:15,051 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764797115048 HTTP/1.1" 200 0
+2025-12-04 05:25:15,057 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:25:15,064 - django.server - INFO - "GET /api/medical-certificates/?_t=1764797115048 HTTP/1.1" 200 47027
+2025-12-04 05:25:45,374 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764797145054 HTTP/1.1" 200 0
+2025-12-04 05:25:45,709 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:25:45,721 - django.server - INFO - "GET /api/medical-certificates/?_t=1764797145054 HTTP/1.1" 200 47027
+2025-12-04 05:25:52,383 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764797152063 HTTP/1.1" 200 0
+2025-12-04 05:25:52,694 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 05:25:52,703 - django.server - INFO - "GET /api/medical-certificates/?_t=1764797152063 HTTP/1.1" 200 47027
+2025-12-04 05:26:06,131 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\accounts\migrations\0021_restrict_default_superadmin.py changed, reloading.
+INFO 2025-12-04 05:26:07,711 autoreload 30392 18228 Watching for file changes with StatReloader
+2025-12-04 05:26:19,028 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\accounts\models.py changed, reloading.
+INFO 2025-12-04 05:26:20,244 autoreload 25288 2052 Watching for file changes with StatReloader
+2025-12-04 05:26:35,261 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\accounts\migrations\0021_restrict_default_superadmin.py changed, reloading.
+INFO 2025-12-04 05:26:36,749 autoreload 23548 5860 Watching for file changes with StatReloader

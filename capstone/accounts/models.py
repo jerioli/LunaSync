@@ -51,21 +51,20 @@ class CustomUser(AbstractUser):
     def is_restricted_default_account(self):
         """
         Check if this is a default/system account that should have restricted access.
-        Default accounts are not allowed to access sensitive superadmin features.
+        Note: Default superadmin now has full access, so this only restricts other default accounts.
         """
-        return self.is_default_account or (
-            self.role == 'superadmin' and 
-            self.username.lower() in ['superadmin', 'admin', 'default_admin', 'default_superadmin']
+        return (
+            self.is_default_account and 
+            self.role != 'superadmin'  # Don't restrict default superadmin
         )
     
     def can_access_superadmin_features(self):
         """
         Check if this user can access true superadmin features.
-        Only non-default superadmin accounts can access these features.
+        Default superadmin now has full access to all superadmin features.
         """
         return (
             self.role == 'superadmin' and 
-            not self.is_restricted_default_account() and
             self.can_manage_permissions and 
             self.can_view_audit_logs
         )
