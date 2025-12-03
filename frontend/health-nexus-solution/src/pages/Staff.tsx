@@ -862,7 +862,7 @@ const StaffPage = () => {
                     <option value="doctor">Doctor</option>
                     <option value="receptionist">Receptionist</option>
                     <option value="admin">Admin</option>
-                    {currentUser?.role === "superadmin" && (
+                    {(currentUser?.role === "superadmin" || currentUser?.role === "admin") && (
                       <option value="superadmin">Super Admin</option>
                     )}
                   </select>

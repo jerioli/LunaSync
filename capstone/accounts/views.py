@@ -49,6 +49,9 @@ class StaffCreateView(APIView):
     permission_classes = [IsAuthenticated]
     
     def post(self, request):
+        # Debug: Print incoming request data
+        print(f"[DEBUG] StaffCreateView - Received data: {request.data}")
+        
         # Check if user has permission to manage staff, is an admin, or is a superadmin
         if not (request.user.can_manage_staff or request.user.role in ['admin', 'superadmin']):
             return Response({
@@ -56,15 +59,16 @@ class StaffCreateView(APIView):
                 'message': 'You do not have permission to create staff members'
             }, status=status.HTTP_403_FORBIDDEN)
             
-        # Prevent non-superadmins from creating superadmin users
-        if request.data.get('role') == 'superadmin' and request.user.role != 'superadmin':
+        # Allow both superadmins and admins to create superadmin users
+        if request.data.get('role') == 'superadmin' and request.user.role not in ['superadmin', 'admin']:
             return Response({
                 'error': 'Permission denied',
-                'message': 'Only superadmins can create superadmin users'
+                'message': 'Only superadmins and admins can create superadmin users'
             }, status=status.HTTP_403_FORBIDDEN)
             
         serializer = CustomUserSerializer(data=request.data)
         if serializer.is_valid():
+            print(f"[DEBUG] StaffCreateView - Serializer is valid")
             user = serializer.save()
             
             # Set force_password_change to True for new staff
@@ -212,6 +216,8 @@ Best regards,
                     print(f"Failed to send activation email: {e}")
             
             return Response({'message': 'Staff member created successfully!'}, status=status.HTTP_201_CREATED)
+        
+        print(f"[DEBUG] StaffCreateView - Serializer errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 @method_decorator(csrf_exempt, name='dispatch')
@@ -380,12 +386,12 @@ class StaffPermissionsView(APIView):
                 'message': 'You do not have permission to modify permissions'
             }, status=status.HTTP_403_FORBIDDEN)
         user = get_object_or_404(CustomUser, id=user_id)
-        # Prevent modifying superadmin permissions unless requester is superadmin
-        if user.role == 'superadmin' and request.user.role != 'superadmin':
-            print("[DEBUG] PATCH Permission denied: only superadmin can modify superadmin permissions")
+        # Allow both superadmins and admins to modify superadmin permissions
+        if user.role == 'superadmin' and request.user.role not in ['superadmin', 'admin']:
+            print("[DEBUG] PATCH Permission denied: only superadmin and admin can modify superadmin permissions")
             return Response({
                 'error': 'Permission denied',
-                'message': 'Only superadmins can modify superadmin permissions'
+                'message': 'Only superadmins and admins can modify superadmin permissions'
             }, status=status.HTTP_403_FORBIDDEN)
         
         # Store old permissions for audit log
@@ -615,12 +621,12 @@ class UserProfileUpdateView(APIView):
                 'error': 'Permission denied',
                 'message': 'You do not have permission to create staff members'
             }, status=status.HTTP_403_FORBIDDEN)
-        # Prevent non-superadmins from creating superadmin users
-        if request.data.get('role') == 'superadmin' and request.user.role != 'superadmin':
-            print("[DEBUG] POST Permission denied: only superadmin can create superadmin users")
+        # Allow both superadmins and admins to create superadmin users
+        if request.data.get('role') == 'superadmin' and request.user.role not in ['superadmin', 'admin']:
+            print("[DEBUG] POST Permission denied: only superadmin and admin can create superadmin users")
             return Response({
                 'error': 'Permission denied',
-                'message': 'Only superadmins can create superadmin users'
+                'message': 'Only superadmins and admins can create superadmin users'
             }, status=status.HTTP_403_FORBIDDEN)
         
         # This view appears to be incomplete - proper implementation needed

@@ -61,6 +61,12 @@ class CustomUserSerializer(SecureBaseSerializer):
         }
 
     def create(self, validated_data):
+        # Remove fields that don't exist on the model
+        validated_data.pop('middle_initial', None)
+        validated_data.pop('suffix', None)
+        validated_data.pop('temp_password', None)  # Remove temp_password as it's not a model field
+        validated_data.pop('send_email', None)     # Remove send_email as it's not a model field
+        
         # Set force_password_change to True for new staff accounts
         validated_data['force_password_change'] = True
         
