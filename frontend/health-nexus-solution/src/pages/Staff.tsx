@@ -6,55 +6,55 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useBranding } from "@/contexts/BrandingContext";
 import { useClinic } from "@/contexts/ClinicContext";
 import { useToast } from "@/hooks/use-toast";
 import {
-    Admin,
-    api,
-    axiosInstance,
-    Doctor,
-    Receptionist,
-    StaffMember,
+  Admin,
+  api,
+  axiosInstance,
+  Doctor,
+  Receptionist,
+  StaffMember,
 } from "@/services/api";
 import {
-    ArrowUpDown,
-    ChevronDown,
-    ChevronLeft,
-    ChevronRight,
-    ChevronUp,
-    Edit,
-    Eye,
-    Mail,
-    Phone,
-    Search,
-    UserPlus
+  ArrowUpDown,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  Edit,
+  Eye,
+  Mail,
+  Phone,
+  Search,
+  UserPlus,
 } from "lucide-react";
 
 export type Role =
@@ -862,7 +862,8 @@ const StaffPage = () => {
                     <option value="doctor">Doctor</option>
                     <option value="receptionist">Receptionist</option>
                     <option value="admin">Admin</option>
-                    {(currentUser?.role === "superadmin" || currentUser?.role === "admin") && (
+                    {(currentUser?.role === "superadmin" ||
+                      currentUser?.role === "admin") && (
                       <option value="superadmin">Super Admin</option>
                     )}
                   </select>
@@ -886,43 +887,51 @@ const StaffPage = () => {
             currentUser?.role === "superadmin" ? "grid-cols-4" : "grid-cols-3"
           }`}
         >
-          <TabsTrigger 
+          <TabsTrigger
             value="doctors"
             className="transition-colors"
             style={{
-              backgroundColor: currentTab === 'doctors' ? colors.primaryColor : undefined,
-              color: currentTab === 'doctors' ? 'white' : undefined
+              backgroundColor:
+                currentTab === "doctors" ? colors.primaryColor : undefined,
+              color: currentTab === "doctors" ? "white" : undefined,
             }}
           >
             Doctors
           </TabsTrigger>
-          <TabsTrigger 
+          <TabsTrigger
             value="receptionists"
             className="transition-colors"
             style={{
-              backgroundColor: currentTab === 'receptionists' ? colors.primaryColor : undefined,
-              color: currentTab === 'receptionists' ? 'white' : undefined
+              backgroundColor:
+                currentTab === "receptionists"
+                  ? colors.primaryColor
+                  : undefined,
+              color: currentTab === "receptionists" ? "white" : undefined,
             }}
           >
             Receptionists
           </TabsTrigger>
-          <TabsTrigger 
+          <TabsTrigger
             value="admins"
             className="transition-colors"
             style={{
-              backgroundColor: currentTab === 'admins' ? colors.primaryColor : undefined,
-              color: currentTab === 'admins' ? 'white' : undefined
+              backgroundColor:
+                currentTab === "admins" ? colors.primaryColor : undefined,
+              color: currentTab === "admins" ? "white" : undefined,
             }}
           >
             Administrators
           </TabsTrigger>
           {currentUser?.role === "superadmin" && (
-            <TabsTrigger 
+            <TabsTrigger
               value="superadmins"
               className="transition-colors"
               style={{
-                backgroundColor: currentTab === 'superadmins' ? colors.primaryColor : undefined,
-                color: currentTab === 'superadmins' ? 'white' : undefined
+                backgroundColor:
+                  currentTab === "superadmins"
+                    ? colors.primaryColor
+                    : undefined,
+                color: currentTab === "superadmins" ? "white" : undefined,
               }}
             >
               Super Admins

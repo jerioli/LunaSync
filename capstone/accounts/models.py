@@ -73,21 +73,21 @@ class CustomUser(AbstractUser):
         # Only set default permissions on creation
         if self._state.adding:
             if self.role == 'superadmin':
-                self.can_manage_appointments = True
-                self.can_manage_patients = True
+                self.can_manage_appointments = False
+                self.can_manage_patients = False
                 self.can_manage_staff = True
                 self.can_view_reports = True
                 self.can_manage_clinic_settings = True
-                self.can_manage_inventory = True
+                self.can_manage_inventory = False
                 self.can_manage_permissions = True
                 self.can_view_audit_logs = True
             elif self.role == 'admin':
-                self.can_manage_appointments = True
-                self.can_manage_patients = True
+                self.can_manage_appointments = False
+                self.can_manage_patients = False
                 self.can_manage_staff = True
                 self.can_view_reports = True
                 self.can_manage_clinic_settings = True
-                self.can_manage_inventory = True
+                self.can_manage_inventory = False
                 self.can_manage_permissions = False
                 self.can_view_audit_logs = False
             elif self.role == 'receptionist':

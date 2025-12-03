@@ -11,13 +11,13 @@ def ensure_default_superadmin_permissions(apps, schema_editor):
         # Find the default superadmin account
         default_superadmin = CustomUser.objects.get(username='superadmin')
         
-        # Give default superadmin full permissions like when creating new superadmin
-        default_superadmin.can_manage_appointments = True
-        default_superadmin.can_manage_patients = True
+        # Give default superadmin limited permissions excluding inventory, patients, appointments
+        default_superadmin.can_manage_appointments = False
+        default_superadmin.can_manage_patients = False
         default_superadmin.can_manage_staff = True
         default_superadmin.can_view_reports = True
         default_superadmin.can_manage_clinic_settings = True
-        default_superadmin.can_manage_inventory = True
+        default_superadmin.can_manage_inventory = False
         default_superadmin.can_manage_permissions = True
         default_superadmin.can_view_audit_logs = True
         
@@ -35,13 +35,13 @@ def ensure_default_superadmin_permissions(apps, schema_editor):
     try:
         default_admin = CustomUser.objects.get(username='admin')
         
-        # Give admin account standard admin permissions
-        default_admin.can_manage_appointments = True
-        default_admin.can_manage_patients = True
+        # Give admin account standard admin permissions (also without inventory, patients, appointments)
+        default_admin.can_manage_appointments = False
+        default_admin.can_manage_patients = False
         default_admin.can_manage_staff = True
         default_admin.can_view_reports = True
         default_admin.can_manage_clinic_settings = True
-        default_admin.can_manage_inventory = True
+        default_admin.can_manage_inventory = False
         default_admin.can_manage_permissions = False  # No permission management for admin
         default_admin.can_view_audit_logs = False  # No audit logs for admin
         default_admin.is_superuser = True  # Allow Django admin access
