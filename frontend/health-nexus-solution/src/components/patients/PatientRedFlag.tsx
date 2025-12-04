@@ -89,10 +89,10 @@ const PatientRedFlag: React.FC<PatientRedFlagProps> = ({
       onUpdate();
     } catch (error) {
       console.error("Error flagging patient:", error);
-      const errorMessage = parseApiError(error);
+      const parsedError = parseApiError(error);
       toast({
         title: "Error",
-        description: errorMessage || "Failed to flag patient",
+        description: parsedError.message || "Failed to flag patient",
         variant: "destructive",
       });
     } finally {
@@ -115,10 +115,10 @@ const PatientRedFlag: React.FC<PatientRedFlagProps> = ({
       onUpdate();
     } catch (error) {
       console.error("Error removing patient flag:", error);
-      const errorMessage = parseApiError(error);
+      const parsedError = parseApiError(error);
       toast({
         title: "Error",
-        description: errorMessage || "Failed to remove flag",
+        description: parsedError.message || "Failed to remove flag",
         variant: "destructive",
       });
     } finally {
