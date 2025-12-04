@@ -10,6 +10,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -23,6 +33,7 @@ import { useClinic } from "@/contexts/ClinicContext";
 import { toast } from "@/hooks/use-toast";
 import { type LabResult } from "@/lib/mock-data";
 import { type LabTestResult } from "@/services/medicalDocumentsAPI";
+import { ENV } from "@/config/env";
 import {
   Edit,
   FileText,
@@ -36,6 +47,7 @@ import {
   ArrowDown,
   ChevronLeft,
   ChevronRight,
+  Trash2,
 } from "lucide-react";
 import React, { useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -125,6 +137,12 @@ const LabResults = () => {
   >([]);
   const [documentDetails, setDocumentDetails] = useState<any>(null);
   const [isLoadingResults, setIsLoadingResults] = useState(false);
+
+  // Delete confirmation state
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [labResultToDelete, setLabResultToDelete] = useState<LabResult | null>(
+    null
+  );
 
   // Textract specific states
   const [isProcessing, setIsProcessing] = useState(false);
@@ -650,20 +668,115 @@ const LabResults = () => {
     return undefined;
   };
 
-  // Function to handle viewing lab result - directly open PDF
-  const handleViewLabResult = (result: LabResult) => {
-    if (result.resultUrl) {
-      // Open PDF in new window/tab
-      window.open(result.resultUrl, "_blank");
-    } else {
-      // If no PDF URL, try to fetch it from the API
-      console.log("No PDF URL available for lab result:", result.id);
+  // Function to handle viewing lab result - generate logo-free PDF
+  const handleViewLabResult = async (result: LabResult) => {
+    try {
+      // Call the download_pdf endpoint to get logo-free PDF
+      const token = localStorage.getItem("authToken");
+      const response = await fetch(
+        `${ENV.API_URL.replace("/api", "")}/api/medical-documents/lab-results/${
+          result.id
+        }/download_pdf/`,
+        {
+          method: "GET",
+          headers: {
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+          credentials: "include",
+        }
+      );
+
+      if (response.ok) {
+        const contentType = response.headers.get("content-type");
+
+        if (contentType && contentType.includes("application/pdf")) {
+          // Direct PDF response - create blob and open
+          const blob = await response.blob();
+          const pdfUrl = URL.createObjectURL(blob);
+          window.open(pdfUrl, "_blank");
+
+          // Clean up the blob URL after a delay
+          setTimeout(() => URL.revokeObjectURL(pdfUrl), 60000);
+        } else {
+          // JSON response with PDF URL (fallback behavior)
+          const data = await response.json();
+          if (data.pdf_url) {
+            window.open(data.pdf_url, "_blank");
+          } else {
+            throw new Error("No PDF URL received from server");
+          }
+        }
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+
+      // Fallback to original URL if available
+      if (result.resultUrl) {
+        console.log("Falling back to original PDF URL");
+        window.open(result.resultUrl, "_blank");
+      } else {
+        toast({
+          title: "PDF Not Available",
+          description:
+            "Failed to generate logo-free PDF. Please try again later.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  // Function to handle deleting lab result
+  const handleDeleteLabResult = async (result: LabResult) => {
+    setLabResultToDelete(result);
+    setDeleteConfirmOpen(true);
+  };
+
+  // Function to confirm and execute deletion
+  const confirmDeleteLabResult = async () => {
+    if (!labResultToDelete) return;
+
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch(
+        `${ENV.API_URL.replace("/api", "")}/api/medical-documents/lab-results/${
+          labResultToDelete.id
+        }/`,
+        {
+          method: "DELETE",
+          headers: {
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+          credentials: "include",
+        }
+      );
+
+      if (response.ok) {
+        toast({
+          title: "Lab Result Deleted",
+          description: `Lab result for ${
+            labResultToDelete.patientName || "patient"
+          } has been deleted successfully.`,
+        });
+
+        // Refresh the lab results list
+        if (fetchLabResults) {
+          await fetchLabResults();
+        }
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Error deleting lab result:", error);
       toast({
-        title: "PDF Not Available",
-        description:
-          "The PDF file for this lab result is not currently available.",
+        title: "Delete Failed",
+        description: "Failed to delete lab result. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setDeleteConfirmOpen(false);
+      setLabResultToDelete(null);
     }
   };
 
@@ -952,13 +1065,23 @@ const LabResults = () => {
                                     </div>
                                   )}
                               </div>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleViewLabResult(result)}
-                              >
-                                View
-                              </Button>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleViewLabResult(result)}
+                                >
+                                  View
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleDeleteLabResult(result)}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         );
@@ -1045,13 +1168,23 @@ const LabResults = () => {
                                   days ago
                                 </div>
                               </div>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleViewLabResult(result)}
-                              >
-                                View
-                              </Button>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleViewLabResult(result)}
+                                >
+                                  View
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleDeleteLabResult(result)}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         );
@@ -1350,6 +1483,38 @@ const LabResults = () => {
           </Card>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent className="sm:max-w-[425px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Lab Result</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the lab result for{" "}
+              <span className="font-semibold">
+                {labResultToDelete?.patientName || "this patient"}
+              </span>
+              ? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setDeleteConfirmOpen(false);
+                setLabResultToDelete(null);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteLabResult}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

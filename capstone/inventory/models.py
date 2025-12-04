@@ -26,11 +26,29 @@ class MedicineRecord(models.Model):
         ('other', 'Other'),
     ]
     
+    ALERT_MONTHS_CHOICES = [
+        (2, '2 months before'),
+        (3, '3 months before'),
+        (4, '4 months before'),
+        (5, '5 months before'),
+        (6, '6 months before'),
+        (7, '7 months before'),
+        (8, '8 months before'),
+    ]
+    
     # Basic medicine information
     name = EncryptedCharField(max_length=200)
     dosage = EncryptedCharField(max_length=100)  # e.g., 500mg, 10ml, 2.5mg
     description = EncryptedTextField(blank=True, null=True)
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='tablet')
+    
+    # Expiration and alert management
+    expiration_date = models.DateField(blank=True, null=True, help_text="Medicine expiration date")
+    alert_months_before = models.IntegerField(
+        choices=ALERT_MONTHS_CHOICES, 
+        default=3,
+        help_text="Alert this many months before expiration"
+    )
     
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
@@ -61,6 +79,44 @@ class MedicineRecord(models.Model):
         self.is_deleted = False
         self.deleted_at = None
         self.save()
+    
+    def is_near_expiration(self):
+        """Check if medicine is approaching expiration based on alert setting"""
+        if not self.expiration_date:
+            return False
+        
+        from dateutil.relativedelta import relativedelta
+        alert_date = self.expiration_date - relativedelta(months=self.alert_months_before)
+        return timezone.now().date() >= alert_date
+    
+    def is_expired(self):
+        """Check if medicine has expired"""
+        if not self.expiration_date:
+            return False
+        return self.expiration_date <= timezone.now().date()
+    
+    def days_until_expiry(self):
+        """Calculate days until expiration"""
+        if not self.expiration_date:
+            return None
+        delta = self.expiration_date - timezone.now().date()
+        return delta.days
+    
+    def months_until_expiry(self):
+        """Calculate approximate months until expiration"""
+        days = self.days_until_expiry()
+        if days is None:
+            return None
+        return round(days / 30.44, 1)  # Average days per month
+    
+    def get_alert_status(self):
+        """Get the current alert status of the medicine"""
+        if self.is_expired():
+            return 'expired'
+        elif self.is_near_expiration():
+            return 'near_expiration'
+        else:
+            return 'ok'
 
 class InventoryManager(models.Manager):
     def get_queryset(self):

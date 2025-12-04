@@ -741,3 +741,107 @@ class PatientLookupView(APIView):
                 'status': 'error',
                 'message': f'An error occurred during lookup: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class PatientRedFlagView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get_object(self, pk):
+        try:
+            return Patient.objects.get(pk=pk)
+        except Patient.DoesNotExist:
+            raise Http404
+
+    def post(self, request, pk):
+        """Set red flag for a patient"""
+        # Check if user has permission (only doctors can flag patients)
+        if not request.user.is_authenticated:
+            return Response({
+                'error': 'Authentication required',
+                'message': 'You must be logged in to flag patients'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        if not (request.user.role in ['doctor', 'admin', 'superadmin']):
+            return Response({
+                'error': 'Permission denied',
+                'message': 'Only doctors can flag patients'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        patient = self.get_object(pk)
+        reason = request.data.get('reason', '').strip()
+        
+        if not reason:
+            return Response({
+                'error': 'Reason required',
+                'message': 'A reason must be provided when flagging a patient'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Set red flag
+        patient.set_red_flag(reason, request.user)
+        
+        # Log the action
+        AuditLogger.log_patient_action(
+            user=request.user,
+            action='FLAG',
+            patient_id=patient.id,
+            patient_name=patient.name,
+            description=f"Red flagged patient: {patient.name}. Reason: {reason}",
+            request=request
+        )
+        
+        # Return updated patient data
+        serializer = PatientSerializer(patient, context={'request': request})
+        return Response({
+            'success': True,
+            'message': 'Patient flagged successfully',
+            'patient': serializer.data
+        })
+
+    def delete(self, request, pk):
+        """Clear red flag for a patient"""
+        # Check if user has permission (only doctors can unflag patients)
+        if not request.user.is_authenticated:
+            return Response({
+                'error': 'Authentication required',
+                'message': 'You must be logged in to unflag patients'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        if not (request.user.role in ['doctor', 'admin', 'superadmin']):
+            return Response({
+                'error': 'Permission denied',
+                'message': 'Only doctors can unflag patients'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        patient = self.get_object(pk)
+        
+        if not patient.is_red_flagged:
+            return Response({
+                'error': 'Not flagged',
+                'message': 'Patient is not currently flagged'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Store reason for audit log
+        old_reason = patient.red_flag_reason
+        
+        # Clear red flag
+        patient.clear_red_flag()
+        
+        # Log the action
+        AuditLogger.log_patient_action(
+            user=request.user,
+            action='UNFLAG',
+            patient_id=patient.id,
+            patient_name=patient.name,
+            description=f"Cleared red flag for patient: {patient.name}. Previous reason: {old_reason}",
+            request=request
+        )
+        
+        # Return updated patient data
+        serializer = PatientSerializer(patient, context={'request': request})
+        return Response({
+            'success': True,
+            'message': 'Patient flag cleared successfully',
+            'patient': serializer.data
+        })

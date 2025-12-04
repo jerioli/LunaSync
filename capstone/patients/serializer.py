@@ -7,6 +7,9 @@ class PatientSerializer(SecureBaseSerializer):
     medical_info = EncryptedJSONField(required=False, allow_null=True, default=None, allow_blank=True)
     physical_examination = EncryptedJSONField(required=False, allow_null=True, default=None, allow_blank=True)
     
+    # Red flag related read-only fields
+    red_flagged_by_name = serializers.CharField(source='red_flagged_by.get_full_name', read_only=True)
+    
     class Meta:
         model = Patient
         fields = [
@@ -28,7 +31,14 @@ class PatientSerializer(SecureBaseSerializer):
             'physical_examination',
             'registration_date',
             'is_deleted',  # Include soft delete status
+            # Red flag fields
+            'is_red_flagged',
+            'red_flag_reason',
+            'red_flagged_by',
+            'red_flagged_by_name',
+            'red_flagged_date',
         ]
+        read_only_fields = ['red_flagged_by', 'red_flagged_date']
         # Remove json_fields since we're using custom fields now
     
     def validate(self, data):

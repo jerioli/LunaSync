@@ -12,6 +12,16 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -56,12 +66,15 @@ declare global {
 }
 
 interface DocumentComparisonState {
-  originalFile: File;
+  originalFile?: File;
   extractedText: string;
   visualizationData?: any;
   patientId?: string;
   patientName?: string;
+  authorizedBy?: string;
   returnPath?: string;
+  editMode?: boolean;
+  labResultId?: string;
 }
 
 // Auto-detection functions with improved precision
@@ -298,6 +311,9 @@ const DocumentComparison: React.FC = () => {
   const [authorizedBy, setAuthorizedBy] = useState("");
   const [isSaving, setSaving] = useState(false);
   const [clinicSettings, setClinicSettings] = useState<any>(null);
+
+  // Save warning state
+  const [saveWarningOpen, setSaveWarningOpen] = useState(false);
 
   // Fetch clinic settings function
   const fetchClinicSettings = async () => {
@@ -836,10 +852,22 @@ const DocumentComparison: React.FC = () => {
 
   useEffect(() => {
     // Check if we have the required data
-    if (!state?.originalFile || !state?.extractedText) {
+    if (!state?.extractedText) {
       toast({
         title: "Missing Data",
         description: "No document data found. Redirecting back to Lab Results.",
+        variant: "destructive",
+      });
+      navigate("/lab-results");
+      return;
+    }
+
+    // For edit mode, we might not have originalFile, which is okay
+    // For new uploads, we need both originalFile and extractedText
+    if (!state.editMode && !state.originalFile) {
+      toast({
+        title: "Missing File",
+        description: "No original file found. Redirecting back to Lab Results.",
         variant: "destructive",
       });
       navigate("/lab-results");
@@ -898,26 +926,32 @@ const DocumentComparison: React.FC = () => {
     }
 
     // Create object URL for the uploaded image
-    // Check if file is TIFF format
-    const fileType = state.originalFile.type;
-    const fileName = state.originalFile.name.toLowerCase();
-    const isTiff =
-      fileType === "image/tiff" ||
-      fileType === "image/tif" ||
-      fileName.endsWith(".tiff") ||
-      fileName.endsWith(".tif");
+    // Check if file is TIFF format - declare outside of conditional scope
+    let isTiff = false;
+    if (state.originalFile) {
+      const fileType = state.originalFile.type;
+      const fileName = state.originalFile.name.toLowerCase();
+      isTiff =
+        fileType === "image/tiff" ||
+        fileType === "image/tif" ||
+        fileName.endsWith(".tiff") ||
+        fileName.endsWith(".tif");
 
-    if (isTiff) {
-      // For TIFF files, use a placeholder or text indicator since browsers don't support TIFF natively
-      setOriginalImageUrl(""); // Empty URL will trigger fallback display
+      if (isTiff) {
+        // For TIFF files, use a placeholder or text indicator since browsers don't support TIFF natively
+        setOriginalImageUrl(""); // Empty URL will trigger fallback display
+      } else {
+        const imageUrl = URL.createObjectURL(state.originalFile);
+        setOriginalImageUrl(imageUrl);
+      }
     } else {
-      const imageUrl = URL.createObjectURL(state.originalFile);
-      setOriginalImageUrl(imageUrl);
+      // No original file (edit mode) - set empty URL for fallback
+      setOriginalImageUrl("");
     }
 
     // Cleanup function to revoke object URL
     return () => {
-      if (!isTiff && originalImageUrl) {
+      if (state.originalFile && !isTiff && originalImageUrl) {
         URL.revokeObjectURL(originalImageUrl);
       }
     };
@@ -1200,90 +1234,9 @@ const DocumentComparison: React.FC = () => {
       return `${baseUrl}${logo.startsWith("/") ? logo : "/" + logo}`;
     };
 
-    // Add logo at the top if clinic settings has logo
-    if (clinicSettings?.logo) {
-      try {
-        const logoUrl = getFullLogoUrl(clinicSettings.logo);
-        if (logoUrl) {
-          const img = new Image();
-          img.crossOrigin = "anonymous";
-          img.src = logoUrl;
-
-          await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = reject;
-          });
-
-          // Compress logo by rendering to canvas at smaller size
-          const canvas = document.createElement("canvas");
-          const targetSize = 200; // Increased size in pixels for better quality
-          canvas.width = targetSize;
-          canvas.height = targetSize;
-          const ctx = canvas.getContext("2d");
-
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, targetSize, targetSize);
-            const compressedLogo = canvas.toDataURL("image/jpeg", 0.7); // JPEG with 70% quality
-
-            const logoWidth = 1.5; // 1.5 inches width in PDF
-            const logoHeight = 0.6; // 0.6 inches height in PDF
-            doc.addImage(
-              compressedLogo,
-              "JPEG",
-              pageWidth / 2 - logoWidth / 2,
-              yPos,
-              logoWidth,
-              logoHeight
-            );
-            yPos += logoHeight + 0.08;
-          }
-        }
-      } catch (error) {
-        console.error("Error loading clinic logo:", error);
-        // Continue without logo if there's an error
-      }
-    }
-
-    // Clinic name
-    if (clinicSettings?.name) {
-      doc.setFontSize(13);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(26, 26, 26);
-      doc.text(clinicSettings.name, pageWidth / 2, yPos, { align: "center" });
-      yPos += 0.16;
-    }
-
-    // Clinic address
-    if (clinicSettings?.address) {
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(85, 85, 85);
-      doc.text(clinicSettings.address, pageWidth / 2, yPos, {
-        align: "center",
-      });
-      yPos += 0.14;
-    }
-
-    // Clinic contact (phone | email)
-    const contactParts = [];
-    if (clinicSettings?.phone) contactParts.push(clinicSettings.phone);
-    if (clinicSettings?.email) contactParts.push(clinicSettings.email);
-
-    if (contactParts.length > 0) {
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(85, 85, 85);
-      doc.text(contactParts.join(" | "), pageWidth / 2, yPos, {
-        align: "center",
-      });
-      yPos += 0.15;
-    }
-
-    // Professional border separator
-    doc.setDrawColor(51, 51, 51);
-    doc.setLineWidth(0.02);
-    doc.line(margin, yPos, pageWidth - margin, yPos);
-    yPos += 0.15;
+    // Skip clinic logo, name, address, and contact info for clean lab result
+    // Start directly with the document header
+    yPos = 0.5; // Start position without clinic branding
 
     // Header
     doc.setFontSize(12);
@@ -1431,7 +1384,7 @@ const DocumentComparison: React.FC = () => {
     return doc.output("blob");
   };
 
-  // Simplified save function - no modal, direct save
+  // Function to show save warning
   const handleSaveLabResult = async () => {
     // Validation
     if (!selectedPatientId) {
@@ -1443,6 +1396,12 @@ const DocumentComparison: React.FC = () => {
       return;
     }
 
+    // Show warning dialog
+    setSaveWarningOpen(true);
+  };
+
+  // Function to confirm and execute save
+  const confirmSaveLabResult = async () => {
     setSaving(true);
 
     try {
@@ -1466,8 +1425,8 @@ const DocumentComparison: React.FC = () => {
       console.log("Editable text length:", editableText?.length);
       console.log(
         "Original file:",
-        state.originalFile?.name,
-        state.originalFile?.size,
+        state.originalFile?.name || "No original file (edit mode)",
+        state.originalFile?.size || 0,
         "bytes"
       );
 
@@ -1506,8 +1465,10 @@ const DocumentComparison: React.FC = () => {
         formData.append("authorized_by", authorizedBy.trim());
       }
 
-      // Include the original file AND the generated HTML file as processed_file
-      formData.append("document", state.originalFile);
+      // Include the original file if available AND the generated HTML file as processed_file
+      if (state.originalFile) {
+        formData.append("document", state.originalFile);
+      }
       formData.append("processed_file", pdfFile);
 
       console.log("Making request to save lab result...");
@@ -1556,6 +1517,7 @@ const DocumentComparison: React.FC = () => {
       });
     } finally {
       setSaving(false);
+      setSaveWarningOpen(false);
     }
   };
 
@@ -2343,8 +2305,11 @@ ${editableText}`;
                   </span>
                 </div>
                 <span className="text-gray-400">
-                  {state.originalFile.name} (
-                  {(state.originalFile.size / 1024).toFixed(1)} KB)
+                  {state.originalFile?.name
+                    ? `${state.originalFile.name} (${(
+                        state.originalFile.size / 1024
+                      ).toFixed(1)} KB)`
+                    : "Editing saved lab result - No original file"}
                 </span>
               </div>
             </div>
@@ -2740,6 +2705,60 @@ ${editableText}`;
           </ul>
         </CardContent>
       </Card>
+
+      {/* Save Warning Dialog */}
+      <AlertDialog open={saveWarningOpen} onOpenChange={setSaveWarningOpen}>
+        <AlertDialogContent className="sm:max-w-[500px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <span className="text-amber-600">⚠️</span>
+              Important Notice
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                <strong>Lab results cannot be edited once saved.</strong>
+              </p>
+              <p>Please review all information carefully before proceeding:</p>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                <li>
+                  Patient:{" "}
+                  <span className="font-medium">
+                    {selectedPatient?.name || "Not selected"}
+                  </span>
+                </li>
+                <li>
+                  Authorized by:{" "}
+                  <span className="font-medium">
+                    {authorizedBy || "Not specified"}
+                  </span>
+                </li>
+                <li>
+                  Content length:{" "}
+                  <span className="font-medium">
+                    {editableText?.length || 0} characters
+                  </span>
+                </li>
+              </ul>
+              <p className="text-sm text-muted-foreground">
+                If you need to make changes after saving, you will need to
+                delete this result and create a new one.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setSaveWarningOpen(false)}>
+              Review Again
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmSaveLabResult}
+              className="bg-blue-600 hover:bg-blue-700 focus:ring-blue-600"
+              disabled={isSaving}
+            >
+              {isSaving ? "Saving..." : "Save Lab Result"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

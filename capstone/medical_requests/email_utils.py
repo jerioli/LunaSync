@@ -10,7 +10,7 @@ from email.mime.image import MIMEImage
 from email.mime.application import MIMEApplication
 from email.utils import formataddr
 from clinic.models import ClinicSettings
-from .pdf_utils import create_medical_certificate_pdf, create_prescription_pdf
+from .pdf_utils import create_medical_certificate_pdf, create_prescription_pdf, create_lab_result_pdf
 from datetime import datetime
 
 logger = logging.getLogger(__name__)

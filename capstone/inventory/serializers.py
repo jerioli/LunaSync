@@ -4,11 +4,21 @@ from .models import Inventory, InventoryTransaction, MedicineRecord
 class MedicineRecordSerializer(serializers.ModelSerializer):
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
     
+    # Read-only calculated fields
+    is_near_expiration = serializers.BooleanField(read_only=True)
+    is_expired = serializers.BooleanField(read_only=True)
+    days_until_expiry = serializers.IntegerField(read_only=True)
+    months_until_expiry = serializers.FloatField(read_only=True)
+    alert_status = serializers.CharField(source='get_alert_status', read_only=True)
+    
     class Meta:
         model = MedicineRecord
         fields = [
             'id', 'name', 'dosage', 'description', 'category',
-            'created_at', 'updated_at', 'created_by', 'created_by_name'
+            'expiration_date', 'alert_months_before',
+            'created_at', 'updated_at', 'created_by', 'created_by_name',
+            'is_near_expiration', 'is_expired', 'days_until_expiry',
+            'months_until_expiry', 'alert_status'
         ]
         read_only_fields = ['created_at', 'updated_at', 'created_by']
 
@@ -23,6 +33,12 @@ class MedicineRecordSerializer(serializers.ModelSerializer):
         if not value.strip():
             raise serializers.ValidationError("Dosage cannot be empty.")
         return value.strip()
+
+    def validate_alert_months_before(self, value):
+        """Validate alert months before is within allowed range"""
+        if value < 2 or value > 8:
+            raise serializers.ValidationError("Alert months must be between 2 and 8.")
+        return value
 
     def validate(self, data):
         """Validate unique combination of name and dosage"""

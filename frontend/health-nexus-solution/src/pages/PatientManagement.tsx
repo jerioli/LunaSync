@@ -5,6 +5,7 @@ import MedicalCertificateGenerator from "@/components/patients/MedicalCertificat
 import PatientMedicalInfo from "@/components/patients/PatientMedicalInfo";
 import PatientPersonalInfo from "@/components/patients/PatientPersonalInfo";
 import PatientPhysicalExamination from "@/components/patients/PatientPhysicalExamination";
+import PatientRedFlag from "@/components/patients/PatientRedFlag";
 import {
   Accordion,
   AccordionContent,
@@ -4159,6 +4160,39 @@ const PatientManagement = () => {
                 <div>
                   <span className="font-medium">Email:</span>{" "}
                   {patientData.email}
+                </div>
+                <div className="pt-2">
+                  <PatientRedFlag
+                    patientId={
+                      typeof patientData.id === "string"
+                        ? parseInt(patientData.id)
+                        : patientData.id
+                    }
+                    isRedFlagged={patientData.is_red_flagged || false}
+                    redFlagReason={patientData.red_flag_reason}
+                    redFlaggedBy={patientData.red_flagged_by_name}
+                    redFlaggedDate={patientData.red_flagged_date}
+                    onUpdate={() => {
+                      // Refresh patient data after flag update
+                      if (id) {
+                        const fetchPatientData = async () => {
+                          try {
+                            const response = await axiosInstance.get(
+                              `patients/${id}/`
+                            );
+                            setPatientData(response.data);
+                          } catch (error) {
+                            console.error(
+                              "Error fetching patient data:",
+                              error
+                            );
+                          }
+                        };
+                        fetchPatientData();
+                      }
+                    }}
+                    isDoctor={isDoctor}
+                  />
                 </div>
               </div>
             </div>

@@ -35070,3 +35070,1260 @@ INFO 2025-12-04 05:59:14,569 autoreload 13472 20808 Watching for file changes wi
 2025-12-04 06:08:52,050 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764799732045 HTTP/1.1" 200 0
 2025-12-04 06:08:52,059 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
 2025-12-04 06:08:52,069 - django.server - INFO - "GET /api/medical-certificates/?_t=1764799732045 HTTP/1.1" 200 47027
+2025-12-04 06:09:42,418 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764799782095 HTTP/1.1" 200 0
+2025-12-04 06:09:42,733 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:09:42,742 - django.server - INFO - "GET /api/medical-certificates/?_t=1764799782095 HTTP/1.1" 200 47027
+2025-12-04 06:09:45,057 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764799785054 HTTP/1.1" 200 0
+2025-12-04 06:09:45,082 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:09:45,098 - django.server - INFO - "GET /api/medical-certificates/?_t=1764799785054 HTTP/1.1" 200 47027
+2025-12-04 06:10:14,615 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764799814608 HTTP/1.1" 200 0
+2025-12-04 06:10:14,629 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:10:14,643 - django.server - INFO - "GET /api/medical-certificates/?_t=1764799814608 HTTP/1.1" 200 47027
+2025-12-04 06:10:45,062 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764799845056 HTTP/1.1" 200 0
+2025-12-04 06:10:45,070 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:10:45,078 - django.server - INFO - "GET /api/medical-certificates/?_t=1764799845056 HTTP/1.1" 200 47027
+2025-12-04 06:11:12,650 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:11:12,658 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 387
+2025-12-04 06:11:12,700 - root - INFO - Request: {"method": "GET", "path": "/api/staff/list/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:11:12,716 - django.server - INFO - "GET /api/staff/list/ HTTP/1.1" 200 2332
+2025-12-04 06:11:12,722 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:11:12,732 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 467
+2025-12-04 06:11:12,737 - root - INFO - Request: {"method": "GET", "path": "/api/receptionists/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:11:12,748 - django.server - INFO - "GET /api/receptionists/ HTTP/1.1" 200 461
+2025-12-04 06:11:12,754 - root - INFO - Request: {"method": "GET", "path": "/api/admins/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:11:12,762 - django.server - INFO - "GET /api/admins/ HTTP/1.1" 200 471
+2025-12-04 06:11:12,767 - root - INFO - Request: {"method": "GET", "path": "/api/staff/list/", "user_id": 2, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:11:12,773 - django.server - INFO - "GET /api/staff/list/?role=superadmin HTTP/1.1" 200 936
+2025-12-04 06:11:15,055 - django.server - INFO - "OPTIONS /api/medical-certificates/?_t=1764799875052 HTTP/1.1" 200 0
+2025-12-04 06:11:15,061 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:11:15,067 - django.server - INFO - "GET /api/medical-certificates/?_t=1764799875052 HTTP/1.1" 200 47027
+2025-12-04 06:11:34,634 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:11:34,647 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 119
+2025-12-04 06:11:34,676 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:11:35,362 - django.server - INFO - "GET /api/availability/?doctor_id=3&page=1&page_size=10&ordering=-date&_t=1764799894657 HTTP/1.1" 200 34862
+2025-12-04 06:11:35,374 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:11:35,386 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764799895.3788552, "client_ip": "127.0.0.1"}
+2025-12-04 06:11:35,426 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:11:35,446 - django.server - INFO - "OPTIONS /api/medical-documents/lab-results/? HTTP/1.1" 200 0
+2025-12-04 06:11:35,460 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:11:35,465 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764799895.4655635, "client_ip": "127.0.0.1"}
+2025-12-04 06:11:35,566 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 2626
+2025-12-04 06:11:35,579 - django.server - INFO - "OPTIONS /api/textract/health/ HTTP/1.1" 200 0
+2025-12-04 06:11:35,587 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:11:35,608 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:11:35,610 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:11:35,643 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:11:35,653 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:11:35,655 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:11:35,709 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:11:35,710 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:11:36,433 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:11:36,433 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:11:36,435 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:18:13,718 - root - INFO - Request: {"method": "GET", "path": "/media/medical_documents/processed/lab_result_Viel_Torrejos__Roxas_2025-11-20.pdf", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:18:13,991 - django.server - INFO - "GET /media/medical_documents/processed/lab_result_Viel_Torrejos__Roxas_2025-11-20.pdf HTTP/1.1" 200 21605
+2025-12-04 06:18:14,155 - root - INFO - Request: {"method": "GET", "path": "/favicon.ico", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:18:14,190 - django.request - WARNING - Not Found: /favicon.ico
+2025-12-04 06:18:14,191 - django.server - WARNING - "GET /favicon.ico HTTP/1.1" 404 6107
+2025-12-04 06:18:22,974 - root - INFO - Request: {"method": "POST", "path": "/api/textract/upload/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-12-04 06:18:22,976 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:18:22,976 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:18:22,976 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:18:22,976 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:18:22,976 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:18:22,976 - api.textract_lab_analysis - INFO - AWS Credentials Check - Access Key: *****BBGX
+2025-12-04 06:18:22,976 - api.textract_lab_analysis - INFO - AWS Credentials Check - Region: us-east-1
+2025-12-04 06:18:22,977 - api.textract_lab_analysis - INFO - DEBUG: Request method: POST
+2025-12-04 06:18:22,982 - api.textract_lab_analysis - INFO - DEBUG: Request FILES keys: ['document']
+2025-12-04 06:18:22,983 - api.textract_lab_analysis - INFO - DEBUG: Request POST keys: []
+2025-12-04 06:18:22,983 - api.textract_lab_analysis - INFO - DEBUG: Content type: multipart/form-data
+2025-12-04 06:18:22,983 - api.textract_lab_analysis - INFO - DEBUG: Found file in 'document' field
+2025-12-04 06:18:22,983 - api.textract_lab_analysis - INFO - DEBUG: File read successfully, size: 992156 bytes
+2025-12-04 06:18:23,536 - api.textract_lab_analysis - INFO - === localhost-uploaded Image Debug ===
+2025-12-04 06:18:23,537 - api.textract_lab_analysis - INFO - Size: 992156 bytes
+2025-12-04 06:18:23,537 - api.textract_lab_analysis - INFO - MD5: ee594364629dec15243a7abdb44e22de
+2025-12-04 06:18:23,537 - api.textract_lab_analysis - INFO - Dimensions: (551, 600)
+2025-12-04 06:18:23,537 - api.textract_lab_analysis - INFO - Mode: RGB
+2025-12-04 06:18:23,537 - api.textract_lab_analysis - INFO - Format: TIFF
+2025-12-04 06:18:23,538 - api.textract_lab_analysis - INFO - Using simplified preprocessing (rotation detection disabled)
+2025-12-04 06:18:23,538 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:18:23,538 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:18:23,538 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:18:23,539 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:18:23,539 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:18:23,548 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:18:23,549 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:18:23,568 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:18:23,568 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:18:32,361 - api.textract_lab_analysis - INFO - DEBUG: Got 235 raw Textract blocks
+2025-12-04 06:18:32,361 - api.textract_lab_analysis - INFO - DEBUG: Extracted 95 lines and 139 words
+2025-12-04 06:18:32,368 - api.textract_lab_analysis - INFO - Enhanced pattern extraction found 0 unique lab results
+2025-12-04 06:18:32,373 - api.textract_lab_analysis - INFO - Input blocks for Google Colab: 235 blocks
+2025-12-04 06:18:32,465 - api.textract_lab_analysis - INFO - Google Colab results: dict_keys(['success', 'positioned_text', 'formatted_tables', 'combined_text', 'blocks_processed', 'algorithm_source'])
+2025-12-04 06:18:32,465 - api.textract_lab_analysis - INFO - Google Colab success: True
+2025-12-04 06:18:32,465 - api.textract_lab_analysis - INFO - Google Colab processing successful: Google Colab - Exact Implementation
+2025-12-04 06:18:32,465 - api.textract_lab_analysis - INFO - Google Colab combined text length: 3197
+2025-12-04 06:18:32,465 - api.textract_lab_analysis - INFO - Updated extraction_method to: google_colab_enhanced
+2025-12-04 06:18:32,475 - django.server - INFO - "POST /api/textract/upload/ HTTP/1.1" 200 401436
+2025-12-04 06:18:33,525 - django.server - INFO - "OPTIONS /api/clinic/ HTTP/1.1" 200 0
+2025-12-04 06:18:33,527 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:18:33,540 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2025-12-04 06:18:39,574 - root - INFO - Request: {"method": "GET", "path": "/media/branding/medratrics.png", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:18:39,614 - django.server - INFO - "GET /media/branding/medratrics.png HTTP/1.1" 200 159116
+2025-12-04 06:18:40,055 - root - INFO - Request: {"method": "POST", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-12-04 06:18:40,056 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "POST", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764800320.0568538, "client_ip": "127.0.0.1"}
+2025-12-04 06:18:40,227 - django.server - INFO - "POST /api/medical-documents/lab-results/ HTTP/1.1" 201 1158
+2025-12-04 06:18:40,441 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:18:40,442 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764800320.4425123, "client_ip": "127.0.0.1"}
+2025-12-04 06:18:40,464 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:18:40,482 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:18:40,483 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764800320.4829657, "client_ip": "127.0.0.1"}
+2025-12-04 06:18:40,508 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 3911
+2025-12-04 06:18:40,515 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:18:40,516 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:18:40,517 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:18:40,517 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:18:40,517 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:18:40,518 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:18:40,526 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:18:40,526 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:18:40,530 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:18:40,531 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:18:40,533 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:18:42,269 - root - INFO - Request: {"method": "GET", "path": "/media/medical_documents/processed/lab_result_Queenie_Parl_Torrejos_2025-12-03.pdf", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:18:42,288 - django.server - INFO - "GET /media/medical_documents/processed/lab_result_Queenie_Parl_Torrejos_2025-12-03.pdf HTTP/1.1" 200 21604
+2025-12-04 06:19:32,008 - root - INFO - Request: {"method": "GET", "path": "/media/medical_documents/processed/lab_result_Queenie_Parl_Torrejos_2025-12-03.pdf", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:19:32,013 - django.server - INFO - "GET /media/medical_documents/processed/lab_result_Queenie_Parl_Torrejos_2025-12-03.pdf HTTP/1.1" 304 0
+2025-12-04 06:21:07,470 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:21:07,477 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764800467.4769814, "client_ip": "127.0.0.1"}
+2025-12-04 06:21:07,517 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:21:07,529 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:21:07,531 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764800467.5312207, "client_ip": "127.0.0.1"}
+2025-12-04 06:21:07,558 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 3911
+2025-12-04 06:21:07,884 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:21:07,886 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:21:07,887 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:21:07,887 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:21:07,888 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:21:07,888 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:21:07,910 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:21:07,910 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:21:07,944 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:21:07,945 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:21:07,948 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:21:19,374 - django.server - INFO - "OPTIONS /api/patients/ HTTP/1.1" 200 0
+2025-12-04 06:21:19,722 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:21:19,723 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764800479.723683, "client_ip": "127.0.0.1"}
+2025-12-04 06:21:19,743 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:21:19,761 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:21:19,762 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764800479.7620683, "client_ip": "127.0.0.1"}
+2025-12-04 06:21:19,792 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 3911
+2025-12-04 06:21:19,802 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:21:19,803 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:21:19,804 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:21:19,804 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:21:19,805 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:21:19,805 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:21:19,816 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:21:19,816 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:21:19,823 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:21:19,823 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:21:19,824 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:26:20,906 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:26:20,923 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 375
+2025-12-04 06:26:20,968 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:26:20,968 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764800780.9688087, "client_ip": "127.0.0.1"}
+2025-12-04 06:26:20,986 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:26:20,995 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:26:20,996 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764800780.996614, "client_ip": "127.0.0.1"}
+2025-12-04 06:26:21,015 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 3911
+2025-12-04 06:26:21,334 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:26:21,335 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:26:21,335 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:26:21,335 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:26:21,335 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:26:21,335 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:26:21,346 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:26:21,347 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:26:21,366 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:26:21,366 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:26:21,368 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:26:21,492 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/12/download_pdf/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:26:21,497 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/12/download_pdf/", "timestamp": 1764800781.4975333, "client_ip": "127.0.0.1"}
+2025-12-04 06:26:21,508 - django.server - INFO - "GET /api/medical-documents/lab-results/12/download_pdf/ HTTP/1.1" 200 219
+2025-12-04 06:26:21,554 - root - INFO - Request: {"method": "GET", "path": "/media/medical_documents/processed/lab_result_Queenie_Parl_Torrejos_2025-12-03.pdf", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:26:21,560 - django.server - INFO - "GET /media/medical_documents/processed/lab_result_Queenie_Parl_Torrejos_2025-12-03.pdf HTTP/1.1" 304 0
+2025-12-04 06:27:16,214 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/10/download_pdf/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:27:16,214 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/10/download_pdf/", "timestamp": 1764800836.2149217, "client_ip": "127.0.0.1"}
+2025-12-04 06:27:16,223 - django.server - INFO - "GET /api/medical-documents/lab-results/10/download_pdf/ HTTP/1.1" 200 235
+2025-12-04 06:27:16,262 - root - INFO - Request: {"method": "GET", "path": "/media/medical_documents/processed/lab_result_Queenie_Parl_Torrejos_2025-11-18_oFVFigb.pdf", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:27:16,325 - django.server - INFO - "GET /media/medical_documents/processed/lab_result_Queenie_Parl_Torrejos_2025-11-18_oFVFigb.pdf HTTP/1.1" 200 21607
+2025-12-04 06:29:19,420 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/12/download_pdf/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:29:19,421 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/12/download_pdf/", "timestamp": 1764800959.4212518, "client_ip": "127.0.0.1"}
+2025-12-04 06:29:19,430 - django.server - INFO - "GET /api/medical-documents/lab-results/12/download_pdf/ HTTP/1.1" 200 219
+2025-12-04 06:29:19,461 - root - INFO - Request: {"method": "GET", "path": "/media/medical_documents/processed/lab_result_Queenie_Parl_Torrejos_2025-12-03.pdf", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:29:19,464 - django.server - INFO - "GET /media/medical_documents/processed/lab_result_Queenie_Parl_Torrejos_2025-12-03.pdf HTTP/1.1" 304 0
+2025-12-04 06:29:38,649 - root - INFO - Request: {"method": "POST", "path": "/api/textract/upload/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-12-04 06:29:38,652 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:29:38,652 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:29:38,653 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:29:38,653 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:29:38,654 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:29:38,655 - api.textract_lab_analysis - INFO - AWS Credentials Check - Access Key: *****BBGX
+2025-12-04 06:29:38,655 - api.textract_lab_analysis - INFO - AWS Credentials Check - Region: us-east-1
+2025-12-04 06:29:38,655 - api.textract_lab_analysis - INFO - DEBUG: Request method: POST
+2025-12-04 06:29:38,664 - api.textract_lab_analysis - INFO - DEBUG: Request FILES keys: ['document']
+2025-12-04 06:29:38,665 - api.textract_lab_analysis - INFO - DEBUG: Request POST keys: []
+2025-12-04 06:29:38,666 - api.textract_lab_analysis - INFO - DEBUG: Content type: multipart/form-data
+2025-12-04 06:29:38,666 - api.textract_lab_analysis - INFO - DEBUG: Found file in 'document' field
+2025-12-04 06:29:38,666 - api.textract_lab_analysis - INFO - DEBUG: File read successfully, size: 992156 bytes
+2025-12-04 06:29:38,704 - api.textract_lab_analysis - INFO - === localhost-uploaded Image Debug ===
+2025-12-04 06:29:38,705 - api.textract_lab_analysis - INFO - Size: 992156 bytes
+2025-12-04 06:29:38,705 - api.textract_lab_analysis - INFO - MD5: ee594364629dec15243a7abdb44e22de
+2025-12-04 06:29:38,706 - api.textract_lab_analysis - INFO - Dimensions: (551, 600)
+2025-12-04 06:29:38,706 - api.textract_lab_analysis - INFO - Mode: RGB
+2025-12-04 06:29:38,706 - api.textract_lab_analysis - INFO - Format: TIFF
+2025-12-04 06:29:38,706 - api.textract_lab_analysis - INFO - Using simplified preprocessing (rotation detection disabled)
+2025-12-04 06:29:38,707 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:29:38,707 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:29:38,707 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:29:38,707 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:29:38,707 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:29:38,715 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:29:38,716 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:29:38,725 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:29:38,726 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:29:43,612 - api.textract_lab_analysis - INFO - DEBUG: Got 235 raw Textract blocks
+2025-12-04 06:29:43,613 - api.textract_lab_analysis - INFO - DEBUG: Extracted 95 lines and 139 words
+2025-12-04 06:29:43,614 - api.textract_lab_analysis - INFO - Enhanced pattern extraction found 0 unique lab results
+2025-12-04 06:29:43,620 - api.textract_lab_analysis - INFO - Input blocks for Google Colab: 235 blocks
+2025-12-04 06:29:43,718 - api.textract_lab_analysis - INFO - Google Colab results: dict_keys(['success', 'positioned_text', 'formatted_tables', 'combined_text', 'blocks_processed', 'algorithm_source'])
+2025-12-04 06:29:43,718 - api.textract_lab_analysis - INFO - Google Colab success: True
+2025-12-04 06:29:43,718 - api.textract_lab_analysis - INFO - Google Colab processing successful: Google Colab - Exact Implementation
+2025-12-04 06:29:43,718 - api.textract_lab_analysis - INFO - Google Colab combined text length: 3197
+2025-12-04 06:29:43,718 - api.textract_lab_analysis - INFO - Updated extraction_method to: google_colab_enhanced
+2025-12-04 06:29:43,728 - django.server - INFO - "POST /api/textract/upload/ HTTP/1.1" 200 401436
+2025-12-04 06:29:44,776 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:29:44,790 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2025-12-04 06:29:52,102 - root - INFO - Request: {"method": "POST", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-12-04 06:29:52,103 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "POST", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764800992.1034415, "client_ip": "127.0.0.1"}
+2025-12-04 06:29:52,139 - django.server - INFO - "POST /api/medical-documents/lab-results/ HTTP/1.1" 201 1206
+2025-12-04 06:29:52,170 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:29:52,170 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764800992.1708508, "client_ip": "127.0.0.1"}
+2025-12-04 06:29:52,180 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:29:52,191 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:29:52,192 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764800992.1919794, "client_ip": "127.0.0.1"}
+2025-12-04 06:29:52,208 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 5244
+2025-12-04 06:29:52,212 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:29:52,213 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:29:52,213 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:29:52,213 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:29:52,213 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:29:52,213 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:29:52,219 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:29:52,220 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:29:52,223 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:29:52,224 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:29:52,224 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:29:54,020 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/13/download_pdf/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:29:54,020 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/13/download_pdf/", "timestamp": 1764800994.0207865, "client_ip": "127.0.0.1"}
+2025-12-04 06:29:54,027 - django.server - INFO - "GET /api/medical-documents/lab-results/13/download_pdf/ HTTP/1.1" 200 235
+2025-12-04 06:29:54,058 - root - INFO - Request: {"method": "GET", "path": "/media/medical_documents/processed/lab_result_Queenie_Parl_Torrejos_2025-12-03_W9Mlulj.pdf", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:29:54,083 - django.server - INFO - "GET /media/medical_documents/processed/lab_result_Queenie_Parl_Torrejos_2025-12-03_W9Mlulj.pdf HTTP/1.1" 200 21604
+2025-12-04 06:31:39,522 - root - INFO - Request: {"method": "GET", "path": "/api/inventory/medicine-transactions/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:31:39,517 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:31:39,528 - root - INFO - Request: {"method": "GET", "path": "/api/inventory/medicines/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:31:39,552 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764801099.5518758, "client_ip": "127.0.0.1"}
+2025-12-04 06:31:39,694 - django.request - WARNING - Not Found: /api/inventory/medicine-transactions/
+2025-12-04 06:31:39,701 - django.server - WARNING - "GET /api/inventory/medicine-transactions/ HTTP/1.1" 404 24516
+2025-12-04 06:31:39,735 - django.server - INFO - "GET /api/inventory/medicines/ HTTP/1.1" 200 259
+2025-12-04 06:31:39,742 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:31:39,761 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:31:39,763 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764801099.7632484, "client_ip": "127.0.0.1"}
+2025-12-04 06:31:39,828 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 5244
+2025-12-04 06:31:40,171 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:31:40,173 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:31:40,173 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:31:40,174 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:31:40,174 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:31:40,174 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:31:40,186 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:31:40,187 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:31:40,215 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:31:40,215 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:31:40,218 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:31:40,813 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/13/download_pdf/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:31:40,814 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/13/download_pdf/", "timestamp": 1764801100.8141258, "client_ip": "127.0.0.1"}
+2025-12-04 06:31:40,827 - django.server - INFO - "GET /api/medical-documents/lab-results/13/download_pdf/ HTTP/1.1" 200 235
+2025-12-04 06:31:41,038 - root - INFO - Request: {"method": "GET", "path": "/media/medical_documents/processed/lab_result_Queenie_Parl_Torrejos_2025-12-03_W9Mlulj.pdf", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:31:41,059 - django.server - INFO - "GET /media/medical_documents/processed/lab_result_Queenie_Parl_Torrejos_2025-12-03_W9Mlulj.pdf HTTP/1.1" 304 0
+2025-12-04 06:31:48,044 - root - INFO - Request: {"method": "POST", "path": "/api/textract/upload/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-12-04 06:31:48,044 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:31:48,045 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:31:48,045 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:31:48,045 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:31:48,045 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:31:48,045 - api.textract_lab_analysis - INFO - AWS Credentials Check - Access Key: *****BBGX
+2025-12-04 06:31:48,046 - api.textract_lab_analysis - INFO - AWS Credentials Check - Region: us-east-1
+2025-12-04 06:31:48,046 - api.textract_lab_analysis - INFO - DEBUG: Request method: POST
+2025-12-04 06:31:48,048 - api.textract_lab_analysis - INFO - DEBUG: Request FILES keys: ['document']
+2025-12-04 06:31:48,049 - api.textract_lab_analysis - INFO - DEBUG: Request POST keys: []
+2025-12-04 06:31:48,049 - api.textract_lab_analysis - INFO - DEBUG: Content type: multipart/form-data
+2025-12-04 06:31:48,049 - api.textract_lab_analysis - INFO - DEBUG: Found file in 'document' field
+2025-12-04 06:31:48,050 - api.textract_lab_analysis - INFO - DEBUG: File read successfully, size: 992156 bytes
+2025-12-04 06:31:48,072 - api.textract_lab_analysis - INFO - === localhost-uploaded Image Debug ===
+2025-12-04 06:31:48,072 - api.textract_lab_analysis - INFO - Size: 992156 bytes
+2025-12-04 06:31:48,073 - api.textract_lab_analysis - INFO - MD5: ee594364629dec15243a7abdb44e22de
+2025-12-04 06:31:48,073 - api.textract_lab_analysis - INFO - Dimensions: (551, 600)
+2025-12-04 06:31:48,073 - api.textract_lab_analysis - INFO - Mode: RGB
+2025-12-04 06:31:48,073 - api.textract_lab_analysis - INFO - Format: TIFF
+2025-12-04 06:31:48,073 - api.textract_lab_analysis - INFO - Using simplified preprocessing (rotation detection disabled)
+2025-12-04 06:31:48,073 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:31:48,073 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:31:48,074 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:31:48,074 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:31:48,074 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:31:48,081 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:31:48,081 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:31:48,085 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:31:48,086 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:31:52,911 - api.textract_lab_analysis - INFO - DEBUG: Got 235 raw Textract blocks
+2025-12-04 06:31:52,911 - api.textract_lab_analysis - INFO - DEBUG: Extracted 95 lines and 139 words
+2025-12-04 06:31:52,912 - api.textract_lab_analysis - INFO - Enhanced pattern extraction found 0 unique lab results
+2025-12-04 06:31:52,919 - api.textract_lab_analysis - INFO - Input blocks for Google Colab: 235 blocks
+2025-12-04 06:31:53,004 - api.textract_lab_analysis - INFO - Google Colab results: dict_keys(['success', 'positioned_text', 'formatted_tables', 'combined_text', 'blocks_processed', 'algorithm_source'])
+2025-12-04 06:31:53,004 - api.textract_lab_analysis - INFO - Google Colab success: True
+2025-12-04 06:31:53,004 - api.textract_lab_analysis - INFO - Google Colab processing successful: Google Colab - Exact Implementation
+2025-12-04 06:31:53,004 - api.textract_lab_analysis - INFO - Google Colab combined text length: 3197
+2025-12-04 06:31:53,004 - api.textract_lab_analysis - INFO - Updated extraction_method to: google_colab_enhanced
+2025-12-04 06:31:53,013 - django.server - INFO - "POST /api/textract/upload/ HTTP/1.1" 200 401436
+2025-12-04 06:31:54,039 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:31:54,050 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2025-12-04 06:31:58,458 - root - INFO - Request: {"method": "POST", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-12-04 06:31:58,459 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "POST", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764801118.4590328, "client_ip": "127.0.0.1"}
+2025-12-04 06:31:58,497 - django.server - INFO - "POST /api/medical-documents/lab-results/ HTTP/1.1" 201 1169
+2025-12-04 06:31:58,525 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:31:58,525 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764801118.5259533, "client_ip": "127.0.0.1"}
+2025-12-04 06:31:58,538 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:31:58,545 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:31:58,546 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764801118.5464106, "client_ip": "127.0.0.1"}
+2025-12-04 06:31:58,563 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 6540
+2025-12-04 06:31:58,568 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:31:58,569 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:31:58,569 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:31:58,570 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:31:58,570 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:31:58,570 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:31:58,577 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:31:58,577 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:31:58,580 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:31:58,580 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:31:58,581 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:32:00,089 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/14/download_pdf/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:32:00,089 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/14/download_pdf/", "timestamp": 1764801120.0899253, "client_ip": "127.0.0.1"}
+2025-12-04 06:32:00,097 - django.server - INFO - "GET /api/medical-documents/lab-results/14/download_pdf/ HTTP/1.1" 200 217
+2025-12-04 06:32:00,140 - root - INFO - Request: {"method": "GET", "path": "/media/medical_documents/processed/lab_result_Viel_Torrejos__Roxas_2025-12-03.pdf", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:32:00,208 - django.server - INFO - "GET /media/medical_documents/processed/lab_result_Viel_Torrejos__Roxas_2025-12-03.pdf HTTP/1.1" 200 12428
+2025-12-04 06:33:29,434 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:33:29,436 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764801209.4361086, "client_ip": "127.0.0.1"}
+2025-12-04 06:33:29,456 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:33:29,467 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:33:29,468 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764801209.468935, "client_ip": "127.0.0.1"}
+2025-12-04 06:33:29,490 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 6540
+2025-12-04 06:33:29,809 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:33:29,810 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:33:29,810 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:33:29,811 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:33:29,811 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:33:29,811 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:33:29,821 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:33:29,822 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:33:29,836 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:33:29,837 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:33:29,838 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:33:58,443 - django.server - INFO - "OPTIONS /api/medical-documents/lab-results/10/ HTTP/1.1" 200 0
+2025-12-04 06:33:58,787 - root - INFO - Request: {"method": "DELETE", "path": "/api/medical-documents/lab-results/10/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:33:58,790 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "DELETE", "endpoint": "/api/medical-documents/lab-results/10/", "timestamp": 1764801238.789802, "client_ip": "127.0.0.1"}
+2025-12-04 06:33:58,815 - django.server - INFO - "DELETE /api/medical-documents/lab-results/10/ HTTP/1.1" 204 0
+2025-12-04 06:33:58,828 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:33:58,828 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764801238.8287077, "client_ip": "127.0.0.1"}
+2025-12-04 06:33:58,847 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 5209
+2025-12-04 06:35:44,380 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:35:44,407 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 375
+2025-12-04 06:35:44,511 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:35:44,514 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764801344.5143974, "client_ip": "127.0.0.1"}
+2025-12-04 06:35:44,579 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:35:44,605 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:35:44,607 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764801344.607614, "client_ip": "127.0.0.1"}
+2025-12-04 06:35:44,644 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 5209
+2025-12-04 06:35:44,962 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:35:44,963 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:35:44,964 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:35:44,964 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:35:44,964 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:35:44,964 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:35:44,978 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:35:44,979 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:35:45,005 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:35:45,005 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:35:45,007 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:35:48,850 - django.server - INFO - "OPTIONS /api/medical-documents/lab-results/11/ HTTP/1.1" 200 0
+2025-12-04 06:35:48,858 - root - INFO - Request: {"method": "DELETE", "path": "/api/medical-documents/lab-results/11/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:35:48,859 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "DELETE", "endpoint": "/api/medical-documents/lab-results/11/", "timestamp": 1764801348.85897, "client_ip": "127.0.0.1"}
+2025-12-04 06:35:48,874 - django.server - INFO - "DELETE /api/medical-documents/lab-results/11/ HTTP/1.1" 204 0
+2025-12-04 06:35:48,882 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:35:48,882 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764801348.8825598, "client_ip": "127.0.0.1"}
+2025-12-04 06:35:48,895 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 3915
+2025-12-04 06:36:34,407 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:36:34,409 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764801394.4093318, "client_ip": "127.0.0.1"}
+2025-12-04 06:36:34,430 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:36:34,442 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:36:34,443 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764801394.443659, "client_ip": "127.0.0.1"}
+2025-12-04 06:36:34,466 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 3915
+2025-12-04 06:36:34,785 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:36:34,786 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:36:34,786 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:36:34,787 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:36:34,787 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:36:34,787 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:36:34,798 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:36:34,799 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:36:34,804 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:36:34,805 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:36:34,806 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:37:39,407 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:37:39,411 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764801459.4116864, "client_ip": "127.0.0.1"}
+2025-12-04 06:37:39,439 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:37:39,454 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:37:39,455 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764801459.4550366, "client_ip": "127.0.0.1"}
+2025-12-04 06:37:39,477 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 3915
+2025-12-04 06:37:39,787 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:37:39,788 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:37:39,788 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:37:39,788 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:37:39,789 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:37:39,789 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:37:39,796 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:37:39,796 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:37:39,802 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:37:39,803 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:37:39,804 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:40:55,492 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 3, "user_agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:40:55,507 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 375
+2025-12-04 06:40:56,031 - django.server - INFO - "OPTIONS /api/clinic/ HTTP/1.1" 200 0
+2025-12-04 06:40:56,207 - django.server - INFO - "OPTIONS /api/patients/ HTTP/1.1" 200 0
+2025-12-04 06:40:56,215 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": null, "user_agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:40:56,244 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:40:56,247 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764801656.2478578, "client_ip": "127.0.0.1"}
+2025-12-04 06:40:56,250 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2025-12-04 06:40:56,270 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:40:56,407 - django.server - INFO - "OPTIONS /api/medical-documents/lab-results/? HTTP/1.1" 200 0
+2025-12-04 06:40:56,422 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:40:56,426 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764801656.4260178, "client_ip": "127.0.0.1"}
+2025-12-04 06:40:56,473 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 3915
+2025-12-04 06:40:56,609 - django.server - INFO - "OPTIONS /api/textract/health/ HTTP/1.1" 200 0
+2025-12-04 06:40:56,613 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:40:56,614 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:40:56,614 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:40:56,615 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:40:56,615 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:40:56,615 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:40:56,642 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:40:56,642 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:40:56,664 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:40:56,664 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:40:56,666 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:43:58,480 - django.server - INFO - "OPTIONS /api/clinic/ HTTP/1.1" 200 0
+2025-12-04 06:43:58,491 - django.server - INFO - "OPTIONS /api/patients/ HTTP/1.1" 200 0
+2025-12-04 06:43:58,490 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": null, "user_agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:43:58,527 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2025-12-04 06:43:58,830 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:43:58,831 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764801838.8311882, "client_ip": "127.0.0.1"}
+2025-12-04 06:43:58,848 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:43:59,018 - django.server - INFO - "OPTIONS /api/medical-documents/lab-results/? HTTP/1.1" 200 0
+2025-12-04 06:43:59,043 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:43:59,047 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764801839.0474167, "client_ip": "127.0.0.1"}
+2025-12-04 06:43:59,128 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 3915
+2025-12-04 06:43:59,218 - django.server - INFO - "OPTIONS /api/textract/health/ HTTP/1.1" 200 0
+2025-12-04 06:43:59,249 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:43:59,251 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:43:59,255 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:43:59,257 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:43:59,260 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:43:59,261 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:43:59,278 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:43:59,278 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:43:59,322 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:43:59,322 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:43:59,326 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:44:02,618 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:44:02,631 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2025-12-04 06:44:02,646 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:44:02,647 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764801842.647493, "client_ip": "127.0.0.1"}
+2025-12-04 06:44:02,659 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:44:02,666 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:44:02,667 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764801842.6672704, "client_ip": "127.0.0.1"}
+2025-12-04 06:44:02,680 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 3915
+2025-12-04 06:44:02,684 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:44:02,684 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:44:02,684 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:44:02,684 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:44:02,684 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:44:02,685 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:44:02,692 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:44:02,692 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:44:02,696 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:44:02,696 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:44:02,697 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:44:03,525 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:44:03,535 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2025-12-04 06:44:03,545 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:44:03,546 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764801843.5460613, "client_ip": "127.0.0.1"}
+2025-12-04 06:44:03,556 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:44:03,563 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:44:03,563 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764801843.5637186, "client_ip": "127.0.0.1"}
+2025-12-04 06:44:03,580 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 3915
+2025-12-04 06:44:03,583 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:44:03,584 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:44:03,584 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:44:03,584 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:44:03,584 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:44:03,584 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:44:03,591 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:44:03,591 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:44:03,594 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:44:03,595 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:44:03,596 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:44:39,377 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:44:39,378 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764801879.378371, "client_ip": "127.0.0.1"}
+2025-12-04 06:44:39,390 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:44:39,399 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:44:39,399 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764801879.399626, "client_ip": "127.0.0.1"}
+2025-12-04 06:44:39,414 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 3915
+2025-12-04 06:44:39,722 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:44:39,723 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:44:39,723 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:44:39,723 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:44:39,724 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:44:39,724 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:44:39,731 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:44:39,732 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:44:39,736 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:44:39,736 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:44:39,738 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:44:57,407 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:44:57,408 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764801897.408401, "client_ip": "127.0.0.1"}
+2025-12-04 06:44:57,422 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:44:57,435 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:44:57,436 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764801897.436063, "client_ip": "127.0.0.1"}
+2025-12-04 06:44:57,450 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 3915
+2025-12-04 06:44:57,776 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:44:57,777 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:44:57,777 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:44:57,777 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:44:57,778 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:44:57,778 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:44:57,786 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:44:57,786 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:44:57,801 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:44:57,802 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:44:57,804 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:47:42,505 - root - INFO - Request: {"method": "POST", "path": "/api/textract/upload/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-12-04 06:47:42,513 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:47:42,513 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:47:42,513 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:47:42,513 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:47:42,514 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:47:42,514 - api.textract_lab_analysis - INFO - AWS Credentials Check - Access Key: *****BBGX
+2025-12-04 06:47:42,514 - api.textract_lab_analysis - INFO - AWS Credentials Check - Region: us-east-1
+2025-12-04 06:47:42,514 - api.textract_lab_analysis - INFO - DEBUG: Request method: POST
+2025-12-04 06:47:42,518 - api.textract_lab_analysis - INFO - DEBUG: Request FILES keys: ['document']
+2025-12-04 06:47:42,519 - api.textract_lab_analysis - INFO - DEBUG: Request POST keys: []
+2025-12-04 06:47:42,519 - api.textract_lab_analysis - INFO - DEBUG: Content type: multipart/form-data
+2025-12-04 06:47:42,519 - api.textract_lab_analysis - INFO - DEBUG: Found file in 'document' field
+2025-12-04 06:47:42,519 - api.textract_lab_analysis - INFO - DEBUG: File read successfully, size: 100816 bytes
+2025-12-04 06:47:42,546 - api.textract_lab_analysis - INFO - === localhost-uploaded Image Debug ===
+2025-12-04 06:47:42,546 - api.textract_lab_analysis - INFO - Size: 100816 bytes
+2025-12-04 06:47:42,546 - api.textract_lab_analysis - INFO - MD5: 874ce3ad85ea3d8f8fd879c87774ba67
+2025-12-04 06:47:42,546 - api.textract_lab_analysis - INFO - Dimensions: (551, 600)
+2025-12-04 06:47:42,546 - api.textract_lab_analysis - INFO - Mode: RGB
+2025-12-04 06:47:42,546 - api.textract_lab_analysis - INFO - Format: PNG
+2025-12-04 06:47:42,547 - api.textract_lab_analysis - INFO - Using simplified preprocessing (rotation detection disabled)
+2025-12-04 06:47:42,547 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:47:42,547 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:47:42,547 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:47:42,547 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:47:42,548 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:47:42,561 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:47:42,561 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:47:42,582 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:47:42,582 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:47:46,634 - api.textract_lab_analysis - INFO - DEBUG: Got 235 raw Textract blocks
+2025-12-04 06:47:46,634 - api.textract_lab_analysis - INFO - DEBUG: Extracted 95 lines and 139 words
+2025-12-04 06:47:46,635 - api.textract_lab_analysis - INFO - Enhanced pattern extraction found 0 unique lab results
+2025-12-04 06:47:46,640 - api.textract_lab_analysis - INFO - Input blocks for Google Colab: 235 blocks
+2025-12-04 06:47:46,730 - api.textract_lab_analysis - INFO - Google Colab results: dict_keys(['success', 'positioned_text', 'formatted_tables', 'combined_text', 'blocks_processed', 'algorithm_source'])
+2025-12-04 06:47:46,730 - api.textract_lab_analysis - INFO - Google Colab success: True
+2025-12-04 06:47:46,731 - api.textract_lab_analysis - INFO - Google Colab processing successful: Google Colab - Exact Implementation
+2025-12-04 06:47:46,731 - api.textract_lab_analysis - INFO - Google Colab combined text length: 3197
+2025-12-04 06:47:46,731 - api.textract_lab_analysis - INFO - Updated extraction_method to: google_colab_enhanced
+2025-12-04 06:47:46,743 - django.server - INFO - "POST /api/textract/upload/ HTTP/1.1" 200 401436
+2025-12-04 06:47:47,810 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:47:47,849 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2025-12-04 06:48:08,132 - root - INFO - Request: {"method": "POST", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-12-04 06:48:08,133 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "POST", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764802088.1334853, "client_ip": "127.0.0.1"}
+2025-12-04 06:48:08,178 - django.server - INFO - "POST /api/medical-documents/lab-results/ HTTP/1.1" 201 1204
+2025-12-04 06:48:08,218 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:48:08,218 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764802088.2184744, "client_ip": "127.0.0.1"}
+2025-12-04 06:48:08,229 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:48:08,237 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:48:08,238 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764802088.2380767, "client_ip": "127.0.0.1"}
+2025-12-04 06:48:08,253 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 5246
+2025-12-04 06:48:08,259 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:48:08,260 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:48:08,260 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:48:08,260 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:48:08,260 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:48:08,260 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:48:08,266 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:48:08,266 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:48:08,274 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:48:08,274 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:48:08,276 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:48:12,767 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:48:12,777 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 375
+2025-12-04 06:48:12,921 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:48:12,921 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764802092.9218962, "client_ip": "127.0.0.1"}
+2025-12-04 06:48:12,940 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:48:12,956 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:48:12,956 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764802092.956787, "client_ip": "127.0.0.1"}
+2025-12-04 06:48:12,971 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 5246
+2025-12-04 06:48:12,980 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:48:12,981 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:48:12,981 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:48:12,982 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:48:12,982 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:48:12,982 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:48:12,989 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:48:12,989 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:48:12,992 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:48:12,992 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:48:12,993 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:48:16,000 - django.server - INFO - "OPTIONS /api/medical-documents/lab-results/15/ HTTP/1.1" 200 0
+2025-12-04 06:48:16,010 - root - INFO - Request: {"method": "DELETE", "path": "/api/medical-documents/lab-results/15/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:48:16,012 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "DELETE", "endpoint": "/api/medical-documents/lab-results/15/", "timestamp": 1764802096.012505, "client_ip": "127.0.0.1"}
+2025-12-04 06:48:16,034 - django.server - INFO - "DELETE /api/medical-documents/lab-results/15/ HTTP/1.1" 204 0
+2025-12-04 06:48:16,044 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:48:16,045 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764802096.0457983, "client_ip": "127.0.0.1"}
+2025-12-04 06:48:16,060 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 3915
+2025-12-04 06:48:18,605 - django.server - INFO - "OPTIONS /api/medical-documents/lab-results/13/ HTTP/1.1" 200 0
+2025-12-04 06:48:18,931 - root - INFO - Request: {"method": "DELETE", "path": "/api/medical-documents/lab-results/13/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:48:18,932 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "DELETE", "endpoint": "/api/medical-documents/lab-results/13/", "timestamp": 1764802098.9322474, "client_ip": "127.0.0.1"}
+2025-12-04 06:48:19,093 - django.server - INFO - "DELETE /api/medical-documents/lab-results/13/ HTTP/1.1" 204 0
+2025-12-04 06:48:19,102 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:48:19,102 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764802099.1025412, "client_ip": "127.0.0.1"}
+2025-12-04 06:48:19,117 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 2582
+2025-12-04 06:48:21,989 - django.server - INFO - "OPTIONS /api/medical-documents/lab-results/12/ HTTP/1.1" 200 0
+2025-12-04 06:48:22,309 - root - INFO - Request: {"method": "DELETE", "path": "/api/medical-documents/lab-results/12/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:48:22,310 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "DELETE", "endpoint": "/api/medical-documents/lab-results/12/", "timestamp": 1764802102.3103406, "client_ip": "127.0.0.1"}
+2025-12-04 06:48:22,321 - django.server - INFO - "DELETE /api/medical-documents/lab-results/12/ HTTP/1.1" 204 0
+2025-12-04 06:48:22,329 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:48:22,329 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764802102.3294604, "client_ip": "127.0.0.1"}
+2025-12-04 06:48:22,338 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 1297
+2025-12-04 06:48:25,764 - root - INFO - Request: {"method": "POST", "path": "/api/textract/upload/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-12-04 06:48:25,765 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:48:25,765 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:48:25,765 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:48:25,766 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:48:25,766 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:48:25,766 - api.textract_lab_analysis - INFO - AWS Credentials Check - Access Key: *****BBGX
+2025-12-04 06:48:25,766 - api.textract_lab_analysis - INFO - AWS Credentials Check - Region: us-east-1
+2025-12-04 06:48:25,766 - api.textract_lab_analysis - INFO - DEBUG: Request method: POST
+2025-12-04 06:48:25,768 - api.textract_lab_analysis - INFO - DEBUG: Request FILES keys: ['document']
+2025-12-04 06:48:25,768 - api.textract_lab_analysis - INFO - DEBUG: Request POST keys: []
+2025-12-04 06:48:25,768 - api.textract_lab_analysis - INFO - DEBUG: Content type: multipart/form-data
+2025-12-04 06:48:25,768 - api.textract_lab_analysis - INFO - DEBUG: Found file in 'document' field
+2025-12-04 06:48:25,769 - api.textract_lab_analysis - INFO - DEBUG: File read successfully, size: 992156 bytes
+2025-12-04 06:48:25,784 - api.textract_lab_analysis - INFO - === localhost-uploaded Image Debug ===
+2025-12-04 06:48:25,784 - api.textract_lab_analysis - INFO - Size: 992156 bytes
+2025-12-04 06:48:25,784 - api.textract_lab_analysis - INFO - MD5: ee594364629dec15243a7abdb44e22de
+2025-12-04 06:48:25,784 - api.textract_lab_analysis - INFO - Dimensions: (551, 600)
+2025-12-04 06:48:25,785 - api.textract_lab_analysis - INFO - Mode: RGB
+2025-12-04 06:48:25,785 - api.textract_lab_analysis - INFO - Format: TIFF
+2025-12-04 06:48:25,785 - api.textract_lab_analysis - INFO - Using simplified preprocessing (rotation detection disabled)
+2025-12-04 06:48:25,785 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:48:25,785 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:48:25,785 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:48:25,785 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:48:25,786 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:48:25,794 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:48:25,794 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:48:25,797 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:48:25,797 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:48:37,364 - api.textract_lab_analysis - INFO - DEBUG: Got 235 raw Textract blocks
+2025-12-04 06:48:37,365 - api.textract_lab_analysis - INFO - DEBUG: Extracted 95 lines and 139 words
+2025-12-04 06:48:37,365 - api.textract_lab_analysis - INFO - Enhanced pattern extraction found 0 unique lab results
+2025-12-04 06:48:37,372 - api.textract_lab_analysis - INFO - Input blocks for Google Colab: 235 blocks
+2025-12-04 06:48:37,443 - api.textract_lab_analysis - INFO - Google Colab results: dict_keys(['success', 'positioned_text', 'formatted_tables', 'combined_text', 'blocks_processed', 'algorithm_source'])
+2025-12-04 06:48:37,443 - api.textract_lab_analysis - INFO - Google Colab success: True
+2025-12-04 06:48:37,443 - api.textract_lab_analysis - INFO - Google Colab processing successful: Google Colab - Exact Implementation
+2025-12-04 06:48:37,443 - api.textract_lab_analysis - INFO - Google Colab combined text length: 3197
+2025-12-04 06:48:37,443 - api.textract_lab_analysis - INFO - Updated extraction_method to: google_colab_enhanced
+2025-12-04 06:48:37,452 - django.server - INFO - "POST /api/textract/upload/ HTTP/1.1" 200 401436
+2025-12-04 06:48:38,481 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:48:38,490 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2025-12-04 06:48:48,145 - root - INFO - Request: {"method": "POST", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-12-04 06:48:48,146 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "POST", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764802128.1462047, "client_ip": "127.0.0.1"}
+2025-12-04 06:48:48,175 - django.server - INFO - "POST /api/medical-documents/lab-results/ HTTP/1.1" 201 1139
+2025-12-04 06:48:48,201 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:48:48,201 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764802128.2019134, "client_ip": "127.0.0.1"}
+2025-12-04 06:48:48,212 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:48:48,219 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:48:48,219 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764802128.2198198, "client_ip": "127.0.0.1"}
+2025-12-04 06:48:48,231 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 2563
+2025-12-04 06:48:48,554 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:48:48,554 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:48:48,555 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:48:48,555 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:48:48,555 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:48:48,555 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:48:48,561 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:48:48,561 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:48:48,564 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:48:48,565 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:48:48,566 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:49:02,496 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:49:02,501 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 375
+2025-12-04 06:49:02,560 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:49:02,560 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764802142.5609462, "client_ip": "127.0.0.1"}
+2025-12-04 06:49:02,572 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:49:02,609 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:49:02,610 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764802142.60996, "client_ip": "127.0.0.1"}
+2025-12-04 06:49:02,630 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 2563
+2025-12-04 06:49:02,940 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:49:02,940 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:49:02,941 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:49:02,941 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:49:02,941 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:49:02,941 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:49:02,947 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:49:02,947 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:49:02,950 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:49:02,950 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:49:02,951 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:49:04,943 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/16/download_pdf/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:49:04,946 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/16/download_pdf/", "timestamp": 1764802144.9464715, "client_ip": "127.0.0.1"}
+2025-12-04 06:49:04,955 - django.server - INFO - "GET /api/medical-documents/lab-results/16/download_pdf/ HTTP/1.1" 200 205
+2025-12-04 06:49:04,995 - root - INFO - Request: {"method": "GET", "path": "/media/medical_documents/processed/lab_result_Jerry_Olivarez_2025-12-03.pdf", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:49:05,095 - django.server - INFO - "GET /media/medical_documents/processed/lab_result_Jerry_Olivarez_2025-12-03.pdf HTTP/1.1" 200 12422
+2025-12-04 06:49:26,655 - root - INFO - Request: {"method": "POST", "path": "/api/textract/upload/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-12-04 06:49:26,656 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:49:26,656 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:49:26,657 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:49:26,657 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:49:26,657 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:49:26,657 - api.textract_lab_analysis - INFO - AWS Credentials Check - Access Key: *****BBGX
+2025-12-04 06:49:26,657 - api.textract_lab_analysis - INFO - AWS Credentials Check - Region: us-east-1
+2025-12-04 06:49:26,658 - api.textract_lab_analysis - INFO - DEBUG: Request method: POST
+2025-12-04 06:49:26,658 - api.textract_lab_analysis - INFO - DEBUG: Request FILES keys: ['document']
+2025-12-04 06:49:26,658 - api.textract_lab_analysis - INFO - DEBUG: Request POST keys: []
+2025-12-04 06:49:26,658 - api.textract_lab_analysis - INFO - DEBUG: Content type: multipart/form-data
+2025-12-04 06:49:26,659 - api.textract_lab_analysis - INFO - DEBUG: Found file in 'document' field
+2025-12-04 06:49:26,659 - api.textract_lab_analysis - INFO - DEBUG: File read successfully, size: 100816 bytes
+2025-12-04 06:49:26,666 - api.textract_lab_analysis - INFO - === localhost-uploaded Image Debug ===
+2025-12-04 06:49:26,666 - api.textract_lab_analysis - INFO - Size: 100816 bytes
+2025-12-04 06:49:26,666 - api.textract_lab_analysis - INFO - MD5: 874ce3ad85ea3d8f8fd879c87774ba67
+2025-12-04 06:49:26,666 - api.textract_lab_analysis - INFO - Dimensions: (551, 600)
+2025-12-04 06:49:26,666 - api.textract_lab_analysis - INFO - Mode: RGB
+2025-12-04 06:49:26,667 - api.textract_lab_analysis - INFO - Format: PNG
+2025-12-04 06:49:26,667 - api.textract_lab_analysis - INFO - Using simplified preprocessing (rotation detection disabled)
+2025-12-04 06:49:26,667 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:49:26,667 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:49:26,667 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:49:26,668 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:49:26,668 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:49:26,675 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:49:26,676 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:49:26,679 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:49:26,679 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:49:30,590 - api.textract_lab_analysis - INFO - DEBUG: Got 235 raw Textract blocks
+2025-12-04 06:49:30,590 - api.textract_lab_analysis - INFO - DEBUG: Extracted 95 lines and 139 words
+2025-12-04 06:49:30,591 - api.textract_lab_analysis - INFO - Enhanced pattern extraction found 0 unique lab results
+2025-12-04 06:49:30,595 - api.textract_lab_analysis - INFO - Input blocks for Google Colab: 235 blocks
+2025-12-04 06:49:30,664 - api.textract_lab_analysis - INFO - Google Colab results: dict_keys(['success', 'positioned_text', 'formatted_tables', 'combined_text', 'blocks_processed', 'algorithm_source'])
+2025-12-04 06:49:30,664 - api.textract_lab_analysis - INFO - Google Colab success: True
+2025-12-04 06:49:30,664 - api.textract_lab_analysis - INFO - Google Colab processing successful: Google Colab - Exact Implementation
+2025-12-04 06:49:30,664 - api.textract_lab_analysis - INFO - Google Colab combined text length: 3197
+2025-12-04 06:49:30,664 - api.textract_lab_analysis - INFO - Updated extraction_method to: google_colab_enhanced
+2025-12-04 06:49:30,674 - django.server - INFO - "POST /api/textract/upload/ HTTP/1.1" 200 401436
+2025-12-04 06:49:32,006 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:49:32,012 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2025-12-04 06:49:39,723 - root - INFO - Request: {"method": "POST", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-12-04 06:49:39,723 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "POST", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764802179.723902, "client_ip": "127.0.0.1"}
+2025-12-04 06:49:39,750 - django.server - INFO - "POST /api/medical-documents/lab-results/ HTTP/1.1" 201 1199
+2025-12-04 06:49:39,779 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:49:39,779 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764802179.7797632, "client_ip": "127.0.0.1"}
+2025-12-04 06:49:39,787 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:49:39,795 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:49:39,795 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764802179.7959473, "client_ip": "127.0.0.1"}
+2025-12-04 06:49:39,809 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 3889
+2025-12-04 06:49:39,813 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:49:39,814 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:49:39,814 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:49:39,814 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:49:39,814 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:49:39,814 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:49:39,820 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:49:39,820 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:49:39,824 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:49:39,824 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:49:39,825 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:51:52,999 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 3, "user_agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:51:53,060 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 375
+2025-12-04 06:51:53,985 - django.server - INFO - "OPTIONS /api/patients/ HTTP/1.1" 200 0
+2025-12-04 06:51:54,010 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:51:54,013 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764802314.0132415, "client_ip": "127.0.0.1"}
+2025-12-04 06:51:54,114 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:51:54,190 - django.server - INFO - "OPTIONS /api/medical-documents/lab-results/? HTTP/1.1" 200 0
+2025-12-04 06:51:54,206 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:51:54,210 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764802314.210193, "client_ip": "127.0.0.1"}
+2025-12-04 06:51:54,316 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 3889
+2025-12-04 06:51:54,406 - django.server - INFO - "OPTIONS /api/textract/health/ HTTP/1.1" 200 0
+2025-12-04 06:51:54,415 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:51:54,419 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:51:54,421 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:51:54,422 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:51:54,422 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:51:54,424 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:51:54,500 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:51:54,501 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:51:54,567 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:51:54,567 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:51:54,573 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:52:25,138 - root - INFO - Request: {"method": "POST", "path": "/api/textract/upload/", "user_id": null, "user_agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-12-04 06:52:25,139 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:52:25,139 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:52:25,140 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:52:25,140 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:52:25,140 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:52:25,140 - api.textract_lab_analysis - INFO - AWS Credentials Check - Access Key: *****BBGX
+2025-12-04 06:52:25,140 - api.textract_lab_analysis - INFO - AWS Credentials Check - Region: us-east-1
+2025-12-04 06:52:25,140 - api.textract_lab_analysis - INFO - DEBUG: Request method: POST
+2025-12-04 06:52:25,143 - api.textract_lab_analysis - INFO - DEBUG: Request FILES keys: ['document']
+2025-12-04 06:52:25,143 - api.textract_lab_analysis - INFO - DEBUG: Request POST keys: []
+2025-12-04 06:52:25,143 - api.textract_lab_analysis - INFO - DEBUG: Content type: multipart/form-data
+2025-12-04 06:52:25,143 - api.textract_lab_analysis - INFO - DEBUG: Found file in 'document' field
+2025-12-04 06:52:25,144 - api.textract_lab_analysis - INFO - DEBUG: File read successfully, size: 100816 bytes
+2025-12-04 06:52:25,159 - api.textract_lab_analysis - INFO - === localhost-uploaded Image Debug ===
+2025-12-04 06:52:25,160 - api.textract_lab_analysis - INFO - Size: 100816 bytes
+2025-12-04 06:52:25,160 - api.textract_lab_analysis - INFO - MD5: 874ce3ad85ea3d8f8fd879c87774ba67
+2025-12-04 06:52:25,160 - api.textract_lab_analysis - INFO - Dimensions: (551, 600)
+2025-12-04 06:52:25,160 - api.textract_lab_analysis - INFO - Mode: RGB
+2025-12-04 06:52:25,160 - api.textract_lab_analysis - INFO - Format: PNG
+2025-12-04 06:52:25,160 - api.textract_lab_analysis - INFO - Using simplified preprocessing (rotation detection disabled)
+2025-12-04 06:52:25,160 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:52:25,161 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:52:25,161 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:52:25,161 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:52:25,161 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:52:25,167 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:52:25,168 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:52:25,171 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:52:25,171 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:52:29,588 - api.textract_lab_analysis - INFO - DEBUG: Got 235 raw Textract blocks
+2025-12-04 06:52:29,589 - api.textract_lab_analysis - INFO - DEBUG: Extracted 95 lines and 139 words
+2025-12-04 06:52:29,589 - api.textract_lab_analysis - INFO - Enhanced pattern extraction found 0 unique lab results
+2025-12-04 06:52:29,594 - api.textract_lab_analysis - INFO - Input blocks for Google Colab: 235 blocks
+2025-12-04 06:52:29,685 - api.textract_lab_analysis - INFO - Google Colab results: dict_keys(['success', 'positioned_text', 'formatted_tables', 'combined_text', 'blocks_processed', 'algorithm_source'])
+2025-12-04 06:52:29,685 - api.textract_lab_analysis - INFO - Google Colab success: True
+2025-12-04 06:52:29,686 - api.textract_lab_analysis - INFO - Google Colab processing successful: Google Colab - Exact Implementation
+2025-12-04 06:52:29,686 - api.textract_lab_analysis - INFO - Google Colab combined text length: 3197
+2025-12-04 06:52:29,686 - api.textract_lab_analysis - INFO - Updated extraction_method to: google_colab_enhanced
+2025-12-04 06:52:29,696 - django.server - INFO - "POST /api/textract/upload/ HTTP/1.1" 200 401436
+2025-12-04 06:52:31,153 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:52:31,178 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2025-12-04 06:52:37,370 - root - INFO - Request: {"method": "POST", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-12-04 06:52:37,370 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "POST", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764802357.3707218, "client_ip": "127.0.0.1"}
+2025-12-04 06:52:37,407 - django.server - INFO - "POST /api/medical-documents/lab-results/ HTTP/1.1" 201 1169
+2025-12-04 06:52:37,439 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:52:37,439 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764802357.439918, "client_ip": "127.0.0.1"}
+2025-12-04 06:52:37,452 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:52:37,462 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:52:37,462 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764802357.4626384, "client_ip": "127.0.0.1"}
+2025-12-04 06:52:37,481 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 5185
+2025-12-04 06:52:37,485 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:52:37,486 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:52:37,486 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:52:37,486 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:52:37,486 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:52:37,486 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:52:37,493 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:52:37,493 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:52:37,496 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:52:37,496 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:52:37,497 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:52:44,297 - django.server - INFO - "OPTIONS /api/appointments/list/ HTTP/1.1" 200 0
+2025-12-04 06:52:44,303 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:52:44,304 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764802364.3041675, "client_ip": "127.0.0.1"}
+2025-12-04 06:52:44,307 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:52:44,314 - appointments.views - INFO - Starting list method...
+2025-12-04 06:52:44,315 - appointments.views - INFO - Starting to fetch appointments...
+2025-12-04 06:52:44,319 - appointments.views - INFO - Successfully accessed database
+2025-12-04 06:52:44,329 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:52:44,340 - appointments.views - INFO - Found 6 appointments after filtering
+2025-12-04 06:52:44,344 - appointments.views - INFO - Sample appointment: id=6, status=cancelled, date=2025-11-21
+2025-12-04 06:52:44,344 - appointments.views - INFO - Patient: None
+2025-12-04 06:52:44,344 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 06:52:44,345 - appointments.views - INFO - Appointment Type: Consultation
+2025-12-04 06:52:44,345 - appointments.views - INFO - Sample appointment: id=7, status=cancelled, date=2025-11-21
+2025-12-04 06:52:44,345 - appointments.views - INFO - Patient: None
+2025-12-04 06:52:44,345 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 06:52:44,345 - appointments.views - INFO - Appointment Type: Consultation
+2025-12-04 06:52:44,345 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-23
+2025-12-04 06:52:44,346 - appointments.views - INFO - Patient: Queenie Parl Torrejos
+2025-12-04 06:52:44,346 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 06:52:44,346 - appointments.views - INFO - Appointment Type: Follow-up
+2025-12-04 06:52:44,349 - appointments.views - INFO - Testing serialization with first appointment: 6
+2025-12-04 06:52:44,354 - appointments.views - INFO - Successfully serialized first appointment: {'id': 6, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Miggie C Oli', 'patient_id': None, 'patient_email': 'miggie@gmail.com', 'patient_phone': '09857463535', 'date_of_birth': '2001-12-12', 'gender': 'male', 'address': 'gma cavite', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-21', 'time': '13:00:00', 'status': 'cancelled', 'created_at': '2025-11-21T12:42:16.083947+08:00', 'display_patient_name': 'Miggie C Oli', 'display_doctor_name': 'Jeri Oli', 'display_time': '01:00 PM', 'display_date': 'November 21, 2025', 'patient_is_deleted': False, 'doctor': 3, 'doctor_name': 'Jeri Oli', 'patient': None}
+2025-12-04 06:52:44,358 - appointments.views - INFO - Successfully serialized all appointments. Count: 6
+2025-12-04 06:52:44,362 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 4069
+2025-12-04 06:52:47,953 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:52:47,953 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764802367.9538043, "client_ip": "127.0.0.1"}
+2025-12-04 06:52:47,970 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:52:51,057 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:52:51,059 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:52:51,061 - appointments.views - INFO - Starting list method...
+2025-12-04 06:52:51,062 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764802371.0627787, "client_ip": "127.0.0.1"}
+2025-12-04 06:52:51,063 - appointments.views - INFO - Starting to fetch appointments...
+2025-12-04 06:52:51,068 - appointments.views - INFO - Successfully accessed database
+2025-12-04 06:52:51,075 - appointments.views - INFO - Found 6 appointments after filtering
+2025-12-04 06:52:51,094 - appointments.views - INFO - Sample appointment: id=6, status=cancelled, date=2025-11-21
+2025-12-04 06:52:51,094 - appointments.views - INFO - Patient: None
+2025-12-04 06:52:51,094 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 06:52:51,094 - appointments.views - INFO - Appointment Type: Consultation
+2025-12-04 06:52:51,095 - appointments.views - INFO - Sample appointment: id=7, status=cancelled, date=2025-11-21
+2025-12-04 06:52:51,095 - appointments.views - INFO - Patient: None
+2025-12-04 06:52:51,095 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 06:52:51,095 - appointments.views - INFO - Appointment Type: Consultation
+2025-12-04 06:52:51,095 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-23
+2025-12-04 06:52:51,096 - appointments.views - INFO - Patient: Queenie Parl Torrejos
+2025-12-04 06:52:51,096 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 06:52:51,096 - appointments.views - INFO - Appointment Type: Follow-up
+2025-12-04 06:52:51,098 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:52:51,110 - appointments.views - INFO - Testing serialization with first appointment: 6
+2025-12-04 06:52:51,112 - appointments.views - INFO - Successfully serialized first appointment: {'id': 6, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Miggie C Oli', 'patient_id': None, 'patient_email': 'miggie@gmail.com', 'patient_phone': '09857463535', 'date_of_birth': '2001-12-12', 'gender': 'male', 'address': 'gma cavite', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-21', 'time': '13:00:00', 'status': 'cancelled', 'created_at': '2025-11-21T12:42:16.083947+08:00', 'display_patient_name': 'Miggie C Oli', 'display_doctor_name': 'Jeri Oli', 'display_time': '01:00 PM', 'display_date': 'November 21, 2025', 'patient_is_deleted': False, 'doctor': 3, 'doctor_name': 'Jeri Oli', 'patient': None}
+2025-12-04 06:52:51,118 - appointments.views - INFO - Successfully serialized all appointments. Count: 6
+2025-12-04 06:52:51,131 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 4069
+2025-12-04 06:52:53,703 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:52:53,719 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 119
+2025-12-04 06:52:53,728 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:52:54,160 - django.server - INFO - "GET /api/availability/?doctor_id=3&page=1&page_size=10&ordering=-date&_t=1764802373721 HTTP/1.1" 200 34862
+2025-12-04 06:52:55,175 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:52:55,176 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:52:55,176 - appointments.views - INFO - Starting list method...
+2025-12-04 06:52:55,176 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764802375.1769216, "client_ip": "127.0.0.1"}
+2025-12-04 06:52:55,177 - appointments.views - INFO - Starting to fetch appointments...
+2025-12-04 06:52:55,177 - appointments.views - INFO - Successfully accessed database
+2025-12-04 06:52:55,179 - appointments.views - INFO - Found 6 appointments after filtering
+2025-12-04 06:52:55,182 - appointments.views - INFO - Sample appointment: id=6, status=cancelled, date=2025-11-21
+2025-12-04 06:52:55,182 - appointments.views - INFO - Patient: None
+2025-12-04 06:52:55,182 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 06:52:55,182 - appointments.views - INFO - Appointment Type: Consultation
+2025-12-04 06:52:55,182 - appointments.views - INFO - Sample appointment: id=7, status=cancelled, date=2025-11-21
+2025-12-04 06:52:55,182 - appointments.views - INFO - Patient: None
+2025-12-04 06:52:55,183 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 06:52:55,183 - appointments.views - INFO - Appointment Type: Consultation
+2025-12-04 06:52:55,183 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-23
+2025-12-04 06:52:55,183 - appointments.views - INFO - Patient: Queenie Parl Torrejos
+2025-12-04 06:52:55,183 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 06:52:55,184 - appointments.views - INFO - Appointment Type: Follow-up
+2025-12-04 06:52:55,191 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:52:55,193 - appointments.views - INFO - Testing serialization with first appointment: 6
+2025-12-04 06:52:55,194 - appointments.views - INFO - Successfully serialized first appointment: {'id': 6, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Miggie C Oli', 'patient_id': None, 'patient_email': 'miggie@gmail.com', 'patient_phone': '09857463535', 'date_of_birth': '2001-12-12', 'gender': 'male', 'address': 'gma cavite', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-21', 'time': '13:00:00', 'status': 'cancelled', 'created_at': '2025-11-21T12:42:16.083947+08:00', 'display_patient_name': 'Miggie C Oli', 'display_doctor_name': 'Jeri Oli', 'display_time': '01:00 PM', 'display_date': 'November 21, 2025', 'patient_is_deleted': False, 'doctor': 3, 'doctor_name': 'Jeri Oli', 'patient': None}
+2025-12-04 06:52:55,198 - appointments.views - INFO - Successfully serialized all appointments. Count: 6
+2025-12-04 06:52:55,201 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 4069
+2025-12-04 06:52:56,268 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:52:56,269 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764802376.2692297, "client_ip": "127.0.0.1"}
+2025-12-04 06:52:56,281 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:52:56,290 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:52:56,291 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764802376.2912786, "client_ip": "127.0.0.1"}
+2025-12-04 06:52:56,306 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 5185
+2025-12-04 06:52:56,311 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:52:56,312 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:52:56,312 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:52:56,312 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:52:56,312 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:52:56,312 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:52:56,318 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:52:56,318 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:52:56,321 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:52:56,321 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:52:56,322 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:53:39,077 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:53:39,078 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764802419.078451, "client_ip": "127.0.0.1"}
+2025-12-04 06:53:39,088 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 06:53:39,098 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:53:39,099 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/", "timestamp": 1764802419.0993717, "client_ip": "127.0.0.1"}
+2025-12-04 06:53:39,113 - django.server - INFO - "GET /api/medical-documents/lab-results/? HTTP/1.1" 200 5185
+2025-12-04 06:53:39,118 - root - INFO - Request: {"method": "GET", "path": "/api/textract/health/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 06:53:39,119 - api.textract_lab_analysis - INFO - AWS Environment Check:
+2025-12-04 06:53:39,119 - api.textract_lab_analysis - INFO -   - AWS_ACCESS_KEY_ID: Set
+2025-12-04 06:53:39,119 - api.textract_lab_analysis - INFO -   - AWS_SECRET_ACCESS_KEY: Set (length: 40)
+2025-12-04 06:53:39,119 - api.textract_lab_analysis - INFO -   - AWS_REGION: us-east-1
+2025-12-04 06:53:39,120 - api.textract_lab_analysis - INFO - Using AWS credentials from environment variables
+2025-12-04 06:53:39,129 - api.textract_lab_analysis - INFO - AWS Session Region: us-east-1
+2025-12-04 06:53:39,129 - api.textract_lab_analysis - INFO - AWS_REGION env var: us-east-1
+2025-12-04 06:53:39,132 - api.textract_lab_analysis - INFO - AWS Textract client created successfully
+2025-12-04 06:53:39,132 - api.textract_lab_analysis - INFO - Textract client region: us-east-1
+2025-12-04 06:53:39,133 - django.server - INFO - "GET /api/textract/health/ HTTP/1.1" 200 236
+2025-12-04 06:56:24,610 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\inventory\models.py changed, reloading.
+INFO 2025-12-04 06:56:27,502 autoreload 7996 7044 Watching for file changes with StatReloader
+2025-12-04 06:56:38,028 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\inventory\serializers.py changed, reloading.
+INFO 2025-12-04 06:56:39,022 autoreload 22624 24508 Watching for file changes with StatReloader
+2025-12-04 06:57:18,522 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\inventory\views.py changed, reloading.
+INFO 2025-12-04 06:57:19,721 autoreload 17412 25484 Watching for file changes with StatReloader
+2025-12-04 06:57:27,387 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\inventory\urls.py changed, reloading.
+INFO 2025-12-04 06:57:28,386 autoreload 1168 26944 Watching for file changes with StatReloader
+2025-12-04 06:57:31,192 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\inventory\urls.py changed, reloading.
+INFO 2025-12-04 06:57:32,158 autoreload 1252 30528 Watching for file changes with StatReloader
+2025-12-04 06:59:00,338 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\inventory\models.py changed, reloading.
+INFO 2025-12-04 06:59:01,650 autoreload 28532 19564 Watching for file changes with StatReloader
+2025-12-04 06:59:15,802 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\inventory\serializers.py changed, reloading.
+INFO 2025-12-04 06:59:16,797 autoreload 2136 6244 Watching for file changes with StatReloader
+2025-12-04 06:59:28,641 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\inventory\views.py changed, reloading.
+INFO 2025-12-04 06:59:29,845 autoreload 22904 8788 Watching for file changes with StatReloader
+2025-12-04 07:02:41,698 - root - INFO - Request: {"method": "GET", "path": "/api/inventory/medicines/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 07:02:41,700 - root - INFO - Request: {"method": "GET", "path": "/api/inventory/medicine-transactions/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 07:02:41,754 - django.request - WARNING - Not Found: /api/inventory/medicine-transactions/
+2025-12-04 07:02:41,757 - django.server - WARNING - "GET /api/inventory/medicine-transactions/ HTTP/1.1" 404 24802
+2025-12-04 07:02:41,763 - django.server - INFO - "GET /api/inventory/medicines/ HTTP/1.1" 200 424
+2025-12-04 07:02:53,062 - django.server - INFO - "OPTIONS /api/inventory/medicines/1/ HTTP/1.1" 200 0
+2025-12-04 07:02:53,400 - root - INFO - Request: {"method": "PUT", "path": "/api/inventory/medicines/1/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-12-04 07:02:53,410 - django.request - WARNING - Bad Request: /api/inventory/medicines/1/
+2025-12-04 07:02:53,411 - django.server - WARNING - "PUT /api/inventory/medicines/1/ HTTP/1.1" 400 119
+2025-12-04 07:03:01,076 - root - INFO - Request: {"method": "PUT", "path": "/api/inventory/medicines/1/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-12-04 07:03:01,107 - django.server - INFO - "PUT /api/inventory/medicines/1/ HTTP/1.1" 200 468
+2025-12-04 07:03:01,124 - root - INFO - Request: {"method": "GET", "path": "/api/inventory/medicines/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 07:03:01,139 - django.server - INFO - "GET /api/inventory/medicines/ HTTP/1.1" 200 431
+2025-12-04 07:03:23,802 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 07:03:23,803 - appointments.views - INFO - Starting list method...
+2025-12-04 07:03:23,804 - appointments.views - INFO - Starting to fetch appointments...
+2025-12-04 07:03:23,805 - appointments.views - INFO - Successfully accessed database
+2025-12-04 07:03:23,807 - appointments.views - INFO - Found 6 appointments after filtering
+2025-12-04 07:03:23,811 - appointments.views - INFO - Sample appointment: id=6, status=cancelled, date=2025-11-21
+2025-12-04 07:03:23,811 - appointments.views - INFO - Patient: None
+2025-12-04 07:03:23,812 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 07:03:23,812 - appointments.views - INFO - Appointment Type: Consultation
+2025-12-04 07:03:23,812 - appointments.views - INFO - Sample appointment: id=7, status=cancelled, date=2025-11-21
+2025-12-04 07:03:23,812 - appointments.views - INFO - Patient: None
+2025-12-04 07:03:23,813 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 07:03:23,813 - appointments.views - INFO - Appointment Type: Consultation
+2025-12-04 07:03:23,813 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-23
+2025-12-04 07:03:23,813 - appointments.views - INFO - Patient: Queenie Parl Torrejos
+2025-12-04 07:03:23,813 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 07:03:23,814 - appointments.views - INFO - Appointment Type: Follow-up
+2025-12-04 07:03:23,817 - appointments.views - INFO - Testing serialization with first appointment: 6
+2025-12-04 07:03:23,819 - appointments.views - INFO - Successfully serialized first appointment: {'id': 6, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Miggie C Oli', 'patient_id': None, 'patient_email': 'miggie@gmail.com', 'patient_phone': '09857463535', 'date_of_birth': '2001-12-12', 'gender': 'male', 'address': 'gma cavite', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-21', 'time': '13:00:00', 'status': 'cancelled', 'created_at': '2025-11-21T12:42:16.083947+08:00', 'display_patient_name': 'Miggie C Oli', 'display_doctor_name': 'Jeri Oli', 'display_time': '01:00 PM', 'display_date': 'November 21, 2025', 'patient_is_deleted': False, 'doctor': 3, 'doctor_name': 'Jeri Oli', 'patient': None}
+2025-12-04 07:03:23,822 - appointments.views - INFO - Successfully serialized all appointments. Count: 6
+2025-12-04 07:03:23,828 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 4069
+2025-12-04 07:03:23,836 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 07:03:23,847 - django.server - INFO - "GET /api/medical-certificates/ HTTP/1.1" 200 47027
+2025-12-04 07:03:23,856 - root - INFO - Request: {"method": "GET", "path": "/api/prescription-requests/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 07:03:23,862 - django.server - INFO - "GET /api/prescription-requests/ HTTP/1.1" 200 2189
+2025-12-04 07:03:24,935 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 07:03:24,936 - appointments.views - INFO - Starting list method...
+2025-12-04 07:03:24,937 - appointments.views - INFO - Starting to fetch appointments...
+2025-12-04 07:03:24,937 - appointments.views - INFO - Successfully accessed database
+2025-12-04 07:03:24,938 - appointments.views - INFO - Found 6 appointments after filtering
+2025-12-04 07:03:24,940 - appointments.views - INFO - Sample appointment: id=6, status=cancelled, date=2025-11-21
+2025-12-04 07:03:24,940 - appointments.views - INFO - Patient: None
+2025-12-04 07:03:24,940 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 07:03:24,940 - appointments.views - INFO - Appointment Type: Consultation
+2025-12-04 07:03:24,940 - appointments.views - INFO - Sample appointment: id=7, status=cancelled, date=2025-11-21
+2025-12-04 07:03:24,941 - appointments.views - INFO - Patient: None
+2025-12-04 07:03:24,941 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 07:03:24,941 - appointments.views - INFO - Appointment Type: Consultation
+2025-12-04 07:03:24,941 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-23
+2025-12-04 07:03:24,941 - appointments.views - INFO - Patient: Queenie Parl Torrejos
+2025-12-04 07:03:24,941 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 07:03:24,942 - appointments.views - INFO - Appointment Type: Follow-up
+2025-12-04 07:03:24,945 - appointments.views - INFO - Testing serialization with first appointment: 6
+2025-12-04 07:03:24,947 - appointments.views - INFO - Successfully serialized first appointment: {'id': 6, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Miggie C Oli', 'patient_id': None, 'patient_email': 'miggie@gmail.com', 'patient_phone': '09857463535', 'date_of_birth': '2001-12-12', 'gender': 'male', 'address': 'gma cavite', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-21', 'time': '13:00:00', 'status': 'cancelled', 'created_at': '2025-11-21T12:42:16.083947+08:00', 'display_patient_name': 'Miggie C Oli', 'display_doctor_name': 'Jeri Oli', 'display_time': '01:00 PM', 'display_date': 'November 21, 2025', 'patient_is_deleted': False, 'doctor': 3, 'doctor_name': 'Jeri Oli', 'patient': None}
+2025-12-04 07:03:24,951 - appointments.views - INFO - Successfully serialized all appointments. Count: 6
+2025-12-04 07:03:24,956 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 4069
+2025-12-04 07:03:24,967 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 07:03:24,973 - django.server - INFO - "GET /api/medical-certificates/ HTTP/1.1" 200 47027
+2025-12-04 07:03:24,985 - root - INFO - Request: {"method": "GET", "path": "/api/prescription-requests/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 07:03:24,992 - django.server - INFO - "GET /api/prescription-requests/ HTTP/1.1" 200 2189
+2025-12-04 07:03:26,575 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 07:03:26,577 - appointments.views - INFO - Starting list method...
+2025-12-04 07:03:26,578 - appointments.views - INFO - Starting to fetch appointments...
+2025-12-04 07:03:26,578 - appointments.views - INFO - Successfully accessed database
+2025-12-04 07:03:26,580 - appointments.views - INFO - Found 6 appointments after filtering
+2025-12-04 07:03:26,582 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 07:03:26,583 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764803006.5830398, "client_ip": "127.0.0.1"}
+2025-12-04 07:03:26,584 - appointments.views - INFO - Sample appointment: id=6, status=cancelled, date=2025-11-21
+2025-12-04 07:03:26,584 - appointments.views - INFO - Patient: None
+2025-12-04 07:03:26,584 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 07:03:26,585 - appointments.views - INFO - Appointment Type: Consultation
+2025-12-04 07:03:26,585 - appointments.views - INFO - Sample appointment: id=7, status=cancelled, date=2025-11-21
+2025-12-04 07:03:26,586 - appointments.views - INFO - Patient: None
+2025-12-04 07:03:26,587 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 07:03:26,587 - appointments.views - INFO - Appointment Type: Consultation
+2025-12-04 07:03:26,587 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-23
+2025-12-04 07:03:26,587 - appointments.views - INFO - Patient: Queenie Parl Torrejos
+2025-12-04 07:03:26,587 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 07:03:26,588 - appointments.views - INFO - Appointment Type: Follow-up
+2025-12-04 07:03:26,620 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 07:03:26,626 - appointments.views - INFO - Testing serialization with first appointment: 6
+2025-12-04 07:03:26,628 - appointments.views - INFO - Successfully serialized first appointment: {'id': 6, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Miggie C Oli', 'patient_id': None, 'patient_email': 'miggie@gmail.com', 'patient_phone': '09857463535', 'date_of_birth': '2001-12-12', 'gender': 'male', 'address': 'gma cavite', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-21', 'time': '13:00:00', 'status': 'cancelled', 'created_at': '2025-11-21T12:42:16.083947+08:00', 'display_patient_name': 'Miggie C Oli', 'display_doctor_name': 'Jeri Oli', 'display_time': '01:00 PM', 'display_date': 'November 21, 2025', 'patient_is_deleted': False, 'doctor': 3, 'doctor_name': 'Jeri Oli', 'patient': None}
+2025-12-04 07:03:26,634 - appointments.views - INFO - Successfully serialized all appointments. Count: 6
+2025-12-04 07:03:26,640 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 4069
+2025-12-04 07:04:01,101 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 07:04:01,102 - appointments.views - INFO - Starting list method...
+2025-12-04 07:04:01,102 - appointments.views - INFO - Starting to fetch appointments...
+2025-12-04 07:04:01,103 - appointments.views - INFO - Successfully accessed database
+2025-12-04 07:04:01,104 - appointments.views - INFO - Found 6 appointments after filtering
+2025-12-04 07:04:01,106 - appointments.views - INFO - Sample appointment: id=6, status=cancelled, date=2025-11-21
+2025-12-04 07:04:01,106 - appointments.views - INFO - Patient: None
+2025-12-04 07:04:01,106 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 07:04:01,106 - appointments.views - INFO - Appointment Type: Consultation
+2025-12-04 07:04:01,107 - appointments.views - INFO - Sample appointment: id=7, status=cancelled, date=2025-11-21
+2025-12-04 07:04:01,107 - appointments.views - INFO - Patient: None
+2025-12-04 07:04:01,107 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 07:04:01,107 - appointments.views - INFO - Appointment Type: Consultation
+2025-12-04 07:04:01,107 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-23
+2025-12-04 07:04:01,107 - appointments.views - INFO - Patient: Queenie Parl Torrejos
+2025-12-04 07:04:01,107 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 07:04:01,108 - appointments.views - INFO - Appointment Type: Follow-up
+2025-12-04 07:04:01,111 - appointments.views - INFO - Testing serialization with first appointment: 6
+2025-12-04 07:04:01,113 - appointments.views - INFO - Successfully serialized first appointment: {'id': 6, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Miggie C Oli', 'patient_id': None, 'patient_email': 'miggie@gmail.com', 'patient_phone': '09857463535', 'date_of_birth': '2001-12-12', 'gender': 'male', 'address': 'gma cavite', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-21', 'time': '13:00:00', 'status': 'cancelled', 'created_at': '2025-11-21T12:42:16.083947+08:00', 'display_patient_name': 'Miggie C Oli', 'display_doctor_name': 'Jeri Oli', 'display_time': '01:00 PM', 'display_date': 'November 21, 2025', 'patient_is_deleted': False, 'doctor': 3, 'doctor_name': 'Jeri Oli', 'patient': None}
+2025-12-04 07:04:01,118 - appointments.views - INFO - Successfully serialized all appointments. Count: 6
+2025-12-04 07:04:01,123 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 4069
+2025-12-04 07:04:01,133 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 07:04:01,141 - django.server - INFO - "GET /api/medical-certificates/ HTTP/1.1" 200 47027
+2025-12-04 07:04:01,152 - root - INFO - Request: {"method": "GET", "path": "/api/prescription-requests/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 07:04:01,160 - django.server - INFO - "GET /api/prescription-requests/ HTTP/1.1" 200 2189
+2025-12-04 07:04:02,866 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 07:04:02,866 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 07:04:02,867 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764803042.8671718, "client_ip": "127.0.0.1"}
+2025-12-04 07:04:02,867 - appointments.views - INFO - Starting list method...
+2025-12-04 07:04:02,867 - appointments.views - INFO - Starting to fetch appointments...
+2025-12-04 07:04:02,869 - appointments.views - INFO - Successfully accessed database
+2025-12-04 07:04:02,870 - appointments.views - INFO - Found 6 appointments after filtering
+2025-12-04 07:04:02,873 - appointments.views - INFO - Sample appointment: id=6, status=cancelled, date=2025-11-21
+2025-12-04 07:04:02,873 - appointments.views - INFO - Patient: None
+2025-12-04 07:04:02,873 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 07:04:02,873 - appointments.views - INFO - Appointment Type: Consultation
+2025-12-04 07:04:02,873 - appointments.views - INFO - Sample appointment: id=7, status=cancelled, date=2025-11-21
+2025-12-04 07:04:02,874 - appointments.views - INFO - Patient: None
+2025-12-04 07:04:02,874 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 07:04:02,874 - appointments.views - INFO - Appointment Type: Consultation
+2025-12-04 07:04:02,874 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-23
+2025-12-04 07:04:02,874 - appointments.views - INFO - Patient: Queenie Parl Torrejos
+2025-12-04 07:04:02,875 - appointments.views - INFO - Doctor: doctor (doctor)
+2025-12-04 07:04:02,875 - appointments.views - INFO - Appointment Type: Follow-up
+2025-12-04 07:04:02,880 - appointments.views - INFO - Testing serialization with first appointment: 6
+2025-12-04 07:04:02,881 - appointments.views - INFO - Successfully serialized first appointment: {'id': 6, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Miggie C Oli', 'patient_id': None, 'patient_email': 'miggie@gmail.com', 'patient_phone': '09857463535', 'date_of_birth': '2001-12-12', 'gender': 'male', 'address': 'gma cavite', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-21', 'time': '13:00:00', 'status': 'cancelled', 'created_at': '2025-11-21T12:42:16.083947+08:00', 'display_patient_name': 'Miggie C Oli', 'display_doctor_name': 'Jeri Oli', 'display_time': '01:00 PM', 'display_date': 'November 21, 2025', 'patient_is_deleted': False, 'doctor': 3, 'doctor_name': 'Jeri Oli', 'patient': None}
+2025-12-04 07:04:02,883 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 07:04:02,886 - appointments.views - INFO - Successfully serialized all appointments. Count: 6
+2025-12-04 07:04:02,891 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 4069
+2025-12-04 07:04:03,713 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 07:04:03,713 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764803043.713809, "client_ip": "127.0.0.1"}
+2025-12-04 07:04:03,728 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 07:04:14,114 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 07:04:14,114 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764803054.1148727, "client_ip": "127.0.0.1"}
+2025-12-04 07:04:14,125 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 1824
+2025-12-04 07:06:31,840 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\patients\models.py changed, reloading.
+INFO 2025-12-04 07:06:34,225 autoreload 22080 5484 Watching for file changes with StatReloader
+2025-12-04 07:06:40,037 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\patients\models.py changed, reloading.
+INFO 2025-12-04 07:06:41,135 autoreload 1980 28628 Watching for file changes with StatReloader
+2025-12-04 07:06:59,130 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\patients\serializer.py changed, reloading.
+INFO 2025-12-04 07:07:00,261 autoreload 27404 20252 Watching for file changes with StatReloader
+2025-12-04 07:08:44,911 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\patients\views.py changed, reloading.
+INFO 2025-12-04 07:08:45,883 autoreload 25400 14576 Watching for file changes with StatReloader
+2025-12-04 07:08:58,406 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\patients\urls.py changed, reloading.
+INFO 2025-12-04 07:08:59,735 autoreload 21644 8104 Watching for file changes with StatReloader
+2025-12-04 07:09:06,404 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\patients\urls.py changed, reloading.
+INFO 2025-12-04 07:09:07,330 autoreload 16372 22064 Watching for file changes with StatReloader
+2025-12-04 09:41:45,554 - django.server - INFO - "OPTIONS /api/patients/ HTTP/1.1" 200 0
+2025-12-04 09:41:46,127 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:41:46,154 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764812506.1538274, "client_ip": "127.0.0.1"}
+2025-12-04 09:41:46,249 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 2100
+2025-12-04 09:41:51,476 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:41:51,478 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764812511.4779596, "client_ip": "127.0.0.1"}
+2025-12-04 09:41:51,502 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 2100
+2025-12-04 09:42:06,456 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:42:06,457 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764812526.457429, "client_ip": "127.0.0.1"}
+2025-12-04 09:42:06,477 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 2100
+2025-12-04 09:42:12,479 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:42:12,480 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764812532.4806225, "client_ip": "127.0.0.1"}
+2025-12-04 09:42:12,494 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 2100
+2025-12-04 09:42:40,457 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:42:40,459 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764812560.4592326, "client_ip": "127.0.0.1"}
+2025-12-04 09:42:40,500 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 2100
+2025-12-04 09:42:50,490 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:42:50,491 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764812570.4915037, "client_ip": "127.0.0.1"}
+2025-12-04 09:42:50,516 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 2100
+2025-12-04 09:43:07,449 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:43:07,450 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764812587.4505231, "client_ip": "127.0.0.1"}
+2025-12-04 09:43:07,464 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 2100
+2025-12-04 09:43:31,108 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:43:31,121 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 375
+2025-12-04 09:43:31,164 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:43:31,164 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764812611.1647983, "client_ip": "127.0.0.1"}
+2025-12-04 09:43:31,184 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 2100
+2025-12-04 09:43:33,812 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:43:33,813 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764812613.8133688, "client_ip": "127.0.0.1"}
+2025-12-04 09:43:33,825 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 2100
+2025-12-04 09:43:34,111 - django.server - INFO - "OPTIONS /api/clinic/ HTTP/1.1" 200 0
+2025-12-04 09:43:34,113 - django.server - INFO - "OPTIONS /api/medical-documents/medical-certificates/?patient_id=4 HTTP/1.1" 200 0
+2025-12-04 09:43:34,121 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:43:34,122 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:43:34,140 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/medical-certificates/", "timestamp": 1764812614.1401918, "client_ip": "127.0.0.1"}
+2025-12-04 09:43:34,191 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2025-12-04 09:43:34,357 - django.server - INFO - "GET /api/medical-documents/medical-certificates/?patient_id=4 HTTP/1.1" 200 1289
+2025-12-04 09:43:34,361 - django.server - INFO - "OPTIONS /api/medical-documents/prescriptions/?patient_id=4 HTTP/1.1" 200 0
+2025-12-04 09:43:34,367 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/prescriptions/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:43:34,368 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/prescriptions/", "timestamp": 1764812614.3682606, "client_ip": "127.0.0.1"}
+2025-12-04 09:43:34,377 - django.server - INFO - "GET /api/medical-documents/prescriptions/?patient_id=4 HTTP/1.1" 200 2
+2025-12-04 09:43:34,382 - django.server - INFO - "OPTIONS /api/medical-documents/soap-notes/?patient_id=4 HTTP/1.1" 200 0
+2025-12-04 09:43:34,387 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/soap-notes/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:43:34,388 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/soap-notes/", "timestamp": 1764812614.388132, "client_ip": "127.0.0.1"}
+2025-12-04 09:43:34,396 - django.server - INFO - "GET /api/medical-documents/soap-notes/?patient_id=4 HTTP/1.1" 200 2
+2025-12-04 09:43:34,401 - django.server - INFO - "OPTIONS /api/medical-documents/clinical-notes/?patient_id=4 HTTP/1.1" 200 0
+2025-12-04 09:43:34,406 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/clinical-notes/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:43:34,407 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/clinical-notes/", "timestamp": 1764812614.4070451, "client_ip": "127.0.0.1"}
+2025-12-04 09:43:34,413 - django.server - INFO - "GET /api/medical-documents/clinical-notes/?patient_id=4 HTTP/1.1" 200 2
+2025-12-04 09:43:34,417 - django.server - INFO - "OPTIONS /api/medical-documents/lab-results/by_patient/?patient_id=4 HTTP/1.1" 200 0
+2025-12-04 09:43:34,423 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/by_patient/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:43:34,423 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/by_patient/", "timestamp": 1764812614.423866, "client_ip": "127.0.0.1"}
+2025-12-04 09:43:34,437 - django.server - INFO - "GET /api/medical-documents/lab-results/by_patient/?patient_id=4 HTTP/1.1" 200 2672
+2025-12-04 09:43:50,973 - django.server - INFO - "OPTIONS /api/patients/4/red-flag/ HTTP/1.1" 200 0
+2025-12-04 09:43:50,980 - root - INFO - Request: {"method": "POST", "path": "/api/patients/4/red-flag/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2025-12-04 09:43:50,980 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "POST", "endpoint": "/api/patients/4/red-flag/", "timestamp": 1764812630.98078, "client_ip": "127.0.0.1"}
+2025-12-04 09:43:50,998 - django.server - INFO - "POST /api/patients/4/red-flag/ HTTP/1.1" 200 645
+2025-12-04 09:43:51,002 - django.server - INFO - "OPTIONS /api/patients/P-20251118-8436/ HTTP/1.1" 200 0
+2025-12-04 09:43:51,008 - root - INFO - Request: {"method": "GET", "path": "/api/patients/P-20251118-8436/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:43:51,029 - django.request - WARNING - Not Found: /api/patients/P-20251118-8436/
+2025-12-04 09:43:51,030 - django.server - WARNING - "GET /api/patients/P-20251118-8436/ HTTP/1.1" 404 22635
+2025-12-04 09:43:52,240 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:43:52,241 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764812632.241523, "client_ip": "127.0.0.1"}
+2025-12-04 09:43:52,260 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 2161
+2025-12-04 09:48:45,910 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:48:45,908 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:48:45,938 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764812925.937931, "client_ip": "127.0.0.1"}
+2025-12-04 09:48:45,992 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 375
+2025-12-04 09:48:46,023 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 2161
+2025-12-04 09:49:00,461 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:49:00,466 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 375
+2025-12-04 09:49:00,515 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:49:00,517 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764812940.517459, "client_ip": "127.0.0.1"}
+2025-12-04 09:49:00,539 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 2161
+2025-12-04 09:50:00,803 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:50:00,828 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 375
+2025-12-04 09:50:00,909 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2025-12-04 09:50:00,911 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1764813000.910881, "client_ip": "127.0.0.1"}
+2025-12-04 09:50:00,946 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 2161
+2025-12-04 09:50:11,508 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\patients\models.py changed, reloading.
+INFO 2025-12-04 09:50:15,295 autoreload 17084 9436 Watching for file changes with StatReloader

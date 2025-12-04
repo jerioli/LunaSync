@@ -57,8 +57,15 @@ interface MedicineRecord {
   dosage: string;
   description: string;
   category: string;
+  expiration_date?: string;
+  alert_months_before: number;
   created_at: string;
   updated_at: string;
+  is_near_expiration?: boolean;
+  is_expired?: boolean;
+  days_until_expiry?: number;
+  months_until_expiry?: number;
+  alert_status?: string;
 }
 
 interface MedicineTransaction {
@@ -100,6 +107,8 @@ const Inventory = () => {
     dosage: "",
     description: "",
     category: "tablet", // Default dosage form for medicines
+    expiration_date: "",
+    alert_months_before: 3, // Default to 3 months
   });
 
   // Check permissions - allow doctors and admins by default, others need permission
@@ -311,6 +320,8 @@ const Inventory = () => {
       dosage: "",
       description: "",
       category: "tablet",
+      expiration_date: "",
+      alert_months_before: 3,
     });
     setSelectedItem(null);
     setIsSubmitting(false);
@@ -334,6 +345,8 @@ const Inventory = () => {
       dosage: item.dosage,
       description: item.description || "",
       category: item.category,
+      expiration_date: item.expiration_date || "",
+      alert_months_before: item.alert_months_before || 3,
     });
     setIsEditModalOpen(true);
   };
@@ -449,13 +462,17 @@ const Inventory = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
-                  Dosage Forms
+                  Near Expiration
                 </p>
-                <p className="text-2xl font-bold text-green-600">
-                  {categories.length}
+                <p className="text-2xl font-bold text-amber-600">
+                  {
+                    medicineRecords.filter(
+                      (item) => item.is_near_expiration && !item.is_expired
+                    ).length
+                  }
                 </p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-500" />
+              <AlertTriangle className="h-8 w-8 text-amber-500" />
             </div>
           </CardContent>
         </Card>
@@ -463,21 +480,12 @@ const Inventory = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Recent Additions
-                </p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {
-                    medicineRecords.filter((item) => {
-                      const createdDate = new Date(item.created_at);
-                      const weekAgo = new Date();
-                      weekAgo.setDate(weekAgo.getDate() - 7);
-                      return createdDate >= weekAgo;
-                    }).length
-                  }
+                <p className="text-sm font-medium text-gray-600">Expired</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {medicineRecords.filter((item) => item.is_expired).length}
                 </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-blue-500" />
+              <TrendingDown className="h-8 w-8 text-red-500" />
             </div>
           </CardContent>
         </Card>
@@ -565,6 +573,8 @@ const Inventory = () => {
                       <ArrowUpDown className="h-4 w-4" />
                     </div>
                   </TableHead>
+                  <TableHead>Expiration Date</TableHead>
+                  <TableHead>Alert Status</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead
                     className="cursor-pointer"
@@ -593,6 +603,52 @@ const Inventory = () => {
                       <span className="capitalize text-sm bg-gray-100 px-2 py-1 rounded">
                         {item.category}
                       </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {item.expiration_date ? (
+                          <span
+                            className={`${
+                              item.is_expired
+                                ? "text-red-600 font-semibold"
+                                : item.is_near_expiration
+                                ? "text-amber-600 font-semibold"
+                                : "text-gray-600"
+                            }`}
+                          >
+                            {format(
+                              new Date(item.expiration_date),
+                              "MMM dd, yyyy"
+                            )}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">Not set</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {item.is_expired && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            <AlertTriangle className="h-3 w-3 mr-1" />
+                            Expired
+                          </span>
+                        )}
+                        {item.is_near_expiration && !item.is_expired && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                            <Clock className="h-3 w-3 mr-1" />
+                            Near Expiry
+                          </span>
+                        )}
+                        {!item.is_near_expiration &&
+                          !item.is_expired &&
+                          item.expiration_date && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              OK
+                            </span>
+                          )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm text-gray-600">
@@ -704,7 +760,7 @@ const Inventory = () => {
                   required
                 />
               </div>
-              <div className="md:col-span-2">
+              <div>
                 <Label htmlFor="category">Dosage Form *</Label>
                 <Select
                   value={formData.category}
@@ -724,6 +780,59 @@ const Inventory = () => {
                     <SelectItem value="cream">Cream/Ointment</SelectItem>
                     <SelectItem value="drops">Drops</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="expiration_date">Expiration Date</Label>
+                <Input
+                  id="expiration_date"
+                  type="date"
+                  value={formData.expiration_date}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      expiration_date: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div className="md:col-span-2">
+                <Label htmlFor="alert_months_before">Alert Timing</Label>
+                <Select
+                  value={formData.alert_months_before.toString()}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      alert_months_before: parseInt(value),
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select alert timing" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2">
+                      2 months before expiration
+                    </SelectItem>
+                    <SelectItem value="3">
+                      3 months before expiration
+                    </SelectItem>
+                    <SelectItem value="4">
+                      4 months before expiration
+                    </SelectItem>
+                    <SelectItem value="5">
+                      5 months before expiration
+                    </SelectItem>
+                    <SelectItem value="6">
+                      6 months before expiration
+                    </SelectItem>
+                    <SelectItem value="7">
+                      7 months before expiration
+                    </SelectItem>
+                    <SelectItem value="8">
+                      8 months before expiration
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -76,6 +76,153 @@ def get_clinic_logo_for_pdf():
         logger.error(f"Error getting logo for PDF: {e}")
     return None
 
+def create_lab_result_pdf(lab_result_data):
+    """
+    Create a PDF for lab results without clinic branding (logo-free)
+    Shows the extracted text as-is to maintain the original format
+    
+    Args:
+        lab_result_data: Dictionary containing lab result information
+    """
+    try:
+        # Create a BytesIO buffer to hold the PDF data
+        buffer = io.BytesIO()
+        
+        # Create the PDF document
+        doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=0.5*inch)
+        
+        # Define styles
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=18,
+            spaceAfter=20,
+            alignment=1,  # Center alignment
+            textColor=colors.HexColor('#1e40af')
+        )
+        
+        normal_style = ParagraphStyle(
+            'CustomNormal',
+            parent=styles['Normal'],
+            fontSize=11,
+            spaceAfter=8,
+            alignment=0
+        )
+        
+        # Build the document content
+        story = []
+        
+        # Simple title without clinic branding
+        title = Paragraph("LABORATORY RESULT", title_style)
+        story.append(title)
+        story.append(Spacer(1, 0.3*inch))
+        
+        # Add patient and test information
+        patient_name = lab_result_data.get('patient_name', 'Unknown Patient')
+        test_name = lab_result_data.get('test_name', 'Lab Test')
+        date_issued = lab_result_data.get('date_issued') or lab_result_data.get('reported_date', 'Date not provided')
+        
+        # Basic information
+        basic_info = f"""
+        <b>Patient:</b> {patient_name}<br/>
+        <b>Test:</b> {test_name}<br/>
+        <b>Date:</b> {date_issued}
+        """
+        
+        if lab_result_data.get('laboratory_name'):
+            basic_info += f"<br/><b>Laboratory:</b> {lab_result_data.get('laboratory_name')}"
+        
+        story.append(Paragraph(basic_info, normal_style))
+        story.append(Spacer(1, 0.3*inch))
+        
+        # Add extracted text content as-is (main content)
+        extracted_content = lab_result_data.get('content') or lab_result_data.get('extracted_text', 'No content available')
+        
+        # Preserve formatting of extracted text
+        content_style = ParagraphStyle(
+            'ExtractedContent',
+            parent=styles['Normal'],
+            fontSize=10,
+            spaceAfter=6,
+            alignment=0,
+            fontName='Courier'  # Use monospace font to preserve formatting
+        )
+        
+        # Split content into paragraphs and preserve line breaks
+        content_lines = extracted_content.split('\n')
+        for line in content_lines:
+            if line.strip():  # Skip empty lines
+                story.append(Paragraph(line.strip(), content_style))
+            else:
+                story.append(Spacer(1, 6))  # Small space for empty lines
+        
+        story.append(Spacer(1, 0.3*inch))
+        
+        # Add test results table if available
+        if lab_result_data.get('test_results') and isinstance(lab_result_data.get('test_results'), list):
+            story.append(Paragraph("<b>Test Results:</b>", normal_style))
+            story.append(Spacer(1, 0.1*inch))
+            
+            # Create results table
+            table_data = [['Test', 'Result', 'Unit', 'Reference Range', 'Status']]
+            
+            for test_result in lab_result_data.get('test_results', []):
+                table_data.append([
+                    test_result.get('test_name', '-'),
+                    test_result.get('result_value', '-'),
+                    test_result.get('unit', '-'),
+                    test_result.get('reference_range', '-'),
+                    test_result.get('status', '-')
+                ])
+            
+            results_table = Table(table_data, colWidths=[1.8*inch, 1.0*inch, 0.8*inch, 1.5*inch, 1.0*inch])
+            results_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 0), (-1, -1), 9),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('GRID', (0, 0), (-1, -1), 1, colors.lightgrey),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+            ]))
+            
+            story.append(results_table)
+            story.append(Spacer(1, 0.2*inch))
+        
+        # Add notes if available
+        if lab_result_data.get('notes') or lab_result_data.get('interpretation'):
+            notes_content = lab_result_data.get('notes') or lab_result_data.get('interpretation')
+            notes_text = f"""
+            <b>Notes:</b><br/>
+            {notes_content}
+            """
+            story.append(Paragraph(notes_text, normal_style))
+            story.append(Spacer(1, 0.3*inch))
+        
+        # Simple footer without clinic branding
+        footer_text = f"""
+        <para align="center" fontSize="9">
+        <br/>
+        <i>Laboratory Result Report - Generated on {date_issued}</i>
+        </para>
+        """
+        story.append(Paragraph(footer_text, normal_style))
+        
+        # Build PDF
+        doc.build(story)
+        buffer.seek(0)
+        pdf_bytes = buffer.getvalue()
+        logger.info(f"Lab result PDF generation completed successfully, size: {len(pdf_bytes)} bytes")
+        return pdf_bytes  # Return bytes data, not BytesIO object
+        
+    except Exception as e:
+        logger.error(f"Error creating lab result PDF: {e}")
+        return None
+
+
 def create_medical_certificate_pdf(certificate_data):
     """
     Create a PDF for medical certificate

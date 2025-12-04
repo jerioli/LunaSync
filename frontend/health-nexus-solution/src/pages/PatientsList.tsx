@@ -1,9 +1,18 @@
 import BulkImportModal from "@/components/bulk/BulkImportModal";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -36,6 +45,7 @@ import {
   ChevronRight,
   ChevronUp,
   FileText,
+  Flag,
   Search,
   Trash2,
   UserPlus,
@@ -70,6 +80,14 @@ const PatientsList = () => {
     new Set()
   );
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Red flag dialog states
+  const [showRedFlagDialog, setShowRedFlagDialog] = useState(false);
+  const [selectedRedFlag, setSelectedRedFlag] = useState<{
+    reason: string;
+    flaggedBy?: string;
+    flaggedDate?: string;
+  } | null>(null);
 
   // Role-based access control - admin, receptionist, and doctor can use bulk import
   const canUseBulkImport =
@@ -263,6 +281,18 @@ const PatientsList = () => {
     }
   };
 
+  // Handle showing red flag reason
+  const handleShowRedFlagReason = (patient: any) => {
+    if (patient.is_red_flagged && patient.red_flag_reason) {
+      setSelectedRedFlag({
+        reason: patient.red_flag_reason,
+        flaggedBy: patient.red_flagged_by_name,
+        flaggedDate: patient.red_flagged_date,
+      });
+      setShowRedFlagDialog(true);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -424,9 +454,19 @@ const PatientsList = () => {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">
+                          <div className="font-medium flex items-center gap-2">
                             {formatPatientNameWithInitial(patient) ||
                               patient.name}
+                            {patient.is_red_flagged && (
+                              <Badge
+                                variant="destructive"
+                                className="cursor-pointer text-xs"
+                                onClick={() => handleShowRedFlagReason(patient)}
+                              >
+                                <Flag className="h-3 w-3 mr-1" />
+                                FLAGGED
+                              </Badge>
+                            )}
                           </div>
                           <div className="text-sm text-muted-foreground">
                             ID: {patient.patient_id || patient.id}
@@ -549,6 +589,55 @@ const PatientsList = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Red Flag Reason Dialog */}
+      <Dialog open={showRedFlagDialog} onOpenChange={setShowRedFlagDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Flag className="h-5 w-5 text-red-500" />
+              Red Flag Details
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-600">
+                Reason:
+              </Label>
+              <div className="p-3 bg-red-50 border border-red-200 rounded-md mt-1">
+                <p className="text-sm">{selectedRedFlag?.reason}</p>
+              </div>
+            </div>
+            {selectedRedFlag?.flaggedBy && (
+              <div>
+                <Label className="text-sm font-medium text-gray-600">
+                  Flagged by:
+                </Label>
+                <p className="text-sm mt-1">{selectedRedFlag.flaggedBy}</p>
+              </div>
+            )}
+            {selectedRedFlag?.flaggedDate && (
+              <div>
+                <Label className="text-sm font-medium text-gray-600">
+                  Date flagged:
+                </Label>
+                <p className="text-sm mt-1">
+                  {new Date(selectedRedFlag.flaggedDate).toLocaleString()}
+                </p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowRedFlagDialog(false)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

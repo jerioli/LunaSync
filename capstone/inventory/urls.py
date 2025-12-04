@@ -2,7 +2,8 @@ from django.urls import path
 from .views import (
     InventoryListCreateView, InventoryDetailView, 
     InventoryTransactionView, LowStockAlertsView, AllTransactionsView,
-    InventoryTestView, MedicineRecordListCreateView, MedicineRecordDetailView
+    InventoryTestView, MedicineRecordListCreateView, MedicineRecordDetailView,
+    MedicineStatsView
 )
 
 urlpatterns = [
@@ -17,4 +18,5 @@ urlpatterns = [
     # Medicine Record endpoints
     path('medicines/', MedicineRecordListCreateView.as_view(), name='medicine-records-list-create'),  # GET/POST
     path('medicines/<int:pk>/', MedicineRecordDetailView.as_view(), name='medicine-record-detail'),  # GET/PUT/DELETE
+    path('medicines/stats/', MedicineStatsView.as_view(), name='medicine-stats'),  # GET statistics and alerts
 ]

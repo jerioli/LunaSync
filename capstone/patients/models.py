@@ -39,6 +39,13 @@ class Patient(models.Model):
     medical_info = EncryptedTextField(blank=True, null=True)  # Store medical info as encrypted JSON string
     physical_examination = EncryptedTextField(blank=True, null=True)  # Store physical examination data as encrypted JSON string
     registration_date = models.DateField(auto_now_add=True)
+    
+    # Red flag system
+    is_red_flagged = models.BooleanField(default=False, help_text="Mark patient as red flagged for special attention")
+    red_flag_reason = EncryptedTextField(blank=True, null=True, help_text="Reason for red flagging this patient")
+    red_flagged_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='red_flagged_patients', help_text="User who red flagged this patient")
+    red_flagged_date = models.DateTimeField(null=True, blank=True, help_text="When the patient was red flagged")
+    
     is_deleted = models.BooleanField(default=False)  # Soft delete field
     deleted_at = models.DateTimeField(null=True, blank=True)  # When the patient was deleted
 
@@ -58,6 +65,22 @@ class Patient(models.Model):
         """Restore a soft-deleted patient"""
         self.is_deleted = False
         self.deleted_at = None
+        self.save()
+    
+    def set_red_flag(self, reason, user):
+        """Set red flag for this patient"""
+        self.is_red_flagged = True
+        self.red_flag_reason = reason
+        self.red_flagged_by = user
+        self.red_flagged_date = timezone.now()
+        self.save()
+    
+    def clear_red_flag(self):
+        """Clear red flag for this patient"""
+        self.is_red_flagged = False
+        self.red_flag_reason = None
+        self.red_flagged_by = None
+        self.red_flagged_date = None
         self.save()
 
     def save(self, *args, **kwargs):

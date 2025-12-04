@@ -694,3 +694,63 @@ class MedicineRecordDetailView(APIView):
             user.is_authenticated and 
             (user.role in ['doctor', 'admin'] or getattr(user, 'can_manage_inventory', False))
         )
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class MedicineStatsView(APIView):
+    """Get medicine statistics including near expiration alerts"""
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """Get medicine statistics and alerts"""
+        try:
+            # Check permissions
+            if not self._has_medicine_permissions(request.user):
+                return Response({
+                    'success': False,
+                    'error': 'Permission denied. You do not have access to manage medicine records.'
+                }, status=status.HTTP_403_FORBIDDEN)
+            
+            # Get all medicine records
+            medicines = MedicineRecord.objects.all()
+            
+            # Calculate statistics
+            total_medicines = medicines.count()
+            expired_count = sum(1 for m in medicines if m.is_expired())
+            near_expiration_count = sum(1 for m in medicines if m.is_near_expiration() and not m.is_expired())
+            
+            # Get medicines by alert status
+            expired_medicines = [m for m in medicines if m.is_expired()]
+            near_expiration_medicines = [m for m in medicines if m.is_near_expiration() and not m.is_expired()]
+            
+            # Serialize the alert medicines
+            expired_serializer = MedicineRecordSerializer(expired_medicines, many=True)
+            near_expiration_serializer = MedicineRecordSerializer(near_expiration_medicines, many=True)
+            
+            return Response({
+                'success': True,
+                'stats': {
+                    'total_medicines': total_medicines,
+                    'expired_count': expired_count,
+                    'near_expiration_count': near_expiration_count,
+                    'ok_count': total_medicines - expired_count - near_expiration_count
+                },
+                'alerts': {
+                    'expired': expired_serializer.data,
+                    'near_expiration': near_expiration_serializer.data
+                }
+            })
+            
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': f'Failed to fetch medicine statistics: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def _has_medicine_permissions(self, user):
+        """Check if user has permission to manage medicine records"""
+        return (
+            user.is_authenticated and 
+            (user.role in ['doctor', 'admin'] or getattr(user, 'can_manage_inventory', False))
+        )

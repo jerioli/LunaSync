@@ -62,6 +62,12 @@ export type Patient = {
     respiratoryRate?: string;
     notes?: string;
   };
+  // Red flag system properties
+  is_red_flagged?: boolean;
+  red_flag_reason?: string;
+  red_flagged_by?: string;
+  red_flagged_by_name?: string;
+  red_flagged_date?: string;
   registrationDate: string;
 };
 
