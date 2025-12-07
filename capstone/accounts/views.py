@@ -283,6 +283,56 @@ class StaffDetailView(APIView):
             })
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, user_id):
+        # Check if user has permission to delete staff
+        if not request.user.is_authenticated:
+            return Response({
+                'error': 'Authentication required',
+                'message': 'You must be logged in to delete staff'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # Only allow admins and superadmins to delete staff
+        has_admin_role = request.user.role in ['admin', 'superadmin'] if hasattr(request.user, 'role') else False
+        
+        if not has_admin_role:
+            return Response({
+                'error': 'Permission denied',
+                'message': 'Only administrators can delete staff members'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        user = get_object_or_404(CustomUser, id=user_id)
+        
+        # Prevent self-deletion
+        if str(request.user.id) == str(user_id):
+            return Response({
+                'error': 'Cannot delete self',
+                'message': 'You cannot delete your own account'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Soft delete - set is_active to False instead of deleting
+        user.is_active = False
+        user.save()
+        
+        # Log staff deletion
+        AuditLogger.log_staff_action(
+            user=request.user,
+            action='DELETE',
+            staff_id=user.id,
+            staff_name=f"{user.get_full_name()} ({user.username})",
+            description=f"Soft deleted staff member: {user.get_full_name()}",
+            details={
+                'staff_role': user.role,
+                'staff_email': user.email,
+                'deleted_by': request.user.email if request.user.is_authenticated else 'Unknown'
+            },
+            request=request
+        )
+        
+        return Response({
+            'success': True,
+            'message': 'Staff member deactivated successfully'
+        })
 
 @method_decorator(csrf_exempt, name='dispatch')
 class StaffPermissionsView(APIView):

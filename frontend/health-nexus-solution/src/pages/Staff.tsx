@@ -54,6 +54,7 @@ import {
   Mail,
   Phone,
   Search,
+  Trash2,
   UserPlus,
 } from "lucide-react";
 
@@ -125,6 +126,11 @@ const StaffPage = () => {
 
   // Email validation state
   const [emailValidationError, setEmailValidationError] = useState("");
+
+  // Delete confirmation dialog state
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [staffToDelete, setStaffToDelete] = useState<StaffMember | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Pagination states
   const [doctorPage, setDoctorPage] = useState(1);
@@ -699,6 +705,48 @@ const StaffPage = () => {
     refreshStaffLists();
   };
 
+  // Handle delete staff confirmation dialog
+  const handleDeleteClick = (
+    staffMember: Doctor | Receptionist | Admin | StaffMember
+  ) => {
+    setStaffToDelete(staffMember as StaffMember);
+    setIsDeleteDialogOpen(true);
+  };
+
+  // Handle staff deletion
+  const handleDeleteStaff = async () => {
+    if (!staffToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await axiosInstance.delete(`/staff/${staffToDelete.id}/`);
+
+      toast({
+        title: "Success",
+        description: "Staff member has been deactivated successfully.",
+        variant: "default",
+      });
+
+      // Close dialog and reset state
+      setIsDeleteDialogOpen(false);
+      setStaffToDelete(null);
+
+      // Refresh the staff lists
+      await refreshStaffLists();
+    } catch (error: any) {
+      console.error("Error deleting staff:", error);
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message ||
+          "Failed to delete staff member. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1133,6 +1181,15 @@ const StaffPage = () => {
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteClick(doctor)}
+                              title="Delete Staff"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -1411,6 +1468,15 @@ const StaffPage = () => {
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteClick(receptionist)}
+                              title="Delete Staff"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -1680,6 +1746,17 @@ const StaffPage = () => {
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
+                            {currentUser?.role === "superadmin" && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteClick(admin)}
+                                title="Delete Administrator"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -1895,6 +1972,15 @@ const StaffPage = () => {
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteClick(superAdmin)}
+                              title="Delete Staff"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -1921,6 +2007,75 @@ const StaffPage = () => {
         onClose={() => setIsEditModalOpen(false)}
         onUpdate={handleStaffUpdate}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to deactivate this staff member?
+            </DialogDescription>
+          </DialogHeader>
+
+          {staffToDelete && (
+            <div className="py-4">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-4">
+                <p className="text-sm text-yellow-800">
+                  <strong>Warning:</strong> This action will deactivate the
+                  staff member's account. They will no longer be able to access
+                  the system.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Name:
+                  </span>
+                  <span className="text-sm font-semibold">
+                    {formatFullName(staffToDelete)}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Email:
+                  </span>
+                  <span className="text-sm">{staffToDelete.email}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Role:
+                  </span>
+                  <span className="text-sm capitalize">
+                    {staffToDelete.role}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                setStaffToDelete(null);
+              }}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteStaff}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deactivating..." : "Deactivate Staff"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

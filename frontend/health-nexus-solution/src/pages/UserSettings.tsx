@@ -58,6 +58,10 @@ const UserSettings = () => {
     pushNotifications: true,
     appointmentReminders: true,
     systemUpdates: false,
+    // Patient notifications
+    medicalCertificateStatusNotifications: true,
+    prescriptionStatusNotifications: true,
+    appointmentStatusNotifications: true,
   });
 
   // Two-factor authentication setting
@@ -90,13 +94,13 @@ const UserSettings = () => {
   useEffect(() => {
     const load2FAStatus = async () => {
       try {
-        const response = await axios.get('/auth/toggle-2fa/');
+        const response = await axios.get("/auth/toggle-2fa/");
         setTwoFactorEnabled(response.data.otp_enabled);
       } catch (error) {
-        console.error('Error loading 2FA status:', error);
+        console.error("Error loading 2FA status:", error);
       }
     };
-    
+
     if (currentUser) {
       load2FAStatus();
     }
@@ -312,14 +316,18 @@ const UserSettings = () => {
 
     setLoading(true);
     try {
-      const response = await axios.post('/auth/toggle-2fa/', {
+      const response = await axios.post("/auth/toggle-2fa/", {
         enabled: enabled,
       });
 
       setTwoFactorEnabled(enabled);
       toast({
         title: enabled ? "2FA Enabled" : "2FA Disabled",
-        description: response.data.message || `Two-factor authentication has been ${enabled ? "enabled" : "disabled"}.`,
+        description:
+          response.data.message ||
+          `Two-factor authentication has been ${
+            enabled ? "enabled" : "disabled"
+          }.`,
       });
     } catch (error: any) {
       console.error("Error toggling 2FA:", error);
@@ -504,7 +512,8 @@ const UserSettings = () => {
             <CardHeader>
               <CardTitle>Two-Factor Authentication (2FA)</CardTitle>
               <CardDescription>
-                Add an extra layer of security to your account with OTP verification.
+                Add an extra layer of security to your account with OTP
+                verification.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -525,11 +534,14 @@ const UserSettings = () => {
               <div className="text-sm text-muted-foreground">
                 {twoFactorEnabled ? (
                   <p>
-                    ✓ Two-factor authentication is <strong>enabled</strong>. You will need to enter an OTP code sent to your email or phone when logging in.
+                    ✓ Two-factor authentication is <strong>enabled</strong>. You
+                    will need to enter an OTP code sent to your email or phone
+                    when logging in.
                   </p>
                 ) : (
                   <p className="text-amber-600">
-                    ⚠ Two-factor authentication is <strong>disabled</strong>. Your account is less secure without 2FA.
+                    ⚠ Two-factor authentication is <strong>disabled</strong>.
+                    Your account is less secure without 2FA.
                   </p>
                 )}
               </div>
@@ -742,6 +754,68 @@ const UserSettings = () => {
                     setNotificationSettings({
                       ...notificationSettings,
                       systemUpdates: checked,
+                    })
+                  }
+                />
+              </div>
+              <Separator />
+              <div className="pt-2">
+                <h3 className="font-semibold mb-3">Patient Notifications</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Send notifications to patients about their healthcare updates
+                </p>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Medical Certificate Status Updates</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Notify patients when medical certificate status changes
+                  </p>
+                </div>
+                <Switch
+                  checked={
+                    notificationSettings.medicalCertificateStatusNotifications
+                  }
+                  onCheckedChange={(checked) =>
+                    setNotificationSettings({
+                      ...notificationSettings,
+                      medicalCertificateStatusNotifications: checked,
+                    })
+                  }
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Prescription Status Updates</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Notify patients when prescription status changes
+                  </p>
+                </div>
+                <Switch
+                  checked={notificationSettings.prescriptionStatusNotifications}
+                  onCheckedChange={(checked) =>
+                    setNotificationSettings({
+                      ...notificationSettings,
+                      prescriptionStatusNotifications: checked,
+                    })
+                  }
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Appointment Status Updates</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Notify patients when appointment status changes
+                  </p>
+                </div>
+                <Switch
+                  checked={notificationSettings.appointmentStatusNotifications}
+                  onCheckedChange={(checked) =>
+                    setNotificationSettings({
+                      ...notificationSettings,
+                      appointmentStatusNotifications: checked,
                     })
                   }
                 />
