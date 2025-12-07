@@ -70,6 +70,46 @@ class   SessionLoginView(APIView):
                 user = authenticate(request, username=username, password=password)
 
             if user and user.is_active:
+                # Check if 2FA is enabled for this user
+                if not getattr(user, 'otp_enabled', True):
+                    # 2FA is disabled - log in directly without OTP
+                    from django.contrib.auth import login
+                    user.backend = 'django.contrib.auth.backends.ModelBackend'
+                    login(request, user)
+                    
+                    request.session['user_id'] = user.id
+                    request.session['username'] = user.username
+                    request.session['role'] = getattr(user, 'role', 'doctor')
+                    request.session['login_time'] = str(timezone.now())
+                    request.session.save()
+                    
+                    return Response({
+                        'success': True,
+                        '2fa_required': False,
+                        'user': {
+                            'id': user.id,
+                            'name': user.get_full_name() or user.username,
+                            'email': user.email,
+                            'username': user.username,
+                            'role': getattr(user, 'role', 'doctor'),
+                            'can_manage_appointments': getattr(user, 'can_manage_appointments', False),
+                            'can_manage_patients': getattr(user, 'can_manage_patients', False),
+                            'can_manage_staff': getattr(user, 'can_manage_staff', False),
+                            'can_view_reports': getattr(user, 'can_view_reports', False),
+                            'can_manage_clinic_settings': getattr(user, 'can_manage_clinic_settings', False),
+                            'can_manage_inventory': getattr(user, 'can_manage_inventory', False),
+                            'can_manage_permissions': getattr(user, 'can_manage_permissions', False),
+                            'can_access_integrations': getattr(user, 'can_access_integrations', False),
+                            'can_view_audit_logs': getattr(user, 'can_view_audit_logs', False),
+                            'can_view_usage_reports': getattr(user, 'can_view_usage_reports', False),
+                            'can_access_security_testing': getattr(user, 'can_access_security_testing', False),
+                        },
+                        'session_id': request.session.session_key,
+                        'message': 'Login successful',
+                        'force_password_change': getattr(user, 'force_password_change', False)
+                    })
+                
+                # 2FA is enabled - proceed with OTP flow
                 # Store pending user ID in session (do not log in yet)
                 request.session['pending_2fa_user_id'] = user.id
                 request.session.save()

@@ -60,6 +60,9 @@ const UserSettings = () => {
     systemUpdates: false,
   });
 
+  // Two-factor authentication setting
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
+
   const [loading, setLoading] = useState(false);
 
   // Parse the name field to get first and last names, but prefer existing separate fields
@@ -80,6 +83,22 @@ const UserSettings = () => {
         email: currentUser.email || "",
         phone: currentUser.phone || "",
       }));
+    }
+  }, [currentUser]);
+
+  // Load 2FA status
+  useEffect(() => {
+    const load2FAStatus = async () => {
+      try {
+        const response = await axios.get('/auth/toggle-2fa/');
+        setTwoFactorEnabled(response.data.otp_enabled);
+      } catch (error) {
+        console.error('Error loading 2FA status:', error);
+      }
+    };
+    
+    if (currentUser) {
+      load2FAStatus();
     }
   }, [currentUser]);
   const handleProfileUpdate = async () => {
@@ -288,6 +307,37 @@ const UserSettings = () => {
     }
   };
 
+  const handleToggle2FA = async (enabled: boolean) => {
+    if (!currentUser) return;
+
+    setLoading(true);
+    try {
+      const response = await axios.post('/auth/toggle-2fa/', {
+        enabled: enabled,
+      });
+
+      setTwoFactorEnabled(enabled);
+      toast({
+        title: enabled ? "2FA Enabled" : "2FA Disabled",
+        description: response.data.message || `Two-factor authentication has been ${enabled ? "enabled" : "disabled"}.`,
+      });
+    } catch (error: any) {
+      console.error("Error toggling 2FA:", error);
+      const errorMessage =
+        error.response?.data?.error ||
+        "Failed to update two-factor authentication settings. Please try again.";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      // Revert the toggle on error
+      setTwoFactorEnabled(!enabled);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!currentUser) {
     return (
       <div className="space-y-6">
@@ -450,6 +500,42 @@ const UserSettings = () => {
         </TabsContent>
 
         <TabsContent value="security" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Two-Factor Authentication (2FA)</CardTitle>
+              <CardDescription>
+                Add an extra layer of security to your account with OTP verification.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Enable Two-Factor Authentication</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Require OTP verification code when logging in
+                  </p>
+                </div>
+                <Switch
+                  checked={twoFactorEnabled}
+                  onCheckedChange={handleToggle2FA}
+                  disabled={loading}
+                />
+              </div>
+              <Separator />
+              <div className="text-sm text-muted-foreground">
+                {twoFactorEnabled ? (
+                  <p>
+                    ✓ Two-factor authentication is <strong>enabled</strong>. You will need to enter an OTP code sent to your email or phone when logging in.
+                  </p>
+                ) : (
+                  <p className="text-amber-600">
+                    ⚠ Two-factor authentication is <strong>disabled</strong>. Your account is less secure without 2FA.
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Change Password</CardTitle>

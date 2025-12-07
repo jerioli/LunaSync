@@ -2,7 +2,7 @@ from django.urls import path
 from accounts.views import (
     StaffCreateView, DoctorListView, ReceptionistListView, AdminListView, 
     StaffLoginView, CompleteLoginView, PasswordResetRequestView, PasswordResetConfirmView,
-    PasswordChangeView, UserProfileUpdateView, UserPreferencesView,
+    PasswordChangeView, UserProfileUpdateView, UserPreferencesView, Toggle2FAView,
     StaffDetailView, StaffPermissionsView, UserListView, SendOTPView, VerifyOTPView,
     ResetPasswordOTPView, login_view, DebugUserView, TestView,  # Import the debug and test views
     AuditLogsView,  # Superadmin views
@@ -51,6 +51,7 @@ urlpatterns = [
     
     # User settings endpoints
     path('auth/change-password/', PasswordChangeView.as_view(), name='change-password'),
+    path('auth/toggle-2fa/', Toggle2FAView.as_view(), name='toggle-2fa'),
     path('users/<int:user_id>/', UserProfileUpdateView.as_view(), name='user-profile-update'),
     path('users/<int:user_id>/preferences/', UserPreferencesView.as_view(), name='user-preferences'),
     

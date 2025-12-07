@@ -40,6 +40,9 @@ class CustomUser(AbstractUser):
     can_manage_permissions = models.BooleanField(default=False)
     can_view_audit_logs = models.BooleanField(default=False)
     
+    # Two-Factor Authentication setting
+    otp_enabled = models.BooleanField(default=True)  # 2FA enabled by default
+    
     objects = CustomUserManager()
     
     class Meta:

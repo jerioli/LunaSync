@@ -650,6 +650,40 @@ class UserPreferencesView(APIView):
             'success': True,
             'message': 'Preferences updated successfully'
         })
+
+class Toggle2FAView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        """Toggle 2FA (OTP) on or off for the current user"""
+        user = request.user
+        enabled = request.data.get('enabled', None)
+        
+        if enabled is None:
+            return Response({
+                'error': 'enabled field is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Convert to boolean
+        enabled = bool(enabled)
+        
+        # Update user's OTP enabled status
+        user.otp_enabled = enabled
+        user.save()
+        
+        return Response({
+            'success': True,
+            'otp_enabled': user.otp_enabled,
+            'message': f'Two-factor authentication has been {"enabled" if enabled else "disabled"}'
+        })
+    
+    def get(self, request):
+        """Get current 2FA status for the user"""
+        user = request.user
+        return Response({
+            'otp_enabled': user.otp_enabled
+        })
     
 class DoctorListView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
