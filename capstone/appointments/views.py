@@ -518,26 +518,51 @@ class AppointmentUpdateStatusView(APIView):
                 logger.warning(f"No email found for appointment {appointment.id}, cannot send notification")
                 return False, False
             
-            # Send email notification
+            # Check if the current user (staff member) has email notifications enabled
+            from accounts.models import CustomUser
+            should_send_email = True
+            
+            # Get the user from the request (the staff member performing the action)
             try:
-                if patient:
-                    email_sent = send_appointment_declined_email(appointment, patient)
-                else:
-                    # Create a simple patient-like object for email sending
-                    class PatientData:
-                        def __init__(self, email, name):
-                            self.email = email
-                            self.name = name
-                    
-                    patient_obj = PatientData(patient_email, patient_name)
-                    email_sent = send_appointment_declined_email(appointment, patient_obj)
+                # Get the user from the request context
+                request_user = self.request.user if hasattr(self, 'request') and self.request.user.is_authenticated else None
                 
-                if email_sent:
-                    logger.info(f"Email notification sent to {patient_email}")
+                if request_user and hasattr(request_user, 'appointment_status_notifications'):
+                    should_send_email = request_user.appointment_status_notifications
+                    logger.info(f"Staff member {request_user.username} notification preference: {should_send_email}")
                 else:
-                    logger.warning(f"Failed to send email notification to {patient_email}")
-            except Exception as email_error:
-                logger.error(f"Error sending email notification: {str(email_error)}")
+                    # Default to sending if we can't check preferences
+                    should_send_email = True
+                    logger.info(f"No notification preference found, defaulting to send email")
+            except Exception as pref_error:
+                logger.warning(f"Could not check notification preferences: {str(pref_error)}")
+                # Default to sending if we can't check preferences
+                should_send_email = True
+            
+            # Send email notification if preferences allow
+            if should_send_email:
+                try:
+                    if patient:
+                        email_sent = send_appointment_declined_email(appointment, patient, new_status)
+                    else:
+                        # Create a simple patient-like object for email sending
+                        class PatientData:
+                            def __init__(self, email, name):
+                                self.email = email
+                                self.name = name
+                        
+                        patient_obj = PatientData(patient_email, patient_name)
+                        email_sent = send_appointment_declined_email(appointment, patient_obj, new_status)
+                    
+                    if email_sent:
+                        logger.info(f"Email notification sent to {patient_email}")
+                    else:
+                        logger.warning(f"Failed to send email notification to {patient_email}")
+                except Exception as email_error:
+                    logger.error(f"Error sending email notification: {str(email_error)}")
+                    email_sent = False
+            else:
+                logger.info(f"Email notification skipped - user has disabled appointment status notifications")
                 email_sent = False
             
             # Send SMS notification if phone number is available

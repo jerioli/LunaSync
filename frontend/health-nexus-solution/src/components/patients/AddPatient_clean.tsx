@@ -110,6 +110,16 @@ const AddPatient = () => {
   });
 
   const handleChange = (field: string, value: string) => {
+    // Prevent numbers in name fields
+    if (
+      field === "first_name" ||
+      field === "last_name" ||
+      field === "middle_initial"
+    ) {
+      // Remove any numeric characters from name fields
+      value = value.replace(/[0-9]/g, "");
+    }
+
     setForm((prev) => ({
       ...prev,
       [field]: value as any, // Use 'as any' to allow flexible typing for different field types
@@ -745,6 +755,12 @@ const AddPatient = () => {
                   placeholder="Enter first name"
                   value={form.first_name}
                   onChange={(e) => handleChange("first_name", e.target.value)}
+                  onKeyDown={(e) => {
+                    // Prevent number keys from being typed
+                    if (e.key >= "0" && e.key <= "9") {
+                      e.preventDefault();
+                    }
+                  }}
                 />
               </div>
               <div>
@@ -756,6 +772,12 @@ const AddPatient = () => {
                   placeholder="Enter last name"
                   value={form.last_name}
                   onChange={(e) => handleChange("last_name", e.target.value)}
+                  onKeyDown={(e) => {
+                    // Prevent number keys from being typed
+                    if (e.key >= "0" && e.key <= "9") {
+                      e.preventDefault();
+                    }
+                  }}
                 />
               </div>
               <div>
@@ -788,6 +810,12 @@ const AddPatient = () => {
                   onChange={(e) =>
                     handleChange("middle_initial", e.target.value)
                   }
+                  onKeyDown={(e) => {
+                    // Prevent number keys from being typed
+                    if (e.key >= "0" && e.key <= "9") {
+                      e.preventDefault();
+                    }
+                  }}
                   disabled={noMiddleName}
                   className={noMiddleName ? "bg-gray-100" : ""}
                 />

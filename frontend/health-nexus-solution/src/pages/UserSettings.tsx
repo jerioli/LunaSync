@@ -105,6 +105,26 @@ const UserSettings = () => {
       load2FAStatus();
     }
   }, [currentUser]);
+
+  // Load notification preferences
+  useEffect(() => {
+    const loadNotificationPreferences = async () => {
+      try {
+        const response = await axios.get(
+          `/users/${currentUser?.id}/preferences/`
+        );
+        if (response.data.success && response.data.notifications) {
+          setNotificationSettings(response.data.notifications);
+        }
+      } catch (error) {
+        console.error("Error loading notification preferences:", error);
+      }
+    };
+
+    if (currentUser) {
+      loadNotificationPreferences();
+    }
+  }, [currentUser]);
   const handleProfileUpdate = async () => {
     if (!currentUser) return;
 
@@ -118,6 +138,19 @@ const UserSettings = () => {
       toast({
         title: "Validation Error",
         description: "All fields are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate no numbers in names
+    if (
+      /[0-9]/.test(profileData.firstName) ||
+      /[0-9]/.test(profileData.lastName)
+    ) {
+      toast({
+        title: "Validation Error",
+        description: "Names cannot contain numbers.",
         variant: "destructive",
       });
       return;
@@ -426,12 +459,18 @@ const UserSettings = () => {
                   <Input
                     id="firstName"
                     value={profileData.firstName}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[0-9]/g, "");
                       setProfileData({
                         ...profileData,
-                        firstName: e.target.value,
-                      })
-                    }
+                        firstName: value,
+                      });
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key >= "0" && e.key <= "9") {
+                        e.preventDefault();
+                      }
+                    }}
                     disabled={!isEditingProfile}
                     required
                   />
@@ -443,12 +482,18 @@ const UserSettings = () => {
                   <Input
                     id="lastName"
                     value={profileData.lastName}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[0-9]/g, "");
                       setProfileData({
                         ...profileData,
-                        lastName: e.target.value,
-                      })
-                    }
+                        lastName: value,
+                      });
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key >= "0" && e.key <= "9") {
+                        e.preventDefault();
+                      }
+                    }}
                     disabled={!isEditingProfile}
                     required
                   />

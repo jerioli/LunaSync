@@ -688,13 +688,47 @@ class UserProfileUpdateView(APIView):
 class UserPreferencesView(APIView):
     permission_classes = [IsAuthenticated]
     
-    def patch(self, request):
+    def get(self, request, user_id=None):
+        """Get user's notification preferences"""
         user = request.user
+        
+        # Verify user is accessing their own preferences
+        if user_id and user.id != user_id:
+            return Response({
+                'error': 'You can only view your own preferences'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        return Response({
+            'success': True,
+            'notifications': {
+                'emailNotifications': True,  # Can be expanded later
+                'pushNotifications': True,
+                'appointmentReminders': True,
+                'systemUpdates': False,
+                'medicalCertificateStatusNotifications': True,
+                'prescriptionStatusNotifications': True,
+                'appointmentStatusNotifications': user.appointment_status_notifications,
+            }
+        })
+    
+    def patch(self, request, user_id=None):
+        """Update user's notification preferences"""
+        user = request.user
+        
+        # Verify user is updating their own preferences
+        if user_id and user.id != user_id:
+            return Response({
+                'error': 'You can only update your own preferences'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
         preferences = request.data.get('notifications', {})
         
-        # Store preferences in a JSON field or create a UserPreferences model
-        # For now, we'll just return success
-        # In a real app, you'd save these to a UserPreferences model
+        # Update appointment status notification preference
+        if 'appointmentStatusNotifications' in preferences:
+            user.appointment_status_notifications = preferences['appointmentStatusNotifications']
+            user.save()
+            
+            logger.info(f"Updated notification preferences for user {user.username}: appointment_status_notifications={user.appointment_status_notifications}")
         
         return Response({
             'success': True,

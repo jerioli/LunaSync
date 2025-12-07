@@ -525,7 +525,13 @@ const StaffPage = () => {
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { id, value } = e.target;
+    let { id, value } = e.target;
+
+    // Remove numbers from name fields
+    if (id === "first_name" || id === "last_name" || id === "middle_initial") {
+      value = value.replace(/[0-9]/g, "");
+    }
+
     setNewStaff((prev) => ({ ...prev, [id]: value }));
 
     // Clear email validation error when user starts typing in email field
@@ -790,6 +796,11 @@ const StaffPage = () => {
                     className="col-span-3"
                     value={newStaff.first_name}
                     onChange={handleInputChange}
+                    onKeyDown={(e) => {
+                      if (e.key >= "0" && e.key <= "9") {
+                        e.preventDefault();
+                      }
+                    }}
                     required
                   />
                 </div>
@@ -805,6 +816,11 @@ const StaffPage = () => {
                     className="col-span-3"
                     value={newStaff.middle_initial}
                     onChange={handleInputChange}
+                    onKeyDown={(e) => {
+                      if (e.key >= "0" && e.key <= "9") {
+                        e.preventDefault();
+                      }
+                    }}
                     maxLength={1}
                   />
                 </div>
@@ -820,6 +836,11 @@ const StaffPage = () => {
                     className="col-span-3"
                     value={newStaff.last_name}
                     onChange={handleInputChange}
+                    onKeyDown={(e) => {
+                      if (e.key >= "0" && e.key <= "9") {
+                        e.preventDefault();
+                      }
+                    }}
                     required
                   />
                 </div>

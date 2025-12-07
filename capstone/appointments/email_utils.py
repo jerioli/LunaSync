@@ -51,69 +51,94 @@ def get_logo_url():
 
 def send_email_with_embedded_logo(to_email, subject, html_content, plain_content, clinic_name):
     """
-    Send email using smtplib with embedded logo image
+    Send email using Django's EmailMultiAlternatives with proper headers for Yahoo Mail compatibility
     """
     try:
-        # Create message container
-        msg = MIMEMultipart('related')
-        msg['Subject'] = subject
-        msg['From'] = formataddr((clinic_name, settings.EMAIL_HOST_USER))
-        msg['To'] = to_email
-
-        # Create alternative container for HTML and plain text
-        msg_alternative = MIMEMultipart('alternative')
-        msg.attach(msg_alternative)
-
-        # Add plain text part
-        part_text = MIMEText(plain_content, 'plain')
-        msg_alternative.attach(part_text)
-
-        # Add HTML part
-        part_html = MIMEText(html_content, 'html')
-        msg_alternative.attach(part_html)
-
-        # Try to attach logo
-        logo_attachment = get_logo_attachment()
-        if logo_attachment:
-            msg.attach(logo_attachment)
-
-        # Send email using Django's email backend (more reliable)
+        from django.core.mail import EmailMultiAlternatives
+        from email.utils import make_msgid
+        
+        # Create email with proper headers for Yahoo Mail compatibility
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=plain_content,
+            from_email=formataddr((clinic_name, settings.EMAIL_HOST_USER)),
+            to=[to_email],
+            headers={
+                'Message-ID': make_msgid(domain='gmail.com'),  # Proper Message-ID for Gmail sending
+                'X-Priority': '1',  # High priority
+                'X-MSMail-Priority': 'High',
+                'Importance': 'High',
+                'Content-Type': 'multipart/alternative',  # Explicit content type
+            }
+        )
+        
+        # Attach HTML alternative
+        email.attach_alternative(html_content, "text/html")
+        
+        # Try to attach logo (optional, won't break if fails)
         try:
-            from django.core.mail import EmailMultiAlternatives
-            
-            email = EmailMultiAlternatives(
-                subject=subject,
-                body=plain_content,
-                from_email=formataddr((clinic_name, settings.EMAIL_HOST_USER)),
-                to=[to_email]
-            )
-            email.attach_alternative(html_content, "text/html")
-            
-            # Try to attach logo
             logo_attachment = get_logo_attachment()
             if logo_attachment:
                 email.attach(logo_attachment)
+        except Exception as logo_error:
+            logger.warning(f"Could not attach logo: {logo_error}")
+        
+        # Set additional properties for better deliverability
+        email.mixed_subtype = 'related'  # For embedded images
+        
+        # Send the email
+        email.send(fail_silently=False)
+        logger.info(f"Email sent successfully to {to_email}")
+        return True
             
-            email.send()
-            return True
+    except Exception as e:
+        logger.error(f"Failed to send email: {str(e)}")
+        
+        # Fallback: Try with smtplib for more control
+        try:
+            import smtplib
+            from email.mime.multipart import MIMEMultipart
+            from email.mime.text import MIMEText
+            from email.utils import make_msgid, formatdate
             
-        except Exception as django_error:
-            logger.error(f"Django email failed: {django_error}, trying smtplib fallback")
+            # Create message with proper MIME structure
+            msg = MIMEMultipart('alternative')
+            msg['Subject'] = subject
+            msg['From'] = formataddr((clinic_name, settings.EMAIL_HOST_USER))
+            msg['To'] = to_email
+            msg['Date'] = formatdate(localtime=True)
+            msg['Message-ID'] = make_msgid(domain='gmail.com')
             
-            # Fallback to smtplib
-            server = smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT)
+            # Attach plain text first (fallback)
+            part1 = MIMEText(plain_content, 'plain', 'utf-8')
+            msg.attach(part1)
+            
+            # Attach HTML version
+            part2 = MIMEText(html_content, 'html', 'utf-8')
+            msg.attach(part2)
+            
+            # Connect to SMTP server
+            server = smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT, timeout=30)
+            server.set_debuglevel(0)  # Disable debug output
+            server.ehlo()  # Identify ourselves to the server
+            
             if settings.EMAIL_USE_TLS:
                 server.starttls()
+                server.ehlo()  # Re-identify after STARTTLS
+            
             if settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD:
                 server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
             
+            # Send email
             server.send_message(msg)
             server.quit()
             
+            logger.info(f"Email sent successfully via smtplib fallback to {to_email}")
             return True
-    except Exception as e:
-        logger.error(f"Failed to send email with smtplib: {e}")
-        return False
+            
+        except Exception as fallback_error:
+            logger.error(f"Fallback email also failed: {str(fallback_error)}")
+            return False
 
 def send_appointment_confirmation_email(appointment, patient):
     """
@@ -502,15 +527,19 @@ Best regards,
         logger.error(f"Failed to send reminder email: {str(email_error)}")
         return False
 
-def send_appointment_declined_email(appointment, patient):
+def send_appointment_declined_email(appointment, patient, new_status=None):
     """
     Send appointment declined/cancelled email to patient with HTML formatting
     
     Args:
         appointment: Appointment object
         patient: Patient object or patient data
+        new_status: The new status being set (cancelled, no-show, etc.)
     """
     try:
+        # Use new_status if provided, otherwise fall back to appointment.status
+        current_status = new_status if new_status else appointment.status
+        
         # Fetch clinic info from the database
         clinic = ClinicSettings.objects.last()
         clinic_name = clinic.clinic_name if clinic else 'HealthNexus Medical Center'
@@ -532,13 +561,13 @@ def send_appointment_declined_email(appointment, patient):
             logger.warning(f"No email address found for appointment {appointment.id}")
             return False
             
-        # Determine status message and subject
-        if appointment.status == 'cancelled':
+        # Determine status message and subject based on current_status
+        if current_status == 'cancelled':
             status_message = "❌ Appointment Declined"
             status_description = "We regret to inform you that your appointment request has been DECLINED."
             status_color = "#dc2626"
             subject = f'Appointment DECLINED - {clinic_name}'
-        elif appointment.status == 'no-show':
+        elif current_status == 'no-show':
             status_message = "⏰ Missed Appointment - NO SHOW"
             status_description = "You were marked as NO SHOW for your scheduled appointment."
             status_color = "#ea580c"
@@ -602,7 +631,7 @@ def send_appointment_declined_email(appointment, patient):
                 
                 <div style="background: #fef2f2; border-left: 4px solid {status_color}; padding: 20px; margin: 25px 0; border-radius: 0 8px 8px 0;">
                     <h3 style="margin-top: 0; color: #991b1b; display: flex; align-items: center;">
-                        📅 Appointment Details - Status: {appointment.status.upper().replace('_', ' ').replace('CANCELLED', 'DECLINED')}
+                        📅 Appointment Details - Status: {current_status.upper().replace('_', ' ').replace('CANCELLED', 'DECLINED').replace('NO-SHOW', 'NO SHOW')}
                     </h3>
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr>
@@ -658,7 +687,7 @@ def send_appointment_declined_email(appointment, patient):
         """
         
         # Create plain text version
-        status_text = "DECLINED" if appointment.status == 'cancelled' else "NO SHOW" if appointment.status == 'no-show' else appointment.status.upper()
+        status_text = "DECLINED" if current_status == 'cancelled' else "NO SHOW" if current_status == 'no-show' else current_status.upper()
         plain_text_message = f"""
 Dear {patient_name},
 

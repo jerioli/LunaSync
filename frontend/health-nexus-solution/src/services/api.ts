@@ -49,17 +49,18 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401) {
       const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
       const isLoginPage = currentPath.includes('/login') || currentPath.includes('/forgot-password');
+      const isPublicPage = currentPath === '/' || currentPath.includes('/portal') || currentPath.includes('/terms') || currentPath.includes('/privacy');
       const isPublicEndpoint = error.config?.url?.includes('/medical-certificates/') && error.config?.url?.includes('public');
       
-      // Only trigger session expired modal for authenticated routes
-      if (!isLoginPage && !isPublicEndpoint) {
+      // Only trigger session expired modal for authenticated routes (not public pages)
+      if (!isLoginPage && !isPublicPage && !isPublicEndpoint) {
         console.warn('🔒 Session expired or unauthorized for authenticated route');
         
         // Add a small delay to prevent race conditions with rapid API calls
         setTimeout(() => {
           // Check if we're still not on login page (user might have already been redirected)
           const newPath = typeof window !== 'undefined' ? window.location.pathname : '';
-          if (!newPath.includes('/login') && !newPath.includes('/forgot-password')) {
+          if (!newPath.includes('/login') && !newPath.includes('/forgot-password') && newPath !== '/' && !newPath.includes('/portal')) {
             // Clear session data
             localStorage.removeItem('sessionId');
             localStorage.removeItem('user');

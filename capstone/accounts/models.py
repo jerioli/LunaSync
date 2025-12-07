@@ -43,6 +43,9 @@ class CustomUser(AbstractUser):
     # Two-Factor Authentication setting
     otp_enabled = models.BooleanField(default=True)  # 2FA enabled by default
     
+    # Notification preferences
+    appointment_status_notifications = models.BooleanField(default=True)  # Email notifications for appointment status changes
+    
     objects = CustomUserManager()
     
     class Meta:

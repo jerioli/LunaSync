@@ -31,22 +31,22 @@ from medical_documents.views import (
 )
 from medical_requests.views import get_latest_prescription
 
-# Root redirect to Patient Portal
-def redirect_to_portal(request):
-    """Redirect root domain to Patient Portal frontend"""
-    # Get frontend URL from environment variables
-    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
-    
-    # In development, redirect to frontend dev server
-    if settings.DEBUG:
-        return redirect(frontend_url, permanent=False)
-    else:
-        # In production, redirect to the production frontend
-        return redirect('https://lunasync.site/portal', permanent=True)
+# Root redirect disabled - Frontend is served separately
+# def redirect_to_portal(request):
+#     """Redirect root domain to Patient Portal frontend"""
+#     # Get frontend URL from environment variables
+#     frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+#     
+#     # In development, redirect to frontend dev server
+#     if settings.DEBUG:
+#         return redirect(frontend_url, permanent=False)
+#     else:
+#         # In production, redirect to the production frontend
+#         return redirect('https://lunasync.site/portal', permanent=True)
 
 urlpatterns = [
-    # Root domain redirect to Patient Portal
-    path('', redirect_to_portal, name='root_redirect'),
+    # Root domain redirect disabled - frontend handles routing
+    # path('', redirect_to_portal, name='root_redirect'),
     
     # Remove admin URL since we're using custom frontend
     # path('admin/', admin.site.urls),
