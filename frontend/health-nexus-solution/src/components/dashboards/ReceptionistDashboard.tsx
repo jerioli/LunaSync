@@ -2,23 +2,24 @@ import AppointmentCalendar from "@/components/ui/AppointmentCalendar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { useClinic } from "@/contexts/ClinicContext";
 import { axiosInstance } from "@/services/api";
 import { getPatientNameFromAppointment } from "@/utils/patientNameUtils";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const ReceptionistDashboard = () => {
   const { patients } = useClinic();
@@ -181,6 +182,34 @@ const ReceptionistDashboard = () => {
   const handleDateClick = (date) => {
     console.log("Date clicked:", date);
     // You can add functionality here, like filtering appointments by date or creating a new appointment
+  };
+
+  // Handler for checking in a patient
+  const handleCheckIn = async (appointmentId) => {
+    try {
+      const response = await axiosInstance.post(
+        `appointments/update-status/${appointmentId}/`,
+        { status: "ongoing" }
+      );
+
+      // Update the appointments list
+      setAppointments((prev) =>
+        prev.map((appt) =>
+          appt.id === appointmentId ? { ...appt, status: "ongoing" } : appt
+        )
+      );
+
+      // Update selected appointment if it's the one being checked in
+      if (selectedAppointment?.id === appointmentId) {
+        setSelectedAppointment((prev) => ({ ...prev, status: "ongoing" }));
+      }
+
+      toast.success("🏥 Patient has been checked in successfully");
+      setIsAppointmentModalOpen(false);
+    } catch (error) {
+      console.error("Error checking in patient:", error);
+      toast.error("Failed to check in patient. Please try again.");
+    }
   };
 
   return (
@@ -395,7 +424,12 @@ const ReceptionistDashboard = () => {
 
               <div className="flex justify-end space-x-2 pt-4 border-t">
                 {selectedAppointment.status === "scheduled" && (
-                  <Button size="sm">Check In Patient</Button>
+                  <Button 
+                    size="sm"
+                    onClick={() => handleCheckIn(selectedAppointment.id)}
+                  >
+                    Check In Patient
+                  </Button>
                 )}
                 <Button
                   variant="outline"
