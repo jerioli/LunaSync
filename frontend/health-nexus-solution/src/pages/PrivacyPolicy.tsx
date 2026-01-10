@@ -5,11 +5,21 @@ import { Button } from "../components/ui/button";
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
 
+  const handleClose = () => {
+    // If opened in a new window/tab, close it
+    if (window.opener) {
+      window.close();
+    } else {
+      // Otherwise, navigate back
+      navigate(-1);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6 sm:p-8">
         <div className="mb-6">
-          <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
+          <Button variant="ghost" onClick={handleClose} className="mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
@@ -272,7 +282,7 @@ const PrivacyPolicy = () => {
 
         <div className="mt-8 pt-6 border-t">
           <Button
-            onClick={() => navigate(-1)}
+            onClick={handleClose}
             className="bg-[#79c942] hover:bg-[#6bb33a]"
           >
             I Understand

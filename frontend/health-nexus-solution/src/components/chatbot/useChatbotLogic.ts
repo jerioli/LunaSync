@@ -3919,7 +3919,9 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       idVerificationFrontPreview: null,
       idVerificationBack: null,
       idVerificationBackPreview: null,
-      additionalInfo: ''
+      additionalInfo: '',
+      emailNotifications: false,
+      smsNotifications: false
     });
     setPrescriptionForm({
       prescriptionType: '', // 'new' or 'refill'
@@ -3941,7 +3943,9 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       idVerificationBackPreview: null,
       prescriptionImage: null,
       prescriptionImagePreview: null,
-      additionalNotes: ''
+      additionalNotes: '',
+      emailNotifications: false,
+      smsNotifications: false
     });
   };
 

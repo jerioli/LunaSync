@@ -30,10 +30,12 @@ import PatientsList from "./pages/PatientsList";
 import PermissionManagement from "./pages/PermissionManagement";
 import PrescriptionManagement from "./pages/PrescriptionManagement";
 import Prescriptions from "./pages/Prescriptions";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ResetPassword from "./pages/ResetPassword";
 import Schedule from "./pages/Schedule";
 import Settings from "./pages/Settings";
 import Staff from "./pages/Staff";
+import TermsAndConditions from "./pages/TermsAndConditions";
 import UserSettings from "./pages/UserSettings";
 
 // PermissionGuard component for route-level permission checks
@@ -190,7 +192,9 @@ const App = () => {
                 {/* Public patient portal */}
                 <Route path="/portal" element={<PatientPortal />} />
 
-                
+                {/* Terms and Privacy Policy - Public routes */}
+                <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
                 {/* Patient requests page */}
 

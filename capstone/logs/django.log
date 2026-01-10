@@ -41698,3 +41698,1098 @@ INFO 2025-12-08 02:41:19,857 autoreload 32448 10388 Watching for file changes wi
 2025-12-08 03:03:14,525 - django.server - INFO - "GET /api/users/3/preferences/ HTTP/1.1" 200 257
 2025-12-08 03:03:34,024 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\appointments\email_utils.py changed, reloading.
 INFO 2025-12-08 03:03:37,638 autoreload 18480 1740 Watching for file changes with StatReloader
+INFO 2026-01-10 14:15:39,601 autoreload 18884 8148 Watching for file changes with StatReloader
+INFO 2026-01-10 14:17:05,456 autoreload 4092 20484 Watching for file changes with StatReloader
+INFO 2026-01-10 14:55:24,971 autoreload 15108 12652 Watching for file changes with StatReloader
+2026-01-10 15:02:06,297 - django.server - INFO - "OPTIONS /api/auth/session-login/ HTTP/1.1" 200 0
+2026-01-10 15:02:06,643 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-login/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:02:08,872 - otp_email - INFO - ============================================================
+2026-01-10 15:02:08,873 - otp_email - INFO - [DEBUG] VALIDATING SMTP CONFIGURATION
+2026-01-10 15:02:08,875 - otp_email - INFO - ============================================================
+2026-01-10 15:02:08,875 - otp_email - INFO - [EMAIL] EMAIL_BACKEND: django.core.mail.backends.smtp.EmailBackend
+2026-01-10 15:02:08,876 - otp_email - INFO - [NETWORK] EMAIL_HOST: smtp.gmail.com
+2026-01-10 15:02:08,877 - otp_email - INFO - [PORT] EMAIL_PORT: 587
+2026-01-10 15:02:08,879 - otp_email - INFO - [TLS] EMAIL_USE_TLS: True
+2026-01-10 15:02:08,880 - otp_email - INFO - [SSL] EMAIL_USE_SSL: False
+2026-01-10 15:02:08,880 - otp_email - INFO - [USER] EMAIL_HOST_USER: medratrics.langgam@gmail.com
+2026-01-10 15:02:08,881 - otp_email - INFO - [PASSWORD] EMAIL_HOST_PASSWORD: [SET]
+2026-01-10 15:02:08,882 - otp_email - INFO - [TIMEOUT] EMAIL_TIMEOUT: 30
+2026-01-10 15:02:08,884 - otp_email - INFO - [FROM] DEFAULT_FROM_EMAIL: medratrics.langgam@gmail.com
+2026-01-10 15:02:08,885 - otp_email - INFO - ============================================================
+2026-01-10 15:02:08,886 - otp_email - INFO - ================================================================================
+2026-01-10 15:02:08,887 - otp_email - INFO - [START] STARTING OTP EMAIL SEND DEBUG SESSION
+2026-01-10 15:02:08,888 - otp_email - INFO - [EMAIL] To: doctor@example.com
+2026-01-10 15:02:08,889 - otp_email - INFO - [CODE] OTP: 745123
+2026-01-10 15:02:08,890 - otp_email - INFO - [TYPE] Type: email
+2026-01-10 15:02:08,890 - otp_email - INFO - ================================================================================
+2026-01-10 15:02:08,891 - otp_email - INFO - [STEP1] STEP 1: Validating email address
+2026-01-10 15:02:08,892 - otp_email - INFO - [SUCCESS] Email address validation passed: doctor@example.com
+2026-01-10 15:02:08,894 - otp_email - INFO - [STEP2] STEP 2: Loading clinic settings
+2026-01-10 15:02:08,899 - otp_email - INFO - [SUCCESS] Clinic settings loaded: Medratrics Langgam
+2026-01-10 15:02:08,971 - otp_email - INFO - [PROCESS] TESTING SMTP CONNECTION
+2026-01-10 15:02:08,975 - otp_email - INFO - ----------------------------------------
+2026-01-10 15:02:08,982 - otp_email - INFO - [NETWORK] Testing socket connection to smtp.gmail.com:587
+2026-01-10 15:02:09,007 - otp_email - INFO - [SUCCESS] Socket connection successful
+2026-01-10 15:02:09,008 - otp_email - INFO - [PROCESS] Establishing SMTP connection...
+2026-01-10 15:02:09,755 - otp_email - INFO - [SMTP] Using plain SMTP connection
+2026-01-10 15:02:09,757 - otp_email - INFO - [PROCESS] Starting TLS...
+2026-01-10 15:02:10,420 - otp_email - INFO - [SUCCESS] TLS enabled
+2026-01-10 15:02:10,421 - otp_email - INFO - [PROCESS] Testing authentication...
+2026-01-10 15:02:11,039 - otp_email - INFO - [SUCCESS] Authentication successful
+2026-01-10 15:02:11,236 - otp_email - INFO - [SUCCESS] SMTP connection test completed successfully
+2026-01-10 15:02:15,539 - otp_email - INFO - ================================================================================
+2026-01-10 15:02:15,605 - otp_email - INFO - ================================================================================
+2026-01-10 15:02:15,607 - appointments.email_utils - INFO - OTP email sent successfully to doctor@example.com
+2026-01-10 15:02:15,693 - django.server - INFO - "POST /api/auth/session-login/ HTTP/1.1" 200 151
+2026-01-10 15:02:51,382 - django.server - INFO - "OPTIONS /api/auth/session-verify-otp/ HTTP/1.1" 200 0
+2026-01-10 15:02:51,782 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-verify-otp/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:02:51,787 - accounts.session_views - INFO - [2FA VERIFY] SessionOTPVerifyView.post called
+2026-01-10 15:02:51,789 - accounts.session_views - INFO - [2FA VERIFY] Request data: {'identifier': 'doctor@example.com', 'identifier_type': 'email', 'otp': '745123'}
+2026-01-10 15:02:51,792 - accounts.session_views - INFO - [2FA VERIFY] Session data: {'pending_2fa_user_id': 3}
+2026-01-10 15:02:51,795 - accounts.session_views - INFO - [2FA VERIFY] Verifying OTP for email: doctor@example.com
+2026-01-10 15:02:51,797 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 745123
+2026-01-10 15:02:51,803 - accounts.session_views - INFO - [2FA VERIFY] Cache key: otp_doctor@example.com_email
+2026-01-10 15:02:51,805 - accounts.session_views - INFO - [2FA VERIFY] Stored OTP: 745123
+2026-01-10 15:02:51,807 - accounts.session_views - INFO - [2FA VERIFY] Received OTP: 745123
+2026-01-10 15:02:51,808 - accounts.session_views - INFO - [2FA VERIFY] OTP Match: True
+2026-01-10 15:02:51,809 - accounts.session_views - INFO - [2FA VERIFY] Pending user ID from session: 3
+2026-01-10 15:02:51,819 - accounts.session_views - INFO - [2FA VERIFY] Found user from session: doctor@example.com (ID: 3)
+2026-01-10 15:02:51,821 - accounts.session_views - INFO - [2FA VERIFY] OTP verification successful - clearing cache and session data
+2026-01-10 15:02:51,826 - accounts.session_views - INFO - [2FA VERIFY] Cleared pending_2fa_user_id from session
+2026-01-10 15:02:51,841 - accounts.session_views - INFO - [2FA VERIFY] Session saved successfully. Session ID: 718o0i3dn5preh3kwjb4umlv00bcb3o1
+2026-01-10 15:02:51,978 - django.server - INFO - "POST /api/auth/session-verify-otp/ HTTP/1.1" 200 552
+2026-01-10 15:02:52,199 - django.server - INFO - "OPTIONS /api/patients/ HTTP/1.1" 200 0
+2026-01-10 15:02:52,200 - django.server - INFO - "OPTIONS /api/appointments/list/ HTTP/1.1" 200 0
+2026-01-10 15:02:52,456 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:02:52,461 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1768028572.461641, "client_ip": "127.0.0.1"}
+2026-01-10 15:02:52,463 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:02:52,469 - appointments.views - INFO - Starting list method...
+2026-01-10 15:02:52,470 - appointments.views - INFO - Starting to fetch appointments...
+2026-01-10 15:02:52,481 - appointments.views - INFO - Successfully accessed database
+2026-01-10 15:02:52,497 - appointments.views - INFO - Found 9 appointments after filtering
+2026-01-10 15:02:52,519 - appointments.views - INFO - Sample appointment: id=8, status=cancelled, date=2025-11-09
+2026-01-10 15:02:52,521 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2026-01-10 15:02:52,525 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 4277
+2026-01-10 15:02:52,524 - appointments.views - INFO - Doctor: doctor (doctor)
+2026-01-10 15:02:52,527 - appointments.views - INFO - Appointment Type: Consultation
+2026-01-10 15:02:52,532 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-09
+2026-01-10 15:02:52,537 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2026-01-10 15:02:52,538 - appointments.views - INFO - Doctor: doctor (doctor)
+2026-01-10 15:02:52,543 - appointments.views - INFO - Appointment Type: Consultation
+2026-01-10 15:02:52,552 - appointments.views - INFO - Sample appointment: id=6, status=scheduled, date=2025-11-09
+2026-01-10 15:02:52,553 - appointments.views - INFO - Patient: Rose C. Olivarez
+2026-01-10 15:02:52,557 - appointments.views - INFO - Doctor: doctor (doctor)
+2026-01-10 15:02:52,559 - appointments.views - INFO - Appointment Type: Consultation
+2026-01-10 15:02:52,575 - appointments.views - INFO - Testing serialization with first appointment: 4
+2026-01-10 15:02:52,651 - appointments.views - INFO - Successfully serialized first appointment: {'id': 4, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Mary Joy C Olivarez', 'patient_id': 'P-20251108-0218', 'patient_email': 'joy.olivarez@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2014-06-07', 'gender': 'female', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-10', 'time': '09:00:00', 'status': 'completed', 'created_at': '2025-11-08T17:43:01.834463+08:00', 'display_patient_name': 'Mary Joy C. Olivarez', 'display_doctor_name': 'Jerry Oli', 'display_time': '09:00 AM', 'display_date': 'November 10, 2025', 'patient_is_deleted': False, 'doctor': 3, 'doctor_name': 'Jerry Oli', 'patient': 2}
+2026-01-10 15:02:52,684 - appointments.views - INFO - Successfully serialized all appointments. Count: 9
+2026-01-10 15:02:52,692 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 6313
+2026-01-10 15:02:54,259 - root - INFO - Request: {"method": "GET", "path": "/api/users/3/preferences/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:02:54,266 - root - INFO - Request: {"method": "GET", "path": "/api/auth/toggle-2fa/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:02:54,273 - django.server - INFO - "GET /api/users/3/preferences/ HTTP/1.1" 200 257
+2026-01-10 15:02:54,277 - django.server - INFO - "GET /api/auth/toggle-2fa/ HTTP/1.1" 200 20
+2026-01-10 15:02:57,597 - django.server - INFO - "OPTIONS /api/auth/toggle-2fa/ HTTP/1.1" 200 0
+2026-01-10 15:02:57,784 - root - INFO - Request: {"method": "POST", "path": "/api/auth/toggle-2fa/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:02:57,797 - django.server - INFO - "POST /api/auth/toggle-2fa/ HTTP/1.1" 200 92
+2026-01-10 15:03:27,355 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:03:27,357 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:03:27,359 - appointments.views - INFO - Starting list method...
+2026-01-10 15:03:27,360 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1768028607.3601534, "client_ip": "127.0.0.1"}
+2026-01-10 15:03:27,360 - appointments.views - INFO - Starting to fetch appointments...
+2026-01-10 15:03:27,367 - appointments.views - INFO - Successfully accessed database
+2026-01-10 15:03:27,377 - appointments.views - INFO - Found 9 appointments after filtering
+2026-01-10 15:03:27,387 - appointments.views - INFO - Sample appointment: id=8, status=cancelled, date=2025-11-09
+2026-01-10 15:03:27,392 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2026-01-10 15:03:27,393 - appointments.views - INFO - Doctor: doctor (doctor)
+2026-01-10 15:03:27,398 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 4277
+2026-01-10 15:03:27,397 - appointments.views - INFO - Appointment Type: Consultation
+2026-01-10 15:03:27,399 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-09
+2026-01-10 15:03:27,403 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2026-01-10 15:03:27,404 - appointments.views - INFO - Doctor: doctor (doctor)
+2026-01-10 15:03:27,406 - appointments.views - INFO - Appointment Type: Consultation
+2026-01-10 15:03:27,408 - appointments.views - INFO - Sample appointment: id=6, status=scheduled, date=2025-11-09
+2026-01-10 15:03:27,409 - appointments.views - INFO - Patient: Rose C. Olivarez
+2026-01-10 15:03:27,409 - appointments.views - INFO - Doctor: doctor (doctor)
+2026-01-10 15:03:27,410 - appointments.views - INFO - Appointment Type: Consultation
+2026-01-10 15:03:27,424 - appointments.views - INFO - Testing serialization with first appointment: 4
+2026-01-10 15:03:27,428 - appointments.views - INFO - Successfully serialized first appointment: {'id': 4, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Mary Joy C Olivarez', 'patient_id': 'P-20251108-0218', 'patient_email': 'joy.olivarez@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2014-06-07', 'gender': 'female', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-10', 'time': '09:00:00', 'status': 'completed', 'created_at': '2025-11-08T17:43:01.834463+08:00', 'display_patient_name': 'Mary Joy C. Olivarez', 'display_doctor_name': 'Jerry Oli', 'display_time': '09:00 AM', 'display_date': 'November 10, 2025', 'patient_is_deleted': False, 'doctor': 3, 'doctor_name': 'Jerry Oli', 'patient': 2}
+2026-01-10 15:03:27,459 - appointments.views - INFO - Successfully serialized all appointments. Count: 9
+2026-01-10 15:03:27,467 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 6313
+2026-01-10 15:03:29,396 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:03:29,402 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1768028609.4026303, "client_ip": "127.0.0.1"}
+2026-01-10 15:03:29,430 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 4277
+2026-01-10 15:03:40,876 - django.server - INFO - "OPTIONS /api/clinic/ HTTP/1.1" 200 0
+2026-01-10 15:03:41,035 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:03:41,039 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1768028621.039728, "client_ip": "127.0.0.1"}
+2026-01-10 15:03:41,043 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:03:41,074 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 4277
+2026-01-10 15:03:41,084 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 908
+2026-01-10 15:03:41,139 - django.server - INFO - "OPTIONS /api/medical-documents/medical-certificates/?patient_id=5 HTTP/1.1" 200 0
+2026-01-10 15:03:41,299 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:03:41,306 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/medical-certificates/", "timestamp": 1768028621.306283, "client_ip": "127.0.0.1"}
+2026-01-10 15:03:41,348 - django.server - INFO - "GET /api/medical-documents/medical-certificates/?patient_id=5 HTTP/1.1" 200 2
+2026-01-10 15:03:41,357 - django.server - INFO - "OPTIONS /api/medical-documents/prescriptions/?patient_id=5 HTTP/1.1" 200 0
+2026-01-10 15:03:41,504 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/prescriptions/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:03:41,506 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/prescriptions/", "timestamp": 1768028621.5068748, "client_ip": "127.0.0.1"}
+2026-01-10 15:03:41,561 - django.server - INFO - "GET /api/medical-documents/prescriptions/?patient_id=5 HTTP/1.1" 200 3531
+2026-01-10 15:03:41,571 - django.server - INFO - "OPTIONS /api/medical-documents/soap-notes/?patient_id=5 HTTP/1.1" 200 0
+2026-01-10 15:03:41,720 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/soap-notes/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:03:41,722 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/soap-notes/", "timestamp": 1768028621.722272, "client_ip": "127.0.0.1"}
+2026-01-10 15:03:41,744 - django.server - INFO - "GET /api/medical-documents/soap-notes/?patient_id=5 HTTP/1.1" 200 2
+2026-01-10 15:03:41,756 - django.server - INFO - "OPTIONS /api/medical-documents/clinical-notes/?patient_id=5 HTTP/1.1" 200 0
+2026-01-10 15:03:41,960 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/clinical-notes/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:03:41,963 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/clinical-notes/", "timestamp": 1768028621.963003, "client_ip": "127.0.0.1"}
+2026-01-10 15:03:41,998 - django.server - INFO - "GET /api/medical-documents/clinical-notes/?patient_id=5 HTTP/1.1" 200 394
+2026-01-10 15:03:42,008 - django.server - INFO - "OPTIONS /api/medical-documents/lab-results/by_patient/?patient_id=5 HTTP/1.1" 200 0
+2026-01-10 15:03:42,216 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/by_patient/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:03:42,221 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/by_patient/", "timestamp": 1768028622.221362, "client_ip": "127.0.0.1"}
+2026-01-10 15:03:42,276 - django.server - INFO - "GET /api/medical-documents/lab-results/by_patient/?patient_id=5 HTTP/1.1" 200 55
+2026-01-10 15:03:43,358 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:03:43,360 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1768028623.3601298, "client_ip": "127.0.0.1"}
+2026-01-10 15:03:43,390 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 4277
+2026-01-10 15:03:45,367 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:03:45,371 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:03:45,377 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1768028625.3774116, "client_ip": "127.0.0.1"}
+2026-01-10 15:03:45,389 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 908
+2026-01-10 15:03:45,410 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 4277
+2026-01-10 15:03:45,616 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/medical-certificates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:03:45,617 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/medical-certificates/", "timestamp": 1768028625.6177733, "client_ip": "127.0.0.1"}
+2026-01-10 15:03:45,641 - django.server - INFO - "GET /api/medical-documents/medical-certificates/?patient_id=5 HTTP/1.1" 200 2
+2026-01-10 15:03:45,791 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/prescriptions/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:03:45,794 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/prescriptions/", "timestamp": 1768028625.7946594, "client_ip": "127.0.0.1"}
+2026-01-10 15:03:45,860 - django.server - INFO - "GET /api/medical-documents/prescriptions/?patient_id=5 HTTP/1.1" 200 3531
+2026-01-10 15:03:46,032 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/soap-notes/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:03:46,033 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/soap-notes/", "timestamp": 1768028626.0337796, "client_ip": "127.0.0.1"}
+2026-01-10 15:03:46,059 - django.server - INFO - "GET /api/medical-documents/soap-notes/?patient_id=5 HTTP/1.1" 200 2
+2026-01-10 15:03:46,251 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/clinical-notes/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:03:46,253 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/clinical-notes/", "timestamp": 1768028626.25366, "client_ip": "127.0.0.1"}
+2026-01-10 15:03:46,277 - django.server - INFO - "GET /api/medical-documents/clinical-notes/?patient_id=5 HTTP/1.1" 200 394
+2026-01-10 15:03:46,438 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/by_patient/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:03:46,440 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/medical-documents/lab-results/by_patient/", "timestamp": 1768028626.4402843, "client_ip": "127.0.0.1"}
+2026-01-10 15:03:46,471 - django.server - INFO - "GET /api/medical-documents/lab-results/by_patient/?patient_id=5 HTTP/1.1" 200 55
+2026-01-10 15:03:53,058 - django.server - INFO - "OPTIONS /api/patients/5/red-flag/ HTTP/1.1" 200 0
+2026-01-10 15:03:53,192 - root - INFO - Request: {"method": "POST", "path": "/api/patients/5/red-flag/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:03:53,194 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "POST", "endpoint": "/api/patients/5/red-flag/", "timestamp": 1768028633.194439, "client_ip": "127.0.0.1"}
+2026-01-10 15:03:53,218 - django.server - INFO - "POST /api/patients/5/red-flag/ HTTP/1.1" 200 829
+2026-01-10 15:03:53,226 - django.server - INFO - "OPTIONS /api/patients/P-20251109-6180/ HTTP/1.1" 200 0
+2026-01-10 15:03:53,401 - root - INFO - Request: {"method": "GET", "path": "/api/patients/P-20251109-6180/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:03:53,456 - django.request - WARNING - Not Found: /api/patients/P-20251109-6180/
+2026-01-10 15:03:53,458 - django.server - WARNING - "GET /api/patients/P-20251109-6180/ HTTP/1.1" 404 22742
+2026-01-10 15:03:54,689 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:03:54,690 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1768028634.690672, "client_ip": "127.0.0.1"}
+2026-01-10 15:03:54,721 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 4336
+2026-01-10 15:04:33,980 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:04:33,986 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:04:33,988 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1768028673.988182, "client_ip": "127.0.0.1"}
+2026-01-10 15:04:33,989 - appointments.views - INFO - Starting list method...
+2026-01-10 15:04:33,991 - appointments.views - INFO - Starting to fetch appointments...
+2026-01-10 15:04:33,997 - appointments.views - INFO - Successfully accessed database
+2026-01-10 15:04:34,006 - appointments.views - INFO - Found 9 appointments after filtering
+2026-01-10 15:04:34,022 - appointments.views - INFO - Sample appointment: id=8, status=cancelled, date=2025-11-09
+2026-01-10 15:04:34,025 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2026-01-10 15:04:34,026 - appointments.views - INFO - Doctor: doctor (doctor)
+2026-01-10 15:04:34,026 - appointments.views - INFO - Appointment Type: Consultation
+2026-01-10 15:04:34,028 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-09
+2026-01-10 15:04:34,029 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 4336
+2026-01-10 15:04:34,029 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2026-01-10 15:04:34,030 - appointments.views - INFO - Doctor: doctor (doctor)
+2026-01-10 15:04:34,035 - appointments.views - INFO - Appointment Type: Consultation
+2026-01-10 15:04:34,036 - appointments.views - INFO - Sample appointment: id=6, status=scheduled, date=2025-11-09
+2026-01-10 15:04:34,037 - appointments.views - INFO - Patient: Rose C. Olivarez
+2026-01-10 15:04:34,039 - appointments.views - INFO - Doctor: doctor (doctor)
+2026-01-10 15:04:34,043 - appointments.views - INFO - Appointment Type: Consultation
+2026-01-10 15:04:34,056 - appointments.views - INFO - Testing serialization with first appointment: 4
+2026-01-10 15:04:34,059 - appointments.views - INFO - Successfully serialized first appointment: {'id': 4, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Mary Joy C Olivarez', 'patient_id': 'P-20251108-0218', 'patient_email': 'joy.olivarez@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2014-06-07', 'gender': 'female', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-10', 'time': '09:00:00', 'status': 'completed', 'created_at': '2025-11-08T17:43:01.834463+08:00', 'display_patient_name': 'Mary Joy C. Olivarez', 'display_doctor_name': 'Jerry Oli', 'display_time': '09:00 AM', 'display_date': 'November 10, 2025', 'patient_is_deleted': False, 'doctor': 3, 'doctor_name': 'Jerry Oli', 'patient': 2}
+2026-01-10 15:04:34,082 - appointments.views - INFO - Successfully serialized all appointments. Count: 9
+2026-01-10 15:04:34,088 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 6313
+2026-01-10 15:04:35,417 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:04:35,419 - appointments.views - INFO - Starting list method...
+2026-01-10 15:04:35,420 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:04:35,420 - appointments.views - INFO - Starting to fetch appointments...
+2026-01-10 15:04:35,422 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1768028675.4219515, "client_ip": "127.0.0.1"}
+2026-01-10 15:04:35,425 - appointments.views - INFO - Successfully accessed database
+2026-01-10 15:04:35,431 - appointments.views - INFO - Found 9 appointments after filtering
+2026-01-10 15:04:35,443 - appointments.views - INFO - Sample appointment: id=8, status=cancelled, date=2025-11-09
+2026-01-10 15:04:35,458 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2026-01-10 15:04:35,468 - appointments.views - INFO - Doctor: doctor (doctor)
+2026-01-10 15:04:35,469 - appointments.views - INFO - Appointment Type: Consultation
+2026-01-10 15:04:35,472 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 4336
+2026-01-10 15:04:35,470 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-09
+2026-01-10 15:04:35,473 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2026-01-10 15:04:35,476 - appointments.views - INFO - Doctor: doctor (doctor)
+2026-01-10 15:04:35,477 - appointments.views - INFO - Appointment Type: Consultation
+2026-01-10 15:04:35,479 - appointments.views - INFO - Sample appointment: id=6, status=scheduled, date=2025-11-09
+2026-01-10 15:04:35,481 - appointments.views - INFO - Patient: Rose C. Olivarez
+2026-01-10 15:04:35,482 - appointments.views - INFO - Doctor: doctor (doctor)
+2026-01-10 15:04:35,483 - appointments.views - INFO - Appointment Type: Consultation
+2026-01-10 15:04:35,492 - appointments.views - INFO - Testing serialization with first appointment: 4
+2026-01-10 15:04:35,495 - appointments.views - INFO - Successfully serialized first appointment: {'id': 4, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Mary Joy C Olivarez', 'patient_id': 'P-20251108-0218', 'patient_email': 'joy.olivarez@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2014-06-07', 'gender': 'female', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-10', 'time': '09:00:00', 'status': 'completed', 'created_at': '2025-11-08T17:43:01.834463+08:00', 'display_patient_name': 'Mary Joy C. Olivarez', 'display_doctor_name': 'Jerry Oli', 'display_time': '09:00 AM', 'display_date': 'November 10, 2025', 'patient_is_deleted': False, 'doctor': 3, 'doctor_name': 'Jerry Oli', 'patient': 2}
+2026-01-10 15:04:35,517 - appointments.views - INFO - Successfully serialized all appointments. Count: 9
+2026-01-10 15:04:35,523 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 6313
+2026-01-10 15:06:07,158 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:06:07,160 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1768028767.160602, "client_ip": "127.0.0.1"}
+2026-01-10 15:06:07,195 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 4336
+2026-01-10 15:06:15,333 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:06:15,436 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:06:15,440 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 376
+2026-01-10 15:06:15,457 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 908
+2026-01-10 15:06:17,834 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:06:17,844 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 2
+2026-01-10 15:06:18,664 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:06:18,675 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 376
+2026-01-10 15:06:41,355 - django.server - INFO - "OPTIONS /api/clinic/faqs/ HTTP/1.1" 200 0
+2026-01-10 15:06:41,584 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:06:41,595 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 2
+2026-01-10 15:06:41,617 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:06:41,633 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 908
+2026-01-10 15:06:52,424 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:06:52,443 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 243
+2026-01-10 15:06:52,660 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:06:53,355 - django.server - INFO - "GET /api/availability/?doctor_id=3&page=1&page_size=10&ordering=-date&_t=1768028812453 HTTP/1.1" 200 15138
+2026-01-10 15:07:04,655 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:07:04,669 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 243
+2026-01-10 15:07:04,888 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:07:05,558 - django.server - INFO - "GET /api/availability/?doctor_id=3&page_size=1000 HTTP/1.1" 200 15138
+2026-01-10 15:07:05,690 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:07:06,352 - django.server - INFO - "GET /api/availability/?doctor_id=3&page_size=1000 HTTP/1.1" 200 15138
+2026-01-10 15:07:06,466 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:07:07,104 - django.server - INFO - "GET /api/availability/?doctor_id=3&page_size=1000 HTTP/1.1" 200 15138
+2026-01-10 15:07:07,341 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:07:07,937 - django.server - INFO - "GET /api/availability/?doctor_id=3&page_size=1000 HTTP/1.1" 200 15138
+2026-01-10 15:07:08,057 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:07:08,694 - django.server - INFO - "GET /api/availability/?doctor_id=3&page_size=1000 HTTP/1.1" 200 15138
+2026-01-10 15:07:08,702 - django.server - INFO - "OPTIONS /api/availability/ HTTP/1.1" 200 0
+2026-01-10 15:07:08,814 - root - INFO - Request: {"method": "POST", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:08,834 - django.server - INFO - "POST /api/availability/ HTTP/1.1" 201 122
+2026-01-10 15:07:08,841 - django.server - INFO - "OPTIONS /api/availability/9/create_time_slot/ HTTP/1.1" 200 0
+2026-01-10 15:07:08,955 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:08,959 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '09:00', 'end_time': '09:20', 'is_booked': False}
+2026-01-10 15:07:08,963 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:08,973 - doctor_availability.views - INFO - Created time slot: ID=162, Start=09:00:00, End=09:20:00, Booked=False
+2026-01-10 15:07:08,987 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:09,136 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:09,140 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '09:20', 'end_time': '09:40', 'is_booked': False}
+2026-01-10 15:07:09,143 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:09,153 - doctor_availability.views - INFO - Created time slot: ID=163, Start=09:20:00, End=09:40:00, Booked=False
+2026-01-10 15:07:09,169 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:09,319 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:09,323 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '09:40', 'end_time': '10:00', 'is_booked': False}
+2026-01-10 15:07:09,326 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:09,334 - doctor_availability.views - INFO - Created time slot: ID=164, Start=09:40:00, End=10:00:00, Booked=False
+2026-01-10 15:07:09,347 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:09,489 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:09,493 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '10:00', 'end_time': '10:20', 'is_booked': False}
+2026-01-10 15:07:09,495 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:09,503 - doctor_availability.views - INFO - Created time slot: ID=165, Start=10:00:00, End=10:20:00, Booked=False
+2026-01-10 15:07:09,516 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:09,634 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:09,638 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '10:20', 'end_time': '10:40', 'is_booked': False}
+2026-01-10 15:07:09,640 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:09,648 - doctor_availability.views - INFO - Created time slot: ID=166, Start=10:20:00, End=10:40:00, Booked=False
+2026-01-10 15:07:09,660 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:09,777 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:09,781 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '10:40', 'end_time': '11:00', 'is_booked': False}
+2026-01-10 15:07:09,785 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:09,791 - doctor_availability.views - INFO - Created time slot: ID=167, Start=10:40:00, End=11:00:00, Booked=False
+2026-01-10 15:07:09,804 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:09,926 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:09,931 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '11:00', 'end_time': '11:20', 'is_booked': False}
+2026-01-10 15:07:09,934 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:09,940 - doctor_availability.views - INFO - Created time slot: ID=168, Start=11:00:00, End=11:20:00, Booked=False
+2026-01-10 15:07:09,954 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:10,069 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:10,073 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '11:20', 'end_time': '11:40', 'is_booked': False}
+2026-01-10 15:07:10,075 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:10,083 - doctor_availability.views - INFO - Created time slot: ID=169, Start=11:20:00, End=11:40:00, Booked=False
+2026-01-10 15:07:10,095 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:10,220 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:10,223 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '11:40', 'end_time': '12:00', 'is_booked': False}
+2026-01-10 15:07:10,227 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:10,234 - doctor_availability.views - INFO - Created time slot: ID=170, Start=11:40:00, End=12:00:00, Booked=False
+2026-01-10 15:07:10,249 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:10,363 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:10,368 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '13:00', 'end_time': '13:20', 'is_booked': False}
+2026-01-10 15:07:10,370 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:10,376 - doctor_availability.views - INFO - Created time slot: ID=171, Start=13:00:00, End=13:20:00, Booked=False
+2026-01-10 15:07:10,389 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:10,508 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:10,512 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '13:20', 'end_time': '13:40', 'is_booked': False}
+2026-01-10 15:07:10,516 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:10,523 - doctor_availability.views - INFO - Created time slot: ID=172, Start=13:20:00, End=13:40:00, Booked=False
+2026-01-10 15:07:10,537 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:10,665 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:10,671 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '13:40', 'end_time': '14:00', 'is_booked': False}
+2026-01-10 15:07:10,675 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:10,684 - doctor_availability.views - INFO - Created time slot: ID=173, Start=13:40:00, End=14:00:00, Booked=False
+2026-01-10 15:07:10,700 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:10,851 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:10,855 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '14:00', 'end_time': '14:20', 'is_booked': False}
+2026-01-10 15:07:10,857 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:10,864 - doctor_availability.views - INFO - Created time slot: ID=174, Start=14:00:00, End=14:20:00, Booked=False
+2026-01-10 15:07:10,877 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:10,995 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:11,001 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '14:20', 'end_time': '14:40', 'is_booked': False}
+2026-01-10 15:07:11,003 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:11,010 - doctor_availability.views - INFO - Created time slot: ID=175, Start=14:20:00, End=14:40:00, Booked=False
+2026-01-10 15:07:11,023 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:11,139 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:11,143 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '14:40', 'end_time': '15:00', 'is_booked': False}
+2026-01-10 15:07:11,147 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:11,154 - doctor_availability.views - INFO - Created time slot: ID=176, Start=14:40:00, End=15:00:00, Booked=False
+2026-01-10 15:07:11,169 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:11,401 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:11,405 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '15:00', 'end_time': '15:20', 'is_booked': False}
+2026-01-10 15:07:11,408 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:11,416 - doctor_availability.views - INFO - Created time slot: ID=177, Start=15:00:00, End=15:20:00, Booked=False
+2026-01-10 15:07:11,429 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:11,550 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:11,553 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '15:20', 'end_time': '15:40', 'is_booked': False}
+2026-01-10 15:07:11,556 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:11,565 - doctor_availability.views - INFO - Created time slot: ID=178, Start=15:20:00, End=15:40:00, Booked=False
+2026-01-10 15:07:11,577 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:11,693 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:11,696 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '15:40', 'end_time': '16:00', 'is_booked': False}
+2026-01-10 15:07:11,700 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:11,707 - doctor_availability.views - INFO - Created time slot: ID=179, Start=15:40:00, End=16:00:00, Booked=False
+2026-01-10 15:07:11,721 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:11,838 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:11,843 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '16:00', 'end_time': '16:20', 'is_booked': False}
+2026-01-10 15:07:11,845 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:11,853 - doctor_availability.views - INFO - Created time slot: ID=180, Start=16:00:00, End=16:20:00, Booked=False
+2026-01-10 15:07:11,870 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:12,101 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:12,105 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '16:20', 'end_time': '16:40', 'is_booked': False}
+2026-01-10 15:07:12,108 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:12,117 - doctor_availability.views - INFO - Created time slot: ID=181, Start=16:20:00, End=16:40:00, Booked=False
+2026-01-10 15:07:12,131 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:12,263 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:12,268 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '16:40', 'end_time': '17:00', 'is_booked': False}
+2026-01-10 15:07:12,271 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:12,277 - doctor_availability.views - INFO - Created time slot: ID=182, Start=16:40:00, End=17:00:00, Booked=False
+2026-01-10 15:07:12,292 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:12,530 - root - INFO - Request: {"method": "POST", "path": "/api/availability/9/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:12,536 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '17:00', 'end_time': '17:20', 'is_booked': False}
+2026-01-10 15:07:12,539 - doctor_availability.views - INFO - Availability ID: 9, Doctor: Jerry Oli, Date: 2026-01-10
+2026-01-10 15:07:12,545 - doctor_availability.views - INFO - Created time slot: ID=183, Start=17:00:00, End=17:20:00, Booked=False
+2026-01-10 15:07:12,560 - django.server - INFO - "POST /api/availability/9/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:12,673 - root - INFO - Request: {"method": "POST", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:12,690 - django.server - INFO - "POST /api/availability/ HTTP/1.1" 201 123
+2026-01-10 15:07:12,696 - django.server - INFO - "OPTIONS /api/availability/10/create_time_slot/ HTTP/1.1" 200 0
+2026-01-10 15:07:12,808 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:12,812 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '09:00', 'end_time': '09:20', 'is_booked': False}
+2026-01-10 15:07:12,816 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:12,822 - doctor_availability.views - INFO - Created time slot: ID=184, Start=09:00:00, End=09:20:00, Booked=False
+2026-01-10 15:07:12,835 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:12,954 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:12,958 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '09:20', 'end_time': '09:40', 'is_booked': False}
+2026-01-10 15:07:12,960 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:12,968 - doctor_availability.views - INFO - Created time slot: ID=185, Start=09:20:00, End=09:40:00, Booked=False
+2026-01-10 15:07:12,982 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:13,105 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:13,109 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '09:40', 'end_time': '10:00', 'is_booked': False}
+2026-01-10 15:07:13,111 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:13,120 - doctor_availability.views - INFO - Created time slot: ID=186, Start=09:40:00, End=10:00:00, Booked=False
+2026-01-10 15:07:13,135 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:13,257 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:13,261 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '10:00', 'end_time': '10:20', 'is_booked': False}
+2026-01-10 15:07:13,266 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:13,272 - doctor_availability.views - INFO - Created time slot: ID=187, Start=10:00:00, End=10:20:00, Booked=False
+2026-01-10 15:07:13,286 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:13,442 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:13,449 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '10:20', 'end_time': '10:40', 'is_booked': False}
+2026-01-10 15:07:13,454 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:13,463 - doctor_availability.views - INFO - Created time slot: ID=188, Start=10:20:00, End=10:40:00, Booked=False
+2026-01-10 15:07:13,483 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:13,619 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:13,623 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '10:40', 'end_time': '11:00', 'is_booked': False}
+2026-01-10 15:07:13,627 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:13,634 - doctor_availability.views - INFO - Created time slot: ID=189, Start=10:40:00, End=11:00:00, Booked=False
+2026-01-10 15:07:13,648 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:13,769 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:13,773 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '11:00', 'end_time': '11:20', 'is_booked': False}
+2026-01-10 15:07:13,776 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:13,783 - doctor_availability.views - INFO - Created time slot: ID=190, Start=11:00:00, End=11:20:00, Booked=False
+2026-01-10 15:07:13,796 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:13,908 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:13,912 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '11:20', 'end_time': '11:40', 'is_booked': False}
+2026-01-10 15:07:13,916 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:13,922 - doctor_availability.views - INFO - Created time slot: ID=191, Start=11:20:00, End=11:40:00, Booked=False
+2026-01-10 15:07:13,935 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:14,052 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:14,057 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '11:40', 'end_time': '12:00', 'is_booked': False}
+2026-01-10 15:07:14,060 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:14,067 - doctor_availability.views - INFO - Created time slot: ID=192, Start=11:40:00, End=12:00:00, Booked=False
+2026-01-10 15:07:14,079 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:14,318 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:14,321 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '13:00', 'end_time': '13:20', 'is_booked': False}
+2026-01-10 15:07:14,324 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:14,332 - doctor_availability.views - INFO - Created time slot: ID=193, Start=13:00:00, End=13:20:00, Booked=False
+2026-01-10 15:07:14,345 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:14,459 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:14,463 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '13:20', 'end_time': '13:40', 'is_booked': False}
+2026-01-10 15:07:14,467 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:14,473 - doctor_availability.views - INFO - Created time slot: ID=194, Start=13:20:00, End=13:40:00, Booked=False
+2026-01-10 15:07:14,487 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:14,603 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:14,607 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '13:40', 'end_time': '14:00', 'is_booked': False}
+2026-01-10 15:07:14,610 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:14,618 - doctor_availability.views - INFO - Created time slot: ID=195, Start=13:40:00, End=14:00:00, Booked=False
+2026-01-10 15:07:14,632 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:14,786 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:14,791 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '14:00', 'end_time': '14:20', 'is_booked': False}
+2026-01-10 15:07:14,795 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:14,804 - doctor_availability.views - INFO - Created time slot: ID=196, Start=14:00:00, End=14:20:00, Booked=False
+2026-01-10 15:07:14,818 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:15,036 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:15,040 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '14:20', 'end_time': '14:40', 'is_booked': False}
+2026-01-10 15:07:15,042 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:15,051 - doctor_availability.views - INFO - Created time slot: ID=197, Start=14:20:00, End=14:40:00, Booked=False
+2026-01-10 15:07:15,065 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:15,188 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:15,192 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '14:40', 'end_time': '15:00', 'is_booked': False}
+2026-01-10 15:07:15,195 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:15,203 - doctor_availability.views - INFO - Created time slot: ID=198, Start=14:40:00, End=15:00:00, Booked=False
+2026-01-10 15:07:15,216 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:15,336 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:15,340 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '15:00', 'end_time': '15:20', 'is_booked': False}
+2026-01-10 15:07:15,342 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:15,351 - doctor_availability.views - INFO - Created time slot: ID=199, Start=15:00:00, End=15:20:00, Booked=False
+2026-01-10 15:07:15,365 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:15,479 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:15,484 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '15:20', 'end_time': '15:40', 'is_booked': False}
+2026-01-10 15:07:15,487 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:15,493 - doctor_availability.views - INFO - Created time slot: ID=200, Start=15:20:00, End=15:40:00, Booked=False
+2026-01-10 15:07:15,506 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:15,623 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:15,626 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '15:40', 'end_time': '16:00', 'is_booked': False}
+2026-01-10 15:07:15,629 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:15,668 - doctor_availability.views - INFO - Created time slot: ID=201, Start=15:40:00, End=16:00:00, Booked=False
+2026-01-10 15:07:15,721 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:15,887 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:15,891 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '16:00', 'end_time': '16:20', 'is_booked': False}
+2026-01-10 15:07:15,893 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:15,901 - doctor_availability.views - INFO - Created time slot: ID=202, Start=16:00:00, End=16:20:00, Booked=False
+2026-01-10 15:07:15,915 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:16,032 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:16,036 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '16:20', 'end_time': '16:40', 'is_booked': False}
+2026-01-10 15:07:16,040 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:16,047 - doctor_availability.views - INFO - Created time slot: ID=203, Start=16:20:00, End=16:40:00, Booked=False
+2026-01-10 15:07:16,060 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:16,204 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:16,208 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '16:40', 'end_time': '17:00', 'is_booked': False}
+2026-01-10 15:07:16,210 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:16,218 - doctor_availability.views - INFO - Created time slot: ID=204, Start=16:40:00, End=17:00:00, Booked=False
+2026-01-10 15:07:16,233 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:16,362 - root - INFO - Request: {"method": "POST", "path": "/api/availability/10/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:16,368 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '17:00', 'end_time': '17:20', 'is_booked': False}
+2026-01-10 15:07:16,371 - doctor_availability.views - INFO - Availability ID: 10, Doctor: Jerry Oli, Date: 2026-01-11
+2026-01-10 15:07:16,378 - doctor_availability.views - INFO - Created time slot: ID=205, Start=17:00:00, End=17:20:00, Booked=False
+2026-01-10 15:07:16,392 - django.server - INFO - "POST /api/availability/10/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:16,516 - root - INFO - Request: {"method": "POST", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:16,533 - django.server - INFO - "POST /api/availability/ HTTP/1.1" 201 123
+2026-01-10 15:07:16,540 - django.server - INFO - "OPTIONS /api/availability/11/create_time_slot/ HTTP/1.1" 200 0
+2026-01-10 15:07:16,649 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:16,653 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '09:00', 'end_time': '09:20', 'is_booked': False}
+2026-01-10 15:07:16,656 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:16,663 - doctor_availability.views - INFO - Created time slot: ID=206, Start=09:00:00, End=09:20:00, Booked=False
+2026-01-10 15:07:16,676 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:16,790 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:16,793 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '09:20', 'end_time': '09:40', 'is_booked': False}
+2026-01-10 15:07:16,797 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:16,804 - doctor_availability.views - INFO - Created time slot: ID=207, Start=09:20:00, End=09:40:00, Booked=False
+2026-01-10 15:07:16,818 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:16,942 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:16,946 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '09:40', 'end_time': '10:00', 'is_booked': False}
+2026-01-10 15:07:16,950 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:16,956 - doctor_availability.views - INFO - Created time slot: ID=208, Start=09:40:00, End=10:00:00, Booked=False
+2026-01-10 15:07:16,970 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:17,087 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:17,091 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '10:00', 'end_time': '10:20', 'is_booked': False}
+2026-01-10 15:07:17,093 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:17,102 - doctor_availability.views - INFO - Created time slot: ID=209, Start=10:00:00, End=10:20:00, Booked=False
+2026-01-10 15:07:17,116 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:17,241 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:17,244 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '10:20', 'end_time': '10:40', 'is_booked': False}
+2026-01-10 15:07:17,248 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:17,254 - doctor_availability.views - INFO - Created time slot: ID=210, Start=10:20:00, End=10:40:00, Booked=False
+2026-01-10 15:07:17,269 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:17,384 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:17,387 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '10:40', 'end_time': '11:00', 'is_booked': False}
+2026-01-10 15:07:17,390 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:17,397 - doctor_availability.views - INFO - Created time slot: ID=211, Start=10:40:00, End=11:00:00, Booked=False
+2026-01-10 15:07:17,410 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:17,543 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:17,549 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '11:00', 'end_time': '11:20', 'is_booked': False}
+2026-01-10 15:07:17,552 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:17,559 - doctor_availability.views - INFO - Created time slot: ID=212, Start=11:00:00, End=11:20:00, Booked=False
+2026-01-10 15:07:17,574 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:17,715 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:17,719 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '11:20', 'end_time': '11:40', 'is_booked': False}
+2026-01-10 15:07:17,721 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:17,729 - doctor_availability.views - INFO - Created time slot: ID=213, Start=11:20:00, End=11:40:00, Booked=False
+2026-01-10 15:07:17,744 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:17,877 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:17,882 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '11:40', 'end_time': '12:00', 'is_booked': False}
+2026-01-10 15:07:17,885 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:17,891 - doctor_availability.views - INFO - Created time slot: ID=214, Start=11:40:00, End=12:00:00, Booked=False
+2026-01-10 15:07:17,905 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:18,116 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:18,120 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '13:00', 'end_time': '13:20', 'is_booked': False}
+2026-01-10 15:07:18,123 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:18,132 - doctor_availability.views - INFO - Created time slot: ID=215, Start=13:00:00, End=13:20:00, Booked=False
+2026-01-10 15:07:18,144 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:18,263 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:18,270 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '13:20', 'end_time': '13:40', 'is_booked': False}
+2026-01-10 15:07:18,273 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:18,279 - doctor_availability.views - INFO - Created time slot: ID=216, Start=13:20:00, End=13:40:00, Booked=False
+2026-01-10 15:07:18,293 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:18,531 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:18,536 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '13:40', 'end_time': '14:00', 'is_booked': False}
+2026-01-10 15:07:18,540 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:18,548 - doctor_availability.views - INFO - Created time slot: ID=217, Start=13:40:00, End=14:00:00, Booked=False
+2026-01-10 15:07:18,561 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:18,676 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:18,681 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '14:00', 'end_time': '14:20', 'is_booked': False}
+2026-01-10 15:07:18,684 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:18,690 - doctor_availability.views - INFO - Created time slot: ID=218, Start=14:00:00, End=14:20:00, Booked=False
+2026-01-10 15:07:18,704 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:18,933 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:18,937 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '14:20', 'end_time': '14:40', 'is_booked': False}
+2026-01-10 15:07:18,940 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:18,948 - doctor_availability.views - INFO - Created time slot: ID=219, Start=14:20:00, End=14:40:00, Booked=False
+2026-01-10 15:07:18,961 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:19,128 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:19,134 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '14:40', 'end_time': '15:00', 'is_booked': False}
+2026-01-10 15:07:19,138 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:19,145 - doctor_availability.views - INFO - Created time slot: ID=220, Start=14:40:00, End=15:00:00, Booked=False
+2026-01-10 15:07:19,159 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:19,381 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:19,385 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '15:00', 'end_time': '15:20', 'is_booked': False}
+2026-01-10 15:07:19,387 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:19,396 - doctor_availability.views - INFO - Created time slot: ID=221, Start=15:00:00, End=15:20:00, Booked=False
+2026-01-10 15:07:19,411 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:19,527 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:19,532 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '15:20', 'end_time': '15:40', 'is_booked': False}
+2026-01-10 15:07:19,535 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:19,542 - doctor_availability.views - INFO - Created time slot: ID=222, Start=15:20:00, End=15:40:00, Booked=False
+2026-01-10 15:07:19,556 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:19,671 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:19,675 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '15:40', 'end_time': '16:00', 'is_booked': False}
+2026-01-10 15:07:19,677 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:19,685 - doctor_availability.views - INFO - Created time slot: ID=223, Start=15:40:00, End=16:00:00, Booked=False
+2026-01-10 15:07:19,700 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:19,934 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:19,938 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '16:00', 'end_time': '16:20', 'is_booked': False}
+2026-01-10 15:07:19,941 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:19,950 - doctor_availability.views - INFO - Created time slot: ID=224, Start=16:00:00, End=16:20:00, Booked=False
+2026-01-10 15:07:19,962 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:20,075 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:20,079 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '16:20', 'end_time': '16:40', 'is_booked': False}
+2026-01-10 15:07:20,083 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:20,089 - doctor_availability.views - INFO - Created time slot: ID=225, Start=16:20:00, End=16:40:00, Booked=False
+2026-01-10 15:07:20,105 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:20,324 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:20,328 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '16:40', 'end_time': '17:00', 'is_booked': False}
+2026-01-10 15:07:20,332 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:20,340 - doctor_availability.views - INFO - Created time slot: ID=226, Start=16:40:00, End=17:00:00, Booked=False
+2026-01-10 15:07:20,358 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:20,504 - root - INFO - Request: {"method": "POST", "path": "/api/availability/11/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:20,509 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '17:00', 'end_time': '17:20', 'is_booked': False}
+2026-01-10 15:07:20,514 - doctor_availability.views - INFO - Availability ID: 11, Doctor: Jerry Oli, Date: 2026-01-12
+2026-01-10 15:07:20,521 - doctor_availability.views - INFO - Created time slot: ID=227, Start=17:00:00, End=17:20:00, Booked=False
+2026-01-10 15:07:20,535 - django.server - INFO - "POST /api/availability/11/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:20,657 - root - INFO - Request: {"method": "POST", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:20,673 - django.server - INFO - "POST /api/availability/ HTTP/1.1" 201 123
+2026-01-10 15:07:20,679 - django.server - INFO - "OPTIONS /api/availability/12/create_time_slot/ HTTP/1.1" 200 0
+2026-01-10 15:07:20,795 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:20,800 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '09:00', 'end_time': '09:20', 'is_booked': False}
+2026-01-10 15:07:20,803 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:20,810 - doctor_availability.views - INFO - Created time slot: ID=228, Start=09:00:00, End=09:20:00, Booked=False
+2026-01-10 15:07:20,824 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:20,942 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:20,945 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '09:20', 'end_time': '09:40', 'is_booked': False}
+2026-01-10 15:07:20,951 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:20,959 - doctor_availability.views - INFO - Created time slot: ID=229, Start=09:20:00, End=09:40:00, Booked=False
+2026-01-10 15:07:20,972 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:21,088 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:21,092 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '09:40', 'end_time': '10:00', 'is_booked': False}
+2026-01-10 15:07:21,095 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:21,102 - doctor_availability.views - INFO - Created time slot: ID=230, Start=09:40:00, End=10:00:00, Booked=False
+2026-01-10 15:07:21,116 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:21,235 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:21,239 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '10:00', 'end_time': '10:20', 'is_booked': False}
+2026-01-10 15:07:21,241 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:21,249 - doctor_availability.views - INFO - Created time slot: ID=231, Start=10:00:00, End=10:20:00, Booked=False
+2026-01-10 15:07:21,263 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:21,381 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:21,385 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '10:20', 'end_time': '10:40', 'is_booked': False}
+2026-01-10 15:07:21,388 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:21,395 - doctor_availability.views - INFO - Created time slot: ID=232, Start=10:20:00, End=10:40:00, Booked=False
+2026-01-10 15:07:21,409 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:21,525 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:21,529 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '10:40', 'end_time': '11:00', 'is_booked': False}
+2026-01-10 15:07:21,533 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:21,539 - doctor_availability.views - INFO - Created time slot: ID=233, Start=10:40:00, End=11:00:00, Booked=False
+2026-01-10 15:07:21,554 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:21,673 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:21,676 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '11:00', 'end_time': '11:20', 'is_booked': False}
+2026-01-10 15:07:21,679 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:21,686 - doctor_availability.views - INFO - Created time slot: ID=234, Start=11:00:00, End=11:20:00, Booked=False
+2026-01-10 15:07:21,700 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:21,834 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:21,838 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '11:20', 'end_time': '11:40', 'is_booked': False}
+2026-01-10 15:07:21,841 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:21,848 - doctor_availability.views - INFO - Created time slot: ID=235, Start=11:20:00, End=11:40:00, Booked=False
+2026-01-10 15:07:21,861 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:22,026 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:22,032 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '11:40', 'end_time': '12:00', 'is_booked': False}
+2026-01-10 15:07:22,035 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:22,043 - doctor_availability.views - INFO - Created time slot: ID=236, Start=11:40:00, End=12:00:00, Booked=False
+2026-01-10 15:07:22,058 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:22,193 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:22,199 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '13:00', 'end_time': '13:20', 'is_booked': False}
+2026-01-10 15:07:22,203 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:22,209 - doctor_availability.views - INFO - Created time slot: ID=237, Start=13:00:00, End=13:20:00, Booked=False
+2026-01-10 15:07:22,224 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:22,523 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:22,528 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '13:20', 'end_time': '13:40', 'is_booked': False}
+2026-01-10 15:07:22,533 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:22,539 - doctor_availability.views - INFO - Created time slot: ID=238, Start=13:20:00, End=13:40:00, Booked=False
+2026-01-10 15:07:22,555 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:22,793 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:22,807 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '13:40', 'end_time': '14:00', 'is_booked': False}
+2026-01-10 15:07:22,810 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:22,819 - doctor_availability.views - INFO - Created time slot: ID=239, Start=13:40:00, End=14:00:00, Booked=False
+2026-01-10 15:07:22,833 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:23,019 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:23,062 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '14:00', 'end_time': '14:20', 'is_booked': False}
+2026-01-10 15:07:23,082 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:23,136 - doctor_availability.views - INFO - Created time slot: ID=240, Start=14:00:00, End=14:20:00, Booked=False
+2026-01-10 15:07:23,163 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:23,351 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:23,358 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '14:20', 'end_time': '14:40', 'is_booked': False}
+2026-01-10 15:07:23,361 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:23,372 - doctor_availability.views - INFO - Created time slot: ID=241, Start=14:20:00, End=14:40:00, Booked=False
+2026-01-10 15:07:23,390 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:23,645 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:23,650 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '14:40', 'end_time': '15:00', 'is_booked': False}
+2026-01-10 15:07:23,653 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:23,660 - doctor_availability.views - INFO - Created time slot: ID=242, Start=14:40:00, End=15:00:00, Booked=False
+2026-01-10 15:07:23,673 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:23,790 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:23,794 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '15:00', 'end_time': '15:20', 'is_booked': False}
+2026-01-10 15:07:23,796 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:23,804 - doctor_availability.views - INFO - Created time slot: ID=243, Start=15:00:00, End=15:20:00, Booked=False
+2026-01-10 15:07:23,817 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:23,931 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:23,934 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '15:20', 'end_time': '15:40', 'is_booked': False}
+2026-01-10 15:07:23,937 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:23,944 - doctor_availability.views - INFO - Created time slot: ID=244, Start=15:20:00, End=15:40:00, Booked=False
+2026-01-10 15:07:23,958 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:24,075 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:24,078 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '15:40', 'end_time': '16:00', 'is_booked': False}
+2026-01-10 15:07:24,083 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:24,088 - doctor_availability.views - INFO - Created time slot: ID=245, Start=15:40:00, End=16:00:00, Booked=False
+2026-01-10 15:07:24,103 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:24,324 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:24,328 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '16:00', 'end_time': '16:20', 'is_booked': False}
+2026-01-10 15:07:24,333 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:24,340 - doctor_availability.views - INFO - Created time slot: ID=246, Start=16:00:00, End=16:20:00, Booked=False
+2026-01-10 15:07:24,354 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:24,466 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:24,470 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '16:20', 'end_time': '16:40', 'is_booked': False}
+2026-01-10 15:07:24,472 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:24,479 - doctor_availability.views - INFO - Created time slot: ID=247, Start=16:20:00, End=16:40:00, Booked=False
+2026-01-10 15:07:24,493 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:24,612 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:24,617 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '16:40', 'end_time': '17:00', 'is_booked': False}
+2026-01-10 15:07:24,620 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:24,627 - doctor_availability.views - INFO - Created time slot: ID=248, Start=16:40:00, End=17:00:00, Booked=False
+2026-01-10 15:07:24,642 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:24,812 - root - INFO - Request: {"method": "POST", "path": "/api/availability/12/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:24,819 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '17:00', 'end_time': '17:20', 'is_booked': False}
+2026-01-10 15:07:24,828 - doctor_availability.views - INFO - Availability ID: 12, Doctor: Jerry Oli, Date: 2026-01-13
+2026-01-10 15:07:24,845 - doctor_availability.views - INFO - Created time slot: ID=249, Start=17:00:00, End=17:20:00, Booked=False
+2026-01-10 15:07:24,864 - django.server - INFO - "POST /api/availability/12/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:25,043 - root - INFO - Request: {"method": "POST", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:25,062 - django.server - INFO - "POST /api/availability/ HTTP/1.1" 201 123
+2026-01-10 15:07:25,072 - django.server - INFO - "OPTIONS /api/availability/13/create_time_slot/ HTTP/1.1" 200 0
+2026-01-10 15:07:25,313 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:25,319 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '09:00', 'end_time': '09:20', 'is_booked': False}
+2026-01-10 15:07:25,323 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:25,329 - doctor_availability.views - INFO - Created time slot: ID=250, Start=09:00:00, End=09:20:00, Booked=False
+2026-01-10 15:07:25,342 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:25,455 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:25,459 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '09:20', 'end_time': '09:40', 'is_booked': False}
+2026-01-10 15:07:25,462 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:25,469 - doctor_availability.views - INFO - Created time slot: ID=251, Start=09:20:00, End=09:40:00, Booked=False
+2026-01-10 15:07:25,483 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:25,706 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:25,710 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '09:40', 'end_time': '10:00', 'is_booked': False}
+2026-01-10 15:07:25,714 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:25,723 - doctor_availability.views - INFO - Created time slot: ID=252, Start=09:40:00, End=10:00:00, Booked=False
+2026-01-10 15:07:25,737 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:25,867 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:25,870 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '10:00', 'end_time': '10:20', 'is_booked': False}
+2026-01-10 15:07:25,873 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:25,879 - doctor_availability.views - INFO - Created time slot: ID=253, Start=10:00:00, End=10:20:00, Booked=False
+2026-01-10 15:07:25,893 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:26,044 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:26,050 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '10:20', 'end_time': '10:40', 'is_booked': False}
+2026-01-10 15:07:26,055 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:26,061 - doctor_availability.views - INFO - Created time slot: ID=254, Start=10:20:00, End=10:40:00, Booked=False
+2026-01-10 15:07:26,077 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:26,352 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:26,361 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '10:40', 'end_time': '11:00', 'is_booked': False}
+2026-01-10 15:07:26,366 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:26,377 - doctor_availability.views - INFO - Created time slot: ID=255, Start=10:40:00, End=11:00:00, Booked=False
+2026-01-10 15:07:26,394 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:26,567 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:26,572 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '11:00', 'end_time': '11:20', 'is_booked': False}
+2026-01-10 15:07:26,575 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:26,584 - doctor_availability.views - INFO - Created time slot: ID=256, Start=11:00:00, End=11:20:00, Booked=False
+2026-01-10 15:07:26,598 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:26,740 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:26,744 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '11:20', 'end_time': '11:40', 'is_booked': False}
+2026-01-10 15:07:26,747 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:26,755 - doctor_availability.views - INFO - Created time slot: ID=257, Start=11:20:00, End=11:40:00, Booked=False
+2026-01-10 15:07:26,771 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:26,985 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:27,008 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '11:40', 'end_time': '12:00', 'is_booked': False}
+2026-01-10 15:07:27,022 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:27,035 - doctor_availability.views - INFO - Created time slot: ID=258, Start=11:40:00, End=12:00:00, Booked=False
+2026-01-10 15:07:27,053 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:27,263 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:27,272 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '13:00', 'end_time': '13:20', 'is_booked': False}
+2026-01-10 15:07:27,276 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:27,287 - doctor_availability.views - INFO - Created time slot: ID=259, Start=13:00:00, End=13:20:00, Booked=False
+2026-01-10 15:07:27,307 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:27,449 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:27,453 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '13:20', 'end_time': '13:40', 'is_booked': False}
+2026-01-10 15:07:27,456 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:27,467 - doctor_availability.views - INFO - Created time slot: ID=260, Start=13:20:00, End=13:40:00, Booked=False
+2026-01-10 15:07:27,482 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:27,711 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:27,722 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '13:40', 'end_time': '14:00', 'is_booked': False}
+2026-01-10 15:07:27,725 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:27,734 - doctor_availability.views - INFO - Created time slot: ID=261, Start=13:40:00, End=14:00:00, Booked=False
+2026-01-10 15:07:27,755 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:27,953 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:27,959 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '14:00', 'end_time': '14:20', 'is_booked': False}
+2026-01-10 15:07:27,962 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:27,971 - doctor_availability.views - INFO - Created time slot: ID=262, Start=14:00:00, End=14:20:00, Booked=False
+2026-01-10 15:07:27,988 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:28,196 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:28,206 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '14:20', 'end_time': '14:40', 'is_booked': False}
+2026-01-10 15:07:28,210 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:28,220 - doctor_availability.views - INFO - Created time slot: ID=263, Start=14:20:00, End=14:40:00, Booked=False
+2026-01-10 15:07:28,239 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:28,415 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:28,420 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '14:40', 'end_time': '15:00', 'is_booked': False}
+2026-01-10 15:07:28,423 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:28,430 - doctor_availability.views - INFO - Created time slot: ID=264, Start=14:40:00, End=15:00:00, Booked=False
+2026-01-10 15:07:28,446 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:28,586 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:28,590 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '15:00', 'end_time': '15:20', 'is_booked': False}
+2026-01-10 15:07:28,592 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:28,601 - doctor_availability.views - INFO - Created time slot: ID=265, Start=15:00:00, End=15:20:00, Booked=False
+2026-01-10 15:07:28,620 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:28,754 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:28,758 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '15:20', 'end_time': '15:40', 'is_booked': False}
+2026-01-10 15:07:28,762 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:28,772 - doctor_availability.views - INFO - Created time slot: ID=266, Start=15:20:00, End=15:40:00, Booked=False
+2026-01-10 15:07:28,789 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:28,924 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:28,928 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '15:40', 'end_time': '16:00', 'is_booked': False}
+2026-01-10 15:07:28,932 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:28,943 - doctor_availability.views - INFO - Created time slot: ID=267, Start=15:40:00, End=16:00:00, Booked=False
+2026-01-10 15:07:28,958 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:29,192 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:29,196 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '16:00', 'end_time': '16:20', 'is_booked': False}
+2026-01-10 15:07:29,199 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:29,206 - doctor_availability.views - INFO - Created time slot: ID=268, Start=16:00:00, End=16:20:00, Booked=False
+2026-01-10 15:07:29,222 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:29,363 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:29,371 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '16:20', 'end_time': '16:40', 'is_booked': False}
+2026-01-10 15:07:29,377 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:29,386 - doctor_availability.views - INFO - Created time slot: ID=269, Start=16:20:00, End=16:40:00, Booked=False
+2026-01-10 15:07:29,404 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:29,567 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:29,573 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '16:40', 'end_time': '17:00', 'is_booked': False}
+2026-01-10 15:07:29,577 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:29,585 - doctor_availability.views - INFO - Created time slot: ID=270, Start=16:40:00, End=17:00:00, Booked=False
+2026-01-10 15:07:29,600 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:29,783 - root - INFO - Request: {"method": "POST", "path": "/api/availability/13/create_time_slot/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:07:29,789 - doctor_availability.views - INFO - Creating time slot with data: {'start_time': '17:00', 'end_time': '17:20', 'is_booked': False}
+2026-01-10 15:07:29,794 - doctor_availability.views - INFO - Availability ID: 13, Doctor: Jerry Oli, Date: 2026-01-14
+2026-01-10 15:07:29,804 - doctor_availability.views - INFO - Created time slot: ID=271, Start=17:00:00, End=17:20:00, Booked=False
+2026-01-10 15:07:29,823 - django.server - INFO - "POST /api/availability/13/create_time_slot/ HTTP/1.1" 201 152
+2026-01-10 15:07:29,983 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:07:29,997 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 243
+2026-01-10 15:07:30,159 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:07:30,745 - django.server - INFO - "OPTIONS /api/doctors/ HTTP/1.1" 200 0
+2026-01-10 15:07:30,958 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:07:30,984 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 243
+2026-01-10 15:07:31,010 - django.server - INFO - "OPTIONS /api/availability/available_dates/?doctor_id=3&_t=1768028851003 HTTP/1.1" 200 0
+2026-01-10 15:07:31,203 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:07:31,206 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-01-10 15:07:31,213 - doctor_availability.views - INFO - Found 5 availabilities for doctor 3
+2026-01-10 15:07:31,224 - doctor_availability.views - INFO - Availability: ID=9, Date=2026-01-10, Max Appointments=8
+2026-01-10 15:07:31,227 - doctor_availability.views - INFO - Availability: ID=10, Date=2026-01-11, Max Appointments=8
+2026-01-10 15:07:31,232 - doctor_availability.views - INFO - Availability: ID=11, Date=2026-01-12, Max Appointments=8
+2026-01-10 15:07:31,235 - doctor_availability.views - INFO - Availability: ID=12, Date=2026-01-13, Max Appointments=8
+2026-01-10 15:07:31,237 - doctor_availability.views - INFO - Availability: ID=13, Date=2026-01-14, Max Appointments=8
+2026-01-10 15:07:31,241 - doctor_availability.views - INFO - Returning dates: ['2026-01-10', '2026-01-11', '2026-01-12', '2026-01-13', '2026-01-14']
+2026-01-10 15:07:31,262 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1768028851003 HTTP/1.1" 200 66
+2026-01-10 15:07:31,278 - django.server - INFO - "OPTIONS /api/availability/available_dates/?doctor_id=7&_t=1768028851269 HTTP/1.1" 200 0
+2026-01-10 15:07:31,468 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:07:31,471 - doctor_availability.views - INFO - Available dates request received - doctor_id: 7
+2026-01-10 15:07:31,478 - doctor_availability.views - INFO - Found 0 availabilities for doctor 7
+2026-01-10 15:07:31,484 - doctor_availability.views - INFO - Returning dates: []
+2026-01-10 15:07:31,501 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=7&_t=1768028851269 HTTP/1.1" 200 2
+2026-01-10 15:07:32,043 - django.server - INFO - "GET /api/availability/?doctor_id=3&page=1&page_size=10&ordering=-date&_t=1768028850005 HTTP/1.1" 200 32582
+2026-01-10 15:07:33,912 - django.server - INFO - "OPTIONS /api/availability/available_dates/?doctor_id=3&_t=1768028853904 HTTP/1.1" 200 0
+2026-01-10 15:07:34,026 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:07:34,028 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-01-10 15:07:34,032 - doctor_availability.views - INFO - Found 5 availabilities for doctor 3
+2026-01-10 15:07:34,036 - doctor_availability.views - INFO - Availability: ID=9, Date=2026-01-10, Max Appointments=8
+2026-01-10 15:07:34,037 - doctor_availability.views - INFO - Availability: ID=10, Date=2026-01-11, Max Appointments=8
+2026-01-10 15:07:34,037 - doctor_availability.views - INFO - Availability: ID=11, Date=2026-01-12, Max Appointments=8
+2026-01-10 15:07:34,038 - doctor_availability.views - INFO - Availability: ID=12, Date=2026-01-13, Max Appointments=8
+2026-01-10 15:07:34,039 - doctor_availability.views - INFO - Availability: ID=13, Date=2026-01-14, Max Appointments=8
+2026-01-10 15:07:34,040 - doctor_availability.views - INFO - Returning dates: ['2026-01-10', '2026-01-11', '2026-01-12', '2026-01-13', '2026-01-14']
+2026-01-10 15:07:34,046 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1768028853904 HTTP/1.1" 200 66
+2026-01-10 15:07:53,172 - django.server - INFO - "OPTIONS /api/availability/?doctor_id=3&date=2026-01-11&_t=1768028873162 HTTP/1.1" 200 0
+2026-01-10 15:07:53,327 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:07:53,534 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-01-11&_t=1768028873162 HTTP/1.1" 200 3490
+2026-01-10 15:07:58,352 - django.server - INFO - "OPTIONS /api/availability/?doctor_id=3&date=2026-01-11&_t=1768028878346 HTTP/1.1" 200 0
+2026-01-10 15:07:58,479 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:07:58,683 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-01-11&_t=1768028878346 HTTP/1.1" 200 3490
+2026-01-10 15:08:20,787 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:08:20,789 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1768028900.789284, "client_ip": "127.0.0.1"}
+2026-01-10 15:08:20,822 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 4336
+2026-01-10 15:08:27,268 - django.server - INFO - "OPTIONS /api/patients/check-patient-id/?patient_id=P-20251106-8239 HTTP/1.1" 200 0
+2026-01-10 15:08:27,454 - root - INFO - Request: {"method": "GET", "path": "/api/patients/check-patient-id/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:08:27,456 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/check-patient-id/", "timestamp": 1768028907.4567018, "client_ip": "127.0.0.1"}
+2026-01-10 15:08:27,482 - django.server - INFO - "GET /api/patients/check-patient-id/?patient_id=P-20251106-8239 HTTP/1.1" 200 806
+2026-01-10 15:08:34,300 - django.server - INFO - "OPTIONS /api/appointments/create/ HTTP/1.1" 200 0
+2026-01-10 15:08:34,485 - root - INFO - Request: {"method": "POST", "path": "/api/appointments/create/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:08:34,487 - appointments.views - INFO - Received appointment data: {'firstName': 'Jerry', 'middleInitial': 'w', 'lastName': 'Olivarez', 'suffix': 'Jr.', 'patient_id': 'P-20251106-8239', 'patient_email': 'jerry@gmail.com', 'patient_phone': '09852084984', 'confirmation_method': 'email', 'date_of_birth': '2019-02-15', 'gender': 'male', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'religion': 'Catholic', 'marital_status': 'single', 'appointment_type': 'Consultation', 'date': '2026-01-11', 'time': '10:20:00', 'doctor_id': 3, 'status': 'pending', 'is_pending_confirmation': True}
+2026-01-10 15:08:34,488 - appointments.views - INFO - Request data type: <class 'dict'>
+2026-01-10 15:08:34,489 - appointments.views - INFO - Request data keys: dict_keys(['firstName', 'middleInitial', 'lastName', 'suffix', 'patient_id', 'patient_email', 'patient_phone', 'confirmation_method', 'date_of_birth', 'gender', 'address', 'religion', 'marital_status', 'appointment_type', 'date', 'time', 'doctor_id', 'status', 'is_pending_confirmation'])
+2026-01-10 15:08:34,498 - appointments.views - INFO - Found existing patient with ID P-20251106-8239: Jerry w. Olivarez Jr.
+2026-01-10 15:08:34,500 - appointments.views - INFO - Using existing patient data: email=jerry@gmail.com, phone=09852084984
+2026-01-10 15:08:34,502 - appointments.views - INFO - Transformed data: {'firstName': 'Jerry', 'middleInitial': 'w', 'lastName': 'Olivarez', 'suffix': 'Jr.', 'patient_name': '', 'patient_id': 'P-20251106-8239', 'appointment_type': 'Consultation', 'date': '2026-01-11', 'time': '10:20:00', 'doctor_id': 3, 'status': 'pending', 'patient_email': 'jerry@gmail.com', 'patient_phone': '09852084984', 'date_of_birth': datetime.date(2019, 2, 15), 'gender': 'male', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single'}
+2026-01-10 15:08:34,505 - appointments.views - INFO - Appointment type received: 'Consultation'
+2026-01-10 15:08:34,506 - appointments.views - INFO - Appointment type length: 12
+2026-01-10 15:08:34,508 - appointments.views - INFO - Appointment type bytes: b'Consultation'
+2026-01-10 15:08:34,509 - appointments.views - INFO - Status: pending
+2026-01-10 15:08:34,510 - appointments.views - INFO - Field firstName: Jerry (type: <class 'str'>)
+2026-01-10 15:08:34,511 - appointments.views - INFO - Field middleInitial: w (type: <class 'str'>)
+2026-01-10 15:08:34,512 - appointments.views - INFO - Field lastName: Olivarez (type: <class 'str'>)
+2026-01-10 15:08:34,516 - appointments.views - INFO - Field suffix: Jr. (type: <class 'str'>)
+2026-01-10 15:08:34,517 - appointments.views - INFO - Field patient_name:  (type: <class 'str'>)
+2026-01-10 15:08:34,518 - appointments.views - INFO - Field patient_id: P-20251106-8239 (type: <class 'str'>)
+2026-01-10 15:08:34,520 - appointments.views - INFO - Field appointment_type: Consultation (type: <class 'str'>)
+2026-01-10 15:08:34,521 - appointments.views - INFO - Field date: 2026-01-11 (type: <class 'str'>)
+2026-01-10 15:08:34,522 - appointments.views - INFO - Field time: 10:20:00 (type: <class 'str'>)
+2026-01-10 15:08:34,523 - appointments.views - INFO - Field doctor_id: 3 (type: <class 'int'>)
+2026-01-10 15:08:34,524 - appointments.views - INFO - Field status: pending (type: <class 'str'>)
+2026-01-10 15:08:34,525 - appointments.views - INFO - Field patient_email: jerry@gmail.com (type: <class 'str'>)
+2026-01-10 15:08:34,527 - appointments.views - INFO - Field patient_phone: 09852084984 (type: <class 'str'>)
+2026-01-10 15:08:34,527 - appointments.views - INFO - Field date_of_birth: 2019-02-15 (type: <class 'datetime.date'>)
+2026-01-10 15:08:34,529 - appointments.views - INFO - Field gender: male (type: <class 'str'>)
+2026-01-10 15:08:34,530 - appointments.views - INFO - Field address: Blk 3a1 Lot 4 Brgy. F. Reyes (type: <class 'str'>)
+2026-01-10 15:08:34,534 - appointments.views - INFO - Field marital_status: single (type: <class 'str'>)
+2026-01-10 15:08:34,641 - appointments.serializer - INFO - Validation data received: {'firstName': 'Jerry', 'middleInitial': 'w', 'lastName': 'Olivarez', 'suffix': 'Jr.', 'patient_name': '', 'patient_id': 'P-20251106-8239', 'patient_email': 'jerry@gmail.com', 'patient_phone': '09852084984', 'date_of_birth': datetime.date(2019, 2, 15), 'gender': 'male', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': datetime.date(2026, 1, 11), 'time': datetime.time(10, 20), 'status': 'pending'}
+2026-01-10 15:08:34,644 - appointments.serializer - INFO - Validation checks: has_patient=None, has_patient_id=P-20251106-8239, has_email=jerry@gmail.com, has_phone=09852084984, has_first_name=Jerry, has_last_name=Olivarez, has_patient_name=
+2026-01-10 15:08:34,648 - appointments.serializer - INFO - Validation passed basic checks
+2026-01-10 15:08:34,650 - appointments.serializer - INFO - Patient ID received: P-20251106-8239
+2026-01-10 15:08:34,651 - appointments.serializer - INFO - Status: pending
+2026-01-10 15:08:34,652 - appointments.serializer - INFO - Patient email: jerry@gmail.com
+2026-01-10 15:08:34,656 - appointments.serializer - INFO - Found existing patient with patient_id P-20251106-8239: Jerry w. Olivarez Jr.
+2026-01-10 15:08:34,657 - appointments.serializer - INFO - Existing patient date_of_birth: 2019-02-15 (type: <class 'datetime.date'>)
+2026-01-10 15:08:34,659 - appointments.serializer - INFO - Existing patient gender: male
+2026-01-10 15:08:34,660 - appointments.serializer - INFO - Existing patient phone: 09852084984
+2026-01-10 15:08:34,661 - appointments.serializer - INFO - === USING EXISTING PATIENT (NOT CREATING NEW) ===
+2026-01-10 15:08:34,661 - appointments.serializer - INFO - Existing patient: Jerry w. Olivarez Jr. (ID: P-20251106-8239)
+2026-01-10 15:08:34,662 - appointments.serializer - INFO - Using existing patient: Jerry w. Olivarez Jr. (ID: P-20251106-8239)
+2026-01-10 15:08:34,664 - appointments.serializer - INFO - Will NOT create any new patient record
+2026-01-10 15:08:34,694 - appointments.models - INFO - Marked time slot 188 as booked for appointment 14
+2026-01-10 15:08:34,695 - appointments.views - INFO - Appointment created successfully: 14
+2026-01-10 15:08:34,708 - django.server - INFO - "POST /api/appointments/create/ HTTP/1.1" 201 692
+2026-01-10 15:08:37,758 - django.server - INFO - "OPTIONS /api/availability/?doctor_id=3&date=2026-01-11&_t=1768028917746 HTTP/1.1" 200 0
+2026-01-10 15:08:37,907 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:08:38,132 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-01-11&_t=1768028917746 HTTP/1.1" 200 3491
+2026-01-10 15:08:42,176 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:08:42,178 - appointments.views - INFO - Starting list method...
+2026-01-10 15:08:42,180 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:08:42,181 - appointments.views - INFO - Starting to fetch appointments...
+2026-01-10 15:08:42,187 - security_audit - INFO - Data access: {"user_id": 3, "username": "doctor", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1768028922.1877487, "client_ip": "127.0.0.1"}
+2026-01-10 15:08:42,192 - appointments.views - INFO - Successfully accessed database
+2026-01-10 15:08:42,201 - appointments.views - INFO - Found 10 appointments after filtering
+2026-01-10 15:08:42,213 - appointments.views - INFO - Sample appointment: id=14, status=pending, date=2026-01-11
+2026-01-10 15:08:42,215 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2026-01-10 15:08:42,221 - appointments.views - INFO - Doctor: doctor (doctor)
+2026-01-10 15:08:42,225 - appointments.views - INFO - Appointment Type: Consultation
+2026-01-10 15:08:42,225 - appointments.views - INFO - Sample appointment: id=8, status=cancelled, date=2025-11-09
+2026-01-10 15:08:42,228 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 4336
+2026-01-10 15:08:42,226 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2026-01-10 15:08:42,229 - appointments.views - INFO - Doctor: doctor (doctor)
+2026-01-10 15:08:42,237 - appointments.views - INFO - Appointment Type: Consultation
+2026-01-10 15:08:42,239 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-09
+2026-01-10 15:08:42,239 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2026-01-10 15:08:42,240 - appointments.views - INFO - Doctor: doctor (doctor)
+2026-01-10 15:08:42,241 - appointments.views - INFO - Appointment Type: Consultation
+2026-01-10 15:08:42,252 - appointments.views - INFO - Testing serialization with first appointment: 4
+2026-01-10 15:08:42,256 - appointments.views - INFO - Successfully serialized first appointment: {'id': 4, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Mary Joy C Olivarez', 'patient_id': 'P-20251108-0218', 'patient_email': 'joy.olivarez@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2014-06-07', 'gender': 'female', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-10', 'time': '09:00:00', 'status': 'completed', 'created_at': '2025-11-08T17:43:01.834463+08:00', 'display_patient_name': 'Mary Joy C. Olivarez', 'display_doctor_name': 'Jerry Oli', 'display_time': '09:00 AM', 'display_date': 'November 10, 2025', 'patient_is_deleted': False, 'doctor': 3, 'doctor_name': 'Jerry Oli', 'patient': 2}
+2026-01-10 15:08:42,277 - appointments.views - INFO - Successfully serialized all appointments. Count: 10
+2026-01-10 15:08:42,285 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 7006
+2026-01-10 15:08:48,391 - django.server - INFO - "OPTIONS /api/appointments/update-status/13/ HTTP/1.1" 200 0
+2026-01-10 15:08:48,644 - root - INFO - Request: {"method": "POST", "path": "/api/appointments/update-status/13/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-01-10 15:08:48,667 - appointments.models - INFO - Marked time slot 142 as available for appointment 13
+2026-01-10 15:08:48,683 - django.server - INFO - "POST /api/appointments/update-status/13/ HTTP/1.1" 200 712
+2026-01-10 15:08:49,324 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:08:49,326 - appointments.views - INFO - Starting list method...
+2026-01-10 15:08:49,327 - appointments.views - INFO - Starting to fetch appointments...
+2026-01-10 15:08:49,330 - appointments.views - INFO - Successfully accessed database
+2026-01-10 15:08:49,337 - appointments.views - INFO - Found 10 appointments after filtering
+2026-01-10 15:08:49,344 - appointments.views - INFO - Sample appointment: id=14, status=pending, date=2026-01-11
+2026-01-10 15:08:49,344 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2026-01-10 15:08:49,345 - appointments.views - INFO - Doctor: doctor (doctor)
+2026-01-10 15:08:49,346 - appointments.views - INFO - Appointment Type: Consultation
+2026-01-10 15:08:49,347 - appointments.views - INFO - Sample appointment: id=8, status=cancelled, date=2025-11-09
+2026-01-10 15:08:49,351 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2026-01-10 15:08:49,352 - appointments.views - INFO - Doctor: doctor (doctor)
+2026-01-10 15:08:49,352 - appointments.views - INFO - Appointment Type: Consultation
+2026-01-10 15:08:49,353 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-09
+2026-01-10 15:08:49,354 - appointments.views - INFO - Patient: Jerry w. Olivarez Jr.
+2026-01-10 15:08:49,355 - appointments.views - INFO - Doctor: doctor (doctor)
+2026-01-10 15:08:49,355 - appointments.views - INFO - Appointment Type: Consultation
+2026-01-10 15:08:49,363 - appointments.views - INFO - Testing serialization with first appointment: 4
+2026-01-10 15:08:49,367 - appointments.views - INFO - Successfully serialized first appointment: {'id': 4, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Mary Joy C Olivarez', 'patient_id': 'P-20251108-0218', 'patient_email': 'joy.olivarez@gmail.com', 'patient_phone': '09852084989', 'date_of_birth': '2014-06-07', 'gender': 'female', 'address': 'Blk 3a1 Lot 4 Brgy. F. Reyes', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-10', 'time': '09:00:00', 'status': 'completed', 'created_at': '2025-11-08T17:43:01.834463+08:00', 'display_patient_name': 'Mary Joy C. Olivarez', 'display_doctor_name': 'Jerry Oli', 'display_time': '09:00 AM', 'display_date': 'November 10, 2025', 'patient_is_deleted': False, 'doctor': 3, 'doctor_name': 'Jerry Oli', 'patient': 2}
+2026-01-10 15:08:49,386 - appointments.views - INFO - Successfully serialized all appointments. Count: 10
+2026-01-10 15:08:49,392 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 7008
+2026-01-10 15:09:26,141 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:09:26,153 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 243
+2026-01-10 15:09:26,163 - django.server - INFO - "OPTIONS /api/availability/available_dates/?doctor_id=3&_t=1768028966158 HTTP/1.1" 200 0
+2026-01-10 15:09:26,306 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:09:26,307 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-01-10 15:09:26,312 - doctor_availability.views - INFO - Found 5 availabilities for doctor 3
+2026-01-10 15:09:26,316 - doctor_availability.views - INFO - Availability: ID=9, Date=2026-01-10, Max Appointments=8
+2026-01-10 15:09:26,317 - doctor_availability.views - INFO - Availability: ID=10, Date=2026-01-11, Max Appointments=8
+2026-01-10 15:09:26,318 - doctor_availability.views - INFO - Availability: ID=11, Date=2026-01-12, Max Appointments=8
+2026-01-10 15:09:26,319 - doctor_availability.views - INFO - Availability: ID=12, Date=2026-01-13, Max Appointments=8
+2026-01-10 15:09:26,320 - doctor_availability.views - INFO - Availability: ID=13, Date=2026-01-14, Max Appointments=8
+2026-01-10 15:09:26,321 - doctor_availability.views - INFO - Returning dates: ['2026-01-10', '2026-01-11', '2026-01-12', '2026-01-13', '2026-01-14']
+2026-01-10 15:09:26,326 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1768028966158 HTTP/1.1" 200 66
+2026-01-10 15:09:26,334 - django.server - INFO - "OPTIONS /api/availability/available_dates/?doctor_id=7&_t=1768028966330 HTTP/1.1" 200 0
+2026-01-10 15:09:26,465 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:09:26,468 - doctor_availability.views - INFO - Available dates request received - doctor_id: 7
+2026-01-10 15:09:26,471 - doctor_availability.views - INFO - Found 0 availabilities for doctor 7
+2026-01-10 15:09:26,474 - doctor_availability.views - INFO - Returning dates: []
+2026-01-10 15:09:26,479 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=7&_t=1768028966330 HTTP/1.1" 200 2
+2026-01-10 15:09:29,166 - django.server - INFO - "OPTIONS /api/availability/available_dates/?doctor_id=3&_t=1768028969143 HTTP/1.1" 200 0
+2026-01-10 15:09:29,320 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:09:29,322 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-01-10 15:09:29,326 - doctor_availability.views - INFO - Found 5 availabilities for doctor 3
+2026-01-10 15:09:29,329 - doctor_availability.views - INFO - Availability: ID=9, Date=2026-01-10, Max Appointments=8
+2026-01-10 15:09:29,330 - doctor_availability.views - INFO - Availability: ID=10, Date=2026-01-11, Max Appointments=8
+2026-01-10 15:09:29,332 - doctor_availability.views - INFO - Availability: ID=11, Date=2026-01-12, Max Appointments=8
+2026-01-10 15:09:29,333 - doctor_availability.views - INFO - Availability: ID=12, Date=2026-01-13, Max Appointments=8
+2026-01-10 15:09:29,333 - doctor_availability.views - INFO - Availability: ID=13, Date=2026-01-14, Max Appointments=8
+2026-01-10 15:09:29,334 - doctor_availability.views - INFO - Returning dates: ['2026-01-10', '2026-01-11', '2026-01-12', '2026-01-13', '2026-01-14']
+2026-01-10 15:09:29,340 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1768028969143 HTTP/1.1" 200 66
+2026-01-10 15:09:32,295 - django.server - INFO - "OPTIONS /api/availability/?doctor_id=3&date=2026-01-13&_t=1768028972290 HTTP/1.1" 200 0
+2026-01-10 15:09:32,477 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:09:32,651 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-01-13&_t=1768028972290 HTTP/1.1" 200 3490
+2026-01-10 15:09:37,138 - django.server - INFO - "OPTIONS /api/availability/?doctor_id=3&date=2026-01-11&_t=1768028977132 HTTP/1.1" 200 0
+2026-01-10 15:09:37,144 - django.server - INFO - "OPTIONS /api/availability/?doctor_id=3&date=2026-01-13&_t=1768028977133 HTTP/1.1" 200 0
+2026-01-10 15:09:37,302 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:09:37,313 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:09:37,564 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-01-11&_t=1768028977132 HTTP/1.1" 200 3491
+2026-01-10 15:09:37,579 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-01-13&_t=1768028977133 HTTP/1.1" 200 3490
+2026-01-10 15:10:56,367 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:10:56,378 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 376
+2026-01-10 15:14:22,971 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:14:22,982 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 376
+2026-01-10 15:19:50,303 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:19:50,377 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 2
+2026-01-10 15:19:50,408 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:19:50,557 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 908
+2026-01-10 15:20:14,581 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:20:14,596 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 243
+2026-01-10 15:20:14,926 - django.server - INFO - "OPTIONS /api/availability/available_dates/?doctor_id=3&_t=1768029614600 HTTP/1.1" 200 0
+2026-01-10 15:20:15,090 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:20:15,092 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-01-10 15:20:15,104 - doctor_availability.views - INFO - Found 5 availabilities for doctor 3
+2026-01-10 15:20:15,108 - doctor_availability.views - INFO - Availability: ID=9, Date=2026-01-10, Max Appointments=8
+2026-01-10 15:20:15,109 - doctor_availability.views - INFO - Availability: ID=10, Date=2026-01-11, Max Appointments=8
+2026-01-10 15:20:15,111 - doctor_availability.views - INFO - Availability: ID=11, Date=2026-01-12, Max Appointments=8
+2026-01-10 15:20:15,111 - doctor_availability.views - INFO - Availability: ID=12, Date=2026-01-13, Max Appointments=8
+2026-01-10 15:20:15,112 - doctor_availability.views - INFO - Availability: ID=13, Date=2026-01-14, Max Appointments=8
+2026-01-10 15:20:15,113 - doctor_availability.views - INFO - Returning dates: ['2026-01-10', '2026-01-11', '2026-01-12', '2026-01-13', '2026-01-14']
+2026-01-10 15:20:15,120 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1768029614600 HTTP/1.1" 200 66
+2026-01-10 15:20:15,129 - django.server - INFO - "OPTIONS /api/availability/available_dates/?doctor_id=7&_t=1768029615125 HTTP/1.1" 200 0
+2026-01-10 15:20:15,274 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:20:15,276 - doctor_availability.views - INFO - Available dates request received - doctor_id: 7
+2026-01-10 15:20:15,279 - doctor_availability.views - INFO - Found 0 availabilities for doctor 7
+2026-01-10 15:20:15,282 - doctor_availability.views - INFO - Returning dates: []
+2026-01-10 15:20:15,289 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=7&_t=1768029615125 HTTP/1.1" 200 2
+2026-01-10 15:20:17,868 - django.server - INFO - "OPTIONS /api/availability/available_dates/?doctor_id=3&_t=1768029617840 HTTP/1.1" 200 0
+2026-01-10 15:20:17,987 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:20:17,989 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-01-10 15:20:17,992 - doctor_availability.views - INFO - Found 5 availabilities for doctor 3
+2026-01-10 15:20:17,995 - doctor_availability.views - INFO - Availability: ID=9, Date=2026-01-10, Max Appointments=8
+2026-01-10 15:20:17,996 - doctor_availability.views - INFO - Availability: ID=10, Date=2026-01-11, Max Appointments=8
+2026-01-10 15:20:17,996 - doctor_availability.views - INFO - Availability: ID=11, Date=2026-01-12, Max Appointments=8
+2026-01-10 15:20:17,997 - doctor_availability.views - INFO - Availability: ID=12, Date=2026-01-13, Max Appointments=8
+2026-01-10 15:20:17,998 - doctor_availability.views - INFO - Availability: ID=13, Date=2026-01-14, Max Appointments=8
+2026-01-10 15:20:17,998 - doctor_availability.views - INFO - Returning dates: ['2026-01-10', '2026-01-11', '2026-01-12', '2026-01-13', '2026-01-14']
+2026-01-10 15:20:18,007 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1768029617840 HTTP/1.1" 200 66
+2026-01-10 15:20:19,591 - django.server - INFO - "OPTIONS /api/availability/?doctor_id=3&date=2026-01-13&_t=1768029619582 HTTP/1.1" 200 0
+2026-01-10 15:20:19,726 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:20:19,909 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-01-13&_t=1768029619582 HTTP/1.1" 200 3490
+2026-01-10 15:20:21,165 - django.server - INFO - "OPTIONS /api/availability/?doctor_id=3&date=2026-01-13&_t=1768029621160 HTTP/1.1" 200 0
+2026-01-10 15:20:21,327 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:20:21,501 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-01-13&_t=1768029621160 HTTP/1.1" 200 3490
+2026-01-10 15:20:25,438 - django.server - INFO - "OPTIONS /api/availability/?doctor_id=3&date=2026-01-11&_t=1768029625432 HTTP/1.1" 200 0
+2026-01-10 15:20:25,441 - django.server - INFO - "OPTIONS /api/availability/?doctor_id=3&date=2026-01-13&_t=1768029625433 HTTP/1.1" 200 0
+2026-01-10 15:20:25,456 - django.server - INFO - "OPTIONS /api/availability/?doctor_id=3&date=2026-01-13&_t=1768029625433 HTTP/1.1" 200 0
+2026-01-10 15:20:25,646 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:20:25,650 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:20:25,944 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-01-11&_t=1768029625432 HTTP/1.1" 200 3491
+2026-01-10 15:20:25,946 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-01-13&_t=1768029625433 HTTP/1.1" 200 3490
+2026-01-10 15:20:26,134 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:20:26,320 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-01-13&_t=1768029625433 HTTP/1.1" 200 3490
+2026-01-10 15:20:36,436 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:20:36,443 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 376
+2026-01-10 15:23:18,127 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:23:18,547 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 376
+2026-01-10 15:23:48,667 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:23:48,677 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 243
+2026-01-10 15:23:51,432 - django.server - INFO - "OPTIONS /api/availability/available_dates/?doctor_id=3&_t=1768029831427 HTTP/1.1" 200 0
+2026-01-10 15:23:51,566 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:23:51,568 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-01-10 15:23:51,575 - doctor_availability.views - INFO - Found 5 availabilities for doctor 3
+2026-01-10 15:23:51,578 - doctor_availability.views - INFO - Availability: ID=9, Date=2026-01-10, Max Appointments=8
+2026-01-10 15:23:51,579 - doctor_availability.views - INFO - Availability: ID=10, Date=2026-01-11, Max Appointments=8
+2026-01-10 15:23:51,580 - doctor_availability.views - INFO - Availability: ID=11, Date=2026-01-12, Max Appointments=8
+2026-01-10 15:23:51,580 - doctor_availability.views - INFO - Availability: ID=12, Date=2026-01-13, Max Appointments=8
+2026-01-10 15:23:51,581 - doctor_availability.views - INFO - Availability: ID=13, Date=2026-01-14, Max Appointments=8
+2026-01-10 15:23:51,582 - doctor_availability.views - INFO - Returning dates: ['2026-01-10', '2026-01-11', '2026-01-12', '2026-01-13', '2026-01-14']
+2026-01-10 15:23:51,593 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1768029831427 HTTP/1.1" 200 66
+2026-01-10 15:23:53,591 - django.server - INFO - "OPTIONS /api/availability/?doctor_id=3&date=2026-01-13&_t=1768029833586 HTTP/1.1" 200 0
+2026-01-10 15:23:53,751 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:23:53,922 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-01-13&_t=1768029833586 HTTP/1.1" 200 3490
+2026-01-10 15:23:55,947 - django.server - INFO - "OPTIONS /api/availability/?doctor_id=3&date=2026-01-13&_t=1768029835938 HTTP/1.1" 200 0
+2026-01-10 15:23:55,948 - django.server - INFO - "OPTIONS /api/availability/?doctor_id=3&date=2026-01-13&_t=1768029835939 HTTP/1.1" 200 0
+2026-01-10 15:23:56,140 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:23:56,154 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:23:56,422 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-01-13&_t=1768029835938 HTTP/1.1" 200 3490
+2026-01-10 15:23:56,433 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-01-13&_t=1768029835939 HTTP/1.1" 200 3490
+2026-01-10 15:24:02,809 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:24:02,832 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 376
+2026-01-10 15:24:07,805 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 3, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-10 15:24:07,826 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 376
+2026-01-10 15:33:11,941 - django.utils.autoreload - INFO - C:\Users\smira\iCloudDrive\Downloads\LunaSync\capstone\capstone\celery.py changed, reloading.
