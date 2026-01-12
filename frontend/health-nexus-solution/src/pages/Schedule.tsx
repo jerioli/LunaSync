@@ -780,24 +780,32 @@ const Schedule: React.FC = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto mt-8 space-y-6">
+    <div className="w-full max-w-6xl mx-auto mt-4 md:mt-8 space-y-4 md:space-y-6 px-3 md:px-0">
       <div>
-        <h1 className="text-3xl font-bold mb-1">My Schedule</h1>
-        <p className="text-muted-foreground mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold mb-1">My Schedule</h1>
+        <p className="text-sm md:text-base text-muted-foreground mb-4 md:mb-6">
           Set your availability, recurring patterns, and manage slots. Desktop
           shows calendar grid, mobile shows list view.
         </p>
       </div>
 
-      <Tabs defaultValue="generate" className="space-y-6">
+      <Tabs defaultValue="generate" className="space-y-4 md:space-y-6">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="generate" className="flex items-center gap-2">
+          <TabsTrigger
+            value="generate"
+            className="flex items-center gap-2 text-xs sm:text-sm"
+          >
             <Plus className="h-4 w-4" />
-            Generate Schedule
+            <span className="hidden xs:inline">Generate Schedule</span>
+            <span className="xs:hidden">Generate</span>
           </TabsTrigger>
-          <TabsTrigger value="view" className="flex items-center gap-2">
+          <TabsTrigger
+            value="view"
+            className="flex items-center gap-2 text-xs sm:text-sm"
+          >
             <CalendarDays className="h-4 w-4" />
-            View Schedule
+            <span className="hidden xs:inline">View Schedule</span>
+            <span className="xs:hidden">View</span>
           </TabsTrigger>
         </TabsList>
 
@@ -813,9 +821,9 @@ const Schedule: React.FC = () => {
                 Create recurring availability patterns
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-8">
-              <div className="flex flex-col gap-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <CardContent className="p-4 md:p-8">
+              <div className="flex flex-col gap-4 md:gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                   {/* Date Range Section */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Date Range</h3>

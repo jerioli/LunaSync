@@ -606,11 +606,11 @@ const ReceptionistScheduler: React.FC = () => {
   }
 
   return (
-    <div className="max-w-full mx-auto mt-8 space-y-6 px-4">
-      <div className="flex items-center justify-between">
+    <div className="w-full mx-auto mt-4 md:mt-8 space-y-4 md:space-y-6 px-2 md:px-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h1 className="text-3xl font-bold">Doctor Scheduling</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl md:text-3xl font-bold">Doctor Scheduling</h1>
+          <p className="text-sm md:text-base text-muted-foreground">
             View available dates and times for all doctors
           </p>
         </div>
@@ -618,16 +618,34 @@ const ReceptionistScheduler: React.FC = () => {
 
       {/* Date Navigation */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="outline" size="sm" onClick={goToPreviousDay}>
-                <ChevronLeft className="h-4 w-4" />
-                Previous Day
-              </Button>
+        <CardHeader className="p-3 md:p-6">
+          <div className="flex flex-col gap-3 md:gap-0 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 md:gap-4">
+              <div className="flex items-center gap-2 justify-between sm:justify-start">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToPreviousDay}
+                  className="h-8 px-2 md:px-4"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline">Previous Day</span>
+                  <span className="sm:hidden">Prev</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToNextDay}
+                  className="h-8 px-2 md:px-4"
+                >
+                  <span className="hidden sm:inline">Next Day</span>
+                  <span className="sm:hidden">Next</span>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                <span className="font-semibold">
+                <Calendar className="h-4 w-4 flex-shrink-0" />
+                <span className="font-semibold text-sm md:text-base">
                   {selectedDate.toLocaleDateString("en-US", {
                     weekday: "long",
                     month: "long",
@@ -636,22 +654,19 @@ const ReceptionistScheduler: React.FC = () => {
                   })}
                 </span>
               </div>
-              <Button variant="outline" size="sm" onClick={goToNextDay}>
-                Next Day
-                <ChevronRight className="h-4 w-4" />
-              </Button>
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setSelectedDate(new Date())}
+              className="h-8 w-full sm:w-auto"
             >
               Today
             </Button>
           </div>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="p-2 md:p-6">
           {isLoading ? (
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
@@ -662,7 +677,7 @@ const ReceptionistScheduler: React.FC = () => {
               </div>
             </div>
           ) : dayData && doctors.length > 0 ? (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-2 md:mx-0">
               {/* Schedule Grid */}
               <div className="min-w-max">
                 {/* Header Row - Doctors */}
@@ -815,23 +830,23 @@ const ReceptionistScheduler: React.FC = () => {
               </div>
 
               {/* Legend */}
-              <div className="border-t pt-4 mt-4">
+              <div className="border-t pt-4 mt-4 px-2 md:px-0">
                 <h3 className="text-sm font-medium mb-2">Legend</h3>
-                <div className="flex flex-wrap gap-4 text-xs">
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 md:gap-4 text-xs">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-100 border border-green-200 rounded"></div>
-                    <span>Booked Appointment</span>
+                    <div className="w-3 h-3 bg-green-100 border border-green-200 rounded flex-shrink-0"></div>
+                    <span>Booked</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-red-100 border border-red-200 rounded"></div>
+                    <div className="w-3 h-3 bg-red-100 border border-red-200 rounded flex-shrink-0"></div>
                     <span>Cancelled</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-orange-100 border border-orange-200 rounded"></div>
+                    <div className="w-3 h-3 bg-orange-100 border border-orange-200 rounded flex-shrink-0"></div>
                     <span>No Show</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-gray-100 border border-gray-200 rounded"></div>
+                    <div className="w-3 h-3 bg-gray-100 border border-gray-200 rounded flex-shrink-0"></div>
                     <span>Not Available</span>
                   </div>
                 </div>

@@ -3853,16 +3853,16 @@ const PatientManagement = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8">
-        <div className="text-xl">Loading patient data...</div>
+      <div className="flex flex-col items-center justify-center h-full p-4 md:p-8">
+        <div className="text-lg md:text-xl">Loading patient data...</div>
       </div>
     );
   }
 
   if (!patientData) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8">
-        <div className="text-xl font-bold">Patient not found</div>
+      <div className="flex flex-col items-center justify-center h-full p-4 md:p-8">
+        <div className="text-lg md:text-xl font-bold">Patient not found</div>
         <Button
           variant="outline"
           className="mt-4"
@@ -4131,11 +4131,13 @@ const PatientManagement = () => {
           </CardTitle>
           <CardDescription>Complete health record summary</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4 md:space-y-6">
           {/* Patient Basic Info */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
-              <h3 className="font-semibold text-lg">Basic Information</h3>
+              <h3 className="font-semibold text-base md:text-lg">
+                Basic Information
+              </h3>
               <div className="space-y-1">
                 <div>
                   <span className="font-medium">Name:</span>{" "}
@@ -4197,7 +4199,9 @@ const PatientManagement = () => {
               </div>
             </div>
             <div className="space-y-2">
-              <h3 className="font-semibold text-lg">Medical Summary</h3>
+              <h3 className="font-semibold text-base md:text-lg">
+                Medical Summary
+              </h3>
               <div className="space-y-1">
                 <div>
                   <span className="font-medium">Blood Type:</span>{" "}
@@ -4221,7 +4225,9 @@ const PatientManagement = () => {
               </div>
             </div>
             <div className="space-y-2">
-              <h3 className="font-semibold text-lg">Physical Examination</h3>
+              <h3 className="font-semibold text-base md:text-lg">
+                Physical Examination
+              </h3>
               <div className="space-y-1">
                 <div>
                   <span className="font-medium">Height:</span>{" "}
@@ -4329,12 +4335,12 @@ const PatientManagement = () => {
           E-Prescriptions, SOAP Notes, Lab Results, and Medical Certificates
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 md:space-y-6">
         <Tabs
           value={activeDocumentTab}
           onValueChange={(value: any) => setActiveDocumentTab(value)}
         >
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
             <TabsTrigger
               value="prescriptions"
               className="flex items-center gap-2"
@@ -4368,7 +4374,7 @@ const PatientManagement = () => {
           {/* E-Prescriptions Tab */}
           <TabsContent value="prescriptions" className="space-y-4 mt-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">
+              <h3 className="text-base md:text-lg font-semibold">
                 E-Prescriptions ({prescriptions.length})
               </h3>
               {isDoctor && (
@@ -4724,7 +4730,7 @@ const PatientManagement = () => {
           {/* SOAP Notes Tab */}
           <TabsContent value="soap" className="space-y-4 mt-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">
+              <h3 className="text-base md:text-lg font-semibold">
                 SOAP Notes ({soapNotes.length})
               </h3>
               {isDoctor && (
@@ -5051,7 +5057,7 @@ const PatientManagement = () => {
           {/* Clinical Notes Tab */}
           <TabsContent value="clinical" className="space-y-4 mt-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">
+              <h3 className="text-base md:text-lg font-semibold">
                 Clinical Notes ({blankNotes.length})
               </h3>
               {isDoctor && (
@@ -5381,7 +5387,7 @@ const PatientManagement = () => {
           {/* Lab Results Tab */}
           <TabsContent value="lab" className="space-y-4 mt-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">
+              <h3 className="text-base md:text-lg font-semibold">
                 Lab Results ({labResults.length})
               </h3>
               {isDoctor && (
@@ -5718,7 +5724,7 @@ const PatientManagement = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Appointment Completion Confirmation Dialog */}
       <AppointmentCompletionConfirmDialog
         open={showCompletionConfirm}
@@ -5730,7 +5736,7 @@ const PatientManagement = () => {
         patientName={getFullName(patientData)}
       />
       {/* Patient Header */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6">
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 md:p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button
@@ -5742,7 +5748,7 @@ const PatientManagement = () => {
               Back
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
                 {getFullName(patientData)}
               </h1>
               <div className="flex items-center space-x-4 mt-2">
@@ -5827,7 +5833,7 @@ const PatientManagement = () => {
         }
         className="w-full"
       >
-        <TabsList className="mb-4 grid w-full grid-cols-5">
+        <TabsList className="mb-4 grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
           <TabsTrigger
             value="overview"
             className="flex items-center gap-2 transition-colors"
@@ -6110,7 +6116,7 @@ const PatientManagement = () => {
                       <div className="bg-gray-50 p-4 rounded border">
                         <h4 className="font-medium mb-3">Add Medication</h4>
                         <div className="space-y-3">
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {/* Medication Name - Searchable ComboBox */}
                             <div className="space-y-2">
                               <Label>Medication Name</Label>
@@ -6152,7 +6158,7 @@ const PatientManagement = () => {
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="space-y-2">
                               <Label>Quantity</Label>
                               <Input
@@ -6205,7 +6211,7 @@ const PatientManagement = () => {
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                               <Label>Start Date</Label>
                               <Input
@@ -6642,7 +6648,7 @@ const PatientManagement = () => {
 
       {/* Document Creation Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-full sm:max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               Create{" "}
@@ -6661,7 +6667,7 @@ const PatientManagement = () => {
                 <div className="bg-gray-50 p-4 rounded border">
                   <h4 className="font-medium mb-3">Add Medication</h4>
                   <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {/* Medication Name - Searchable ComboBox */}
                       <div className="space-y-2">
                         <Label>Medication Name</Label>
@@ -6703,7 +6709,7 @@ const PatientManagement = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="space-y-2">
                         <Label>Quantity</Label>
                         <Input
@@ -6751,7 +6757,7 @@ const PatientManagement = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <Label>Start Date</Label>
                         <Input
@@ -7003,7 +7009,7 @@ const PatientManagement = () => {
 
       {/* Print Settings Dialog */}
       <Dialog open={showPrintDialog} onOpenChange={setShowPrintDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-full sm:max-w-md mx-4">
           <DialogHeader>
             <DialogTitle>Print Patient Record</DialogTitle>
           </DialogHeader>
@@ -7166,7 +7172,7 @@ const AppointmentCompletionConfirmDialog = ({
 }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-full sm:max-w-[425px] mx-4">
         <DialogHeader>
           <DialogTitle>Complete Appointment</DialogTitle>
         </DialogHeader>

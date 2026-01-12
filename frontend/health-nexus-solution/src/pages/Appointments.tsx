@@ -1196,24 +1196,32 @@ const Appointments = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-4 md:space-y-6 p-3 md:p-0">
+      <div className="flex flex-col gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Appointments</h1>
-          <p className="text-muted-foreground">Manage and view appointments</p>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight">
+            Appointments
+          </h1>
+          <p className="text-sm md:text-base text-muted-foreground">
+            Manage and view appointments
+          </p>
         </div>
 
         {canManageAppointments && (
           <div className="flex space-x-2">
-            <Button onClick={() => setShowNewAppointmentModal(true)}>
+            <Button
+              onClick={() => setShowNewAppointmentModal(true)}
+              className="w-full sm:w-auto text-sm"
+            >
               <CalendarCheck className="mr-2 h-4 w-4" />
-              Schedule New Appointment
+              <span className="hidden xs:inline">Schedule New Appointment</span>
+              <span className="xs:hidden">New Appointment</span>
             </Button>
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-1 gap-6 md:max-w-7xl mx-auto">
+      <div className="w-full max-w-7xl mx-auto">
         <div>
           <Tabs
             defaultValue="pending"
@@ -1221,14 +1229,16 @@ const Appointments = () => {
             onValueChange={setActiveTab}
           >
             <TabsList
-              className={`grid mb-4 ${
-                canManageAppointments ? "grid-cols-5" : "grid-cols-4"
+              className={`grid mb-4 w-full ${
+                canManageAppointments
+                  ? "grid-cols-3 sm:grid-cols-5"
+                  : "grid-cols-2 sm:grid-cols-4"
               }`}
             >
               {canManageAppointments && (
                 <TabsTrigger
                   value="pending"
-                  className="hover:bg-primary/10 transition-colors"
+                  className="hover:bg-primary/10 transition-colors text-xs sm:text-sm px-2"
                   style={{
                     backgroundColor:
                       activeTab === "pending" ? colors.primaryColor : undefined,
@@ -1240,7 +1250,7 @@ const Appointments = () => {
               )}
               <TabsTrigger
                 value="upcoming"
-                className="hover:bg-primary/10 transition-colors"
+                className="hover:bg-primary/10 transition-colors text-xs sm:text-sm px-2"
                 style={{
                   backgroundColor:
                     activeTab === "upcoming" ? colors.primaryColor : undefined,
@@ -1251,7 +1261,7 @@ const Appointments = () => {
               </TabsTrigger>
               <TabsTrigger
                 value="ongoing"
-                className="hover:bg-primary/10 transition-colors"
+                className="hover:bg-primary/10 transition-colors text-xs sm:text-sm px-2"
                 style={{
                   backgroundColor:
                     activeTab === "ongoing" ? colors.primaryColor : undefined,
@@ -1262,7 +1272,7 @@ const Appointments = () => {
               </TabsTrigger>
               <TabsTrigger
                 value="completed"
-                className="hover:bg-primary/10 transition-colors"
+                className="hover:bg-primary/10 transition-colors text-xs sm:text-sm px-2"
                 style={{
                   backgroundColor:
                     activeTab === "completed" ? colors.primaryColor : undefined,
@@ -1273,7 +1283,7 @@ const Appointments = () => {
               </TabsTrigger>
               <TabsTrigger
                 value="cancelled"
-                className="hover:bg-primary/10 transition-colors"
+                className="hover:bg-primary/10 transition-colors text-xs sm:text-sm px-2"
                 style={{
                   backgroundColor:
                     activeTab === "cancelled" ? colors.primaryColor : undefined,
@@ -1295,8 +1305,8 @@ const Appointments = () => {
                 ) : (
                   <>
                     <Card>
-                      <CardContent className="p-0">
-                        <Table>
+                      <CardContent className="p-0 overflow-x-auto">
+                        <Table className="min-w-[800px]">
                           <TableHeader>
                             <TableRow>
                               <TableHead className="w-[200px]">
@@ -1436,8 +1446,8 @@ const Appointments = () => {
               ) : (
                 <>
                   <Card>
-                    <CardContent className="p-0">
-                      <Table>
+                    <CardContent className="p-0 overflow-x-auto">
+                      <Table className="min-w-[800px]">
                         <TableHeader>
                           <TableRow>
                             <TableHead className="w-[200px]">
@@ -1567,8 +1577,8 @@ const Appointments = () => {
               ) : (
                 <>
                   <Card>
-                    <CardContent className="p-0">
-                      <Table>
+                    <CardContent className="p-0 overflow-x-auto">
+                      <Table className="min-w-[800px]">
                         <TableHeader>
                           <TableRow>
                             <TableHead className="w-[200px]">
@@ -1698,8 +1708,8 @@ const Appointments = () => {
               ) : (
                 <>
                   <Card>
-                    <CardContent className="p-0">
-                      <Table>
+                    <CardContent className="p-0 overflow-x-auto">
+                      <Table className="min-w-[800px]">
                         <TableHeader>
                           <TableRow>
                             <TableHead className="w-[200px]">
@@ -1821,8 +1831,8 @@ const Appointments = () => {
               ) : (
                 <>
                   <Card>
-                    <CardContent className="p-0">
-                      <Table>
+                    <CardContent className="p-0 overflow-x-auto">
+                      <Table className="min-w-[800px]">
                         <TableHeader>
                           <TableRow>
                             <TableHead className="w-[200px]">

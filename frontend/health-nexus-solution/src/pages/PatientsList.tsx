@@ -95,6 +95,19 @@ const PatientsList = () => {
     currentUser?.role === "receptionist" ||
     currentUser?.role === "doctor";
 
+  // Expanded rows state for mobile view
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  const toggleRowExpansion = (patientId: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(patientId)) {
+      newExpanded.delete(patientId);
+    } else {
+      newExpanded.add(patientId);
+    }
+    setExpandedRows(newExpanded);
+  };
+
   // Fetch patients when component mounts
   useEffect(() => {
     fetchPatients();
@@ -294,18 +307,23 @@ const PatientsList = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Patient Records</h1>
-        <div className="flex gap-2">
+    <div className="space-y-4 md:space-y-6 p-3 md:p-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">
+          Patient Records
+        </h1>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           {selectedPatients.size > 0 && (
             <Button
               variant="destructive"
               onClick={handleBulkDelete}
               disabled={isDeleting}
+              className="w-full sm:w-auto text-xs sm:text-sm"
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete Selected ({selectedPatients.size})
+              <span className="hidden sm:inline">Delete Selected</span>
+              <span className="sm:hidden">Delete</span> ({selectedPatients.size}
+              )
             </Button>
           )}
           {canUseBulkImport && (
@@ -316,18 +334,22 @@ const PatientsList = () => {
               }}
             />
           )}
-          <Button onClick={() => navigate("/patients/add")}>
+          <Button
+            onClick={() => navigate("/patients/add")}
+            className="w-full sm:w-auto text-xs sm:text-sm"
+          >
             <UserPlus className="mr-2 h-4 w-4" />
-            Add New Patient
+            <span className="hidden sm:inline">Add New Patient</span>
+            <span className="sm:hidden">Add Patient</span>
           </Button>
         </div>
       </div>
 
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground mt-1">
+        <CardHeader className="p-3 md:p-6">
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{" "}
                 {totalItems} patients
                 {sortField && (
@@ -338,12 +360,12 @@ const PatientsList = () => {
                 )}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="relative w-64">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search patients..."
-                  className="pl-8"
+                  className="pl-8 text-xs sm:text-sm"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -354,6 +376,7 @@ const PatientsList = () => {
                 <Button
                   variant="outline"
                   size="sm"
+                  className="text-xs sm:text-sm whitespace-nowrap"
                   onClick={() => {
                     setSearchQuery("");
                     setSortField("name");
@@ -366,183 +389,312 @@ const PatientsList = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">
-                  <Checkbox
-                    checked={isAllSelected}
-                    onCheckedChange={handleSelectAll}
-                    aria-label="Select all patients"
-                    className={
-                      isSomeSelected ? "data-[state=checked]:bg-primary" : ""
-                    }
-                  />
-                </TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    className="h-auto p-0 font-semibold hover:bg-transparent"
-                    onClick={() => handleSort("name")}
-                  >
-                    Name
-                    {renderSortIcon("name")}
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    className="h-auto p-0 font-semibold hover:bg-transparent"
-                    onClick={() => handleSort("gender")}
-                  >
-                    Sex
-                    {renderSortIcon("gender")}
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    className="h-auto p-0 font-semibold hover:bg-transparent"
-                    onClick={() => handleSort("date_of_birth")}
-                  >
-                    Date of Birth
-                    {renderSortIcon("date_of_birth")}
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    className="h-auto p-0 font-semibold hover:bg-transparent"
-                    onClick={() => handleSort("email")}
-                  >
-                    Contact
-                    {renderSortIcon("email")}
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <Button
-                    variant="ghost"
-                    className="h-auto p-0 font-semibold hover:bg-transparent"
-                    onClick={() => handleSort("marital_status")}
-                  >
-                    Marital Status
-                    {renderSortIcon("marital_status")}
-                  </Button>
-                </TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {totalItems > 0 ? (
-                paginatedPatients.map((patient) => (
-                  <TableRow key={patient.id}>
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedPatients.has(patient.id)}
-                        onCheckedChange={(checked) =>
-                          handleSelectPatient(patient.id, checked as boolean)
-                        }
-                        aria-label={`Select ${patient.name}`}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarFallback>
-                            {getPatientInitial(patient)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium flex items-center gap-2">
-                            {formatPatientNameWithInitial(patient) ||
-                              patient.name}
-                            {patient.is_red_flagged && (
-                              <Badge
-                                variant="destructive"
-                                className="cursor-pointer text-xs"
-                                onClick={() => handleShowRedFlagReason(patient)}
-                              >
-                                <Flag className="h-3 w-3 mr-1" />
-                                FLAGGED
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            ID: {patient.patient_id || patient.id}
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="capitalize">
-                      {patient.gender}
-                    </TableCell>
-                    <TableCell>
-                      {patient.date_of_birth
-                        ? format(new Date(patient.date_of_birth), "MMM d, yyyy")
-                        : "N/A"}
-                    </TableCell>
-                    <TableCell>
-                      <div>{patient.email}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {patient.phone}
-                      </div>
-                    </TableCell>
-                    <TableCell className="capitalize">
-                      {patient.marital_status || "N/A"}
-                    </TableCell>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table className="w-full">
+              <TableHeader>
+                <TableRow>
+                  {/* Expand header - show when any column is hidden */}
+                  <TableHead className="w-8 p-0 xl:hidden"></TableHead>
 
-                    <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          navigate(
-                            `/patients/${patient.patient_id || patient.id}`
-                          )
-                        }
-                      >
-                        <FileText className="mr-2 h-4 w-4" />
-                        View Record
-                      </Button>
+                  {/* Desktop checkbox header */}
+                  <TableHead className="w-12 hidden md:table-cell">
+                    <Checkbox
+                      checked={isAllSelected}
+                      onCheckedChange={handleSelectAll}
+                      aria-label="Select all patients"
+                      className={
+                        isSomeSelected ? "data-[state=checked]:bg-primary" : ""
+                      }
+                    />
+                  </TableHead>
+
+                  <TableHead>
+                    <Button
+                      variant="ghost"
+                      className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
+                      onClick={() => handleSort("name")}
+                    >
+                      Name
+                      {renderSortIcon("name")}
+                    </Button>
+                  </TableHead>
+
+                  {/* Progressively hidden columns on smaller screens */}
+                  <TableHead className="hidden md:table-cell">
+                    <Button
+                      variant="ghost"
+                      className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
+                      onClick={() => handleSort("gender")}
+                    >
+                      Sex
+                      {renderSortIcon("gender")}
+                    </Button>
+                  </TableHead>
+                  <TableHead className="hidden lg:table-cell">
+                    <Button
+                      variant="ghost"
+                      className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
+                      onClick={() => handleSort("date_of_birth")}
+                    >
+                      Date of Birth
+                      {renderSortIcon("date_of_birth")}
+                    </Button>
+                  </TableHead>
+                  <TableHead className="hidden lg:table-cell">
+                    <Button
+                      variant="ghost"
+                      className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
+                      onClick={() => handleSort("email")}
+                    >
+                      Contact
+                      {renderSortIcon("email")}
+                    </Button>
+                  </TableHead>
+                  <TableHead className="hidden xl:table-cell">
+                    <Button
+                      variant="ghost"
+                      className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
+                      onClick={() => handleSort("marital_status")}
+                    >
+                      Marital Status
+                      {renderSortIcon("marital_status")}
+                    </Button>
+                  </TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {totalItems > 0 ? (
+                  paginatedPatients.map((patient) => {
+                    const isExpanded = expandedRows.has(patient.id);
+                    return (
+                      <>
+                        <TableRow key={patient.id}>
+                          {/* Expand button - show when any column is hidden */}
+                          <TableCell className="xl:hidden w-8 p-0">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0"
+                              onClick={() => toggleRowExpansion(patient.id)}
+                            >
+                              {isExpanded ? (
+                                <ChevronDown className="h-3 w-3" />
+                              ) : (
+                                <ChevronRight className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </TableCell>
+
+                          {/* Desktop checkbox */}
+                          <TableCell className="hidden md:table-cell">
+                            <Checkbox
+                              checked={selectedPatients.has(patient.id)}
+                              onCheckedChange={(checked) =>
+                                handleSelectPatient(
+                                  patient.id,
+                                  checked as boolean
+                                )
+                              }
+                              aria-label={`Select ${patient.name}`}
+                            />
+                          </TableCell>
+
+                          <TableCell className="max-w-[180px]">
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-7 w-7 md:h-8 md:w-8 flex-shrink-0">
+                                <AvatarFallback className="text-[10px] md:text-xs">
+                                  {getPatientInitial(patient)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="min-w-0 flex-1">
+                                <div className="font-medium text-[11px] md:text-sm flex items-center gap-1 flex-wrap">
+                                  <span className="truncate">
+                                    {formatPatientNameWithInitial(patient) ||
+                                      patient.name}
+                                  </span>
+                                  {patient.is_red_flagged && (
+                                    <Badge
+                                      variant="destructive"
+                                      className="cursor-pointer text-[9px] px-1 py-0 h-4 flex-shrink-0"
+                                      onClick={() =>
+                                        handleShowRedFlagReason(patient)
+                                      }
+                                    >
+                                      <Flag className="h-2 w-2 mr-0.5" />
+                                      FLAG
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="text-[10px] md:text-xs text-muted-foreground md:hidden truncate">
+                                  ID: {patient.patient_id || patient.id}
+                                </div>
+                              </div>
+                            </div>
+                          </TableCell>
+
+                          {/* Desktop columns - hidden on mobile */}
+                          <TableCell className="capitalize text-xs sm:text-sm hidden md:table-cell">
+                            {patient.gender}
+                          </TableCell>
+                          <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
+                            {patient.date_of_birth
+                              ? format(
+                                  new Date(patient.date_of_birth),
+                                  "MMM d, yyyy"
+                                )
+                              : "N/A"}
+                          </TableCell>
+                          <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
+                            <div>{patient.email}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {patient.phone}
+                            </div>
+                          </TableCell>
+                          <TableCell className="capitalize text-xs sm:text-sm hidden xl:table-cell">
+                            {patient.marital_status || "N/A"}
+                          </TableCell>
+
+                          <TableCell className="text-right w-20">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-[10px] md:text-sm h-7 md:h-8 px-2 md:px-3"
+                              onClick={() =>
+                                navigate(
+                                  `/patients/${
+                                    patient.patient_id || patient.id
+                                  }`
+                                )
+                              }
+                            >
+                              <FileText className="h-3 w-3 md:h-4 md:w-4 md:mr-2" />
+                              <span className="hidden md:inline">
+                                View Record
+                              </span>
+                              <span className="md:hidden ml-1">View</span>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+
+                        {/* Expandable row - shows hidden columns based on screen size */}
+                        {isExpanded && (
+                          <TableRow className="xl:hidden bg-muted/50">
+                            <TableCell colSpan={3} className="py-3">
+                              <div className="space-y-2 text-xs">
+                                <div className="flex justify-between md:hidden">
+                                  <span className="font-medium text-muted-foreground">
+                                    ID:
+                                  </span>
+                                  <span>
+                                    {patient.patient_id || patient.id}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between md:hidden">
+                                  <span className="font-medium text-muted-foreground">
+                                    Sex:
+                                  </span>
+                                  <span className="capitalize">
+                                    {patient.gender}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between lg:hidden">
+                                  <span className="font-medium text-muted-foreground">
+                                    Date of Birth:
+                                  </span>
+                                  <span>
+                                    {patient.date_of_birth
+                                      ? format(
+                                          new Date(patient.date_of_birth),
+                                          "MMM d, yyyy"
+                                        )
+                                      : "N/A"}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between lg:hidden">
+                                  <span className="font-medium text-muted-foreground">
+                                    Email:
+                                  </span>
+                                  <span className="text-right">
+                                    {patient.email}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between lg:hidden">
+                                  <span className="font-medium text-muted-foreground">
+                                    Phone:
+                                  </span>
+                                  <span>{patient.phone || "N/A"}</span>
+                                </div>
+                                <div className="flex justify-between xl:hidden">
+                                  <span className="font-medium text-muted-foreground">
+                                    Marital Status:
+                                  </span>
+                                  <span className="capitalize">
+                                    {patient.marital_status || "N/A"}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 pt-2 md:hidden">
+                                  <Checkbox
+                                    checked={selectedPatients.has(patient.id)}
+                                    onCheckedChange={(checked) =>
+                                      handleSelectPatient(
+                                        patient.id,
+                                        checked as boolean
+                                      )
+                                    }
+                                    id={`mobile-select-${patient.id}`}
+                                  />
+                                  <label
+                                    htmlFor={`mobile-select-${patient.id}`}
+                                    className="text-xs font-medium cursor-pointer"
+                                  >
+                                    Select for bulk action
+                                  </label>
+                                </div>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </>
+                    );
+                  })
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8">
+                      <div className="text-muted-foreground">
+                        {searchQuery ? (
+                          <>
+                            <p className="text-sm sm:text-base md:text-lg font-medium">
+                              No patients found
+                            </p>
+                            <p className="text-xs sm:text-sm">
+                              Try adjusting your search term "{searchQuery}"
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm sm:text-base md:text-lg font-medium">
+                              No patients registered yet
+                            </p>
+                            <p className="text-xs sm:text-sm">
+                              Click "Add New Patient" to get started
+                            </p>
+                          </>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
-                    <div className="text-muted-foreground">
-                      {searchQuery ? (
-                        <>
-                          <p className="text-lg font-medium">
-                            No patients found
-                          </p>
-                          <p className="text-sm">
-                            Try adjusting your search term "{searchQuery}"
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <p className="text-lg font-medium">
-                            No patients registered yet
-                          </p>
-                          <p className="text-sm">
-                            Click "Add New Patient" to get started
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                )}
+              </TableBody>
+            </Table>
+          </div>
 
           {/* Pagination Controls */}
           {totalItems > 0 && (
-            <div className="flex items-center justify-between px-2 py-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-2 sm:px-4 py-4">
               <div className="flex items-center space-x-2">
-                <p className="text-sm text-muted-foreground">Show</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Show</p>
                 <Select
                   value={itemsPerPage.toString()}
                   onValueChange={handleItemsPerPageChange}
@@ -557,30 +709,34 @@ const PatientsList = () => {
                     <SelectItem value="50">50</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-sm text-muted-foreground">entries</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  entries
+                </p>
               </div>
 
-              <div className="flex items-center space-x-6 lg:space-x-8">
-                <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+              <div className="flex items-center gap-2 sm:gap-4">
+                <div className="flex items-center justify-center text-xs sm:text-sm font-medium whitespace-nowrap">
                   Page {currentPage} of {totalPages}
                 </div>
                 <div className="flex items-center space-x-2">
                   <Button
                     variant="outline"
                     size="sm"
+                    className="text-xs sm:text-sm"
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage <= 1}
                   >
                     <ChevronLeft className="h-4 w-4" />
-                    Previous
+                    <span className="hidden sm:inline">Previous</span>
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
+                    className="text-xs sm:text-sm"
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage >= totalPages}
                   >
-                    Next
+                    <span className="hidden sm:inline">Next</span>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
