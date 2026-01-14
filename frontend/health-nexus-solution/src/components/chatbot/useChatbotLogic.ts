@@ -2425,11 +2425,17 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           if (doctorsWithAvailability.length === 0) {
             setTimeout(() => {
               addBotMessage('I am sorry, but it looks like all our doctors are fully booked for the next 2 weeks. 😔 Please try again later or contact us directly for urgent needs.');
-              // Reset chat to initial state
+              // Restart chat flow after showing message
               setTimeout(() => {
-                setMessages([]);
-                setChatStep(0);
-                resetForms();
+                addBotMessage('Would you like to try something else?', [
+                  { label: '📅 Book an Appointment', value: 'appointment' },
+                  { label: '💊 Request Prescription Refill', value: 'prescription' },
+                  { label: '📋 Get Medical Certificate', value: 'medicalRecord' },
+                  { label: '❓ Frequently Asked Questions', value: 'faq' }
+                ]);
+                setChatStep(1);
+                setChatMode(null);
+                setIsInputDisabled(true);
               }, 2000);
             }, 500);
             return;
@@ -2463,12 +2469,18 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           setTimeout(() => {
             if (availableDates.length === 0) {
               addBotMessage('I am sorry, but there are no available dates in the next 2 weeks. 😔 Please try again later or contact us directly.');
-              // Reset chat to initial state
+              // Restart chat flow after showing message
               setTimeout(() => {
-                setMessages([]);
-                setChatStep(0);
-                resetForms();
-                setDateFirstFlowActive(false); // Reset the flag
+                addBotMessage('Would you like to try something else?', [
+                  { label: '📅 Book an Appointment', value: 'appointment' },
+                  { label: '💊 Request Prescription Refill', value: 'prescription' },
+                  { label: '📋 Get Medical Certificate', value: 'medicalRecord' },
+                  { label: '❓ Frequently Asked Questions', value: 'faq' }
+                ]);
+                setChatStep(1);
+                setChatMode(null);
+                setDateFirstFlowActive(false);
+                setIsInputDisabled(true);
               }, 2000);
               return;
             }
@@ -2977,7 +2989,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
               name: 'religion',
               label: 'Religion',
               type: 'text',
-              required: false,
+              required: true,
               placeholder: 'Enter your religion (optional)'
             },
             {
