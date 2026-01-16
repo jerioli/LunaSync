@@ -65,6 +65,7 @@
     "pbkdf2": "^3.1.2",
     "pbkdf2-hmac": "^1.2.1",
     "pdf-parse": "^1.1.1",
+    "pdfjs-dist": "^5.4.530",
     "react": "^18.3.1",
     "react-datepicker": "^8.4.0",
     "react-day-picker": "^8.10.1",

@@ -219,11 +219,13 @@ const LabResults = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
+    // Validate file type - accept images and PDFs
+    const isValidType =
+      file.type.startsWith("image/") || file.type === "application/pdf";
+    if (!isValidType) {
       toast({
         title: "Invalid File Type",
-        description: "Please upload an image file (JPG, PNG, etc.)",
+        description: "Please upload an image file (JPG, PNG, etc.) or PDF",
         variant: "destructive",
       });
       return;
@@ -289,6 +291,7 @@ const LabResults = () => {
             patientName: patientId
               ? patients.find((p) => p.id === patientId)?.name
               : undefined,
+            authorizedBy: doctorName, // Pass the extracted doctor name
             returnPath: "/lab-results",
           },
         });
@@ -320,16 +323,30 @@ const LabResults = () => {
   // Extract doctor name from text
   const extractDoctorName = (text: string): string | undefined => {
     const doctorPatterns = [
-      /(?:authorized\s*by|doctor|dr\.?)\s*:?\s*([^\n\r]+)/i,
-      /dr\.?\s+([a-z\s]+)/i,
-      /physician\s*:?\s*([^\n\r]+)/i,
+      /(?:Referring\s+Physician|Authorized\s*by|Attending\s+Physician)\s*:[\s\n\r]*Dr\.?\s*([A-Za-z\s.]+?)(?:,|\n|MD|DO|PhD|$)/is,
+      /(?:Referring\s+Physician|Authorized\s*by)\s*:[\s\n\r]*([A-Za-z\s.]+?)(?:,|\n|MD|DO|$)/is,
+      /(?:Verified\s+by)\s*:[\s\n\r]*Dr\.?\s*([A-Za-z\s.]+?)(?:,|\n|MD|DO|PhD|Pathologist|$)/is,
+      /(?:Pathologist|Signed\s+by|Reported\s+by)\s*:[\s\n\r]*Dr\.?\s*([A-Za-z\s.]+?)(?:,|\n|MD|DO|$)/is,
+      /(?:doctor|dr\.)\s*:?[\s\n\r]*([^\n\r]+)/i,
+      /dr\.?\s+([A-Za-z\s.]+?)(?:,|\n|MD|DO|$)/i,
+      /physician\s*:?[\s\n\r]*([^\n\r]+)/i,
     ];
 
     for (const pattern of doctorPatterns) {
       const match = text.match(pattern);
       if (match && match[1]) {
-        const doctorName = match[1].trim();
+        let doctorName = match[1].trim();
+        // Remove "Dr." prefix if captured
+        doctorName = doctorName.replace(/^Dr\.?\s*/i, "");
+        // Remove trailing credentials like ", MD" or job titles
+        doctorName = doctorName.replace(
+          /,\s*(MD|DO|PhD|DVM|Pathologist|Radiologist).*$/i,
+          ""
+        );
+        // Clean up extra whitespace
+        doctorName = doctorName.replace(/\s+/g, " ").trim();
         if (doctorName.length > 2 && doctorName.length < 50) {
+          console.log(`Extracted doctor name: "${doctorName}"`);
           return doctorName;
         }
       }
@@ -493,21 +510,35 @@ const LabResults = () => {
     // Helper function to detect doctor names
     const detectDoctorName = (text: string): string | null => {
       const doctorPatterns = [
-        /(?:Dr\.?\s+|Doctor\s+|Physician\s+)([A-Za-z\s]+)/gi,
-        /(?:Authorized\s+by|Attending|Consultant):\s*Dr\.?\s*([A-Za-z\s]+)/gi,
-        /(?:Signature|Signed):\s*Dr\.?\s*([A-Za-z\s]+)/gi,
+        /(?:Referring\s+Physician|Attending\s+Physician):[\s\n\r]*Dr\.?\s*([A-Za-z\s.]+?)(?:,|\n|MD|DO|$)/gis,
+        /(?:Referring\s+Physician|Attending\s+Physician):[\s\n\r]*([A-Za-z\s.]+?)(?:,|\n|MD|$)/gis,
+        /(?:Verified\s+by|Signed\s+by|Reported\s+by):[\s\n\r]*Dr\.?\s*([A-Za-z\s.]+?)(?:,|\n|MD|DO|PhD|Pathologist|$)/gis,
+        /(?:Pathologist|Radiologist):[\s\n\r]*Dr\.?\s*([A-Za-z\s.]+?)(?:,|\n|MD|DO|$)/gis,
+        /(?:Dr\.?\s+|Doctor\s+|Physician\s+)([A-Za-z\s.]+?)(?:,|\n|MD|DO|$)/gi,
+        /(?:Authorized\s+by|Attending|Consultant):[\s\n\r]*Dr\.?\s*([A-Za-z\s.]+?)(?:,|\n|MD|$)/gis,
+        /(?:Signature|Signed):[\s\n\r]*Dr\.?\s*([A-Za-z\s.]+?)(?:,|\n|MD|$)/gis,
       ];
 
       for (const pattern of doctorPatterns) {
         const matches = [...text.matchAll(pattern)];
         for (const match of matches) {
           if (match[1]) {
-            const name = match[1].trim();
+            let name = match[1].trim();
+            // Remove "Dr." prefix if captured
+            name = name.replace(/^Dr\.?\s*/i, "");
+            // Remove trailing credentials like ", MD" or job titles
+            name = name.replace(
+              /,\s*(MD|DO|PhD|DVM|Pathologist|Radiologist).*$/i,
+              ""
+            );
+            // Clean up extra whitespace
+            name = name.replace(/\s+/g, " ").trim();
             if (
               name.length >= 4 &&
-              name.length <= 30 &&
-              /^[A-Za-z\s]+$/.test(name)
+              name.length <= 50 &&
+              /^[A-Za-z\s.]+$/.test(name)
             ) {
+              console.log(`Detected doctor name: "${name}"`);
               return name;
             }
           }
@@ -527,17 +558,76 @@ const LabResults = () => {
       const doctorName = detectDoctorName(text);
       console.log("Detected doctor name:", doctorName);
 
-      const patientPatterns = [
+      // First, prioritize exact "Name: " pattern (highest confidence)
+      const namePattern = /\bName\s*:\s*([A-Za-z\s.'-]+)/gi;
+      const nameMatches = [...text.matchAll(namePattern)];
+
+      console.log(`Found ${nameMatches.length} "Name: " pattern matches`);
+
+      for (const match of nameMatches) {
+        if (match[1]) {
+          let extractedName = match[1].trim();
+          console.log(`Traced "Name: " -> "${extractedName}"`);
+
+          // Normalize name: Remove extra spaces and standardize format
+          extractedName = extractedName.replace(/\s+/g, " ");
+
+          // Validate extracted name
+          if (
+            extractedName.length >= 3 &&
+            extractedName.length <= 50 &&
+            /^[A-Za-z\s.'-]+$/.test(extractedName)
+          ) {
+            // Exclude medical terms
+            const medicalTerms = [
+              "pathology",
+              "laboratory",
+              "medical",
+              "center",
+              "centre",
+              "hospital",
+              "clinic",
+              "health",
+              "lab",
+              "report",
+              "test",
+              "result",
+              "analysis",
+              "department",
+              "service",
+              "group",
+            ];
+
+            const nameToCheck = extractedName.toLowerCase();
+            const isDoctorName =
+              doctorName &&
+              (nameToCheck.includes(doctorName.toLowerCase()) ||
+                doctorName.toLowerCase().includes(nameToCheck));
+
+            if (
+              !medicalTerms.some((term) => nameToCheck.includes(term)) &&
+              !isDoctorName
+            ) {
+              results.push({ name: extractedName, confidence: 0.95 }); // Highest confidence
+              console.log(
+                `Added from "Name: " pattern: "${extractedName}" (confidence: 0.95)`
+              );
+            }
+          }
+        }
+      }
+
+      // Then try other patterns with lower confidence
+      const otherPatientPatterns = [
         {
-          pattern: /(?:Patient\s+Name|Name)\s*:\s*([A-Za-z\s]+)/gi,
+          pattern: /(?:Patient\s+Name)\s*:\s*([A-Za-z\s.'-]+)/gi,
           confidence: 0.9,
         },
-        { pattern: /(?:Patient)\s*:\s*([A-Za-z\s]+)/gi, confidence: 0.8 },
+        { pattern: /(?:Patient)\s*:\s*([A-Za-z\s.'-]+)/gi, confidence: 0.8 },
         {
-          pattern: /^(?:Mr\.?|Mrs\.?|Ms\.?|Miss)\s+([A-Za-z\s]+)/gim,
+          pattern: /^(?:Mr\.?|Mrs\.?|Ms\.?|Miss)\s+([A-Za-z\s.'-]+)/gim,
           confidence: 0.7,
         },
-        { pattern: /Name\s*:\s*([A-Za-z\s]+)/gi, confidence: 0.6 },
       ];
 
       for (const line of lines) {
@@ -553,8 +643,8 @@ const LabResults = () => {
           continue;
         }
 
-        // Extract names using patterns
-        for (const { pattern, confidence } of patientPatterns) {
+        // Extract names using other patterns (lower priority than "Name: ")
+        for (const { pattern, confidence } of otherPatientPatterns) {
           const matches = [...trimmedLine.matchAll(pattern)];
           for (const match of matches) {
             if (match[1]) {
@@ -618,27 +708,95 @@ const LabResults = () => {
       return undefined;
     }
 
-    // Sort by confidence and try to match
+    // Sort by confidence (highest first) and try to match
     detectedNames.sort((a, b) => b.confidence - a.confidence);
 
+    console.log("Detected names sorted by confidence:", detectedNames);
+
+    // Helper function to calculate string similarity (Levenshtein-based)
+    const calculateSimilarity = (str1: string, str2: string): number => {
+      // Normalize: convert to lowercase, remove extra spaces, handle periods in initials
+      const normalize = (s: string) =>
+        s.toLowerCase().replace(/\s+/g, " ").replace(/\./g, "").trim();
+      const s1 = normalize(str1);
+      const s2 = normalize(str2);
+
+      if (s1 === s2) return 1.0;
+
+      const len1 = s1.length;
+      const len2 = s2.length;
+      const maxLen = Math.max(len1, len2);
+
+      if (maxLen === 0) return 1.0;
+
+      // Simple Levenshtein distance
+      const matrix: number[][] = [];
+
+      for (let i = 0; i <= len1; i++) {
+        matrix[i] = [i];
+      }
+
+      for (let j = 0; j <= len2; j++) {
+        matrix[0][j] = j;
+      }
+
+      for (let i = 1; i <= len1; i++) {
+        for (let j = 1; j <= len2; j++) {
+          const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j] + 1, // deletion
+            matrix[i][j - 1] + 1, // insertion
+            matrix[i - 1][j - 1] + cost // substitution
+          );
+        }
+      }
+
+      const distance = matrix[len1][len2];
+      return 1 - distance / maxLen;
+    };
+
+    // Try to find the best match for each detected name
     for (const { name: detectedName, confidence } of detectedNames) {
-      if (confidence < 0.6) continue; // Skip low confidence matches
+      if (confidence < 0.6) {
+        console.log(
+          `Skipping low confidence name: "${detectedName}" (${confidence})`
+        );
+        continue;
+      }
 
       console.log(
         `Trying to match detected name: "${detectedName}" (confidence: ${confidence})`
       );
 
+      let bestMatch: { patient: any; similarity: number } | null = null;
+
       for (const patient of patients) {
         const patientNameUpper = patient.name.toUpperCase();
         const detectedNameUpper = detectedName.toUpperCase();
 
-        // Exact match (highest priority)
+        // Priority 1: Exact match (highest priority)
         if (detectedNameUpper === patientNameUpper) {
-          console.log(`Found exact match: ${patient.name} (ID: ${patient.id})`);
+          console.log(
+            `✓ Found exact match: ${patient.name} (ID: ${patient.id})`
+          );
           return patient.id;
         }
 
-        // Contains match with validation
+        // Priority 2: Calculate similarity score for fuzzy matching
+        const similarity = calculateSimilarity(detectedName, patient.name);
+
+        console.log(
+          `  Comparing "${detectedName}" with "${
+            patient.name
+          }" -> similarity: ${(similarity * 100).toFixed(1)}%`
+        );
+
+        // Keep track of the best match
+        if (!bestMatch || similarity > bestMatch.similarity) {
+          bestMatch = { patient, similarity };
+        }
+
+        // Priority 3: Contains match with validation (for partial names)
         if (
           detectedNameUpper.includes(patientNameUpper) ||
           patientNameUpper.includes(detectedNameUpper)
@@ -656,11 +814,27 @@ const LabResults = () => {
 
           if (commonParts.length >= Math.min(2, nameParts.length)) {
             console.log(
-              `Found validated contains match: ${patient.name} (ID: ${patient.id})`
+              `✓ Found validated contains match: ${patient.name} (ID: ${patient.id})`
             );
             return patient.id;
           }
         }
+      }
+
+      // If we have a high-similarity match (80% or higher), use it
+      if (bestMatch && bestMatch.similarity >= 0.8) {
+        console.log(
+          `✓ Found best fuzzy match: ${bestMatch.patient.name} (ID: ${
+            bestMatch.patient.id
+          }, similarity: ${(bestMatch.similarity * 100).toFixed(1)}%)`
+        );
+        return bestMatch.patient.id;
+      } else if (bestMatch) {
+        console.log(
+          `  Best match found but similarity too low: ${
+            bestMatch.patient.name
+          } (${(bestMatch.similarity * 100).toFixed(1)}%)`
+        );
       }
     }
 
@@ -1264,8 +1438,8 @@ const LabResults = () => {
                   AWS Textract Document Scanner
                 </CardTitle>
                 <CardDescription>
-                  Upload lab result images for advanced text extraction using
-                  AWS Textract
+                  Upload lab result images or PDF files for advanced text
+                  extraction using AWS Textract
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -1273,7 +1447,7 @@ const LabResults = () => {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/*"
+                    accept="image/*,application/pdf"
                     onChange={handleFileUpload}
                     className="hidden"
                   />
@@ -1288,7 +1462,7 @@ const LabResults = () => {
                     <div className="flex flex-col items-center gap-3">
                       <Image className="h-8 w-8 text-muted-foreground" />
                       <p className="text-sm text-muted-foreground">
-                        Click to upload lab result image
+                        Click to upload lab result image or PDF
                       </p>
                       <Button onClick={() => fileInputRef.current?.click()}>
                         Choose File
@@ -1448,9 +1622,10 @@ const LabResults = () => {
                 <div>
                   <h3 className="font-medium">Advanced OCR Scanning</h3>
                   <p className="text-muted-foreground">
-                    Upload lab result images for advanced text extraction using
-                    AWS Textract. The system automatically preserves document
-                    layout and can detect tables and structured data.
+                    Upload lab result images or PDF files for advanced text
+                    extraction using AWS Textract. The system automatically
+                    preserves document layout and can detect tables and
+                    structured data.
                   </p>
                 </div>
                 <div>
@@ -1472,7 +1647,8 @@ const LabResults = () => {
                 <div>
                   <h3 className="font-medium">Supported Formats</h3>
                   <ul className="text-muted-foreground list-disc pl-5 space-y-1">
-                    <li>JPEG, PNG, TIFF image formats</li>
+                    <li>JPEG, PNG, image formats</li>
+                    <li>PDF documents</li>
                     <li>High-resolution scanned documents</li>
                     <li>Mobile phone camera captures</li>
                     <li>Multi-column lab reports</li>
