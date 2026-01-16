@@ -113,6 +113,52 @@ class AppointmentCreateView(APIView):
                 # Get phone from request data (works for both pending and confirmed appointments)
                 patient_phone = request.data.get('patient_phone')
                 
+                # Send SMS for scheduled appointments (including follow-ups) with existing patients
+                if appointment.status == 'scheduled' and appointment.patient:
+                    try:
+                        from accounts.iprog_sms_service import iprog_sms_service
+                        
+                        # Get patient phone from the Patient object
+                        patient_phone_obj = appointment.patient.phone
+                        
+                        if patient_phone_obj:
+                            # Get clinic name from settings
+                            clinic_settings = ClinicSettings.objects.first()
+                            clinic_name = clinic_settings.clinic_name if clinic_settings else 'Clinic'
+                            
+                            # Format appointment details
+                            appointment_date = appointment.date.strftime('%B %d, %Y')
+                            appointment_time = appointment.time.strftime('%I:%M %p')
+                            doctor_name = appointment.doctor.get_full_name() if appointment.doctor else 'Doctor'
+                            patient_name = appointment.patient.name
+                            
+                            # Create SMS message for scheduled appointment
+                            sms_message = f"""Follow-up Appointment Scheduled
+
+Patient: {patient_name}
+Date: {appointment_date}
+Time: {appointment_time}
+Doctor: {doctor_name}
+Type: {appointment.appointment_type}
+
+{clinic_name}"""
+                            
+                            # Send SMS
+                            success, message, reference_id = iprog_sms_service.send_sms(
+                                patient_phone_obj,
+                                sms_message
+                            )
+                            
+                            if success:
+                                logger.info(f"Follow-up SMS sent to {patient_phone_obj}")
+                                if reference_id:
+                                    logger.info(f"SMS Reference ID: {reference_id}")
+                            else:
+                                logger.warning(f"Failed to send follow-up SMS: {message}")
+                    except Exception as sms_error:
+                        logger.error(f"Error sending follow-up SMS: {sms_error}")
+                        # Don't fail the appointment creation if SMS fails
+                
                 if confirmation_method == 'sms' and patient_phone:
                     try:
                         from accounts.iprog_sms_service import iprog_sms_service

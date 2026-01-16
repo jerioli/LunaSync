@@ -719,7 +719,7 @@ const StaffPage = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  // Handle staff deletion
+  // Handle staff archiving
   const handleDeleteStaff = async () => {
     if (!staffToDelete) return;
 
@@ -740,12 +740,12 @@ const StaffPage = () => {
       // Refresh the staff lists
       await refreshStaffLists();
     } catch (error: any) {
-      console.error("Error deleting staff:", error);
+      console.error("Error archiving staff:", error);
       toast({
         title: "Error",
         description:
           error.response?.data?.message ||
-          "Failed to delete staff member. Please try again.",
+          "Failed to archive staff member. Please try again.",
         variant: "destructive",
       });
     } finally {
