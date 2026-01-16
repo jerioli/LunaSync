@@ -31,6 +31,7 @@ interface UserPermissions {
   username: string;
   email: string;
   role: string;
+  is_active: boolean;
   permissions: {
     can_manage_appointments: boolean;
     can_manage_patients: boolean;
@@ -49,6 +50,8 @@ const PermissionManagement = () => {
   const [users, setUsers] = useState<UserPermissions[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   useEffect(() => {
     fetchUsers();
@@ -67,11 +70,12 @@ const PermissionManagement = () => {
   const fetchUsers = async () => {
     try {
       const response = await api.permissions.getAll();
-      // Filter out superadmin users - only show receptionist, doctor, and admin
+      // Filter out superadmin users - backend already filters inactive users
       const filteredUsers = response.users.filter(
         (user: UserPermissions) => user.role !== "superadmin"
       );
       setUsers(filteredUsers);
+      setCurrentPage(1); // Reset to first page when data changes
     } catch (error) {
       console.error("Error fetching users:", error);
       toast({
@@ -188,6 +192,12 @@ const PermissionManagement = () => {
     can_view_audit_logs: "View Audit Logs",
   };
 
+  // Pagination calculations
+  const totalPages = Math.ceil(users.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedUsers = users.slice(startIndex, endIndex);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -239,7 +249,7 @@ const PermissionManagement = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
+                {paginatedUsers.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell>
                       <div>
@@ -278,6 +288,53 @@ const PermissionManagement = () => {
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4 px-2">
+              <div className="text-sm text-muted-foreground">
+                Showing {startIndex + 1} to {Math.min(endIndex, users.length)}{" "}
+                of {users.length} users
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(1, prev - 1))
+                  }
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
+                        className="w-8 h-8 p-0"
+                      >
+                        {page}
+                      </Button>
+                    )
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -387,8 +387,8 @@ class StaffPermissionsView(APIView):
                 'permissions': permissions
             })
         else:
-            # Get all users with their permissions
-            users = CustomUser.objects.all()
+            # Get all users with their permissions (only active users)
+            users = CustomUser.objects.filter(is_active=True)
             users_data = []
             for user in users:
                 users_data.append({
@@ -396,6 +396,7 @@ class StaffPermissionsView(APIView):
                     'username': user.username,
                     'email': user.email,
                     'role': user.role,
+                    'is_active': user.is_active,
                     'permissions': {
                         'can_manage_appointments': user.can_manage_appointments,
                         'can_manage_patients': user.can_manage_patients,
