@@ -70,6 +70,7 @@ interface Patient {
   email: string;
   phone: string;
   gender?: string;
+  is_deleted?: boolean;
 }
 
 interface PrescriptionRequest {
@@ -670,7 +671,7 @@ const PrescriptionManagement: React.FC = () => {
             Manage prescription requests from patients
           </p>
         </div>
-        {currentUserRole === "doctor" && (
+        {(currentUserRole === "doctor" || currentUserRole === "admin") && (
           <Button
             onClick={() => setShowCreatePrescription(true)}
             className="bg-green-600 hover:bg-green-700"
@@ -1111,7 +1112,8 @@ const PrescriptionManagement: React.FC = () => {
                                       </div>
 
                                       {/* Doctor approval - Simple button to open separate modal */}
-                                      {currentUserRole === "doctor" &&
+                                      {(currentUserRole === "doctor" ||
+                                        currentUserRole === "admin") &&
                                         selectedRequest.status ===
                                           "on_process" && (
                                           <div className="space-y-2">

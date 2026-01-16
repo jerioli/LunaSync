@@ -68,6 +68,8 @@ export type Patient = {
   red_flagged_by?: string;
   red_flagged_by_name?: string;
   red_flagged_date?: string;
+  // Soft delete property
+  is_deleted?: boolean;
   registrationDate: string;
 };
 

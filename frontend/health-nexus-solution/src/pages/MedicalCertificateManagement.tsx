@@ -1363,7 +1363,8 @@ const MedicalCertificateManagement: React.FC = () => {
                                             </>
                                           )}
 
-                                        {currentUserRole === "doctor" &&
+                                        {(currentUserRole === "doctor" ||
+                                          currentUserRole === "admin") &&
                                           selectedRequest.status ===
                                             "on_process" && (
                                             <>
