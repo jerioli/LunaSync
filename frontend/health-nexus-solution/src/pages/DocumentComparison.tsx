@@ -147,66 +147,68 @@ const detectDoctorName = (text: string): string | null => {
   const lines = text.split("\n");
   console.log("Detecting doctor name from text...");
 
-  // Enhanced patterns for doctor detection
+  // Enhanced patterns for doctor detection with multi-line support
   const patterns = [
-    // Direct doctor patterns
-    /(?:Dr\.?\s+|Doctor\s+)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/gi,
-    /(?:Physician\s*:?\s*)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/gi,
+    // Direct doctor patterns (single line)
+    /(?:Dr\.?\s+|Doctor\s+)([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)+)/gi,
+    /(?:Physician\s*:?\s*)([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)+)/gi,
 
-    // Authorization patterns
-    /(?:Authorized\s+by\s*:?\s*)(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/gi,
-    /(?:Signed\s+by\s*:?\s*)(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/gi,
-    /(?:Attending\s*:?\s*)(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/gi,
-    /(?:Consultant\s*:?\s*)(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/gi,
+    // Authorization patterns (multi-line support with [\s\n\r]*)
+    /(?:Authorized\s+by\s*:?)[\s\n\r]*(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)+)/gis,
+    /(?:Signed\s+by\s*:?)[\s\n\r]*(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)+)/gis,
+    /(?:Verified\s+by\s*:?)[\s\n\r]*(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)+)/gis,
+    /(?:Reported\s+by\s*:?)[\s\n\r]*(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)+)/gis,
+    /(?:Attending\s*:?)[\s\n\r]*(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)+)/gis,
+    /(?:Consultant\s*:?)[\s\n\r]*(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)+)/gis,
 
     // Medical degree patterns
-    /([A-Z][a-z]+\s+[A-Z][a-z]+)[\s,]*M\.?D\.?/gi,
-    /([A-Z][a-z]+\s+[A-Z][a-z]+)[\s,]*MBBS/gi,
+    /([A-Z][a-z]+\s+[A-Z][a-z.]+)[\s,]*M\.?D\.?/gi,
+    /([A-Z][a-z]+\s+[A-Z][a-z.]+)[\s,]*MBBS/gi,
 
-    // Clinical role patterns
-    /(?:Referring\s+(?:Dr\.?|Doctor|Physician)\s*:?\s*)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/gi,
-    /(?:Primary\s+(?:Dr\.?|Doctor|Physician)\s*:?\s*)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/gi,
-    /(?:Consulting\s+(?:Dr\.?|Doctor|Physician)\s*:?\s*)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/gi,
+    // Clinical role patterns (multi-line)
+    /(?:Referring\s+(?:Dr\.?|Doctor|Physician)\s*:?)[\s\n\r]*([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)+)/gis,
+    /(?:Referring\s+Physician\s*:?)[\s\n\r]*(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)+)/gis,
+    /(?:Primary\s+(?:Dr\.?|Doctor|Physician)\s*:?)[\s\n\r]*([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)+)/gis,
+    /(?:Consulting\s+(?:Dr\.?|Doctor|Physician)\s*:?)[\s\n\r]*([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)+)/gis,
 
-    // Signature patterns
-    /(?:Signature\s*:?\s*)(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/gi,
-    /(?:Report\s+by\s*:?\s*)(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/gi,
+    // Signature patterns (multi-line)
+    /(?:Signature\s*:?)[\s\n\r]*(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)+)/gis,
+    /(?:Report\s+by\s*:?)[\s\n\r]*(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)+)/gis,
 
-    // Lab-specific patterns
-    /(?:Pathologist\s*:?\s*)(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/gi,
-    /(?:Radiologist\s*:?\s*)(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/gi,
-    /(?:Laboratory\s+Director\s*:?\s*)(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/gi,
+    // Lab-specific patterns (multi-line)
+    /(?:Pathologist\s*:?)[\s\n\r]*(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)+)/gis,
+    /(?:Radiologist\s*:?)[\s\n\r]*(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)+)/gis,
+    /(?:Laboratory\s+Director\s*:?)[\s\n\r]*(?:Dr\.?\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z.]+)+)/gis,
   ];
 
-  // Try each line with all patterns
-  for (const line of lines) {
-    const trimmedLine = line.trim();
-    if (trimmedLine.length < 5) continue; // Skip very short lines
+  // Try each pattern on the full text (for multi-line matching)
+  for (const pattern of patterns) {
+    pattern.lastIndex = 0;
+    const matches = [...text.matchAll(pattern)];
 
-    console.log("Checking line:", trimmedLine);
-
-    for (const pattern of patterns) {
-      // Reset regex for global flag
-      pattern.lastIndex = 0;
-      const match = pattern.exec(trimmedLine);
-
+    for (const match of matches) {
       if (match && match[1]) {
-        const extractedName = match[1].trim();
-        console.log(
-          "Potential doctor match:",
-          extractedName,
-          "from pattern:",
-          pattern.source
+        let doctorName = match[1].trim();
+
+        // Remove "Dr." prefix if captured
+        doctorName = doctorName.replace(/^Dr\.?\s*/i, "");
+
+        // Remove trailing credentials like ", MD" or job titles
+        doctorName = doctorName.replace(
+          /,\s*(MD|DO|PhD|DVM|M\.D\.|Pathologist|Radiologist).*$/i,
+          ""
         );
 
-        // Validate the extracted name
-        if (isValidDoctorName(extractedName)) {
-          // Don't add "Dr." prefix if already present in original text
-          const finalName = extractedName.toLowerCase().startsWith("dr.")
-            ? extractedName
-            : `Dr. ${extractedName}`;
-          console.log("Valid doctor name detected:", finalName);
-          return finalName;
+        // Clean up extra whitespace
+        doctorName = doctorName.replace(/\s+/g, " ").trim();
+
+        console.log(`Potential doctor name extracted: "${doctorName}"`);
+
+        if (isValidDoctorName(doctorName)) {
+          console.log(`Valid doctor name detected: ${doctorName}`);
+          return doctorName;
+        } else {
+          console.log(`Invalid doctor name (validation failed): ${doctorName}`);
         }
       }
     }
@@ -304,6 +306,7 @@ const DocumentComparison: React.FC = () => {
   const [editableText, setEditableText] = useState("");
   const [originalImageUrl, setOriginalImageUrl] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
+  const [isPdfFile, setIsPdfFile] = useState(false);
 
   // Form states
   const [selectedPatientId, setSelectedPatientId] = useState("");
@@ -655,16 +658,41 @@ const DocumentComparison: React.FC = () => {
     e.preventDefault();
   };
 
-  // Optimized resize handlers
+  // Optimized resize handlers with minimum drag threshold
   const handleResizeStart = (e: React.MouseEvent, direction: string) => {
     e.stopPropagation();
-    setIsResizing(true);
-    isResizingRef.current = true;
-    setResizeDirection(direction);
-    setDragOffset({
-      x: e.clientX,
-      y: e.clientY,
-    });
+    e.preventDefault();
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const threshold = 5; // minimum 5px drag before resize activates
+    let hasMovedEnough = false;
+
+    const checkThreshold = (moveEvent: MouseEvent) => {
+      const deltaX = Math.abs(moveEvent.clientX - startX);
+      const deltaY = Math.abs(moveEvent.clientY - startY);
+
+      if (deltaX > threshold || deltaY > threshold) {
+        hasMovedEnough = true;
+        setIsResizing(true);
+        isResizingRef.current = true;
+        setResizeDirection(direction);
+        setDragOffset({
+          x: moveEvent.clientX,
+          y: moveEvent.clientY,
+        });
+        document.removeEventListener("mousemove", checkThreshold);
+        document.removeEventListener("mouseup", cancelResize);
+      }
+    };
+
+    const cancelResize = () => {
+      document.removeEventListener("mousemove", checkThreshold);
+      document.removeEventListener("mouseup", cancelResize);
+    };
+
+    document.addEventListener("mousemove", checkThreshold);
+    document.addEventListener("mouseup", cancelResize);
   };
 
   // Real-time position update using transform for better performance
@@ -925,9 +953,16 @@ const DocumentComparison: React.FC = () => {
       }
     }
 
-    // Create object URL for the uploaded image
-    // Check if file is TIFF format - declare outside of conditional scope
+    // Pre-fill doctor name if provided in state
+    if (state.authorizedBy && !detectedDoctor) {
+      setAuthorizedBy(state.authorizedBy);
+      console.log("Using doctor from state:", state.authorizedBy);
+    }
+
+    // Create object URL for the uploaded image or PDF
+    // Check if file is TIFF or PDF format - declare outside of conditional scope
     let isTiff = false;
+    let isPdf = false;
     if (state.originalFile) {
       const fileType = state.originalFile.type;
       const fileName = state.originalFile.name.toLowerCase();
@@ -937,16 +972,20 @@ const DocumentComparison: React.FC = () => {
         fileName.endsWith(".tiff") ||
         fileName.endsWith(".tif");
 
+      isPdf = fileType === "application/pdf" || fileName.endsWith(".pdf");
+      setIsPdfFile(isPdf);
+
       if (isTiff) {
         // For TIFF files, use a placeholder or text indicator since browsers don't support TIFF natively
         setOriginalImageUrl(""); // Empty URL will trigger fallback display
       } else {
-        const imageUrl = URL.createObjectURL(state.originalFile);
-        setOriginalImageUrl(imageUrl);
+        const fileUrl = URL.createObjectURL(state.originalFile);
+        setOriginalImageUrl(fileUrl);
       }
     } else {
       // No original file (edit mode) - set empty URL for fallback
       setOriginalImageUrl("");
+      setIsPdfFile(false);
     }
 
     // Cleanup function to revoke object URL
@@ -2341,28 +2380,37 @@ ${editableText}`;
                   Original Document
                 </span>
                 <div className="flex items-center gap-1">
-                  {/* Zoom Controls */}
+                  {/* Zoom Controls - disabled for PDFs */}
                   <button
-                    className="text-xs px-1 py-0.5 hover:bg-gray-200 rounded flex items-center"
+                    className="text-xs px-1 py-0.5 hover:bg-gray-200 rounded flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleZoomOut}
-                    title="Zoom Out"
+                    disabled={isPdfFile}
+                    title={
+                      isPdfFile ? "Zoom not available for PDFs" : "Zoom Out"
+                    }
                   >
                     <Minus className="h-3 w-3" />
                   </button>
                   <span className="text-xs text-gray-600 px-1 min-w-[40px] text-center">
-                    {Math.round(zoomLevel * 100)}%
+                    {isPdfFile ? "PDF" : `${Math.round(zoomLevel * 100)}%`}
                   </span>
                   <button
-                    className="text-xs px-1 py-0.5 hover:bg-gray-200 rounded flex items-center"
+                    className="text-xs px-1 py-0.5 hover:bg-gray-200 rounded flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleZoomIn}
-                    title="Zoom In"
+                    disabled={isPdfFile}
+                    title={
+                      isPdfFile ? "Zoom not available for PDFs" : "Zoom In"
+                    }
                   >
                     <Plus className="h-3 w-3" />
                   </button>
                   <button
-                    className="text-xs px-1 py-0.5 hover:bg-gray-200 rounded ml-1 flex items-center"
+                    className="text-xs px-1 py-0.5 hover:bg-gray-200 rounded ml-1 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleZoomReset}
-                    title="Reset Zoom"
+                    disabled={isPdfFile}
+                    title={
+                      isPdfFile ? "Zoom not available for PDFs" : "Reset Zoom"
+                    }
                   >
                     <RotateCcw className="h-3 w-3" />
                   </button>
@@ -2410,32 +2458,44 @@ ${editableText}`;
             >
               <div
                 style={{
-                  transform: `scale(${zoomLevel})`,
+                  transform: isPdfFile ? "scale(1)" : `scale(${zoomLevel})`,
                   transformOrigin: "top left",
-                  width: `${100 / zoomLevel}%`,
-                  height: `${100 / zoomLevel}%`,
+                  width: isPdfFile ? "100%" : `${100 / zoomLevel}%`,
+                  height: isPdfFile ? "100%" : `${100 / zoomLevel}%`,
                 }}
               >
                 {originalImageUrl ? (
-                  <img
-                    src={originalImageUrl}
-                    alt="Original Document"
-                    className="w-full h-auto object-contain"
-                    style={{
-                      backgroundColor: "#ffffff",
-                      userSelect: "none",
-                      pointerEvents: "none",
-                    }}
-                    onError={(e) => {
-                      // Handle image load errors
-                      e.currentTarget.style.display = "none";
-                      const parent = e.currentTarget.parentElement;
-                      if (parent) {
-                        parent.innerHTML =
-                          '<div style="padding: 20px; text-align: center; color: #666;"><p style="font-size: 14px; font-weight: 500;">📄 TIFF Document</p><p style="font-size: 12px; margin-top: 10px;">Preview not available for TIFF files</p><p style="font-size: 11px; margin-top: 5px; color: #999;">The document has been processed successfully</p></div>';
-                      }
-                    }}
-                  />
+                  isPdfFile ? (
+                    <embed
+                      src={originalImageUrl}
+                      type="application/pdf"
+                      className="w-full h-full"
+                      style={{
+                        minHeight: `${windowSize.height - 40}px`,
+                        backgroundColor: "#ffffff",
+                      }}
+                    />
+                  ) : (
+                    <img
+                      src={originalImageUrl}
+                      alt="Original Document"
+                      className="w-full h-auto object-contain"
+                      style={{
+                        backgroundColor: "#ffffff",
+                        userSelect: "none",
+                        pointerEvents: "none",
+                      }}
+                      onError={(e) => {
+                        // Handle image load errors
+                        e.currentTarget.style.display = "none";
+                        const parent = e.currentTarget.parentElement;
+                        if (parent) {
+                          parent.innerHTML =
+                            '<div style="padding: 20px; text-align: center; color: #666;"><p style="font-size: 14px; font-weight: 500;">📄 TIFF Document</p><p style="font-size: 12px; margin-top: 10px;">Preview not available for TIFF files</p><p style="font-size: 11px; margin-top: 5px; color: #999;">The document has been processed successfully</p></div>';
+                        }
+                      }}
+                    />
+                  )
                 ) : (
                   <div
                     style={{
@@ -2464,48 +2524,38 @@ ${editableText}`;
               </div>
             </div>
 
-            {/* Resize Handles */}
+            {/* Resize Handles - Corners Only (inset from edges to prevent accidental activation) */}
             <div
-              className="resize-handle absolute top-0 right-0 w-3 h-3 cursor-nw-resize"
+              className="resize-handle absolute w-3 h-3 cursor-nwse-resize"
+              style={{ top: "-2px", right: "-2px", background: "transparent" }}
               onMouseDown={(e) => handleResizeStart(e, "top-right")}
-              style={{ background: "transparent" }}
+              title="Drag corner to resize"
             />
             <div
-              className="resize-handle absolute bottom-0 right-0 w-3 h-3 cursor-se-resize"
+              className="resize-handle absolute w-3 h-3 cursor-nwse-resize"
+              style={{
+                bottom: "-2px",
+                right: "-2px",
+                background: "transparent",
+              }}
               onMouseDown={(e) => handleResizeStart(e, "bottom-right")}
-              style={{ background: "transparent" }}
+              title="Drag corner to resize"
             />
             <div
-              className="resize-handle absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize"
+              className="resize-handle absolute w-3 h-3 cursor-nesw-resize"
+              style={{
+                bottom: "-2px",
+                left: "-2px",
+                background: "transparent",
+              }}
               onMouseDown={(e) => handleResizeStart(e, "bottom-left")}
-              style={{ background: "transparent" }}
+              title="Drag corner to resize"
             />
             <div
-              className="resize-handle absolute top-0 left-0 w-3 h-3 cursor-ne-resize"
+              className="resize-handle absolute w-3 h-3 cursor-nesw-resize"
+              style={{ top: "-2px", left: "-2px", background: "transparent" }}
               onMouseDown={(e) => handleResizeStart(e, "top-left")}
-              style={{ background: "transparent" }}
-            />
-
-            {/* Edge resize handles */}
-            <div
-              className="resize-handle absolute top-0 left-3 right-3 h-1 cursor-n-resize"
-              onMouseDown={(e) => handleResizeStart(e, "top")}
-              style={{ background: "transparent" }}
-            />
-            <div
-              className="resize-handle absolute bottom-0 left-3 right-3 h-1 cursor-s-resize"
-              onMouseDown={(e) => handleResizeStart(e, "bottom")}
-              style={{ background: "transparent" }}
-            />
-            <div
-              className="resize-handle absolute left-0 top-3 bottom-3 w-1 cursor-w-resize"
-              onMouseDown={(e) => handleResizeStart(e, "left")}
-              style={{ background: "transparent" }}
-            />
-            <div
-              className="resize-handle absolute right-0 top-3 bottom-3 w-1 cursor-e-resize"
-              onMouseDown={(e) => handleResizeStart(e, "right")}
-              style={{ background: "transparent" }}
+              title="Drag corner to resize"
             />
           </div>
         )}
@@ -2646,7 +2696,7 @@ ${editableText}`;
       <Separator className="my-6" />
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-end gap-2">
         <Button variant="outline" onClick={() => navigate(-1)}>
           Cancel
         </Button>

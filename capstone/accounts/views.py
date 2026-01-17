@@ -387,8 +387,8 @@ class StaffPermissionsView(APIView):
                 'permissions': permissions
             })
         else:
-            # Get all users with their permissions
-            users = CustomUser.objects.all()
+            # Get all users with their permissions (only active users)
+            users = CustomUser.objects.filter(is_active=True)
             users_data = []
             for user in users:
                 users_data.append({
@@ -396,6 +396,7 @@ class StaffPermissionsView(APIView):
                     'username': user.username,
                     'email': user.email,
                     'role': user.role,
+                    'is_active': user.is_active,
                     'permissions': {
                         'can_manage_appointments': user.can_manage_appointments,
                         'can_manage_patients': user.can_manage_patients,
@@ -775,7 +776,8 @@ class DoctorListView(APIView):
     
     def get(self, request):
         # Allow public access to view doctors list (needed for chatbot and appointment booking)
-        doctors = CustomUser.objects.filter(role='doctor')
+        # Only show active doctors
+        doctors = CustomUser.objects.filter(role='doctor', is_active=True)
         serializer = CustomUserSerializer(doctors, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -785,7 +787,8 @@ class ReceptionistListView(APIView):
     
     def get(self, request):
         # Allow authenticated users to view receptionists list
-        receptionists = CustomUser.objects.filter(role='receptionist')
+        # Only show active receptionists
+        receptionists = CustomUser.objects.filter(role='receptionist', is_active=True)
         serializer = CustomUserSerializer(receptionists, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -795,7 +798,8 @@ class AdminListView(APIView):
     
     def get(self, request):
         # Allow authenticated users to view admins list
-        admins = CustomUser.objects.filter(role='admin')
+        # Only show active admins
+        admins = CustomUser.objects.filter(role='admin', is_active=True)
         serializer = CustomUserSerializer(admins, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -1471,10 +1475,11 @@ class UserListView(APIView):
         
         if role:
             # Filter users by role if role parameter is provided
-            users = CustomUser.objects.filter(role=role)
+            # Only show active users
+            users = CustomUser.objects.filter(role=role, is_active=True)
         else:
-            # Return all users if no role filter
-            users = CustomUser.objects.all()
+            # Return all active users if no role filter
+            users = CustomUser.objects.filter(is_active=True)
             
         serializer = CustomUserSerializer(users, many=True, context={'request': request})
         return Response(serializer.data)

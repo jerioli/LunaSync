@@ -3889,7 +3889,11 @@ const PatientManagement = () => {
     }
 
     // If coming from ongoing appointments, show confirmation dialog
-    if (fromOngoing && appointmentId && currentUser?.role === "doctor") {
+    if (
+      fromOngoing &&
+      appointmentId &&
+      (currentUser?.role === "doctor" || currentUser?.role === "admin")
+    ) {
       setShowCompletionConfirm(true);
       return;
     }
@@ -3974,7 +3978,11 @@ const PatientManagement = () => {
       }
 
       // If coming from ongoing and have appointmentId, complete the appointment
-      if (fromOngoing && appointmentId && currentUser?.role === "doctor") {
+      if (
+        fromOngoing &&
+        appointmentId &&
+        (currentUser?.role === "doctor" || currentUser?.role === "admin")
+      ) {
         try {
           await axiosInstance.post(
             `appointments/update-status/${appointmentId}/`,
@@ -4377,7 +4385,7 @@ const PatientManagement = () => {
               <h3 className="text-base md:text-lg font-semibold">
                 E-Prescriptions ({prescriptions.length})
               </h3>
-              {isDoctor && (
+              {(isDoctor || isAdmin) && (
                 <Button
                   onClick={() => handleCreateDocument("prescription")}
                   className="flex items-center gap-2"
@@ -4565,7 +4573,7 @@ const PatientManagement = () => {
                             >
                               <Download className="h-3 w-3" />
                             </Button>
-                            {isDoctor && (
+                            {(isDoctor || isAdmin) && (
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -4716,9 +4724,9 @@ const PatientManagement = () => {
                         No prescriptions available
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {isDoctor
+                        {isDoctor || isAdmin
                           ? 'Click "Add" to create prescriptions'
-                          : "Prescriptions will appear here when created by doctors"}
+                          : "Prescriptions will appear here when created by doctors or admins"}
                       </div>
                     </div>
                   </div>
@@ -4733,7 +4741,7 @@ const PatientManagement = () => {
               <h3 className="text-base md:text-lg font-semibold">
                 SOAP Notes ({soapNotes.length})
               </h3>
-              {isDoctor && (
+              {(isDoctor || isAdmin) && (
                 <Button
                   onClick={() => handleCreateDocument("soap")}
                   className="flex items-center gap-2"
@@ -5043,9 +5051,9 @@ const PatientManagement = () => {
                         No SOAP notes available
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {isDoctor
+                        {isDoctor || isAdmin
                           ? 'Click "Add" to create SOAP notes'
-                          : "SOAP notes will appear here when created by doctors"}
+                          : "SOAP notes will appear here when created by doctors or admins"}
                       </div>
                     </div>
                   </div>
@@ -5060,7 +5068,7 @@ const PatientManagement = () => {
               <h3 className="text-base md:text-lg font-semibold">
                 Clinical Notes ({blankNotes.length})
               </h3>
-              {isDoctor && (
+              {(isDoctor || isAdmin) && (
                 <Button
                   onClick={() => handleCreateDocument("blank")}
                   className="flex items-center gap-2"
@@ -5373,9 +5381,9 @@ const PatientManagement = () => {
                         No clinical notes available
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {isDoctor
+                        {isDoctor || isAdmin
                           ? 'Click "Add" to create clinical notes'
-                          : "Clinical notes will appear here when created by doctors"}
+                          : "Clinical notes will appear here when created by doctors or admins"}
                       </div>
                     </div>
                   </div>
@@ -5390,7 +5398,7 @@ const PatientManagement = () => {
               <h3 className="text-base md:text-lg font-semibold">
                 Lab Results ({labResults.length})
               </h3>
-              {isDoctor && (
+              {(isDoctor || isAdmin) && (
                 <Button
                   onClick={() =>
                     navigate(

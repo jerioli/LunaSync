@@ -206,7 +206,10 @@ const MedicalCertificateGenerator: React.FC<
     try {
       console.log("Fetching doctor info for currentUser:", currentUser);
 
-      if (currentUser && currentUser.role === "doctor") {
+      if (
+        currentUser &&
+        (currentUser.role === "doctor" || currentUser.role === "admin")
+      ) {
         const response = await axiosInstance.get("/doctors/");
         console.log("Doctor API response:", response.data);
 
@@ -262,7 +265,10 @@ const MedicalCertificateGenerator: React.FC<
     } catch (error) {
       console.error("Error fetching doctor info:", error);
       // If fetching fails, set default values based on user if available
-      if (currentUser && currentUser.role === "doctor") {
+      if (
+        currentUser &&
+        (currentUser.role === "doctor" || currentUser.role === "admin")
+      ) {
         setCertificateData((prev) => ({
           ...prev,
           doctorName: `Dr. ${currentUser.name || "Doctor Name"}`,
