@@ -1,38 +1,37 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
+    Sidebar,
+    SidebarContent,
+    SidebarGroup,
+    SidebarGroupContent,
+    SidebarGroupLabel,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    useSidebar,
 } from "@/components/ui/sidebar";
 import { useBranding } from "@/contexts/BrandingContext";
 import { useClinic } from "@/contexts/ClinicContext";
 import { cn } from "@/lib/utils";
 import {
-  BarChart3,
-  Calendar,
-  ClipboardList,
-  FileCheck,
-  FileText,
-  Home,
-  Image,
-  Package,
-  Plug,
-  Settings,
-  Shield,
-  Users,
+    Calendar,
+    ClipboardList,
+    Database,
+    FileCheck,
+    FileText,
+    Home,
+    Image,
+    Package,
+    Settings,
+    Shield,
+    Users
 } from "lucide-react";
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -142,6 +141,11 @@ export const AppSidebar = () => {
       // Permission Management - Only show for superadmin
       currentUser.role === "superadmin"
         ? { title: "Permission Management", icon: Shield, path: "/permissions" }
+        : null,
+
+      // SQL Query Tester - Only show for admin and superadmin
+      ["admin", "superadmin"].includes(currentUser.role)
+        ? { title: "SQL Query Tester", icon: Database, path: "/sql-query" }
         : null,
 
       // Audit Logs - Show if user has permission

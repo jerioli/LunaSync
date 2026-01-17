@@ -77,6 +77,7 @@ urlpatterns = [
     path('', include('security_app.urls')),  # Security API endpoints
     path('api/', include('systemlogs.urls')),  # Audit logging system
     path('api/inventory/', include('inventory.urls')),  # Medication inventory management
+    path('api/sql-query/', include('sql_query.urls')),  # SQL query execution for admin testing
 ]
 
 # Static and media files configuration

@@ -165,6 +165,7 @@ INSTALLED_APPS = [
     'security_app',  # Security management
     'systemlogs',  # Audit logging system
     'inventory',  # Medication inventory management
+    'sql_query',  # SQL query execution for admin testing
 ]
 
 CORS_ALLOW_CREDENTIALS = True

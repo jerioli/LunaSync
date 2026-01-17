@@ -1,0 +1,508 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { ENV } from "@/config/env";
+import axios from "axios";
+import { Database, Eye, EyeOff, History, Play } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+const API_BASE_URL = ENV.API_URL;
+
+interface QueryLog {
+  id: number;
+  user: string;
+  query: string;
+  success: boolean;
+  rows_affected: number;
+  error: string | null;
+  executed_at: string;
+}
+
+interface QueryResult {
+  success: boolean;
+  query_type: string;
+  columns?: string[];
+  results?: any[];
+  rows_affected?: number;
+  message?: string;
+  executed_at: string;
+  executed_by: string;
+  error?: string;
+}
+
+export default function SQLQueryPage() {
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<QueryResult | null>(null);
+  const [logs, setLogs] = useState<QueryLog[]>([]);
+  const [showLogs, setShowLogs] = useState(false);
+  const [showPage, setShowPage] = useState(true);
+
+  useEffect(() => {
+    // Load visibility preference from localStorage
+    const savedVisibility = localStorage.getItem("sqlQueryPageVisible");
+    if (savedVisibility !== null) {
+      setShowPage(savedVisibility === "true");
+    }
+    
+    // Load query logs on mount
+    fetchLogs();
+  }, []);
+
+  const fetchLogs = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/sql-query/logs/?limit=20`, {
+        withCredentials: true,
+      });
+      setLogs(response.data.logs);
+    } catch (error: any) {
+      console.error("Failed to fetch logs:", error);
+    }
+  };
+
+  const executeQuery = async () => {
+    if (!query.trim()) {
+      toast.error("Please enter a SQL query");
+      return;
+    }
+
+    setLoading(true);
+    setResult(null);
+
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/sql-query/execute/`,
+        { query },
+        { withCredentials: true }
+      );
+      console.log("Query Response:", response.data);
+      setResult(response.data);
+      
+      if (response.data.success) {
+        toast.success(
+          response.data.query_type === "SELECT"
+            ? `Query executed successfully! ${response.data.rows_affected} rows returned.`
+            : `Query executed successfully! ${response.data.rows_affected} rows affected.`
+        );
+      } else {
+        toast.error("Query failed: " + response.data.error);
+      }
+
+      // Refresh logs after execution
+      fetchLogs();
+    } catch (error: any) {
+      console.error("Query Error:", error);
+      console.log("Error Response:", error.response?.data);
+      toast.error(error.response?.data?.error || "Failed to execute query");
+      setResult({
+        success: false,
+        query_type: "ERROR",
+        error: error.response?.data?.error || "Failed to execute query",
+        executed_at: new Date().toISOString(),
+        executed_by: "Unknown"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const togglePageVisibility = () => {
+    const newVisibility = !showPage;
+    setShowPage(newVisibility);
+    localStorage.setItem("sqlQueryPageVisible", String(newVisibility));
+    toast.info(newVisibility ? "SQL Query page visible" : "SQL Query page hidden");
+  };
+
+  if (!showPage) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Card className="w-96">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="h-5 w-5" />
+              SQL Query Page Hidden
+            </CardTitle>
+            <CardDescription>
+              This page is currently hidden. Click below to show it.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={togglePageVisibility} className="w-full">
+              <Eye className="h-4 w-4 mr-2" />
+              Show Page
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Database className="h-8 w-8 text-primary" />
+          <div>
+            <h1 className="text-3xl font-bold">SQL Query Tester</h1>
+            <p className="text-muted-foreground">Execute raw SQL queries for testing purposes</p>
+          </div>
+        </div>
+        <Button variant="outline" size="sm" onClick={togglePageVisibility}>
+          <EyeOff className="h-4 w-4 mr-2" />
+          Hide Page
+        </Button>
+      </div>
+
+      {/* Quick Commands */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Quick Commands - Audit Logs</CardTitle>
+          <CardDescription>Click to copy common audit log queries</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start font-mono text-xs"
+            onClick={() => {
+              setQuery("SELECT * FROM public.audit_logs ORDER BY timestamp DESC LIMIT 20;");
+              toast.success("Query copied!");
+            }}
+          >
+            View Recent Audit Logs
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start font-mono text-xs"
+            onClick={() => {
+              setQuery("SELECT id, timestamp, user_email, action, resource_type, description FROM public.audit_logs WHERE user_email = '' ORDER BY timestamp DESC LIMIT 20;");
+              toast.success("Query copied!");
+            }}
+          >
+            View Logs with Empty Email
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start font-mono text-xs"
+            onClick={() => {
+              setQuery("UPDATE public.audit_logs SET user_email = 'admin@example.com' WHERE id = 1;");
+              toast.success("Query copied!");
+            }}
+          >
+            Update Email for Specific Log (Change id and email)
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start font-mono text-xs"
+            onClick={() => {
+              setQuery("UPDATE public.audit_logs SET timestamp = '2026-01-17 10:00:00+00:00' WHERE id = 1;");
+              toast.success("Query copied!");
+            }}
+          >
+            Update Timestamp for Specific Log (Change id and timestamp)
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start font-mono text-xs"
+            onClick={() => {
+              setQuery("UPDATE public.audit_logs SET user_email = 'admin@lunasync.site', timestamp = NOW() WHERE action = 'LOGIN' AND user_email = '';");
+              toast.success("Query copied!");
+            }}
+          >
+            Bulk Update: Set Email & Timestamp for Empty Login Logs
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start font-mono text-xs"
+            onClick={() => {
+              setQuery("SELECT DISTINCT action, COUNT(*) as count FROM public.audit_logs GROUP BY action ORDER BY count DESC;");
+              toast.success("Query copied!");
+            }}
+          >
+            Count Logs by Action Type
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start font-mono text-xs"
+            onClick={() => {
+              setQuery("SELECT * FROM public.audit_logs WHERE timestamp BETWEEN '2025-11-01' AND '2025-11-30' ORDER BY timestamp DESC;");
+              toast.success("Query copied!");
+            }}
+          >
+            View Logs by Date Range (Modify dates)
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start font-mono text-xs"
+            onClick={() => {
+              setQuery(`WITH RECURSIVE timestamp_gen AS (
+  -- First record: random timestamp
+  (SELECT 
+    id,
+    user_email,
+    DATE '2025-11-01' + (random() * (DATE '2026-01-17' - DATE '2025-11-01'))::int 
+    + TIME '09:00:00' 
+    + (random() * (TIME '18:00:00' - TIME '09:00:00')) AS new_timestamp
+  FROM public.audit_logs
+  ORDER BY id
+  LIMIT 1)
+  
+  UNION ALL
+  
+  -- Subsequent records
+  SELECT 
+    a.id,
+    a.user_email,
+    CASE 
+      WHEN a.user_email = tg.user_email THEN
+        tg.new_timestamp + INTERVAL '1 minute'
+      ELSE
+        DATE '2025-11-01' + (random() * (DATE '2026-01-17' - DATE '2025-11-01'))::int 
+        + TIME '09:00:00' 
+        + (random() * (TIME '18:00:00' - TIME '09:00:00'))
+    END AS new_timestamp
+  FROM public.audit_logs a
+  JOIN timestamp_gen tg ON a.id = (
+    SELECT id FROM public.audit_logs WHERE id > tg.id ORDER BY id LIMIT 1
+  )
+)
+UPDATE public.audit_logs a
+SET timestamp = tg.new_timestamp
+FROM timestamp_gen tg
+WHERE a.id = tg.id;`);
+              toast.success("Query copied!");
+            }}
+          >
+            Smart Timestamps (Same email +1min, Different email random)
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start font-mono text-xs"
+            onClick={() => {
+              setQuery(`WITH ordered_logs AS (
+  SELECT id, ROW_NUMBER() OVER (ORDER BY id) as rn
+  FROM public.audit_logs
+),
+base_timestamp AS (
+  SELECT 
+    DATE '2025-11-01' + (random() * (DATE '2026-01-17' - DATE '2025-11-01'))::int 
+    + TIME '09:00:00' 
+    + (random() * (TIME '18:00:00' - TIME '09:00:00')) AS start_time
+)
+UPDATE public.audit_logs a
+SET timestamp = (
+  SELECT start_time + ((ol.rn - 1) * INTERVAL '1 minute')
+  FROM ordered_logs ol, base_timestamp
+  WHERE ol.id = a.id
+);`);
+              toast.success("Query copied!");
+            }}
+          >
+            Consecutive +1min (Simpler, all logs sequential)
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start font-mono text-xs"
+            onClick={() => {
+              setQuery(`UPDATE public.audit_logs 
+SET timestamp = (
+  DATE '2025-11-01' + (random() * (DATE '2026-01-17' - DATE '2025-11-01'))::int 
+  + TIME '09:00:00' 
+  + (random() * (TIME '18:00:00' - TIME '09:00:00'))
+)
+WHERE id > 0;`);
+              toast.success("Query copied!");
+            }}
+          >
+            Simple Randomize (9am-6pm only, no consecutive logic)
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start font-mono text-xs"
+            onClick={() => {
+              setQuery("UPDATE public.audit_logs SET user_email = 'newemail@example.com' WHERE user_email = 'oldemail@example.com';");
+              toast.success("Query copied!");
+            }}
+          >
+            Replace All Email Addresses (Change old and new email)
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Query Input */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Execute Query</CardTitle>
+          <CardDescription>
+            Enter your SQL query below. Be careful - queries will affect the database!
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Textarea
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="SELECT * FROM accounts_customuser LIMIT 10;"
+            className="font-mono text-sm min-h-[200px]"
+          />
+          <div className="flex gap-2">
+            <Button onClick={executeQuery} disabled={loading}>
+              <Play className="h-4 w-4 mr-2" />
+              {loading ? "Executing..." : "Execute Query"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setQuery("");
+                setResult(null);
+              }}
+            >
+              Clear
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Query Logs */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <History className="h-5 w-5" />
+                Query Logs
+              </CardTitle>
+              <CardDescription>Recent query executions</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setShowLogs(!showLogs)}>
+              {showLogs ? "Hide" : "Show"} Logs
+            </Button>
+          </div>
+        </CardHeader>
+        {showLogs && (
+          <CardContent>
+            {logs.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">No query logs yet</p>
+            ) : (
+              <div className="space-y-4">
+                {logs.map((log) => (
+                  <div
+                    key={log.id}
+                    className={`border rounded-lg p-4 ${
+                      log.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(log.executed_at).toLocaleString()} by {log.user}
+                        </p>
+                        <p className={`text-sm font-semibold ${log.success ? "text-green-600" : "text-red-600"}`}>
+                          {log.success ? "✓ Success" : "✗ Failed"} - {log.rows_affected} rows affected
+                        </p>
+                      </div>
+                    </div>
+                    <pre className="bg-white border rounded p-2 text-xs font-mono overflow-x-auto">
+                      {log.query}
+                    </pre>
+                    {log.error && (
+                      <p className="mt-2 text-sm text-red-600 font-mono">{log.error}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        )}
+      </Card>
+
+      {/* Results */}
+      {result && (
+        <Card>
+          <CardHeader>
+            <CardTitle className={result.success ? "text-green-600" : "text-red-600"}>
+              {result.success ? "✓ Query Executed Successfully" : "✗ Query Failed"}
+            </CardTitle>
+            <CardDescription>
+              Executed at: {new Date(result.executed_at).toLocaleString()} by {result.executed_by}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {result.success ? (
+              <>
+                {result.query_type === "SELECT" && result.columns && result.results ? (
+                  <div className="space-y-4">
+                    <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+                      <table className="w-full border-collapse border border-gray-300">
+                        <thead className="sticky top-0 bg-gray-100">
+                          <tr>
+                            {result.columns.map((col, idx) => (
+                              <th key={idx} className="border border-gray-300 px-4 py-2 text-left font-semibold text-sm">
+                                {col}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {result.results.map((row, rowIdx) => (
+                            <tr key={rowIdx} className="hover:bg-gray-50">
+                              {result.columns!.map((col, colIdx) => (
+                                <td key={colIdx} className="border border-gray-300 px-4 py-2 text-sm">
+                                  {row[col] !== null && row[col] !== undefined ? String(row[col]) : <span className="text-gray-400 italic">NULL</span>}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-muted-foreground">
+                        {result.rows_affected} row(s) returned
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Type: {result.query_type}
+                      </p>
+                    </div>
+                  </div>
+                ) : result.query_type === "MODIFICATION" ? (
+                  <div className="space-y-2">
+                    <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                      <p className="text-lg font-semibold text-green-700">{result.message}</p>
+                    </div>
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <p>Rows affected: <span className="font-semibold">{result.rows_affected}</span></p>
+                      <p>Type: {result.query_type}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-lg font-semibold text-green-600">{result.message}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Rows affected: {result.rows_affected}
+                    </p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                <p className="text-red-800 font-mono text-sm">{result.error}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}

@@ -34,6 +34,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ResetPassword from "./pages/ResetPassword";
 import Schedule from "./pages/Schedule";
 import Settings from "./pages/Settings";
+import SQLQueryPage from "./pages/SQLQueryPage";
 import Staff from "./pages/Staff";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import UserSettings from "./pages/UserSettings";
@@ -415,6 +416,16 @@ const App = () => {
                         <PermissionGuard permission="can_manage_permissions">
                           <PermissionManagement />
                         </PermissionGuard>
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/sql-query"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <SQLQueryPage />
                       </AppLayout>
                     </ProtectedRoute>
                   }
