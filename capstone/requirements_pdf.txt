@@ -1,6 +1,0 @@
-reportlab==4.0.9
-weasyprint==61.2
-html2pdf==0.3.1
-pdfkit==1.0.0
-beautifulsoup4==4.12.2
-qrcode[pil]==7.4.2

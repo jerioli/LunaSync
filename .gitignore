@@ -1,6 +1,6 @@
 *.pyc
 .env
-.env.production
+capstone/.env.production
 .env.local
 .env.staging
 # Ignore Django media files
