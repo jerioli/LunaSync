@@ -1,8 +1,22 @@
 *.pyc
 .env
-capstone/.env.production
+.env.production
 .env.local
 .env.staging
 # Ignore Django media files
 capstone/media/
 capstone/venv/
+django.log
+
+
+
+# Add these lines:
+*.log
+celery_beat.log
+celery_worker.log
+celerybeat-schedule
+*.sqlite3
+db.sqlite3
+*.sql
+server.crt
+server.key
