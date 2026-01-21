@@ -2754,3 +2754,182 @@ INFO 2026-01-21 17:23:06,194 autoreload 19176 17532 Watching for file changes wi
 2026-01-21 17:25:21,316 - django.server - INFO - "POST /api/auth/session-logout/ HTTP/1.1" 200 52
 2026-01-21 17:29:41,690 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\accounts\serializers.py changed, reloading.
 INFO 2026-01-21 17:29:44,626 autoreload 7944 4616 Watching for file changes with StatReloader
+INFO 2026-01-21 23:05:23,456 autoreload 20608 12320 Watching for file changes with StatReloader
+2026-01-21 23:06:30,519 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-21 23:06:30,810 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-01-21 23:06:32,157 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-21 23:06:32,199 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-01-21 23:06:34,604 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-21 23:06:34,612 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-01-21 23:06:34,628 - doctor_availability.views - INFO - Found 9 availabilities for doctor 3
+2026-01-21 23:06:34,634 - doctor_availability.views - INFO - Availability: ID=25, Date=2026-01-21, Max Appointments=8
+2026-01-21 23:06:34,635 - doctor_availability.views - INFO - Availability: ID=26, Date=2026-01-22, Max Appointments=8
+2026-01-21 23:06:34,636 - doctor_availability.views - INFO - Availability: ID=27, Date=2026-01-23, Max Appointments=8
+2026-01-21 23:06:34,636 - doctor_availability.views - INFO - Availability: ID=28, Date=2026-01-24, Max Appointments=8
+2026-01-21 23:06:34,638 - doctor_availability.views - INFO - Availability: ID=29, Date=2026-01-25, Max Appointments=8
+2026-01-21 23:06:34,638 - doctor_availability.views - INFO - Availability: ID=30, Date=2026-01-26, Max Appointments=8
+2026-01-21 23:06:34,639 - doctor_availability.views - INFO - Availability: ID=31, Date=2026-01-27, Max Appointments=8
+2026-01-21 23:06:34,640 - doctor_availability.views - INFO - Availability: ID=32, Date=2026-01-28, Max Appointments=8
+2026-01-21 23:06:34,641 - doctor_availability.views - INFO - Availability: ID=33, Date=2026-01-29, Max Appointments=8
+2026-01-21 23:06:34,642 - doctor_availability.views - INFO - Returning dates: ['2026-01-21', '2026-01-22', '2026-01-23', '2026-01-24', '2026-01-25', '2026-01-26', '2026-01-27', '2026-01-28', '2026-01-29']
+2026-01-21 23:06:34,645 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769007994588 HTTP/1.1" 200 118
+2026-01-21 23:06:35,464 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-21 23:06:35,467 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-01-21 23:06:35,477 - doctor_availability.views - INFO - Found 9 availabilities for doctor 3
+2026-01-21 23:06:35,481 - doctor_availability.views - INFO - Availability: ID=25, Date=2026-01-21, Max Appointments=8
+2026-01-21 23:06:35,482 - doctor_availability.views - INFO - Availability: ID=26, Date=2026-01-22, Max Appointments=8
+2026-01-21 23:06:35,483 - doctor_availability.views - INFO - Availability: ID=27, Date=2026-01-23, Max Appointments=8
+2026-01-21 23:06:35,484 - doctor_availability.views - INFO - Availability: ID=28, Date=2026-01-24, Max Appointments=8
+2026-01-21 23:06:35,485 - doctor_availability.views - INFO - Availability: ID=29, Date=2026-01-25, Max Appointments=8
+2026-01-21 23:06:35,486 - doctor_availability.views - INFO - Availability: ID=30, Date=2026-01-26, Max Appointments=8
+2026-01-21 23:06:35,487 - doctor_availability.views - INFO - Availability: ID=31, Date=2026-01-27, Max Appointments=8
+2026-01-21 23:06:35,488 - doctor_availability.views - INFO - Availability: ID=32, Date=2026-01-28, Max Appointments=8
+2026-01-21 23:06:35,488 - doctor_availability.views - INFO - Availability: ID=33, Date=2026-01-29, Max Appointments=8
+2026-01-21 23:06:35,489 - doctor_availability.views - INFO - Returning dates: ['2026-01-21', '2026-01-22', '2026-01-23', '2026-01-24', '2026-01-25', '2026-01-26', '2026-01-27', '2026-01-28', '2026-01-29']
+2026-01-21 23:06:35,493 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769007995452 HTTP/1.1" 200 118
+2026-01-21 23:06:36,863 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-21 23:06:36,866 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-01-21 23:06:36,876 - doctor_availability.views - INFO - Found 9 availabilities for doctor 3
+2026-01-21 23:06:36,883 - doctor_availability.views - INFO - Availability: ID=25, Date=2026-01-21, Max Appointments=8
+2026-01-21 23:06:36,884 - doctor_availability.views - INFO - Availability: ID=26, Date=2026-01-22, Max Appointments=8
+2026-01-21 23:06:36,885 - doctor_availability.views - INFO - Availability: ID=27, Date=2026-01-23, Max Appointments=8
+2026-01-21 23:06:36,886 - doctor_availability.views - INFO - Availability: ID=28, Date=2026-01-24, Max Appointments=8
+2026-01-21 23:06:36,887 - doctor_availability.views - INFO - Availability: ID=29, Date=2026-01-25, Max Appointments=8
+2026-01-21 23:06:36,888 - doctor_availability.views - INFO - Availability: ID=30, Date=2026-01-26, Max Appointments=8
+2026-01-21 23:06:36,889 - doctor_availability.views - INFO - Availability: ID=31, Date=2026-01-27, Max Appointments=8
+2026-01-21 23:06:36,890 - doctor_availability.views - INFO - Availability: ID=32, Date=2026-01-28, Max Appointments=8
+2026-01-21 23:06:36,891 - doctor_availability.views - INFO - Availability: ID=33, Date=2026-01-29, Max Appointments=8
+2026-01-21 23:06:36,892 - doctor_availability.views - INFO - Returning dates: ['2026-01-21', '2026-01-22', '2026-01-23', '2026-01-24', '2026-01-25', '2026-01-26', '2026-01-27', '2026-01-28', '2026-01-29']
+2026-01-21 23:06:36,896 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769007996539 HTTP/1.1" 200 118
+2026-01-21 23:06:37,543 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-21 23:06:37,545 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-01-21 23:06:37,553 - doctor_availability.views - INFO - Found 9 availabilities for doctor 3
+2026-01-21 23:06:37,556 - doctor_availability.views - INFO - Availability: ID=25, Date=2026-01-21, Max Appointments=8
+2026-01-21 23:06:37,558 - doctor_availability.views - INFO - Availability: ID=26, Date=2026-01-22, Max Appointments=8
+2026-01-21 23:06:37,558 - doctor_availability.views - INFO - Availability: ID=27, Date=2026-01-23, Max Appointments=8
+2026-01-21 23:06:37,559 - doctor_availability.views - INFO - Availability: ID=28, Date=2026-01-24, Max Appointments=8
+2026-01-21 23:06:37,563 - doctor_availability.views - INFO - Availability: ID=29, Date=2026-01-25, Max Appointments=8
+2026-01-21 23:06:37,566 - doctor_availability.views - INFO - Availability: ID=30, Date=2026-01-26, Max Appointments=8
+2026-01-21 23:06:37,566 - doctor_availability.views - INFO - Availability: ID=31, Date=2026-01-27, Max Appointments=8
+2026-01-21 23:06:37,570 - doctor_availability.views - INFO - Availability: ID=32, Date=2026-01-28, Max Appointments=8
+2026-01-21 23:06:37,581 - doctor_availability.views - INFO - Availability: ID=33, Date=2026-01-29, Max Appointments=8
+2026-01-21 23:06:37,616 - doctor_availability.views - INFO - Returning dates: ['2026-01-21', '2026-01-22', '2026-01-23', '2026-01-24', '2026-01-25', '2026-01-26', '2026-01-27', '2026-01-28', '2026-01-29']
+2026-01-21 23:06:37,628 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769007997532 HTTP/1.1" 200 118
+2026-01-21 23:06:38,358 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-21 23:06:38,360 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-01-21 23:06:38,370 - doctor_availability.views - INFO - Found 9 availabilities for doctor 3
+2026-01-21 23:06:38,375 - doctor_availability.views - INFO - Availability: ID=25, Date=2026-01-21, Max Appointments=8
+2026-01-21 23:06:38,376 - doctor_availability.views - INFO - Availability: ID=26, Date=2026-01-22, Max Appointments=8
+2026-01-21 23:06:38,377 - doctor_availability.views - INFO - Availability: ID=27, Date=2026-01-23, Max Appointments=8
+2026-01-21 23:06:38,378 - doctor_availability.views - INFO - Availability: ID=28, Date=2026-01-24, Max Appointments=8
+2026-01-21 23:06:38,379 - doctor_availability.views - INFO - Availability: ID=29, Date=2026-01-25, Max Appointments=8
+2026-01-21 23:06:38,379 - doctor_availability.views - INFO - Availability: ID=30, Date=2026-01-26, Max Appointments=8
+2026-01-21 23:06:38,380 - doctor_availability.views - INFO - Availability: ID=31, Date=2026-01-27, Max Appointments=8
+2026-01-21 23:06:38,381 - doctor_availability.views - INFO - Availability: ID=32, Date=2026-01-28, Max Appointments=8
+2026-01-21 23:06:38,382 - doctor_availability.views - INFO - Availability: ID=33, Date=2026-01-29, Max Appointments=8
+2026-01-21 23:06:38,382 - doctor_availability.views - INFO - Returning dates: ['2026-01-21', '2026-01-22', '2026-01-23', '2026-01-24', '2026-01-25', '2026-01-26', '2026-01-27', '2026-01-28', '2026-01-29']
+2026-01-21 23:06:38,384 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769007998347 HTTP/1.1" 200 118
+2026-01-21 23:06:39,008 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-21 23:06:39,010 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-01-21 23:06:39,019 - doctor_availability.views - INFO - Found 9 availabilities for doctor 3
+2026-01-21 23:06:39,023 - doctor_availability.views - INFO - Availability: ID=25, Date=2026-01-21, Max Appointments=8
+2026-01-21 23:06:39,025 - doctor_availability.views - INFO - Availability: ID=26, Date=2026-01-22, Max Appointments=8
+2026-01-21 23:06:39,025 - doctor_availability.views - INFO - Availability: ID=27, Date=2026-01-23, Max Appointments=8
+2026-01-21 23:06:39,026 - doctor_availability.views - INFO - Availability: ID=28, Date=2026-01-24, Max Appointments=8
+2026-01-21 23:06:39,027 - doctor_availability.views - INFO - Availability: ID=29, Date=2026-01-25, Max Appointments=8
+2026-01-21 23:06:39,028 - doctor_availability.views - INFO - Availability: ID=30, Date=2026-01-26, Max Appointments=8
+2026-01-21 23:06:39,029 - doctor_availability.views - INFO - Availability: ID=31, Date=2026-01-27, Max Appointments=8
+2026-01-21 23:06:39,030 - doctor_availability.views - INFO - Availability: ID=32, Date=2026-01-28, Max Appointments=8
+2026-01-21 23:06:39,031 - doctor_availability.views - INFO - Availability: ID=33, Date=2026-01-29, Max Appointments=8
+2026-01-21 23:06:39,031 - doctor_availability.views - INFO - Returning dates: ['2026-01-21', '2026-01-22', '2026-01-23', '2026-01-24', '2026-01-25', '2026-01-26', '2026-01-27', '2026-01-28', '2026-01-29']
+2026-01-21 23:06:39,034 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769007998996 HTTP/1.1" 200 118
+2026-01-21 23:06:39,664 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-21 23:06:39,666 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-01-21 23:06:39,673 - doctor_availability.views - INFO - Found 9 availabilities for doctor 3
+2026-01-21 23:06:39,678 - doctor_availability.views - INFO - Availability: ID=25, Date=2026-01-21, Max Appointments=8
+2026-01-21 23:06:39,679 - doctor_availability.views - INFO - Availability: ID=26, Date=2026-01-22, Max Appointments=8
+2026-01-21 23:06:39,679 - doctor_availability.views - INFO - Availability: ID=27, Date=2026-01-23, Max Appointments=8
+2026-01-21 23:06:39,680 - doctor_availability.views - INFO - Availability: ID=28, Date=2026-01-24, Max Appointments=8
+2026-01-21 23:06:39,681 - doctor_availability.views - INFO - Availability: ID=29, Date=2026-01-25, Max Appointments=8
+2026-01-21 23:06:39,681 - doctor_availability.views - INFO - Availability: ID=30, Date=2026-01-26, Max Appointments=8
+2026-01-21 23:06:39,681 - doctor_availability.views - INFO - Availability: ID=31, Date=2026-01-27, Max Appointments=8
+2026-01-21 23:06:39,682 - doctor_availability.views - INFO - Availability: ID=32, Date=2026-01-28, Max Appointments=8
+2026-01-21 23:06:39,683 - doctor_availability.views - INFO - Availability: ID=33, Date=2026-01-29, Max Appointments=8
+2026-01-21 23:06:39,684 - doctor_availability.views - INFO - Returning dates: ['2026-01-21', '2026-01-22', '2026-01-23', '2026-01-24', '2026-01-25', '2026-01-26', '2026-01-27', '2026-01-28', '2026-01-29']
+2026-01-21 23:06:39,686 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769007999652 HTTP/1.1" 200 118
+2026-01-21 23:06:40,482 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-21 23:06:40,484 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-01-21 23:06:40,493 - doctor_availability.views - INFO - Found 9 availabilities for doctor 3
+2026-01-21 23:06:40,497 - doctor_availability.views - INFO - Availability: ID=25, Date=2026-01-21, Max Appointments=8
+2026-01-21 23:06:40,498 - doctor_availability.views - INFO - Availability: ID=26, Date=2026-01-22, Max Appointments=8
+2026-01-21 23:06:40,499 - doctor_availability.views - INFO - Availability: ID=27, Date=2026-01-23, Max Appointments=8
+2026-01-21 23:06:40,499 - doctor_availability.views - INFO - Availability: ID=28, Date=2026-01-24, Max Appointments=8
+2026-01-21 23:06:40,500 - doctor_availability.views - INFO - Availability: ID=29, Date=2026-01-25, Max Appointments=8
+2026-01-21 23:06:40,501 - doctor_availability.views - INFO - Availability: ID=30, Date=2026-01-26, Max Appointments=8
+2026-01-21 23:06:40,502 - doctor_availability.views - INFO - Availability: ID=31, Date=2026-01-27, Max Appointments=8
+2026-01-21 23:06:40,503 - doctor_availability.views - INFO - Availability: ID=32, Date=2026-01-28, Max Appointments=8
+2026-01-21 23:06:40,504 - doctor_availability.views - INFO - Availability: ID=33, Date=2026-01-29, Max Appointments=8
+2026-01-21 23:06:40,505 - doctor_availability.views - INFO - Returning dates: ['2026-01-21', '2026-01-22', '2026-01-23', '2026-01-24', '2026-01-25', '2026-01-26', '2026-01-27', '2026-01-28', '2026-01-29']
+2026-01-21 23:06:40,508 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769008000468 HTTP/1.1" 200 118
+2026-01-21 23:06:41,159 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-21 23:06:41,161 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-01-21 23:06:41,173 - doctor_availability.views - INFO - Found 9 availabilities for doctor 3
+2026-01-21 23:06:41,178 - doctor_availability.views - INFO - Availability: ID=25, Date=2026-01-21, Max Appointments=8
+2026-01-21 23:06:41,178 - doctor_availability.views - INFO - Availability: ID=26, Date=2026-01-22, Max Appointments=8
+2026-01-21 23:06:41,179 - doctor_availability.views - INFO - Availability: ID=27, Date=2026-01-23, Max Appointments=8
+2026-01-21 23:06:41,179 - doctor_availability.views - INFO - Availability: ID=28, Date=2026-01-24, Max Appointments=8
+2026-01-21 23:06:41,180 - doctor_availability.views - INFO - Availability: ID=29, Date=2026-01-25, Max Appointments=8
+2026-01-21 23:06:41,180 - doctor_availability.views - INFO - Availability: ID=30, Date=2026-01-26, Max Appointments=8
+2026-01-21 23:06:41,181 - doctor_availability.views - INFO - Availability: ID=31, Date=2026-01-27, Max Appointments=8
+2026-01-21 23:06:41,182 - doctor_availability.views - INFO - Availability: ID=32, Date=2026-01-28, Max Appointments=8
+2026-01-21 23:06:41,182 - doctor_availability.views - INFO - Availability: ID=33, Date=2026-01-29, Max Appointments=8
+2026-01-21 23:06:41,183 - doctor_availability.views - INFO - Returning dates: ['2026-01-21', '2026-01-22', '2026-01-23', '2026-01-24', '2026-01-25', '2026-01-26', '2026-01-27', '2026-01-28', '2026-01-29']
+2026-01-21 23:06:41,186 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769008001148 HTTP/1.1" 200 118
+2026-01-21 23:08:27,068 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-21 23:08:27,269 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-01-21 23:08:27,755 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-21 23:08:27,761 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-01-21 23:08:27,783 - doctor_availability.views - INFO - Found 9 availabilities for doctor 3
+2026-01-21 23:08:27,792 - doctor_availability.views - INFO - Availability: ID=25, Date=2026-01-21, Max Appointments=8
+2026-01-21 23:08:27,794 - doctor_availability.views - INFO - Availability: ID=26, Date=2026-01-22, Max Appointments=8
+2026-01-21 23:08:27,796 - doctor_availability.views - INFO - Availability: ID=27, Date=2026-01-23, Max Appointments=8
+2026-01-21 23:08:27,798 - doctor_availability.views - INFO - Availability: ID=28, Date=2026-01-24, Max Appointments=8
+2026-01-21 23:08:27,799 - doctor_availability.views - INFO - Availability: ID=29, Date=2026-01-25, Max Appointments=8
+2026-01-21 23:08:27,800 - doctor_availability.views - INFO - Availability: ID=30, Date=2026-01-26, Max Appointments=8
+2026-01-21 23:08:27,801 - doctor_availability.views - INFO - Availability: ID=31, Date=2026-01-27, Max Appointments=8
+2026-01-21 23:08:27,803 - doctor_availability.views - INFO - Availability: ID=32, Date=2026-01-28, Max Appointments=8
+2026-01-21 23:08:27,804 - doctor_availability.views - INFO - Availability: ID=33, Date=2026-01-29, Max Appointments=8
+2026-01-21 23:08:27,805 - doctor_availability.views - INFO - Returning dates: ['2026-01-21', '2026-01-22', '2026-01-23', '2026-01-24', '2026-01-25', '2026-01-26', '2026-01-27', '2026-01-28', '2026-01-29']
+2026-01-21 23:08:27,813 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769008107742 HTTP/1.1" 200 118
+2026-01-21 23:08:29,680 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-21 23:08:29,702 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-01-21 23:08:29,712 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-21 23:08:30,068 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-01-22&_t=1769008109705 HTTP/1.1" 200 3490
+2026-01-21 23:08:31,013 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-21 23:08:31,015 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-21 23:08:31,021 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-01-21 23:08:31,038 - doctor_availability.views - INFO - Found 9 availabilities for doctor 3
+2026-01-21 23:08:31,046 - doctor_availability.views - INFO - Availability: ID=25, Date=2026-01-21, Max Appointments=8
+2026-01-21 23:08:31,055 - doctor_availability.views - INFO - Availability: ID=26, Date=2026-01-22, Max Appointments=8
+2026-01-21 23:08:31,056 - doctor_availability.views - INFO - Availability: ID=27, Date=2026-01-23, Max Appointments=8
+2026-01-21 23:08:31,062 - doctor_availability.views - INFO - Availability: ID=28, Date=2026-01-24, Max Appointments=8
+2026-01-21 23:08:31,068 - doctor_availability.views - INFO - Availability: ID=29, Date=2026-01-25, Max Appointments=8
+2026-01-21 23:08:31,074 - doctor_availability.views - INFO - Availability: ID=30, Date=2026-01-26, Max Appointments=8
+2026-01-21 23:08:31,079 - doctor_availability.views - INFO - Availability: ID=31, Date=2026-01-27, Max Appointments=8
+2026-01-21 23:08:31,085 - doctor_availability.views - INFO - Availability: ID=32, Date=2026-01-28, Max Appointments=8
+2026-01-21 23:08:31,089 - doctor_availability.views - INFO - Availability: ID=33, Date=2026-01-29, Max Appointments=8
+2026-01-21 23:08:31,095 - doctor_availability.views - INFO - Returning dates: ['2026-01-21', '2026-01-22', '2026-01-23', '2026-01-24', '2026-01-25', '2026-01-26', '2026-01-27', '2026-01-28', '2026-01-29']
+2026-01-21 23:08:31,107 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769008111005 HTTP/1.1" 200 118
+2026-01-21 23:08:31,380 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-01-22&_t=1769008111004 HTTP/1.1" 200 3490
+2026-01-21 23:08:31,383 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-21 23:08:31,694 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-01-22&_t=1769008111004 HTTP/1.1" 200 3490
+2026-01-22 01:03:33,574 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-22 01:03:33,776 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-01-22 01:03:33,782 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-22 01:03:33,788 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-01-22 01:03:33,836 - root - INFO - Request: {"method": "GET", "path": "/media/branding/medratrics.png", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-22 01:03:34,093 - django.server - INFO - "GET /media/branding/medratrics.png HTTP/1.1" 200 159116
+2026-01-22 03:41:36,361 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-22 03:41:36,520 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-01-22 03:41:36,528 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-01-22 03:41:36,535 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
