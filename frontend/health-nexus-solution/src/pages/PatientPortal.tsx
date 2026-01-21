@@ -607,7 +607,7 @@ const PatientPortal = () => {
 
     try {
       const response = await axiosInstance.get(
-        `patients/search/?q=${encodeURIComponent(query)}`,
+        `patients/list/?search=${encodeURIComponent(query)}`,
       );
       setPatients(response.data);
     } catch (error) {
@@ -1944,19 +1944,33 @@ const PatientPortal = () => {
         }
 
         try {
-          await validatePatientId(searchQuery);
-          // If validation succeeds, selectedPatient will be set
-          if (!selectedPatient) {
+          const validation = await validatePatientId(searchQuery);
+
+          if (!validation.isValid) {
             toast({
               title: "Invalid Patient ID",
               description:
+                validation.error ||
                 "The Patient ID you entered was not found in our system. Please check and try again, or use 'Forgot Patient ID?' feature.",
               variant: "destructive",
             });
             return;
           }
+
+          // Set the patient data from validation
+          if (validation.patient) {
+            setSelectedPatient(validation.patient);
+            toast({
+              title: "✅ Patient Verified",
+              description: "Patient ID verified successfully!",
+            });
+          }
         } catch (error) {
-          // Error already handled in validatePatientId function
+          toast({
+            title: "Validation Error",
+            description: "Unable to verify Patient ID. Please try again.",
+            variant: "destructive",
+          });
           return;
         }
       }
@@ -4411,7 +4425,10 @@ const PatientPortal = () => {
                           <Input
                             placeholder="Enter your Patient ID"
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\s/g, "");
+                              setSearchQuery(value);
+                            }}
                             className="w-full"
                             disabled={lookupResult !== null}
                           />
@@ -5160,9 +5177,10 @@ const PatientPortal = () => {
                         <Input
                           placeholder="Enter your Patient ID"
                           value={medCertSearchQuery}
-                          onChange={(e) =>
-                            setMedCertSearchQuery(e.target.value)
-                          }
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\s/g, "");
+                            setMedCertSearchQuery(value);
+                          }}
                           className="w-full"
                         />
                         <div className="text-xs text-gray-500 mt-1">
@@ -5744,9 +5762,10 @@ const PatientPortal = () => {
                         <Input
                           placeholder="Enter your Patient ID"
                           value={prescriptionSearchQuery}
-                          onChange={(e) =>
-                            setPrescriptionSearchQuery(e.target.value)
-                          }
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\s/g, "");
+                            setPrescriptionSearchQuery(value);
+                          }}
                           className="w-full"
                         />
                         <div className="text-xs text-gray-500 mt-1">
