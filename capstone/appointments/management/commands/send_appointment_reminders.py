@@ -48,12 +48,13 @@ class Command(BaseCommand):
             if not patient_phone:
                 continue
 
-            appointment_date = appointment.date.strftime('%B %d, %Y')
-            appointment_time = appointment.time.strftime('%I:%M %p')
-            doctor_name = appointment.doctor.get_full_name() if appointment.doctor else 'Doctor'
+            appointment_date = appointment.date.strftime('%b %d')  # Shorter: Jan 22
+            appointment_time = appointment.time.strftime('%I:%M%p')  # Shorter: 2:30PM
+            doctor_name = appointment.doctor.last_name if appointment.doctor else 'Dr'
             patient_name = getattr(patient, 'name', None) or getattr(appointment, 'patient_name', 'Patient')
 
-            sms_message = f"""Appointment Reminder\n\nPatient: {patient_name}\nDate: {appointment_date}\nTime: {appointment_time}\nDoctor: {doctor_name}\nType: {appointment.appointment_type}\n\n{clinic_name}"""
+            # Keep message under 160 chars (1 SMS credit)
+            sms_message = f"Reminder: Appt {appointment_date} at {appointment_time} with Dr.{doctor_name}. {clinic_name}"
 
             def send_sms():
                 try:
