@@ -58,6 +58,12 @@ class AuditMiddleware(MiddlewareMixin):
         if not request.user.is_authenticated:
             return
         
+        # Only audit actions by staff members (doctor, receptionist, admin, superadmin)
+        # Skip patient-initiated requests
+        staff_roles = ['doctor', 'receptionist', 'admin', 'superadmin']
+        if hasattr(request.user, 'role') and request.user.role not in staff_roles:
+            return
+        
         # Determine resource type and action based on URL
         path_parts = request.path.strip('/').split('/')
         

@@ -618,11 +618,11 @@ class PatientLookupView(APIView):
             email = request.data.get('email', '').strip()
             phone = request.data.get('phone', '').strip()
             
-            # Validate required fields
-            if not all([full_name, date_of_birth, email, phone]):
+            # Validate required fields (email is optional)
+            if not all([full_name, date_of_birth, phone]):
                 return Response({
                     'status': 'error',
-                    'message': 'All fields are required'
+                    'message': 'Full name, date of birth, and phone number are required'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
             # Try to construct the full name from separate fields if needed
@@ -647,8 +647,11 @@ class PatientLookupView(APIView):
                     
                     print(f"[DEBUG] Checking patient {patient.patient_id}: email='{patient_email}', phone='{patient_phone}'")
                     
-                    # Check for exact match on email and phone
-                    if patient_email == email.lower().strip() and patient_phone == phone.strip():
+                    # Check for match on phone (required) and email (if provided)
+                    phone_matches = patient_phone == phone.strip()
+                    email_matches = not email or patient_email == email.lower().strip()
+                    
+                    if phone_matches and email_matches:
                         # Also check name match
                         patient_first = str(patient.first_name).strip() if patient.first_name else ''
                         patient_middle = str(patient.middle_initial).strip() if patient.middle_initial else ''
@@ -688,7 +691,7 @@ class PatientLookupView(APIView):
                     patient_full_name = ' '.join(patient_full_name.split())  # Remove extra spaces
                     
                     # Check for partial matches
-                    email_match = patient_email == email.lower().strip()
+                    email_match = not email or patient_email == email.lower().strip()
                     phone_match = patient_phone == phone.strip()
                     
                     # Calculate name similarity

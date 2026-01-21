@@ -38,7 +38,7 @@ export const TopBar: React.FC = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [activeTab, setActiveTab] = useState<"all" | "unread">("all");
   const [readNotifications, setReadNotifications] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [displayedNotifications, setDisplayedNotifications] = useState([]);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -100,7 +100,7 @@ export const TopBar: React.FC = () => {
   useEffect(() => {
     localStorage.setItem(
       "readNotifications",
-      JSON.stringify(Array.from(readNotifications))
+      JSON.stringify(Array.from(readNotifications)),
     );
   }, [readNotifications]);
 
@@ -124,7 +124,7 @@ export const TopBar: React.FC = () => {
     const filteredNotifications =
       activeTab === "unread"
         ? notifications.filter(
-            (n) => n.isUnread && !readNotifications.has(n.id)
+            (n) => n.isUnread && !readNotifications.has(n.id),
           )
         : notifications.map((n) => ({
             ...n,
@@ -136,7 +136,7 @@ export const TopBar: React.FC = () => {
       // First page - replace displayed notifications
       const firstPageNotifications = filteredNotifications.slice(
         0,
-        NOTIFICATIONS_PER_PAGE
+        NOTIFICATIONS_PER_PAGE,
       );
       setDisplayedNotifications(firstPageNotifications);
     } else {
@@ -145,14 +145,14 @@ export const TopBar: React.FC = () => {
       const endIndex = currentPage * NOTIFICATIONS_PER_PAGE;
       const newNotifications = filteredNotifications.slice(
         startIndex,
-        endIndex
+        endIndex,
       );
 
       setDisplayedNotifications((prev) => {
         // Avoid duplicates by checking if notifications already exist
         const existingIds = new Set(prev.map((n) => n.id));
         const uniqueNewNotifications = newNotifications.filter(
-          (n) => !existingIds.has(n.id)
+          (n) => !existingIds.has(n.id),
         );
         return [...prev, ...uniqueNewNotifications];
       });
@@ -161,7 +161,7 @@ export const TopBar: React.FC = () => {
     const totalAvailable = filteredNotifications.length;
     const currentlyLoaded = Math.min(
       currentPage * NOTIFICATIONS_PER_PAGE,
-      totalAvailable
+      totalAvailable,
     );
     setHasMoreNotifications(currentlyLoaded < totalAvailable);
   }, [notifications, activeTab, readNotifications, currentPage]);
@@ -169,11 +169,55 @@ export const TopBar: React.FC = () => {
   const mapNotifications = (
     appointmentData,
     medCertData = [],
-    prescriptionData = []
+    prescriptionData = [],
+    medicineData = [],
   ) => {
     const notifications = [];
     const isReceptionist = currentUser?.role === "receptionist";
     const isDoctor = currentUser?.role === "doctor";
+
+    // Medicine expiration notifications (for both doctors and receptionists who can manage inventory)
+    const canManageMedicines =
+      currentUser?.role === "doctor" ||
+      currentUser?.role === "admin" ||
+      currentUser?.can_manage_inventory;
+
+    if (canManageMedicines && Array.isArray(medicineData)) {
+      // Expired medicines - highest priority
+      medicineData
+        .filter((med) => med.is_expired)
+        .forEach((med) => {
+          notifications.push({
+            id: `medicine-expired-${med.id}`,
+            type: "medicine_expired",
+            title: "⚠️ Medicine Expired",
+            message: `${med.name} (${med.dosage}) has expired - Remove from inventory`,
+            time: getRelativeTime(med.expiration_date || new Date()),
+            icon: AlertTriangle,
+            iconColor: "#dc2626",
+            isUnread: true,
+            data: med,
+          });
+        });
+
+      // Near expiration medicines
+      medicineData
+        .filter((med) => med.is_near_expiration && !med.is_expired)
+        .forEach((med) => {
+          const monthsUntilExpiry = med.months_until_expiry || 0;
+          notifications.push({
+            id: `medicine-expiring-${med.id}`,
+            type: "medicine_expiring",
+            title: "📅 Medicine Expiring Soon",
+            message: `${med.name} (${med.dosage}) expires in ${monthsUntilExpiry} month${monthsUntilExpiry !== 1 ? "s" : ""}`,
+            time: getRelativeTime(med.expiration_date || new Date()),
+            icon: Clock,
+            iconColor: "#f59e0b",
+            isUnread: true,
+            data: med,
+          });
+        });
+    }
 
     if (isReceptionist) {
       // For receptionist: show pending appointment requests, med cert requests, and prescription requests
@@ -188,7 +232,7 @@ export const TopBar: React.FC = () => {
             ) {
               try {
                 const patientDetails = JSON.parse(
-                  appt.notes.split("Patient Details (Pending):")[1].trim()
+                  appt.notes.split("Patient Details (Pending):")[1].trim(),
                 );
                 patientName = patientDetails.name || "Unknown Patient";
               } catch (error) {
@@ -217,7 +261,7 @@ export const TopBar: React.FC = () => {
       if (Array.isArray(medCertData)) {
         medCertData
           .filter(
-            (cert) => cert.status === "pending" || cert.status === "submitted"
+            (cert) => cert.status === "pending" || cert.status === "submitted",
           )
           .forEach((cert) => {
             notifications.push({
@@ -239,7 +283,7 @@ export const TopBar: React.FC = () => {
         prescriptionData
           .filter(
             (presc) =>
-              presc.status === "pending" || presc.status === "submitted"
+              presc.status === "pending" || presc.status === "submitted",
           )
           .forEach((presc) => {
             notifications.push({
@@ -265,7 +309,7 @@ export const TopBar: React.FC = () => {
             (appt) =>
               appt.status === "approved" ||
               appt.status === "checked_in" ||
-              appt.status === "ongoing"
+              appt.status === "ongoing",
           )
           .forEach((appt) => {
             const isCheckedIn = appt.status === "checked_in";
@@ -277,7 +321,7 @@ export const TopBar: React.FC = () => {
             ) {
               try {
                 const patientDetails = JSON.parse(
-                  appt.notes.split("Patient Details (Pending):")[1].trim()
+                  appt.notes.split("Patient Details (Pending):")[1].trim(),
                 );
                 patientName = patientDetails.name || "Unknown Patient";
               } catch (error) {
@@ -290,22 +334,22 @@ export const TopBar: React.FC = () => {
               type: isCheckedIn
                 ? "patient_checkedin"
                 : isOngoing
-                ? "appointment_ongoing"
-                : "appointment_approved",
+                  ? "appointment_ongoing"
+                  : "appointment_approved",
               title: isCheckedIn
                 ? "Patient Checked In"
                 : isOngoing
-                ? "Appointment Ongoing"
-                : "Appointment Approved",
+                  ? "Appointment Ongoing"
+                  : "Appointment Approved",
               message: `Patient: ${patientName}${
                 isCheckedIn
                   ? " is ready for consultation"
                   : isOngoing
-                  ? " appointment is now in progress"
-                  : ""
+                    ? " appointment is now in progress"
+                    : ""
               }`,
               time: getRelativeTime(
-                appt.updated_at || appt.created_at || new Date()
+                appt.updated_at || appt.created_at || new Date(),
               ),
               date: appt.date,
               appointmentTime: appt.time,
@@ -314,8 +358,8 @@ export const TopBar: React.FC = () => {
               iconColor: isCheckedIn
                 ? "#059669"
                 : isOngoing
-                ? "#f97316"
-                : "#3b82f6",
+                  ? "#f97316"
+                  : "#3b82f6",
               isUnread: isCheckedIn || isOngoing,
               data: appt,
             });
@@ -329,7 +373,7 @@ export const TopBar: React.FC = () => {
             (cert) =>
               cert.status === "approved" ||
               cert.status === "ready" ||
-              cert.status === "on_process"
+              cert.status === "on_process",
           )
           .forEach((cert) => {
             const isOnProcess = cert.status === "on_process";
@@ -343,7 +387,7 @@ export const TopBar: React.FC = () => {
                 isOnProcess ? " - Being processed, awaiting doctor review" : ""
               }`,
               time: getRelativeTime(
-                cert.updated_at || cert.created_at || new Date()
+                cert.updated_at || cert.created_at || new Date(),
               ),
               icon: isReceptionistApproved ? FileText : CheckSquare,
               iconColor: isReceptionistApproved ? "#dc2626" : "#10b981",
@@ -360,7 +404,7 @@ export const TopBar: React.FC = () => {
             (presc) =>
               presc.status === "approved" ||
               presc.status === "ready" ||
-              presc.status === "receptionist_approved"
+              presc.status === "receptionist_approved",
           )
           .forEach((presc) => {
             const isReceptionistApproved =
@@ -381,7 +425,7 @@ export const TopBar: React.FC = () => {
                   : ""
               }`,
               time: getRelativeTime(
-                presc.updated_at || presc.created_at || new Date()
+                presc.updated_at || presc.created_at || new Date(),
               ),
               icon: isReceptionistApproved ? Pill : CheckSquare,
               iconColor: isReceptionistApproved ? "#dc2626" : "#f59e0b",
@@ -396,9 +440,11 @@ export const TopBar: React.FC = () => {
     return notifications.sort(
       (a, b) =>
         new Date(
-          b.data.created_at || b.data.updated_at || new Date()
+          b.data.created_at || b.data.updated_at || new Date(),
         ).getTime() -
-        new Date(a.data.created_at || a.data.updated_at || new Date()).getTime()
+        new Date(
+          a.data.created_at || a.data.updated_at || new Date(),
+        ).getTime(),
     );
   };
 
@@ -471,31 +517,44 @@ export const TopBar: React.FC = () => {
         let prescriptionData = [];
         try {
           const prescriptionResponse = await axios.get(
-            "/prescription-requests/"
+            "/prescription-requests/",
           );
           prescriptionData = prescriptionResponse.data;
         } catch (error) {
           console.warn("Could not fetch prescription requests:", error);
         }
 
+        // Fetch medicine inventory for expiration notifications
+        let medicineData = [];
+        try {
+          const medicineResponse = await axios.get("/inventory/medicines/");
+          if (medicineResponse.data.success) {
+            medicineData = medicineResponse.data.data;
+          }
+        } catch (error) {
+          console.warn("Could not fetch medicine inventory:", error);
+        }
+
         console.log("Fetched data:", {
           appointmentsData,
           medCertData,
           prescriptionData,
+          medicineData,
         });
 
         if (Array.isArray(appointmentsData)) {
           const mappedNotifications = mapNotifications(
             appointmentsData,
             medCertData,
-            prescriptionData
+            prescriptionData,
+            medicineData,
           );
           setNotifications(mappedNotifications);
 
           // Update counts
           const totalCount = mappedNotifications.length;
           const actualUnreadCount = mappedNotifications.filter(
-            (n) => n.isUnread && !readNotifications.has(n.id)
+            (n) => n.isUnread && !readNotifications.has(n.id),
           ).length;
 
           setTotalNotificationCount(totalCount);
@@ -505,12 +564,12 @@ export const TopBar: React.FC = () => {
           localStorage.setItem("totalNotificationCount", totalCount.toString());
           localStorage.setItem(
             "unreadNotificationCount",
-            actualUnreadCount.toString()
+            actualUnreadCount.toString(),
           );
         } else {
           console.error(
             "Invalid appointments response format:",
-            appointmentsData
+            appointmentsData,
           );
           setNotifications([]);
         }
@@ -584,6 +643,10 @@ export const TopBar: React.FC = () => {
       case "prescription_approved":
       case "prescription_receptionist_approved":
         navigate("/prescription-requests?tab=approved");
+        break;
+      case "medicine_expired":
+      case "medicine_expiring":
+        navigate("/inventory");
         break;
       default:
         navigate("/appointments");
@@ -765,7 +828,7 @@ export const TopBar: React.FC = () => {
                           {displayedNotifications.map((notification) => {
                             const IconComponent = notification.icon;
                             const isRead = readNotifications.has(
-                              notification.id
+                              notification.id,
                             );
                             const showAsUnread =
                               notification.isUnread && !isRead;
@@ -826,7 +889,7 @@ export const TopBar: React.FC = () => {
                                                 <Calendar className="w-3 h-3" />
                                                 <span>
                                                   {new Date(
-                                                    notification.date
+                                                    notification.date,
                                                   ).toLocaleDateString()}
                                                 </span>
                                               </div>

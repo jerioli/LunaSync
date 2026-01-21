@@ -37,7 +37,11 @@ class CustomUserSerializer(SecureBaseSerializer):
         if not self.user or not self.user.is_authenticated:
             return self.get_public_representation(data)
         
-        # For regular authenticated users, return data but without sensitive fields
+        # For regular authenticated users viewing their own profile, return their data including email and phone
+        if self.user and instance.id == self.user.id:
+            return data
+        
+        # For regular authenticated users viewing others, return limited data
         return {
             'id': data.get('id'),
             'username': data.get('username'),

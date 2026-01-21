@@ -69,7 +69,7 @@ axiosInstance.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Form schemas
@@ -191,7 +191,7 @@ const PatientPortal = () => {
   // Multi-step appointment scheduling states
   const [currentStep, setCurrentStep] = useState(1);
   const [isExistingPatient, setIsExistingPatient] = useState<boolean | null>(
-    null
+    null,
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [patients, setPatients] = useState([]);
@@ -244,6 +244,7 @@ const PatientPortal = () => {
   });
   const [forgotIdSubmitting, setForgotIdSubmitting] = useState(false);
   const [lookupResult, setLookupResult] = useState<any>(null);
+  const [forgotIdAttempted, setForgotIdAttempted] = useState(false);
 
   // Form handling
   const patientForm = useForm<PatientFormData>({
@@ -277,7 +278,7 @@ const PatientPortal = () => {
   const [medCertSelectedPatient, setMedCertSelectedPatient] =
     useState<any>(null);
   const [medCertRequestType, setMedCertRequestType] = useState(
-    "Medical Certificate"
+    "Medical Certificate",
   );
   const [medCertIdFront, setMedCertIdFront] = useState<File | null>(null);
   const [medCertIdBack, setMedCertIdBack] = useState<File | null>(null);
@@ -322,10 +323,10 @@ const PatientPortal = () => {
   const [prescriptionSelectedPatient, setPrescriptionSelectedPatient] =
     useState<any>(null);
   const [prescriptionIdFront, setPrescriptionIdFront] = useState<File | null>(
-    null
+    null,
   );
   const [prescriptionIdBack, setPrescriptionIdBack] = useState<File | null>(
-    null
+    null,
   );
   const [prescriptionIdFrontPreview, setPrescriptionIdFrontPreview] = useState<
     string | null
@@ -477,7 +478,7 @@ const PatientPortal = () => {
           try {
             const response = await api.availability.getTimeSlots(
               doctor.id,
-              dateString
+              dateString,
             );
 
             // Check if doctor has any available slots on this date
@@ -506,7 +507,7 @@ const PatientPortal = () => {
                     }
 
                     return true;
-                  }
+                  },
                 );
 
                 if (availableSlots.length > 0) {
@@ -517,7 +518,7 @@ const PatientPortal = () => {
           } catch (error) {
             console.error(
               `Error checking availability for doctor ${doctor.id}:`,
-              error
+              error,
             );
             // Continue to next doctor if there's an error
           }
@@ -531,7 +532,7 @@ const PatientPortal = () => {
         setFilteredDoctors(doctors);
       }
     },
-    [doctors]
+    [doctors],
   );
 
   // Fetch doctors
@@ -606,7 +607,7 @@ const PatientPortal = () => {
 
     try {
       const response = await axiosInstance.get(
-        `patients/search/?q=${encodeURIComponent(query)}`
+        `patients/search/?q=${encodeURIComponent(query)}`,
       );
       setPatients(response.data);
     } catch (error) {
@@ -625,8 +626,8 @@ const PatientPortal = () => {
       // Use the same endpoint as chatbot: check-patient-id
       const checkResponse = await axiosInstance.get(
         `/patients/check-patient-id/?patient_id=${encodeURIComponent(
-          patientId
-        )}`
+          patientId,
+        )}`,
       );
 
       if (!checkResponse.data.exists) {
@@ -684,13 +685,13 @@ const PatientPortal = () => {
         "Fetching time slots for doctor:",
         doctorId,
         "on date:",
-        dateString
+        dateString,
       );
 
       // Use the same API as chatbot
       const response = await api.availability.getTimeSlots(
         doctorId,
-        dateString
+        dateString,
       );
 
       console.log("Time slots API response:", response);
@@ -720,21 +721,21 @@ const PatientPortal = () => {
           start: slot.start_time,
           end: slot.end_time,
           booked: slot.is_booked,
-        }))
+        })),
       );
 
       // Filter out booked slots and lunch break (12:00 PM - 1:00 PM) matching Schedule.tsx logic
       const availableSlots = availability.time_slots.filter((slot) => {
         const isBooked = Boolean(
           slot.is_booked === true ||
-            slot.is_booked === 1 ||
-            slot.is_booked === "true" ||
-            slot.is_booked === "1" ||
-            slot.is_booked === "True" ||
-            slot.is_booked === "TRUE" ||
-            slot.is_booked === "yes" ||
-            slot.is_booked === "YES" ||
-            slot.is_booked === "Yes"
+          slot.is_booked === 1 ||
+          slot.is_booked === "true" ||
+          slot.is_booked === "1" ||
+          slot.is_booked === "True" ||
+          slot.is_booked === "TRUE" ||
+          slot.is_booked === "yes" ||
+          slot.is_booked === "YES" ||
+          slot.is_booked === "Yes",
         );
 
         // Skip lunch break (12:00 PM to 1:00 PM) - same logic as Schedule.tsx
@@ -748,7 +749,7 @@ const PatientPortal = () => {
           dateString ===
           `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
             2,
-            "0"
+            "0",
           )}-${String(today.getDate()).padStart(2, "0")}`;
 
         let isPastTime = false;
@@ -765,13 +766,13 @@ const PatientPortal = () => {
         // Debug logging for lunch break filtering
         if (isLunchBreak) {
           console.log(
-            `Filtering out lunch break slot: ${slot.start_time} - ${slot.end_time} (hour: ${hour})`
+            `Filtering out lunch break slot: ${slot.start_time} - ${slot.end_time} (hour: ${hour})`,
           );
         }
 
         if (isPastTime && isToday) {
           console.log(
-            `Filtering out past time slot: ${slot.start_time} (current time passed)`
+            `Filtering out past time slot: ${slot.start_time} (current time passed)`,
           );
         }
 
@@ -790,7 +791,7 @@ const PatientPortal = () => {
 
       console.log(
         "Available time slots from doctor schedule:",
-        formattedAvailableSlots
+        formattedAvailableSlots,
       );
       setAvailableTimeSlots(formattedAvailableSlots);
     } catch (error) {
@@ -825,7 +826,7 @@ const PatientPortal = () => {
         // Use the same API as chatbot
         const response = await api.availability.getTimeSlots(
           selectedDoctor.id,
-          dateString
+          dateString,
         );
 
         console.log("Time slots response:", response);
@@ -833,7 +834,7 @@ const PatientPortal = () => {
         // Check if response is an array and has at least one item
         if (!Array.isArray(response) || response.length === 0) {
           console.log(
-            "No availability data found for this doctor on this date"
+            "No availability data found for this doctor on this date",
           );
           return [];
         }
@@ -855,14 +856,14 @@ const PatientPortal = () => {
         const availableSlots = availability.time_slots.filter((slot) => {
           const isBooked = Boolean(
             slot.is_booked === true ||
-              slot.is_booked === 1 ||
-              slot.is_booked === "true" ||
-              slot.is_booked === "1" ||
-              slot.is_booked === "True" ||
-              slot.is_booked === "TRUE" ||
-              slot.is_booked === "yes" ||
-              slot.is_booked === "YES" ||
-              slot.is_booked === "Yes"
+            slot.is_booked === 1 ||
+            slot.is_booked === "true" ||
+            slot.is_booked === "1" ||
+            slot.is_booked === "True" ||
+            slot.is_booked === "TRUE" ||
+            slot.is_booked === "yes" ||
+            slot.is_booked === "YES" ||
+            slot.is_booked === "Yes",
           );
 
           // Skip lunch break (12:00 PM to 1:00 PM) - same logic as Schedule.tsx
@@ -873,7 +874,7 @@ const PatientPortal = () => {
           // Debug logging for lunch break filtering
           if (isLunchBreak) {
             console.log(
-              `Filtering out lunch break slot: ${slot.start_time} - ${slot.end_time} (hour: ${hour})`
+              `Filtering out lunch break slot: ${slot.start_time} - ${slot.end_time} (hour: ${hour})`,
             );
           }
 
@@ -892,7 +893,7 @@ const PatientPortal = () => {
 
         console.log(
           "Available time slots from doctor schedule:",
-          formattedAvailableSlots
+          formattedAvailableSlots,
         );
         return formattedAvailableSlots;
       } catch (error) {
@@ -901,7 +902,7 @@ const PatientPortal = () => {
         return [];
       }
     },
-    [selectedDoctor?.id]
+    [selectedDoctor?.id],
   );
 
   // Fetch doctor's available dates from their actual schedule
@@ -1025,7 +1026,7 @@ const PatientPortal = () => {
         .sort((a, b) => a.getTime() - b.getTime());
 
       console.log(
-        `Found ${uniqueDates.length} unique available dates from ${allDoctors.length} doctors`
+        `Found ${uniqueDates.length} unique available dates from ${allDoctors.length} doctors`,
       );
       setAllAvailableDates(uniqueDates);
     } catch (error) {
@@ -1066,6 +1067,7 @@ const PatientPortal = () => {
   // Submit forgot Patient ID request (using chatbot's lookup approach)
   const submitForgotPatientId = async () => {
     setForgotIdSubmitting(true);
+    setForgotIdAttempted(true);
 
     try {
       // Validate required fields
@@ -1096,15 +1098,6 @@ const PatientPortal = () => {
         setForgotIdSubmitting(false);
         return;
       }
-      if (!forgotIdForm.email.trim()) {
-        toast({
-          title: "Error",
-          description: "Email is required",
-          variant: "destructive",
-        });
-        setForgotIdSubmitting(false);
-        return;
-      }
       if (!forgotIdForm.phone.trim()) {
         toast({
           title: "Error",
@@ -1125,7 +1118,7 @@ const PatientPortal = () => {
       const requestData = {
         full_name: fullName,
         date_of_birth: forgotIdForm.dateOfBirth,
-        email: forgotIdForm.email.toLowerCase(),
+        email: forgotIdForm.email ? forgotIdForm.email.toLowerCase() : "",
         phone: forgotIdForm.phone,
         first_name: forgotIdForm.firstName,
         last_name: forgotIdForm.lastName,
@@ -1134,18 +1127,18 @@ const PatientPortal = () => {
 
       const response = await axiosInstance.post(
         "/patients/lookup-patient/",
-        requestData
+        requestData,
       );
 
       console.log("[DEBUG] Full response:", response);
       console.log(
         "[DEBUG] Response data:",
-        JSON.stringify(response.data, null, 2)
+        JSON.stringify(response.data, null, 2),
       );
       console.log("[DEBUG] Response status field:", response.data.status);
       console.log(
         "[DEBUG] Response patient_id field:",
-        response.data.patient_id
+        response.data.patient_id,
       );
 
       // Check if we have a patient_id in the response (regardless of status field)
@@ -1162,6 +1155,7 @@ const PatientPortal = () => {
           });
           setSearchQuery(response.data.patient_id);
           setShowForgotPatientId(false);
+          setLookupResult(response.data); // Set lookup result to indicate successful lookup
           setForgotIdForm({
             firstName: "",
             middleInitial: "",
@@ -1175,7 +1169,7 @@ const PatientPortal = () => {
           // Automatically validate the patient ID
           try {
             const validation = await validatePatientId(
-              response.data.patient_id
+              response.data.patient_id,
             );
             if (validation.isValid) {
               setSelectedPatient(validation.patient);
@@ -1196,6 +1190,7 @@ const PatientPortal = () => {
           });
           setSearchQuery(response.data.patient_id);
           setShowForgotPatientId(false);
+          setLookupResult(response.data); // Set lookup result for partial match too
           setForgotIdForm({
             firstName: "",
             middleInitial: "",
@@ -1206,7 +1201,17 @@ const PatientPortal = () => {
             phone: "",
           });
 
-          // Don't auto-validate, let user verify manually
+          // Validate the patient ID to get full patient details
+          try {
+            const validation = await validatePatientId(
+              response.data.patient_id,
+            );
+            if (validation.isValid) {
+              setSelectedPatient(validation.patient);
+            }
+          } catch (error) {
+            console.error("Error validating found patient ID:", error);
+          }
         } else if (response.data.status === "multiple_matches") {
           // Multiple Matches: Found multiple similar patients
           toast({
@@ -1347,7 +1352,7 @@ const PatientPortal = () => {
 
       const response = await axiosInstance.post(
         "/patients/lookup-patient/",
-        requestData
+        requestData,
       );
 
       console.log("[DEBUG] Med Cert Patient lookup response:", response);
@@ -1378,7 +1383,7 @@ const PatientPortal = () => {
           // Automatically validate the patient ID and proceed
           try {
             const validation = await validatePatientId(
-              response.data.patient_id
+              response.data.patient_id,
             );
             if (validation.isValid) {
               setMedCertSelectedPatient(validation.patient);
@@ -1547,7 +1552,7 @@ const PatientPortal = () => {
 
       const response = await axiosInstance.post(
         "/patients/lookup-patient/",
-        requestData
+        requestData,
       );
 
       console.log("[DEBUG] Prescription Patient lookup response:", response);
@@ -1578,7 +1583,7 @@ const PatientPortal = () => {
           // Automatically validate the patient ID and proceed
           try {
             const validation = await validatePatientId(
-              response.data.patient_id
+              response.data.patient_id,
             );
             if (validation.isValid) {
               setPrescriptionSelectedPatient(validation.patient);
@@ -1695,6 +1700,8 @@ const PatientPortal = () => {
     setTermsAccepted(false);
     setNoMiddleName(false);
     setShowForgotPatientId(false);
+    setLookupResult(null);
+    setForgotIdAttempted(false);
     setForgotIdForm({
       firstName: "",
       middleInitial: "",
@@ -1772,8 +1779,8 @@ const PatientPortal = () => {
             selectedPatient?.middle_initial ||
             ""
           : patientData.middleName === "N/A"
-          ? ""
-          : patientData.middleName || "",
+            ? ""
+            : patientData.middleName || "",
         lastName: isExistingPatient
           ? selectedPatient?.lastName || selectedPatient?.last_name
           : patientData.lastName,
@@ -1811,10 +1818,10 @@ const PatientPortal = () => {
         appointment_type: selectedAppointmentType,
         date: selectedDate
           ? `${selectedDate.getFullYear()}-${String(
-              selectedDate.getMonth() + 1
+              selectedDate.getMonth() + 1,
             ).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(
               2,
-              "0"
+              "0",
             )}`
           : "",
         time: formattedTime,
@@ -1910,6 +1917,51 @@ const PatientPortal = () => {
 
   // Handle step navigation with validation
   const handleNextStep = async () => {
+    // Validate Patient ID in Step 5 for existing patients
+    if (currentStep === 5 && isExistingPatient) {
+      // If user used Forgot Patient ID feature, check if patient was found
+      if (lookupResult) {
+        if (!selectedPatient) {
+          toast({
+            title: "Patient Information Required",
+            description:
+              "Please complete the 'Forgot Patient ID?' lookup process.",
+            variant: "destructive",
+          });
+          return;
+        }
+        // Patient already validated via Forgot ID lookup, proceed to next step
+      } else {
+        // User manually entered Patient ID, need to validate it
+        if (!searchQuery.trim()) {
+          toast({
+            title: "Patient ID Required",
+            description:
+              "Please enter your Patient ID or use 'Forgot Patient ID?' to look it up.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        try {
+          await validatePatientId(searchQuery);
+          // If validation succeeds, selectedPatient will be set
+          if (!selectedPatient) {
+            toast({
+              title: "Invalid Patient ID",
+              description:
+                "The Patient ID you entered was not found in our system. Please check and try again, or use 'Forgot Patient ID?' feature.",
+              variant: "destructive",
+            });
+            return;
+          }
+        } catch (error) {
+          // Error already handled in validatePatientId function
+          return;
+        }
+      }
+    }
+
     switch (currentStep) {
       case 1:
         if (!bookingPreference) {
@@ -2206,7 +2258,7 @@ const PatientPortal = () => {
       formData.append("suffix", patient.suffix || "");
       formData.append(
         "date_of_birth",
-        patient.date_of_birth || patient.dateOfBirth || ""
+        patient.date_of_birth || patient.dateOfBirth || "",
       );
       formData.append("email", patient.email || "");
       formData.append("phone", patient.phone_number || patient.phone || "");
@@ -2231,7 +2283,7 @@ const PatientPortal = () => {
       const response = await axiosInstance.post(
         "/medical-certificates/",
         formData,
-        { headers }
+        { headers },
       );
 
       if (response.status === 200 || response.status === 201) {
@@ -2295,14 +2347,14 @@ const PatientPortal = () => {
       formData.append("patient_id", prescriptionSearchQuery);
       formData.append(
         "medication_name",
-        prescriptionForm.getValues("medicationName")
+        prescriptionForm.getValues("medicationName"),
       );
       formData.append("dosage", prescriptionForm.getValues("dosage"));
       formData.append("frequency", prescriptionForm.getValues("frequency"));
       formData.append("duration", prescriptionForm.getValues("duration"));
       formData.append(
         "additional_notes",
-        prescriptionForm.getValues("additionalNotes") || ""
+        prescriptionForm.getValues("additionalNotes") || "",
       );
 
       // Use the validated patient data from prescriptionSelectedPatient
@@ -2320,7 +2372,7 @@ const PatientPortal = () => {
       formData.append("suffix", patient.suffix || "");
       formData.append(
         "date_of_birth",
-        patient.date_of_birth || patient.dateOfBirth || ""
+        patient.date_of_birth || patient.dateOfBirth || "",
       );
       formData.append("email", patient.email || "");
       formData.append("phone", patient.phone_number || patient.phone || "");
@@ -2345,7 +2397,7 @@ const PatientPortal = () => {
       const response = await axiosInstance.post(
         "/prescription-requests/",
         formData,
-        { headers }
+        { headers },
       );
 
       if (response.status === 200 || response.status === 201) {
@@ -2509,7 +2561,7 @@ const PatientPortal = () => {
 
     if (lastReviewTime && now - lastReviewTime < COOLDOWN_PERIOD) {
       const timeLeft = Math.ceil(
-        (COOLDOWN_PERIOD - (now - lastReviewTime)) / 1000 / 60
+        (COOLDOWN_PERIOD - (now - lastReviewTime)) / 1000 / 60,
       );
       toast({
         title: "⏱️ Please Wait",
@@ -2610,7 +2662,7 @@ const PatientPortal = () => {
         JSON.stringify({
           comment: reviewForm.comment.trim(),
           timestamp: now,
-        })
+        }),
       );
 
       // Set cooldown
@@ -3361,10 +3413,10 @@ const PatientPortal = () => {
                       {submitting
                         ? "Submitting..."
                         : reviewCooldown
-                        ? `Wait ${Math.floor(cooldownTimeLeft / 60)}:${String(
-                            cooldownTimeLeft % 60
-                          ).padStart(2, "0")}`
-                        : "Submit Review"}
+                          ? `Wait ${Math.floor(cooldownTimeLeft / 60)}:${String(
+                              cooldownTimeLeft % 60,
+                            ).padStart(2, "0")}`
+                          : "Submit Review"}
                     </Button>
                   </div>
                 </form>
@@ -4000,7 +4052,7 @@ const PatientPortal = () => {
                                     title: "Date Selected",
                                     description: `Date selected: ${format(
                                       date,
-                                      "MMM dd, yyyy"
+                                      "MMM dd, yyyy",
                                     )}`,
                                   });
                                 }}
@@ -4071,7 +4123,7 @@ const PatientPortal = () => {
                               title: "Appointment Scheduled",
                               description: `Appointment scheduled for ${format(
                                 date,
-                                "MMM dd, yyyy"
+                                "MMM dd, yyyy",
                               )} at ${time}`,
                             });
                           }}
@@ -4351,31 +4403,41 @@ const PatientPortal = () => {
                       Enter your Patient ID
                     </h3>
                     <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Patient ID *
-                        </label>
-                        <Input
-                          placeholder="Enter your Patient ID"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="w-full"
-                        />
-                        <div className="text-xs text-gray-500 mt-1">
-                          You can find your Patient ID on your previous
-                          appointment receipts, medical certificates, or contact
-                          the clinic
+                      {!showForgotPatientId && (
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Patient ID *
+                          </label>
+                          <Input
+                            placeholder="Enter your Patient ID"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full"
+                            disabled={lookupResult !== null}
+                          />
+                          <div className="text-xs text-gray-500 mt-1">
+                            You can find your Patient ID on your previous
+                            appointment receipts, medical certificates, or
+                            contact the clinic
+                          </div>
+                          {lookupResult && (
+                            <div className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                              <CheckCircle className="w-4 h-4" />
+                              Patient ID found and verified!
+                            </div>
+                          )}
+                          <div className="text-center mt-2">
+                            <button
+                              type="button"
+                              onClick={() => setShowForgotPatientId(true)}
+                              className="text-[#79c942] hover:text-[#6bb33a] text-sm font-medium underline"
+                              disabled={lookupResult !== null}
+                            >
+                              Forgot Patient ID?
+                            </button>
+                          </div>
                         </div>
-                        <div className="text-center mt-2">
-                          <button
-                            type="button"
-                            onClick={() => setShowForgotPatientId(true)}
-                            className="text-[#79c942] hover:text-[#6bb33a] text-sm font-medium underline"
-                          >
-                            Forgot Patient ID?
-                          </button>
-                        </div>
-                      </div>
+                      )}
 
                       {/* Forgot Patient ID Form */}
                       {showForgotPatientId && (
@@ -4466,11 +4528,11 @@ const PatientPortal = () => {
                               </div>
                               <div>
                                 <label className="block text-sm font-medium mb-1">
-                                  Registered Email *
+                                  Registered Email
                                 </label>
                                 <Input
                                   type="email"
-                                  placeholder="Enter your registered email"
+                                  placeholder="Optional"
                                   value={forgotIdForm.email}
                                   onChange={(e) =>
                                     setForgotIdForm({
@@ -4640,7 +4702,7 @@ const PatientPortal = () => {
                           onValueChange={(value) =>
                             patientForm.setValue(
                               "sex",
-                              value as "male" | "female" | "prefer_not_to_say"
+                              value as "male" | "female" | "prefer_not_to_say",
                             )
                           }
                         >
@@ -4700,7 +4762,7 @@ const PatientPortal = () => {
                                 | "married"
                                 | "divorced"
                                 | "widowed"
-                                | "prefer_not_to_say"
+                                | "prefer_not_to_say",
                             )
                           }
                         >
@@ -5016,7 +5078,11 @@ const PatientPortal = () => {
                     (currentStep === 4 &&
                       isExistingPatient === false &&
                       !termsAccepted) ||
-                    (currentStep === 4 && isExistingPatient === null)
+                    (currentStep === 4 && isExistingPatient === null) ||
+                    (currentStep === 5 &&
+                      isExistingPatient &&
+                      showForgotPatientId &&
+                      !forgotIdAttempted)
                   }
                 >
                   Next
@@ -5574,9 +5640,8 @@ const PatientPortal = () => {
                         return;
                       }
 
-                      const validation = await validatePatientId(
-                        medCertSearchQuery
-                      );
+                      const validation =
+                        await validatePatientId(medCertSearchQuery);
                       if (!validation.isValid) {
                         toast({
                           title: "Validation Error",
@@ -5805,7 +5870,7 @@ const PatientPortal = () => {
                         if (file) {
                           setPrescriptionIdFront(file);
                           setPrescriptionIdFrontPreview(
-                            URL.createObjectURL(file)
+                            URL.createObjectURL(file),
                           );
                         }
                       }}
@@ -5835,7 +5900,7 @@ const PatientPortal = () => {
                         if (file) {
                           setPrescriptionIdBack(file);
                           setPrescriptionIdBackPreview(
-                            URL.createObjectURL(file)
+                            URL.createObjectURL(file),
                           );
                         }
                       }}
@@ -5981,7 +6046,7 @@ const PatientPortal = () => {
                         return;
                       }
                       const validation = await validatePatientId(
-                        prescriptionSearchQuery
+                        prescriptionSearchQuery,
                       );
                       if (!validation.isValid) {
                         toast({

@@ -68,10 +68,12 @@ const UserSettings = () => {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
 
   const [loading, setLoading] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Parse the name field to get first and last names, but prefer existing separate fields
   useEffect(() => {
-    if (currentUser) {
+    // Don't reset form data if we're in the middle of an update
+    if (currentUser && !isUpdating) {
       setProfileData((prev) => ({
         ...prev,
         firstName:
@@ -88,7 +90,7 @@ const UserSettings = () => {
         phone: currentUser.phone || "",
       }));
     }
-  }, [currentUser]);
+  }, [currentUser, isUpdating]);
 
   // Load 2FA status
   useEffect(() => {
@@ -111,7 +113,7 @@ const UserSettings = () => {
     const loadNotificationPreferences = async () => {
       try {
         const response = await axios.get(
-          `/users/${currentUser?.id}/preferences/`
+          `/users/${currentUser?.id}/preferences/`,
         );
         if (response.data.success && response.data.notifications) {
           setNotificationSettings(response.data.notifications);
@@ -157,6 +159,7 @@ const UserSettings = () => {
     }
 
     setLoading(true);
+    setIsUpdating(true);
     try {
       const response = await axios.patch(`/users/${currentUser.id}/`, {
         first_name: profileData.firstName,
@@ -165,19 +168,26 @@ const UserSettings = () => {
         phone: profileData.phone,
       });
 
-      // Construct the full name for display
-      const fullName =
-        `${profileData.firstName} ${profileData.lastName}`.trim();
+      console.log("[UserSettings] Backend response:", response.data);
 
-      // Update current user in context
-      setCurrentUser({
-        ...currentUser,
-        name: fullName,
-        first_name: profileData.firstName,
-        last_name: profileData.lastName,
-        email: profileData.email,
-        phone: profileData.phone,
-      });
+      // Backend returns data in response.data.data
+      if (response.data.success && response.data.data) {
+        const backendUser = response.data.data;
+
+        // Update current user in context with backend response
+        setCurrentUser({
+          ...currentUser,
+          ...backendUser,
+        });
+
+        // Update profile data to match backend
+        setProfileData({
+          firstName: backendUser.first_name || "",
+          lastName: backendUser.last_name || "",
+          email: backendUser.email || "",
+          phone: backendUser.phone || "",
+        });
+      }
 
       // Disable editing mode after successful save
       setIsEditingProfile(false);
@@ -195,6 +205,10 @@ const UserSettings = () => {
       });
     } finally {
       setLoading(false);
+      // Delay resetting isUpdating to prevent useEffect from running immediately
+      setTimeout(() => {
+        setIsUpdating(false);
+      }, 500);
     }
   };
 
@@ -280,7 +294,7 @@ const UserSettings = () => {
       toast({
         title: "Weak Password",
         description: `Password must contain: ${missingRequirements.join(
-          ", "
+          ", ",
         )}.`,
         variant: "destructive",
       });

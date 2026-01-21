@@ -66,6 +66,9 @@ interface MedicineRecord {
   days_until_expiry?: number;
   months_until_expiry?: number;
   alert_status?: string;
+  stock_quantity?: number;
+  low_stock_threshold?: number;
+  is_low_stock?: boolean;
 }
 
 interface MedicineTransaction {
@@ -109,6 +112,8 @@ const Inventory = () => {
     category: "tablet", // Default dosage form for medicines
     expiration_date: "",
     alert_months_before: 3, // Default to 3 months
+    stock_quantity: 0,
+    low_stock_threshold: 10, // Default low stock threshold
   });
 
   // Check permissions - allow doctors and admins by default, others need permission
@@ -121,7 +126,7 @@ const Inventory = () => {
   console.log("[MEDICINE RECORDS FRONTEND] Current user:", currentUser);
   console.log(
     "[MEDICINE RECORDS FRONTEND] Can manage medicines:",
-    canManageMedicines
+    canManageMedicines,
   );
   console.log("[MEDICINE RECORDS FRONTEND] Axios defaults:", {
     baseURL: axios.defaults.baseURL,
@@ -132,27 +137,51 @@ const Inventory = () => {
   useEffect(() => {
     if (!currentUser) {
       console.log(
-        "[MEDICINE RECORDS FRONTEND] No current user, might need to login"
+        "[MEDICINE RECORDS FRONTEND] No current user, might need to login",
       );
       return;
     }
     if (!canManageMedicines) {
       console.log(
-        "[MEDICINE RECORDS FRONTEND] User doesn't have medicine management permissions"
+        "[MEDICINE RECORDS FRONTEND] User doesn't have medicine management permissions",
       );
       return;
     }
     console.log(
-      "[MEDICINE RECORDS FRONTEND] User authenticated, fetching data"
+      "[MEDICINE RECORDS FRONTEND] User authenticated, fetching data",
     );
     fetchMedicineRecords();
     fetchTransactions();
   }, [currentUser, canManageMedicines]);
+
+  // Check for expiring medicines and create notifications
+  useEffect(() => {
+    if (medicineRecords.length > 0) {
+      const expiringMedicines = medicineRecords.filter(
+        (med) => med.is_near_expiration && !med.is_expired,
+      );
+      const expiredMedicines = medicineRecords.filter((med) => med.is_expired);
+
+      // Show toast notifications for critical items
+      if (expiredMedicines.length > 0) {
+        toast({
+          title: "⚠️ Expired Medicines",
+          description: `${expiredMedicines.length} medicine(s) have expired and need attention`,
+          variant: "destructive",
+        });
+      } else if (expiringMedicines.length > 0) {
+        toast({
+          title: "📅 Expiration Alert",
+          description: `${expiringMedicines.length} medicine(s) are nearing expiration`,
+        });
+      }
+    }
+  }, [medicineRecords, toast]);
   const fetchMedicineRecords = async () => {
     // Don't fetch if user doesn't have permission
     if (!canManageMedicines) {
       console.log(
-        "[MEDICINE RECORDS FRONTEND] No permission to fetch medicine records"
+        "[MEDICINE RECORDS FRONTEND] No permission to fetch medicine records",
       );
       return;
     }
@@ -182,7 +211,7 @@ const Inventory = () => {
     // Don't fetch if user doesn't have permission
     if (!canManageMedicines) {
       console.log(
-        "[MEDICINE RECORDS FRONTEND] No permission to fetch transactions"
+        "[MEDICINE RECORDS FRONTEND] No permission to fetch transactions",
       );
       return;
     }
@@ -322,6 +351,8 @@ const Inventory = () => {
       category: "tablet",
       expiration_date: "",
       alert_months_before: 3,
+      stock_quantity: 0,
+      low_stock_threshold: 10,
     });
     setSelectedItem(null);
     setIsSubmitting(false);
@@ -347,6 +378,8 @@ const Inventory = () => {
       category: item.category,
       expiration_date: item.expiration_date || "",
       alert_months_before: item.alert_months_before || 3,
+      stock_quantity: item.stock_quantity || 0,
+      low_stock_threshold: item.low_stock_threshold || 10,
     });
     setIsEditModalOpen(true);
   };
@@ -443,7 +476,7 @@ const Inventory = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -461,13 +494,26 @@ const Inventory = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
+                <p className="text-sm font-medium text-gray-600">Low Stock</p>
+                <p className="text-2xl font-bold text-orange-600">
+                  {medicineRecords.filter((item) => item.is_low_stock).length}
+                </p>
+              </div>
+              <AlertTriangle className="h-8 w-8 text-orange-500" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm font-medium text-gray-600">
                   Near Expiration
                 </p>
                 <p className="text-2xl font-bold text-amber-600">
                   {
                     medicineRecords.filter(
-                      (item) => item.is_near_expiration && !item.is_expired
+                      (item) => item.is_near_expiration && !item.is_expired,
                     ).length
                   }
                 </p>
@@ -573,6 +619,7 @@ const Inventory = () => {
                       <ArrowUpDown className="h-4 w-4" />
                     </div>
                   </TableHead>
+                  <TableHead>Stock Qty</TableHead>
                   <TableHead>Expiration Date</TableHead>
                   <TableHead>Alert Status</TableHead>
                   <TableHead>Description</TableHead>
@@ -606,19 +653,32 @@ const Inventory = () => {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
+                        <span
+                          className={`${
+                            item.is_low_stock
+                              ? "text-orange-600 font-semibold"
+                              : "text-gray-600"
+                          }`}
+                        >
+                          {item.stock_quantity ?? "N/A"}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
                         {item.expiration_date ? (
                           <span
                             className={`${
                               item.is_expired
                                 ? "text-red-600 font-semibold"
                                 : item.is_near_expiration
-                                ? "text-amber-600 font-semibold"
-                                : "text-gray-600"
+                                  ? "text-amber-600 font-semibold"
+                                  : "text-gray-600"
                             }`}
                           >
                             {format(
                               new Date(item.expiration_date),
-                              "MMM dd, yyyy"
+                              "MMM dd, yyyy",
                             )}
                           </span>
                         ) : (
