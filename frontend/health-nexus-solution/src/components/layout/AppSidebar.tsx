@@ -1,37 +1,37 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-    Sidebar,
-    SidebarContent,
-    SidebarGroup,
-    SidebarGroupContent,
-    SidebarGroupLabel,
-    SidebarHeader,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    useSidebar,
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { useBranding } from "@/contexts/BrandingContext";
 import { useClinic } from "@/contexts/ClinicContext";
 import { cn } from "@/lib/utils";
 import {
-    Calendar,
-    ClipboardList,
-    Database,
-    FileCheck,
-    FileText,
-    Home,
-    Image,
-    Package,
-    Settings,
-    Shield,
-    Users
+  Calendar,
+  ClipboardList,
+  Database,
+  FileCheck,
+  FileText,
+  Home,
+  Image,
+  Package,
+  Settings,
+  Shield,
+  Users,
 } from "lucide-react";
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -143,10 +143,10 @@ export const AppSidebar = () => {
         ? { title: "Permission Management", icon: Shield, path: "/permissions" }
         : null,
 
-      // SQL Query Tester - Only show for admin and superadmin
-      ["admin", "superadmin"].includes(currentUser.role)
-        ? { title: "SQL Query Tester", icon: Database, path: "/sql-query" }
-        : null,
+      // SQL Query Tester - Hidden for now
+      // ["admin", "superadmin"].includes(currentUser.role)
+      //   ? { title: "SQL Query Tester", icon: Database, path: "/sql-query" }
+      //   : null,
 
       // Audit Logs - Show if user has permission
       currentUser.can_view_audit_logs
@@ -196,7 +196,7 @@ export const AppSidebar = () => {
           to="/user-settings"
           className={cn(
             "flex items-center gap-2 cursor-pointer hover:bg-gray-100 rounded p-2 transition-all duration-200",
-            open ? "w-fit mt-0" : "w-12 h-12 justify-center mt-2"
+            open ? "w-fit mt-0" : "w-12 h-12 justify-center mt-2",
           )}
           title="Go to Settings"
         >
@@ -209,7 +209,7 @@ export const AppSidebar = () => {
           <div
             className={cn(
               "transition-all duration-200",
-              open ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden"
+              open ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden",
             )}
           >
             <div className="font-medium">{currentUser.name}</div>
@@ -226,7 +226,7 @@ export const AppSidebar = () => {
           <SidebarGroupLabel
             className={cn(
               "transition-all duration-200",
-              open ? "opacity-100 h-auto" : "opacity-0 h-0 overflow-hidden"
+              open ? "opacity-100 h-auto" : "opacity-0 h-0 overflow-hidden",
             )}
           >
             Navigation
@@ -234,7 +234,7 @@ export const AppSidebar = () => {
           <SidebarGroupContent
             className={cn(
               "transition-all duration-200",
-              open ? "mt-0" : "mt-2"
+              open ? "mt-0" : "mt-2",
             )}
           >
             <SidebarMenu>
@@ -244,7 +244,7 @@ export const AppSidebar = () => {
                     key={item.title}
                     className={cn(
                       "transition-all duration-200",
-                      !open && "mb-2"
+                      !open && "mb-2",
                     )}
                   >
                     {/* When sidebar is collapsed, show dropdown menu */}
@@ -305,7 +305,7 @@ export const AppSidebar = () => {
                                       "flex items-center gap-2 hover:text-white",
                                       location.pathname === sub.path
                                         ? "text-white"
-                                        : ""
+                                        : "",
                                     )}
                                     style={{
                                       backgroundColor:
@@ -347,7 +347,7 @@ export const AppSidebar = () => {
                     key={item.title}
                     className={cn(
                       "transition-all duration-200",
-                      !open && "mb-2"
+                      !open && "mb-2",
                     )}
                   >
                     <SidebarMenuButton asChild>
@@ -356,7 +356,7 @@ export const AppSidebar = () => {
                         className={cn(
                           "flex items-center gap-2 hover:text-white w-full transition-all duration-200",
                           location.pathname === item.path ? "text-white" : "",
-                          !open && "justify-center h-12"
+                          !open && "justify-center h-12",
                         )}
                         style={{
                           backgroundColor:
@@ -387,7 +387,7 @@ export const AppSidebar = () => {
                             "transition-all duration-200",
                             open
                               ? "opacity-100 w-auto"
-                              : "opacity-0 w-0 overflow-hidden"
+                              : "opacity-0 w-0 overflow-hidden",
                           )}
                         >
                           {item.title}
@@ -395,7 +395,7 @@ export const AppSidebar = () => {
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                )
+                ),
               )}
             </SidebarMenu>
           </SidebarGroupContent>
