@@ -54,7 +54,7 @@ const Login = () => {
 
   // Clear error state when user starts typing
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
+    setEmail(e.target.value.replace(/\s/g, ''));
     if (hasLoginError) {
       setHasLoginError(false);
       setLoginError("");
@@ -62,7 +62,7 @@ const Login = () => {
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
+    setPassword(e.target.value.replace(/\s/g, ''));
     if (hasLoginError) {
       setHasLoginError(false);
       setLoginError("");
@@ -78,7 +78,7 @@ const Login = () => {
     try {
       // Step 1: Submit credentials to session-login endpoint
       const response = await axios.post(`${API_BASE_URL}/auth/session-login/`, {
-        email,
+        email: email.toLowerCase(),
         password,
       });
       const result = response.data;
