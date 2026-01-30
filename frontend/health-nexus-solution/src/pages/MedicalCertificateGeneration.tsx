@@ -1,26 +1,26 @@
 import { Button } from "@/components/ui/button";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ENV } from "@/config/env";
 import { useClinic } from "@/contexts/ClinicContext";
 import {
-    generateMedicalCertificateHTML,
-    MedicalCertificateTemplateData,
+  generateMedicalCertificateHTML,
+  MedicalCertificateTemplateData,
 } from "@/utils/medicalCertificateTemplate";
 import axios from "axios";
 import { ArrowLeft, Eye, FileText, Mail, Save } from "lucide-react";
@@ -126,10 +126,9 @@ const MedicalCertificateGeneration: React.FC = () => {
   const getLogoUrl = (logo: string) => {
     if (!logo) return null;
     if (logo.startsWith("http")) return logo;
-    const baseUrl = ENV.API_URL.replace('/api', '');
+    const baseUrl = ENV.API_URL.replace("/api", "");
     if (logo.startsWith("/media/")) return `${baseUrl}${logo}`;
-    if (logo.startsWith("branding/"))
-      return `${baseUrl}/media/${logo}`;
+    if (logo.startsWith("branding/")) return `${baseUrl}/media/${logo}`;
     return `${baseUrl}${logo}`;
   };
 
@@ -276,7 +275,7 @@ const MedicalCertificateGeneration: React.FC = () => {
 
       const response = await axios.post(
         `/medical-certificates/${formData.requestId}/approve/`,
-        payload
+        payload,
       );
 
       toast.success("Medical certificate has been saved and sent via email!");
@@ -376,18 +375,23 @@ const MedicalCertificateGeneration: React.FC = () => {
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-3 sm:p-4 md:p-6 max-w-4xl mx-auto">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 sm:mb-6">
         <Button
           variant="outline"
           onClick={handleBack}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 text-xs sm:text-sm"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Medical Certificates
+          <span className="hidden sm:inline">Back to Medical Certificates</span>
+          <span className="sm:hidden">Back</span>
         </Button>
-        <div className="flex space-x-2">
-          <Button onClick={handleUseTemplate} variant="outline">
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+          <Button
+            onClick={handleUseTemplate}
+            variant="outline"
+            className="text-xs sm:text-sm w-full sm:w-auto"
+          >
             <FileText className="h-4 w-4 mr-2" />
             Use Template
           </Button>
@@ -397,6 +401,7 @@ const MedicalCertificateGeneration: React.FC = () => {
               !formData.diagnosis.trim() || !formData.recommendations.trim()
             }
             variant="outline"
+            className="text-xs sm:text-sm w-full sm:w-auto"
           >
             <Eye className="h-4 w-4 mr-2" />
             Preview
@@ -405,16 +410,20 @@ const MedicalCertificateGeneration: React.FC = () => {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Generate Medical Certificate</CardTitle>
-          <CardDescription>
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="text-lg sm:text-xl">
+            Generate Medical Certificate
+          </CardTitle>
+          <CardDescription className="text-xs sm:text-sm">
             Create a medical certificate for {formData.patientName}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
+        <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <Label htmlFor="patientName">Patient Name</Label>
+              <Label htmlFor="patientName" className="text-xs sm:text-sm">
+                Patient Name
+              </Label>
               <Input
                 id="patientName"
                 value={formData.patientName}
@@ -425,10 +434,13 @@ const MedicalCertificateGeneration: React.FC = () => {
                   }))
                 }
                 disabled
+                className="text-xs sm:text-sm"
               />
             </div>
             <div>
-              <Label htmlFor="patientEmail">Patient Email</Label>
+              <Label htmlFor="patientEmail" className="text-xs sm:text-sm">
+                Patient Email
+              </Label>
               <Input
                 id="patientEmail"
                 value={formData.patientEmail}
@@ -439,10 +451,13 @@ const MedicalCertificateGeneration: React.FC = () => {
                   }))
                 }
                 disabled
+                className="text-xs sm:text-sm"
               />
             </div>
             <div>
-              <Label htmlFor="patientPhone">Patient Phone</Label>
+              <Label htmlFor="patientPhone" className="text-xs sm:text-sm">
+                Patient Phone
+              </Label>
               <Input
                 id="patientPhone"
                 value={formData.patientPhone}
@@ -453,10 +468,13 @@ const MedicalCertificateGeneration: React.FC = () => {
                   }))
                 }
                 disabled
+                className="text-xs sm:text-sm"
               />
             </div>
             <div>
-              <Label htmlFor="patientDob">Date of Birth</Label>
+              <Label htmlFor="patientDob" className="text-xs sm:text-sm">
+                Date of Birth
+              </Label>
               <Input
                 id="patientDob"
                 value={formData.patientDob}
@@ -467,6 +485,7 @@ const MedicalCertificateGeneration: React.FC = () => {
                   }))
                 }
                 disabled
+                className="text-xs sm:text-sm"
               />
             </div>
           </div>
@@ -687,7 +706,7 @@ const MedicalCertificateGeneration: React.FC = () => {
             />
           </div>
 
-          <div className="flex justify-end space-x-2">
+          <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2">
             <Button
               onClick={handleSaveOnly}
               disabled={
@@ -696,6 +715,7 @@ const MedicalCertificateGeneration: React.FC = () => {
                 !formData.recommendations.trim()
               }
               variant="outline"
+              className="w-full sm:w-auto text-xs sm:text-sm"
             >
               <Save className="h-4 w-4 mr-2" />
               {isSaving ? "Saving..." : "Save Draft"}
@@ -705,6 +725,7 @@ const MedicalCertificateGeneration: React.FC = () => {
               disabled={
                 !formData.diagnosis.trim() || !formData.recommendations.trim()
               }
+              className="w-full sm:w-auto text-xs sm:text-sm"
             >
               <Eye className="h-4 w-4 mr-2" />
               Preview Certificate

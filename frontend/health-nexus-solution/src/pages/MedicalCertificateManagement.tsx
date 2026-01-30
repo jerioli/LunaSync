@@ -1,4 +1,10 @@
 import MedicalCertificateGenerator from "@/components/patients/MedicalCertificateGenerator";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -224,6 +230,9 @@ const MedicalCertificateManagement: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // Accordion state for mobile view
+  const [expandedRow, setExpandedRow] = useState<number | null>(null);
+
   const [certificateFormData, setCertificateFormData] =
     useState<CertificateFormData>({
       hospitalName: "HealthNexus Medical Center",
@@ -241,7 +250,7 @@ const MedicalCertificateManagement: React.FC = () => {
       restFromDate: format(new Date(), "yyyy-MM-dd"),
       restToDate: format(
         new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        "yyyy-MM-dd"
+        "yyyy-MM-dd",
       ),
       fitForWork: "unfit",
       limitations: "",
@@ -340,11 +349,11 @@ const MedicalCertificateManagement: React.FC = () => {
         console.log("ID verification fields in first request:");
         console.log(
           "- id_verification_front:",
-          requestsData[0].id_verification_front
+          requestsData[0].id_verification_front,
         );
         console.log(
           "- id_verification_back:",
-          requestsData[0].id_verification_back
+          requestsData[0].id_verification_back,
         );
       } else {
         console.log("No requests found in response");
@@ -360,7 +369,7 @@ const MedicalCertificateManagement: React.FC = () => {
         setRequests([]); // Set empty array on error
         if (error.code === "ECONNABORTED") {
           toast.error(
-            "Request timeout. Please check your internet connection and try again."
+            "Request timeout. Please check your internet connection and try again.",
           );
         } else {
           toast.error("Failed to load medical certificate requests");
@@ -382,7 +391,7 @@ const MedicalCertificateManagement: React.FC = () => {
   };
 
   const sortData = (
-    data: MedicalCertificateRequest[]
+    data: MedicalCertificateRequest[],
   ): MedicalCertificateRequest[] => {
     return [...data].sort((a, b) => {
       let aValue: any = a[sortField];
@@ -433,7 +442,7 @@ const MedicalCertificateManagement: React.FC = () => {
         request.delivery_method === filterDeliveryMethod;
 
       return matchesSearch && matchesStatus && matchesDeliveryMethod;
-    })
+    }),
   );
 
   // Pagination logic
@@ -443,7 +452,7 @@ const MedicalCertificateManagement: React.FC = () => {
   const endIndex = startIndex + itemsPerPage;
   const paginatedRequests = filteredAndSortedRequests.slice(
     startIndex,
-    endIndex
+    endIndex,
   );
 
   // Reset current page when filters change
@@ -482,7 +491,7 @@ const MedicalCertificateManagement: React.FC = () => {
           response.data.find(
             (p: any) =>
               p.name.toLowerCase() === patientName.toLowerCase() &&
-              p.date_of_birth === dateOfBirth
+              p.date_of_birth === dateOfBirth,
           ) || response.data[0];
 
         return patient;
@@ -504,13 +513,13 @@ const MedicalCertificateManagement: React.FC = () => {
   };
 
   const handleCreateCertificate = async (
-    request: MedicalCertificateRequest
+    request: MedicalCertificateRequest,
   ) => {
     try {
       // Fetch full patient data
       const patientData = await fetchPatientData(
         request.patient_name,
-        request.date_of_birth
+        request.date_of_birth,
       );
 
       setCurrentPatient(patientData);
@@ -536,7 +545,7 @@ const MedicalCertificateManagement: React.FC = () => {
           certificate_content: certificate.content,
           certificate_html: certificate.content,
           doctor_notes: certificate.data.doctorNotes || "",
-        }
+        },
       );
 
       // Send email with the medical certificate
@@ -556,10 +565,10 @@ const MedicalCertificateManagement: React.FC = () => {
             certificate.data.fitForWork === "fit"
               ? "Fit for work"
               : certificate.data.fitForWork === "unfit"
-              ? "Unfit for work"
-              : certificate.data.fitForWork === "limited"
-              ? "Fit with limitations"
-              : "Fit for work",
+                ? "Unfit for work"
+                : certificate.data.fitForWork === "limited"
+                  ? "Fit with limitations"
+                  : "Fit for work",
           patient_dob: selectedRequest.date_of_birth,
         };
 
@@ -568,14 +577,14 @@ const MedicalCertificateManagement: React.FC = () => {
         // Use the correct medical certificate email endpoint
         await axiosInstance.post(
           "/medical-documents/send-medical-certificate-email/",
-          emailData
+          emailData,
         );
 
         toast.success("Certificate generated and email sent successfully!");
       } catch (emailError) {
         console.error("Email sending failed:", emailError);
         toast.success(
-          "Certificate generated successfully, but email sending failed"
+          "Certificate generated successfully, but email sending failed",
         );
         toast.error("Please send the certificate manually via email");
       }
@@ -630,7 +639,7 @@ const MedicalCertificateManagement: React.FC = () => {
           certificate_content: certificateHTML,
           certificate_html: certificateHTML, // Add HTML version for email
           doctor_notes: doctorNotes,
-        }
+        },
       );
 
       // Send email with the medical certificate
@@ -650,10 +659,10 @@ const MedicalCertificateManagement: React.FC = () => {
             certificateFormData.fitForWork === "fit"
               ? "Fit for work"
               : certificateFormData.fitForWork === "unfit"
-              ? "Unfit for work"
-              : certificateFormData.fitForWork === "limited"
-              ? "Fit with limitations"
-              : "Fit for work",
+                ? "Unfit for work"
+                : certificateFormData.fitForWork === "limited"
+                  ? "Fit with limitations"
+                  : "Fit for work",
           patient_dob: selectedRequest.date_of_birth,
         };
 
@@ -662,14 +671,14 @@ const MedicalCertificateManagement: React.FC = () => {
         // Use the correct medical certificate email endpoint
         await axiosInstance.post(
           "/medical-documents/send-medical-certificate-email/",
-          emailData
+          emailData,
         );
 
         toast.success("Certificate generated and email sent successfully!");
       } catch (emailError) {
         console.error("Email sending failed:", emailError);
         toast.success(
-          "Certificate generated successfully, but email sending failed"
+          "Certificate generated successfully, but email sending failed",
         );
         toast.error("Please send the certificate manually via email");
       }
@@ -775,7 +784,7 @@ const MedicalCertificateManagement: React.FC = () => {
 
       const response = await axiosInstance.post(
         `/medical-certificates/${requestId}/approve/`,
-        payload
+        payload,
       );
 
       toast.success(response.data.message);
@@ -832,7 +841,7 @@ const MedicalCertificateManagement: React.FC = () => {
 
   // Helper function to check if a patient is soft-deleted based on name and DOB
   const isRequestPatientSoftDeleted = (
-    request: MedicalCertificateRequest
+    request: MedicalCertificateRequest,
   ): boolean => {
     if (!Array.isArray(patients) || patients.length === 0) {
       return false;
@@ -855,23 +864,23 @@ const MedicalCertificateManagement: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-4 md:space-y-6 p-3 md:p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold tracking-tight">
             Medical Certificate Management
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm md:text-base text-muted-foreground">
             Manage medical certificate requests from patients
           </p>
         </div>
       </div>
 
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardHeader className="p-3 md:p-6">
+          <div className="flex flex-col gap-3">
             <div>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{" "}
                 {totalItems} medical certificate requests
                 {sortField && (
@@ -882,19 +891,19 @@ const MedicalCertificateManagement: React.FC = () => {
                 )}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="relative w-64">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <div className="relative flex-1 sm:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search patients, emails, or types..."
-                  className="pl-8"
+                  className="pl-8 text-xs sm:text-sm"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
 
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full sm:w-[180px] text-xs sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -913,7 +922,7 @@ const MedicalCertificateManagement: React.FC = () => {
                 value={filterDeliveryMethod}
                 onValueChange={setFilterDeliveryMethod}
               >
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full sm:w-[180px] text-xs sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -931,6 +940,7 @@ const MedicalCertificateManagement: React.FC = () => {
                   fetchRequests();
                 }}
                 disabled={loading}
+                className="text-xs sm:text-sm"
               >
                 {loading ? "Loading..." : "Refresh"}
               </Button>
@@ -943,6 +953,7 @@ const MedicalCertificateManagement: React.FC = () => {
                 <Button
                   variant="outline"
                   size="sm"
+                  className="text-xs sm:text-sm"
                   onClick={() => {
                     setSearchQuery("");
                     setFilterStatus("all");
@@ -989,481 +1000,586 @@ const MedicalCertificateManagement: React.FC = () => {
               </div>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
-                      onClick={() => handleSort("patient_name")}
-                    >
-                      Patient Name
-                      {renderSortIcon("patient_name")}
-                    </Button>
-                  </TableHead>
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
-                      onClick={() => handleSort("request_type")}
-                    >
-                      Request Type
-                      {renderSortIcon("request_type")}
-                    </Button>
-                  </TableHead>
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
-                      onClick={() => handleSort("delivery_method")}
-                    >
-                      Delivery Method
-                      {renderSortIcon("delivery_method")}
-                    </Button>
-                  </TableHead>
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
-                      onClick={() => handleSort("email")}
-                    >
-                      Email
-                      {renderSortIcon("email")}
-                    </Button>
-                  </TableHead>
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
-                      onClick={() => handleSort("status")}
-                    >
-                      Status
-                      {renderSortIcon("status")}
-                    </Button>
-                  </TableHead>
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
-                      onClick={() => handleSort("requested_at")}
-                    >
-                      Requested At
-                      {renderSortIcon("requested_at")}
-                    </Button>
-                  </TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredRequests.map((request) => {
-                  const isPatientDeleted = isRequestPatientSoftDeleted(request);
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>
+                      <Button
+                        variant="ghost"
+                        className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
+                        onClick={() => handleSort("patient_name")}
+                      >
+                        Patient Name
+                        {renderSortIcon("patient_name")}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      <Button
+                        variant="ghost"
+                        className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
+                        onClick={() => handleSort("request_type")}
+                      >
+                        Request Type
+                        {renderSortIcon("request_type")}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="hidden lg:table-cell">
+                      <Button
+                        variant="ghost"
+                        className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
+                        onClick={() => handleSort("delivery_method")}
+                      >
+                        Delivery Method
+                        {renderSortIcon("delivery_method")}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="hidden xl:table-cell">
+                      <Button
+                        variant="ghost"
+                        className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
+                        onClick={() => handleSort("email")}
+                      >
+                        Email
+                        {renderSortIcon("email")}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      <Button
+                        variant="ghost"
+                        className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
+                        onClick={() => handleSort("status")}
+                      >
+                        Status
+                        {renderSortIcon("status")}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      <Button
+                        variant="ghost"
+                        className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
+                        onClick={() => handleSort("requested_at")}
+                      >
+                        Requested At
+                        {renderSortIcon("requested_at")}
+                      </Button>
+                    </TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredRequests.map((request, index) => {
+                    const isPatientDeleted =
+                      isRequestPatientSoftDeleted(request);
 
-                  return (
-                    <TableRow key={request.id}>
-                      <TableCell className="font-medium">
-                        {request.patient_name}
-                        {isPatientDeleted && (
-                          <span className="ml-2 text-xs text-red-600 font-normal">
-                            (Patient Deleted)
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {getRequestTypeLabel(request.request_type)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            request.delivery_method === "pickup"
-                              ? "default"
-                              : "secondary"
-                          }
-                        >
-                          {request.delivery_method === "pickup"
-                            ? "Pickup"
-                            : "Email"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{request.email}</TableCell>
-                      <TableCell>{getStatusBadge(request.status)}</TableCell>
-                      <TableCell>
-                        {new Date(request.requested_at).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Dialog>
-                            <DialogTrigger asChild>
+                    return (
+                      <React.Fragment key={request.id}>
+                        <TableRow className="md:hover:bg-muted/50">
+                          <TableCell className="font-medium">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="text-xs sm:text-sm">
+                                  {request.patient_name}
+                                </div>
+                                {isPatientDeleted && (
+                                  <span className="text-xs text-red-600 font-normal">
+                                    (Patient Deleted)
+                                  </span>
+                                )}
+                                {/* Mobile: Show status below name */}
+                                <div className="sm:hidden mt-1">
+                                  {getStatusBadge(request.status)}
+                                </div>
+                              </div>
+                              {/* Mobile expand button */}
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="sm"
-                                onClick={() => setSelectedRequest(request)}
-                                disabled={isPatientDeleted}
-                                title={
-                                  isPatientDeleted
-                                    ? "Cannot view details - patient has been deleted"
-                                    : "View request details"
+                                className="md:hidden h-8 w-8 p-0"
+                                onClick={() =>
+                                  setExpandedRow(
+                                    expandedRow === index ? null : index,
+                                  )
                                 }
                               >
-                                <Eye className="h-4 w-4 mr-1" />
-                                View
+                                <ChevronDown
+                                  className={`h-4 w-4 transition-transform ${expandedRow === index ? "rotate-180" : ""}`}
+                                />
                               </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-2xl max-h-[70vh] overflow-y-auto">
-                              <DialogHeader>
-                                <DialogTitle>Request Details</DialogTitle>
-                              </DialogHeader>
-                              {selectedRequest && (
-                                <div className="space-y-4">
-                                  <div className="grid grid-cols-2 gap-3 text-sm">
-                                    <div>
-                                      <Label className="font-medium text-xs text-muted-foreground">
-                                        Patient
-                                      </Label>
-                                      <p className="font-medium">
-                                        {selectedRequest.patient_name}
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <Label className="font-medium text-xs text-muted-foreground">
-                                        Type
-                                      </Label>
-                                      <p className="font-medium">
-                                        {getRequestTypeLabel(
-                                          selectedRequest.request_type
-                                        )}
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <Label className="font-medium text-xs text-muted-foreground">
-                                        DOB
-                                      </Label>
-                                      <p className="text-sm">
-                                        {selectedRequest.date_of_birth}
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <Label className="font-medium text-xs text-muted-foreground">
-                                        Email
-                                      </Label>
-                                      <p className="text-sm">
-                                        {selectedRequest.email}
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <Label className="font-medium text-xs text-muted-foreground">
-                                        Phone
-                                      </Label>
-                                      <p className="text-sm">
-                                        {selectedRequest.phone}
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <Label className="font-medium text-xs text-muted-foreground">
-                                        Status
-                                      </Label>
-                                      <div className="mt-1">
-                                        {getStatusBadge(selectedRequest.status)}
-                                      </div>
-                                    </div>
-                                    <div>
-                                      <Label className="font-medium text-xs text-muted-foreground">
-                                        Delivery Method
-                                      </Label>
-                                      <div className="mt-1">
-                                        <Badge
-                                          variant={
-                                            selectedRequest.delivery_method ===
-                                            "pickup"
-                                              ? "default"
-                                              : "secondary"
-                                          }
-                                        >
-                                          {selectedRequest.delivery_method ===
-                                          "pickup"
-                                            ? "Pickup from Clinic"
-                                            : "Send via Email"}
-                                        </Badge>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {selectedRequest.additional_info && (
-                                    <div>
-                                      <Label className="font-medium text-xs text-muted-foreground">
-                                        Additional Info
-                                      </Label>
-                                      <p className="text-sm mt-1 p-2 bg-gray-50 rounded text-muted-foreground">
-                                        {selectedRequest.additional_info}
-                                      </p>
-                                    </div>
-                                  )}
-
-                                  {/* Rejection Reason - Show for rejected requests */}
-                                  {selectedRequest.status === "rejected" &&
-                                    selectedRequest.rejection_reason && (
-                                      <div>
-                                        <Label className="font-medium text-xs text-muted-foreground">
-                                          Rejection Reason
-                                        </Label>
-                                        <p className="text-sm mt-1 p-3 bg-red-50 border border-red-200 rounded text-red-700">
-                                          <span className="font-medium">
-                                            Rejected:{" "}
-                                          </span>
-                                          {selectedRequest.rejection_reason}
-                                        </p>
-                                      </div>
-                                    )}
-
-                                  {/* Doctor Notes - Show for doctor approved requests */}
-                                  {selectedRequest.status ===
-                                    "doctor_approved" &&
-                                    selectedRequest.doctor_notes && (
-                                      <div>
-                                        <Label className="font-medium text-xs text-muted-foreground">
-                                          Doctor Notes
-                                        </Label>
-                                        <p className="text-sm mt-1 p-3 bg-blue-50 border border-blue-200 rounded text-blue-700">
-                                          {selectedRequest.doctor_notes}
-                                        </p>
-                                      </div>
-                                    )}
-
-                                  {/* ID Verification Images - Compact version */}
-                                  {(selectedRequest.id_verification_front ||
-                                    selectedRequest.id_verification_back) && (
-                                    <div>
-                                      <Label className="font-medium text-xs text-muted-foreground">
-                                        ID Verification
-                                      </Label>
-                                      <div className="mt-2 flex gap-2">
-                                        {selectedRequest.id_verification_front && (
-                                          <div className="flex-1">
-                                            <p className="text-xs text-gray-500 mb-1">
-                                              Front
-                                            </p>
-                                            <img
-                                              src={getImageUrl(
-                                                selectedRequest.id_verification_front
-                                              )}
-                                              alt="ID Front"
-                                              className="w-full h-20 object-contain rounded border cursor-pointer hover:opacity-80"
-                                              onClick={() =>
-                                                window.open(
-                                                  getImageUrl(
-                                                    selectedRequest.id_verification_front
-                                                  ),
-                                                  "_blank"
-                                                )
-                                              }
-                                              onError={(e) =>
-                                                ((
-                                                  e.target as HTMLImageElement
-                                                ).style.display = "none")
-                                              }
-                                            />
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell text-xs sm:text-sm">
+                            {getRequestTypeLabel(request.request_type)}
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            <Badge
+                              variant={
+                                request.delivery_method === "pickup"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                            >
+                              {request.delivery_method === "pickup"
+                                ? "Pickup"
+                                : "Email"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="hidden xl:table-cell text-xs sm:text-sm">
+                            {request.email}
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            {getStatusBadge(request.status)}
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell text-xs sm:text-sm">
+                            {new Date(
+                              request.requested_at,
+                            ).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setSelectedRequest(request)}
+                                    disabled={isPatientDeleted}
+                                    title={
+                                      isPatientDeleted
+                                        ? "Cannot view details - patient has been deleted"
+                                        : "View request details"
+                                    }
+                                    className="h-7 w-7 sm:h-8 sm:w-auto p-0 sm:px-3"
+                                  >
+                                    <Eye className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
+                                    <span className="hidden sm:inline">
+                                      View
+                                    </span>
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-2xl max-h-[70vh] overflow-y-auto">
+                                  <DialogHeader>
+                                    <DialogTitle>Request Details</DialogTitle>
+                                  </DialogHeader>
+                                  {selectedRequest && (
+                                    <div className="space-y-4">
+                                      <div className="grid grid-cols-2 gap-3 text-sm">
+                                        <div>
+                                          <Label className="font-medium text-xs text-muted-foreground">
+                                            Patient
+                                          </Label>
+                                          <p className="font-medium">
+                                            {selectedRequest.patient_name}
+                                          </p>
+                                        </div>
+                                        <div>
+                                          <Label className="font-medium text-xs text-muted-foreground">
+                                            Type
+                                          </Label>
+                                          <p className="font-medium">
+                                            {getRequestTypeLabel(
+                                              selectedRequest.request_type,
+                                            )}
+                                          </p>
+                                        </div>
+                                        <div>
+                                          <Label className="font-medium text-xs text-muted-foreground">
+                                            DOB
+                                          </Label>
+                                          <p className="text-sm">
+                                            {selectedRequest.date_of_birth}
+                                          </p>
+                                        </div>
+                                        <div>
+                                          <Label className="font-medium text-xs text-muted-foreground">
+                                            Email
+                                          </Label>
+                                          <p className="text-sm">
+                                            {selectedRequest.email}
+                                          </p>
+                                        </div>
+                                        <div>
+                                          <Label className="font-medium text-xs text-muted-foreground">
+                                            Phone
+                                          </Label>
+                                          <p className="text-sm">
+                                            {selectedRequest.phone}
+                                          </p>
+                                        </div>
+                                        <div>
+                                          <Label className="font-medium text-xs text-muted-foreground">
+                                            Status
+                                          </Label>
+                                          <div className="mt-1">
+                                            {getStatusBadge(
+                                              selectedRequest.status,
+                                            )}
                                           </div>
-                                        )}
-                                        {selectedRequest.id_verification_back && (
-                                          <div className="flex-1">
-                                            <p className="text-xs text-gray-500 mb-1">
-                                              Back
-                                            </p>
-                                            <img
-                                              src={getImageUrl(
-                                                selectedRequest.id_verification_back
-                                              )}
-                                              alt="ID Back"
-                                              className="w-full h-20 object-contain rounded border cursor-pointer hover:opacity-80"
-                                              onClick={() =>
-                                                window.open(
-                                                  getImageUrl(
-                                                    selectedRequest.id_verification_back
-                                                  ),
-                                                  "_blank"
-                                                )
+                                        </div>
+                                        <div>
+                                          <Label className="font-medium text-xs text-muted-foreground">
+                                            Delivery Method
+                                          </Label>
+                                          <div className="mt-1">
+                                            <Badge
+                                              variant={
+                                                selectedRequest.delivery_method ===
+                                                "pickup"
+                                                  ? "default"
+                                                  : "secondary"
                                               }
-                                              onError={(e) =>
-                                                ((
-                                                  e.target as HTMLImageElement
-                                                ).style.display = "none")
-                                              }
-                                            />
+                                            >
+                                              {selectedRequest.delivery_method ===
+                                              "pickup"
+                                                ? "Pickup from Clinic"
+                                                : "Send via Email"}
+                                            </Badge>
                                           </div>
-                                        )}
+                                        </div>
                                       </div>
-                                    </div>
-                                  )}
 
-                                  {/* Action buttons - simplified */}
-                                  {(selectedRequest.status === "pending" ||
-                                    selectedRequest.status ===
-                                      "on_process") && (
-                                    <div className="flex flex-col gap-2 pt-3 border-t">
-                                      {isRequestPatientSoftDeleted(
-                                        selectedRequest
-                                      ) && (
-                                        <div className="text-sm text-red-600 font-medium p-2 bg-red-50 border border-red-200 rounded">
-                                          ⚠️ This patient has been deleted.
-                                          Actions are disabled.
+                                      {selectedRequest.additional_info && (
+                                        <div>
+                                          <Label className="font-medium text-xs text-muted-foreground">
+                                            Additional Info
+                                          </Label>
+                                          <p className="text-sm mt-1 p-2 bg-gray-50 rounded text-muted-foreground">
+                                            {selectedRequest.additional_info}
+                                          </p>
                                         </div>
                                       )}
-                                      <div className="flex gap-2">
-                                        {currentUserRole === "receptionist" &&
-                                          selectedRequest.status ===
-                                            "pending" && (
-                                            <>
-                                              <Button
-                                                onClick={() =>
-                                                  handleApprove(
-                                                    selectedRequest.id,
-                                                    "receptionist_approve"
-                                                  )
-                                                }
-                                                className="bg-blue-600 hover:bg-blue-700 flex-1"
-                                                size="sm"
-                                                disabled={isRequestPatientSoftDeleted(
-                                                  selectedRequest
-                                                )}
-                                                title={
-                                                  isRequestPatientSoftDeleted(
-                                                    selectedRequest
-                                                  )
-                                                    ? "Cannot approve - patient has been deleted"
-                                                    : "Approve request"
-                                                }
-                                              >
-                                                <CheckCircle className="h-4 w-4 mr-1" />
-                                                Approve
-                                              </Button>
-                                              <Button
-                                                variant="destructive"
-                                                onClick={() => {
-                                                  handleApprove(
-                                                    selectedRequest.id,
-                                                    "reject"
-                                                  );
-                                                }}
-                                                size="sm"
-                                                className="flex-1"
-                                                disabled={isRequestPatientSoftDeleted(
-                                                  selectedRequest
-                                                )}
-                                                title={
-                                                  isRequestPatientSoftDeleted(
-                                                    selectedRequest
-                                                  )
-                                                    ? "Cannot reject - patient has been deleted"
-                                                    : "Reject request"
-                                                }
-                                              >
-                                                <XCircle className="h-4 w-4 mr-1" />
-                                                Reject
-                                              </Button>
-                                            </>
-                                          )}
 
-                                        {(currentUserRole === "doctor" ||
-                                          currentUserRole === "admin") &&
-                                          selectedRequest.status ===
-                                            "on_process" && (
-                                            <>
-                                              <Button
-                                                onClick={() =>
-                                                  handleCreateCertificate(
-                                                    selectedRequest
-                                                  )
-                                                }
-                                                className="bg-blue-600 hover:bg-blue-700 flex-1"
-                                                size="sm"
-                                                disabled={isRequestPatientSoftDeleted(
-                                                  selectedRequest
-                                                )}
-                                                title={
-                                                  isRequestPatientSoftDeleted(
-                                                    selectedRequest
-                                                  )
-                                                    ? "Cannot generate certificate - patient has been deleted"
-                                                    : "Generate medical certificate"
-                                                }
-                                              >
-                                                <FileText className="h-4 w-4 mr-1" />
-                                                Generate Certificate
-                                              </Button>
-                                              <Button
-                                                variant="destructive"
-                                                onClick={() => {
-                                                  handleApprove(
-                                                    selectedRequest.id,
-                                                    "reject"
-                                                  );
-                                                }}
-                                                size="sm"
-                                                className="flex-1"
-                                                disabled={isRequestPatientSoftDeleted(
-                                                  selectedRequest
-                                                )}
-                                                title={
-                                                  isRequestPatientSoftDeleted(
-                                                    selectedRequest
-                                                  )
-                                                    ? "Cannot reject - patient has been deleted"
-                                                    : "Reject request"
-                                                }
-                                              >
-                                                <XCircle className="h-4 w-4 mr-1" />
-                                                Reject
-                                              </Button>
-                                            </>
-                                          )}
-                                      </div>
+                                      {/* Rejection Reason - Show for rejected requests */}
+                                      {selectedRequest.status === "rejected" &&
+                                        selectedRequest.rejection_reason && (
+                                          <div>
+                                            <Label className="font-medium text-xs text-muted-foreground">
+                                              Rejection Reason
+                                            </Label>
+                                            <p className="text-sm mt-1 p-3 bg-red-50 border border-red-200 rounded text-red-700">
+                                              <span className="font-medium">
+                                                Rejected:{" "}
+                                              </span>
+                                              {selectedRequest.rejection_reason}
+                                            </p>
+                                          </div>
+                                        )}
 
-                                      {/* Compact rejection reason input */}
-                                      <div className="space-y-2">
-                                        <label className="text-sm font-medium text-gray-700">
-                                          Rejection Reason{" "}
-                                          <span className="text-red-500">
-                                            *
-                                          </span>
-                                          <span className="text-gray-500 font-normal">
-                                            (required for rejection)
-                                          </span>
-                                        </label>
-                                        <Textarea
-                                          value={rejectionReason}
-                                          onChange={(e) =>
-                                            setRejectionReason(e.target.value)
-                                          }
-                                          placeholder="Please provide a reason for rejection..."
-                                          rows={3}
-                                          className="text-sm"
-                                        />
-                                      </div>
+                                      {/* Doctor Notes - Show for doctor approved requests */}
+                                      {selectedRequest.status ===
+                                        "doctor_approved" &&
+                                        selectedRequest.doctor_notes && (
+                                          <div>
+                                            <Label className="font-medium text-xs text-muted-foreground">
+                                              Doctor Notes
+                                            </Label>
+                                            <p className="text-sm mt-1 p-3 bg-blue-50 border border-blue-200 rounded text-blue-700">
+                                              {selectedRequest.doctor_notes}
+                                            </p>
+                                          </div>
+                                        )}
+
+                                      {/* ID Verification Images - Compact version */}
+                                      {(selectedRequest.id_verification_front ||
+                                        selectedRequest.id_verification_back) && (
+                                        <div>
+                                          <Label className="font-medium text-xs text-muted-foreground">
+                                            ID Verification
+                                          </Label>
+                                          <div className="mt-2 flex gap-2">
+                                            {selectedRequest.id_verification_front && (
+                                              <div className="flex-1">
+                                                <p className="text-xs text-gray-500 mb-1">
+                                                  Front
+                                                </p>
+                                                <img
+                                                  src={getImageUrl(
+                                                    selectedRequest.id_verification_front,
+                                                  )}
+                                                  alt="ID Front"
+                                                  className="w-full h-20 object-contain rounded border cursor-pointer hover:opacity-80"
+                                                  onClick={() =>
+                                                    window.open(
+                                                      getImageUrl(
+                                                        selectedRequest.id_verification_front,
+                                                      ),
+                                                      "_blank",
+                                                    )
+                                                  }
+                                                  onError={(e) =>
+                                                    ((
+                                                      e.target as HTMLImageElement
+                                                    ).style.display = "none")
+                                                  }
+                                                />
+                                              </div>
+                                            )}
+                                            {selectedRequest.id_verification_back && (
+                                              <div className="flex-1">
+                                                <p className="text-xs text-gray-500 mb-1">
+                                                  Back
+                                                </p>
+                                                <img
+                                                  src={getImageUrl(
+                                                    selectedRequest.id_verification_back,
+                                                  )}
+                                                  alt="ID Back"
+                                                  className="w-full h-20 object-contain rounded border cursor-pointer hover:opacity-80"
+                                                  onClick={() =>
+                                                    window.open(
+                                                      getImageUrl(
+                                                        selectedRequest.id_verification_back,
+                                                      ),
+                                                      "_blank",
+                                                    )
+                                                  }
+                                                  onError={(e) =>
+                                                    ((
+                                                      e.target as HTMLImageElement
+                                                    ).style.display = "none")
+                                                  }
+                                                />
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {/* Action buttons - simplified */}
+                                      {(selectedRequest.status === "pending" ||
+                                        selectedRequest.status ===
+                                          "on_process") && (
+                                        <div className="flex flex-col gap-2 pt-3 border-t">
+                                          {isRequestPatientSoftDeleted(
+                                            selectedRequest,
+                                          ) && (
+                                            <div className="text-sm text-red-600 font-medium p-2 bg-red-50 border border-red-200 rounded">
+                                              ⚠️ This patient has been deleted.
+                                              Actions are disabled.
+                                            </div>
+                                          )}
+                                          <div className="flex gap-2">
+                                            {currentUserRole ===
+                                              "receptionist" &&
+                                              selectedRequest.status ===
+                                                "pending" && (
+                                                <>
+                                                  <Button
+                                                    onClick={() =>
+                                                      handleApprove(
+                                                        selectedRequest.id,
+                                                        "receptionist_approve",
+                                                      )
+                                                    }
+                                                    className="bg-blue-600 hover:bg-blue-700 flex-1"
+                                                    size="sm"
+                                                    disabled={isRequestPatientSoftDeleted(
+                                                      selectedRequest,
+                                                    )}
+                                                    title={
+                                                      isRequestPatientSoftDeleted(
+                                                        selectedRequest,
+                                                      )
+                                                        ? "Cannot approve - patient has been deleted"
+                                                        : "Approve request"
+                                                    }
+                                                  >
+                                                    <CheckCircle className="h-4 w-4 mr-1" />
+                                                    Approve
+                                                  </Button>
+                                                  <Button
+                                                    variant="destructive"
+                                                    onClick={() => {
+                                                      handleApprove(
+                                                        selectedRequest.id,
+                                                        "reject",
+                                                      );
+                                                    }}
+                                                    size="sm"
+                                                    className="flex-1"
+                                                    disabled={isRequestPatientSoftDeleted(
+                                                      selectedRequest,
+                                                    )}
+                                                    title={
+                                                      isRequestPatientSoftDeleted(
+                                                        selectedRequest,
+                                                      )
+                                                        ? "Cannot reject - patient has been deleted"
+                                                        : "Reject request"
+                                                    }
+                                                  >
+                                                    <XCircle className="h-4 w-4 mr-1" />
+                                                    Reject
+                                                  </Button>
+                                                </>
+                                              )}
+
+                                            {(currentUserRole === "doctor" ||
+                                              currentUserRole === "admin") &&
+                                              selectedRequest.status ===
+                                                "on_process" && (
+                                                <>
+                                                  <Button
+                                                    onClick={() =>
+                                                      handleCreateCertificate(
+                                                        selectedRequest,
+                                                      )
+                                                    }
+                                                    className="bg-blue-600 hover:bg-blue-700 flex-1"
+                                                    size="sm"
+                                                    disabled={isRequestPatientSoftDeleted(
+                                                      selectedRequest,
+                                                    )}
+                                                    title={
+                                                      isRequestPatientSoftDeleted(
+                                                        selectedRequest,
+                                                      )
+                                                        ? "Cannot generate certificate - patient has been deleted"
+                                                        : "Generate medical certificate"
+                                                    }
+                                                  >
+                                                    <FileText className="h-4 w-4 mr-1" />
+                                                    Generate Certificate
+                                                  </Button>
+                                                  <Button
+                                                    variant="destructive"
+                                                    onClick={() => {
+                                                      handleApprove(
+                                                        selectedRequest.id,
+                                                        "reject",
+                                                      );
+                                                    }}
+                                                    size="sm"
+                                                    className="flex-1"
+                                                    disabled={isRequestPatientSoftDeleted(
+                                                      selectedRequest,
+                                                    )}
+                                                    title={
+                                                      isRequestPatientSoftDeleted(
+                                                        selectedRequest,
+                                                      )
+                                                        ? "Cannot reject - patient has been deleted"
+                                                        : "Reject request"
+                                                    }
+                                                  >
+                                                    <XCircle className="h-4 w-4 mr-1" />
+                                                    Reject
+                                                  </Button>
+                                                </>
+                                              )}
+                                          </div>
+
+                                          {/* Compact rejection reason input */}
+                                          <div className="space-y-2">
+                                            <label className="text-sm font-medium text-gray-700">
+                                              Rejection Reason{" "}
+                                              <span className="text-red-500">
+                                                *
+                                              </span>
+                                              <span className="text-gray-500 font-normal">
+                                                (required for rejection)
+                                              </span>
+                                            </label>
+                                            <Textarea
+                                              value={rejectionReason}
+                                              onChange={(e) =>
+                                                setRejectionReason(
+                                                  e.target.value,
+                                                )
+                                              }
+                                              placeholder="Please provide a reason for rejection..."
+                                              rows={3}
+                                              className="text-sm"
+                                            />
+                                          </div>
+                                        </div>
+                                      )}
                                     </div>
                                   )}
+                                </DialogContent>
+                              </Dialog>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        {/* Mobile expanded view */}
+                        {expandedRow === index && (
+                          <TableRow className="md:hidden bg-muted/30">
+                            <TableCell colSpan={7} className="p-4">
+                              <div className="space-y-3 text-sm">
+                                <div>
+                                  <span className="font-medium text-muted-foreground">
+                                    Request Type:
+                                  </span>
+                                  <p className="mt-1">
+                                    {getRequestTypeLabel(request.request_type)}
+                                  </p>
                                 </div>
-                              )}
-                            </DialogContent>
-                          </Dialog>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                                <div>
+                                  <span className="font-medium text-muted-foreground">
+                                    Email:
+                                  </span>
+                                  <p className="mt-1">{request.email}</p>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-muted-foreground">
+                                    Delivery Method:
+                                  </span>
+                                  <div className="mt-1">
+                                    <Badge
+                                      variant={
+                                        request.delivery_method === "pickup"
+                                          ? "default"
+                                          : "secondary"
+                                      }
+                                    >
+                                      {request.delivery_method === "pickup"
+                                        ? "Pickup from Clinic"
+                                        : "Send via Email"}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-muted-foreground">
+                                    Requested At:
+                                  </span>
+                                  <p className="mt-1">
+                                    {new Date(
+                                      request.requested_at,
+                                    ).toLocaleDateString()}
+                                  </p>
+                                </div>
+                                {request.additional_info && (
+                                  <div>
+                                    <span className="font-medium text-muted-foreground">
+                                      Additional Info:
+                                    </span>
+                                    <p className="mt-1 text-xs p-2 bg-background rounded border">
+                                      {request.additional_info}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           )}
 
           {/* Pagination Controls */}
           {totalItems > 0 && (
-            <div className="flex items-center justify-between px-2 py-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-3 md:px-4 py-4">
               <div className="flex items-center space-x-2">
-                <p className="text-sm text-muted-foreground">Show</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Show</p>
                 <Select
                   value={itemsPerPage.toString()}
                   onValueChange={handleItemsPerPageChange}
                 >
-                  <SelectTrigger className="h-8 w-16">
+                  <SelectTrigger className="h-8 w-16 text-xs sm:text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1473,30 +1589,32 @@ const MedicalCertificateManagement: React.FC = () => {
                     <SelectItem value="50">50</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-sm text-muted-foreground">entries</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  entries
+                </p>
               </div>
 
-              <div className="flex items-center space-x-6 lg:space-x-8">
-                <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+              <div className="flex items-center space-x-4 lg:space-x-6">
+                <div className="flex w-[100px] items-center justify-center text-xs sm:text-sm font-medium">
                   Page {currentPage} of {totalPages}
                 </div>
                 <div className="flex items-center space-x-2">
                   <Button
                     variant="outline"
-                    size="sm"
+                    className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage <= 1}
                   >
                     <ChevronLeft className="h-4 w-4" />
-                    Previous
+                    <span className="hidden sm:inline">Previous</span>
                   </Button>
                   <Button
                     variant="outline"
-                    size="sm"
+                    className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage >= totalPages}
                   >
-                    Next
+                    <span className="hidden sm:inline">Next</span>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>

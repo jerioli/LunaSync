@@ -146,15 +146,18 @@ export default function BulkImportModal({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2 hover:bg-gray-100 hover:border-gray-400 active:bg-gray-200 active:scale-[0.97] transition-all duration-150">
+        <Button
+          variant="outline"
+          className="gap-2 hover:bg-gray-100 hover:border-gray-400 active:bg-gray-200 active:scale-[0.97] transition-all duration-150"
+        >
           <UserPlus className="h-4 w-4" />
           Bulk Add {type === "patients" ? "Patients" : "Staff"}
         </Button>
       </DialogTrigger>
       {/* ✅ Centered modal with fixed header */}
-      <DialogContent className="w-[900px] h-[600px] max-w-none flex flex-col fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-        <DialogHeader className="flex-shrink-0 border-b pb-4">
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="w-full h-[90vh] sm:h-[600px] max-w-[95vw] sm:max-w-[900px] flex flex-col">
+        <DialogHeader className="flex-shrink-0 border-b pb-3 sm:pb-4">
+          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
             {type === "patients" ? (
               <Users className="h-5 w-5" />
             ) : (
@@ -168,44 +171,51 @@ export default function BulkImportModal({
           onValueChange={setActiveTab}
           className="w-full flex flex-col flex-1 overflow-hidden"
         >
-          <div className="flex-shrink-0 bg-white pb-2 px-8 border-b">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger 
-                value="upload" 
-                className="transition-colors"
+          <div className="flex-shrink-0 bg-white pb-2 px-4 sm:px-8 border-b">
+            <TabsList className="grid w-full grid-cols-2 h-9 sm:h-10">
+              <TabsTrigger
+                value="upload"
+                className="transition-colors text-xs sm:text-sm"
                 style={{
-                  backgroundColor: activeTab === 'upload' ? colors.primaryColor : undefined,
-                  color: activeTab === 'upload' ? 'white' : undefined
+                  backgroundColor:
+                    activeTab === "upload" ? colors.primaryColor : undefined,
+                  color: activeTab === "upload" ? "white" : undefined,
                 }}
               >
-                File Upload
+                <span className="hidden sm:inline">File Upload</span>
+                <span className="sm:hidden">Upload</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="manual" 
-                className="transition-colors"
+              <TabsTrigger
+                value="manual"
+                className="transition-colors text-xs sm:text-sm"
                 style={{
-                  backgroundColor: activeTab === 'manual' ? colors.primaryColor : undefined,
-                  color: activeTab === 'manual' ? 'white' : undefined
+                  backgroundColor:
+                    activeTab === "manual" ? colors.primaryColor : undefined,
+                  color: activeTab === "manual" ? "white" : undefined,
                 }}
               >
-                Manual Entry
+                <span className="hidden sm:inline">Manual Entry</span>
+                <span className="sm:hidden">Manual</span>
               </TabsTrigger>
             </TabsList>
           </div>
-          <div className="flex-1 overflow-y-auto pt-4">
-            <TabsContent value="upload" className="space-y-4 flex-1">
+          <div className="flex-1 overflow-y-auto pt-3 sm:pt-4 px-4 sm:px-6">
+            <TabsContent
+              value="upload"
+              className="space-y-3 sm:space-y-4 flex-1 mt-0"
+            >
               <Card className="h-full">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Upload className="h-5 w-5" />
+                <CardHeader className="p-4 sm:p-6">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <Upload className="h-4 w-4 sm:h-5 sm:w-5" />
                     Upload CSV/Excel File
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs sm:text-sm">
                     Upload a CSV or Excel file containing {type} data. Make sure
                     the file follows the required format.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
                   <div className="space-y-2">
                     <Label htmlFor="file-upload">Select File</Label>
                     <Input
@@ -224,27 +234,29 @@ export default function BulkImportModal({
                       </p>
                     </div>
                   )}
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <Button
                       onClick={() => uploadFile && handleFileUpload(uploadFile)}
                       disabled={!uploadFile || isUploading}
-                      className="flex-1 hover:opacity-90 active:opacity-80 hover:scale-[0.99] active:scale-[0.97] transition-all duration-150"
+                      className="flex-1 hover:opacity-90 active:opacity-80 hover:scale-[0.99] active:scale-[0.97] transition-all duration-150 text-sm"
                     >
                       {isUploading ? "Uploading..." : "Upload & Import"}
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       onClick={downloadTemplate}
-                      className="hover:bg-gray-100 hover:border-gray-400 active:bg-gray-200 active:scale-[0.97] transition-all duration-150"
+                      className="hover:bg-gray-100 hover:border-gray-400 active:bg-gray-200 active:scale-[0.97] transition-all duration-150 text-sm sm:whitespace-nowrap"
                     >
                       Download Template
                     </Button>
                   </div>
-                  
+
                   {/* Required Fields Section */}
-                  <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
-                    <h4 className="font-medium mb-3 text-gray-900">Required Fields:</h4>
-                    <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
+                  <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gray-50 rounded-lg border">
+                    <h4 className="font-medium mb-2 sm:mb-3 text-sm sm:text-base text-gray-900">
+                      Required Fields:
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-700">
                       {type === "patients" ? (
                         <>
                           <div>• first_name (required)</div>
@@ -275,16 +287,21 @@ export default function BulkImportModal({
                 </CardContent>
               </Card>
             </TabsContent>
-            <TabsContent value="manual" className="space-y-4 flex-1">
+            <TabsContent
+              value="manual"
+              className="space-y-3 sm:space-y-4 flex-1 mt-0"
+            >
               <Card className="h-full">
-                <CardHeader>
-                  <CardTitle>Manual Bulk Entry</CardTitle>
-                  <CardDescription>
+                <CardHeader className="p-4 sm:p-6">
+                  <CardTitle className="text-base sm:text-lg">
+                    Manual Bulk Entry
+                  </CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">
                     Enter multiple {type} records manually using a form
                     interface.
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-4 sm:p-6">
                   <ManualBulkEntry
                     type={type}
                     onComplete={() => {
@@ -356,8 +373,8 @@ function ManualBulkEntry({
   const updateEntry = (index: number, field: string, value: string) => {
     setEntries(
       entries.map((entry, i) =>
-        i === index ? { ...entry, [field]: value } : entry
-      )
+        i === index ? { ...entry, [field]: value } : entry,
+      ),
     );
   };
 
@@ -393,38 +410,41 @@ function ManualBulkEntry({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {entries.map((entry, index) => (
-        <Card key={index} className="p-4">
+        <Card key={index} className="p-3 sm:p-4">
           <div className="flex justify-between items-center mb-3">
-            <h4 className="font-medium">Entry {index + 1}</h4>
+            <h4 className="font-medium text-sm sm:text-base">
+              Entry {index + 1}
+            </h4>
             {entries.length > 1 && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => removeEntry(index)}
-                className="hover:bg-red-50 hover:text-red-600 hover:border-red-400 active:bg-red-100 active:scale-[0.97] transition-all duration-150"
+                className="hover:bg-red-50 hover:text-red-600 hover:border-red-400 active:bg-red-100 active:scale-[0.97] transition-all duration-150 text-xs sm:text-sm h-8"
               >
                 Remove
               </Button>
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
             {type === "patients" ? (
               <>
                 <div>
-                  <Label>First Name</Label>
+                  <Label className="text-xs sm:text-sm">First Name</Label>
                   <Input
                     value={entry.first_name}
                     onChange={(e) =>
                       updateEntry(index, "first_name", e.target.value)
                     }
                     placeholder="First name"
+                    className="text-sm h-9"
                   />
                 </div>
                 <div>
-                  <Label>Last Name</Label>
+                  <Label className="text-xs sm:text-sm">Last Name</Label>
                   <Input
                     value={entry.last_name}
                     onChange={(e) =>
@@ -434,7 +454,7 @@ function ManualBulkEntry({
                   />
                 </div>
                 <div>
-                  <Label>Middle Initial</Label>
+                  <Label className="text-xs sm:text-sm">Middle Initial</Label>
                   <Input
                     value={entry.middle_initial}
                     onChange={(e) =>
@@ -442,20 +462,22 @@ function ManualBulkEntry({
                     }
                     placeholder="M"
                     maxLength={1}
+                    className="text-sm h-9"
                   />
                 </div>
                 <div>
-                  <Label>Suffix</Label>
+                  <Label className="text-xs sm:text-sm">Suffix</Label>
                   <Input
                     value={entry.suffix}
                     onChange={(e) =>
                       updateEntry(index, "suffix", e.target.value)
                     }
                     placeholder="Jr, Sr, III"
+                    className="text-sm h-9"
                   />
                 </div>
                 <div>
-                  <Label>Email</Label>
+                  <Label className="text-xs sm:text-sm">Email</Label>
                   <Input
                     value={entry.email}
                     onChange={(e) =>
@@ -463,37 +485,40 @@ function ManualBulkEntry({
                     }
                     placeholder="email@example.com"
                     type="email"
+                    className="text-sm h-9"
                   />
                 </div>
                 <div>
-                  <Label>Phone</Label>
+                  <Label className="text-xs sm:text-sm">Phone</Label>
                   <Input
                     value={entry.phone}
                     onChange={(e) =>
                       updateEntry(index, "phone", e.target.value)
                     }
                     placeholder="+1234567890"
+                    className="text-sm h-9"
                   />
                 </div>
                 <div>
-                  <Label>Date of Birth</Label>
+                  <Label className="text-xs sm:text-sm">Date of Birth</Label>
                   <Input
                     value={entry.date_of_birth}
                     onChange={(e) =>
                       updateEntry(index, "date_of_birth", e.target.value)
                     }
                     type="date"
+                    className="text-sm h-9"
                   />
                 </div>
                 <div>
-                  <Label>Sex</Label>
+                  <Label className="text-xs sm:text-sm">Sex</Label>
                   <Select
                     value={entry.gender}
                     onValueChange={(value) =>
                       updateEntry(index, "gender", value)
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm h-9">
                       <SelectValue placeholder="Select sex" />
                     </SelectTrigger>
                     <SelectContent>
@@ -504,14 +529,14 @@ function ManualBulkEntry({
                   </Select>
                 </div>
                 <div>
-                  <Label>Marital Status</Label>
+                  <Label className="text-xs sm:text-sm">Marital Status</Label>
                   <Select
                     value={entry.marital_status}
                     onValueChange={(value) =>
                       updateEntry(index, "marital_status", value)
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm h-9">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -523,50 +548,54 @@ function ManualBulkEntry({
                   </Select>
                 </div>
                 <div>
-                  <Label>Religion</Label>
+                  <Label className="text-xs sm:text-sm">Religion</Label>
                   <Input
                     value={entry.religion}
                     onChange={(e) =>
                       updateEntry(index, "religion", e.target.value)
                     }
                     placeholder="Religion"
+                    className="text-sm h-9"
                   />
                 </div>
-                <div className="col-span-2">
-                  <Label>Home Address</Label>
+                <div className="col-span-1 sm:col-span-2">
+                  <Label className="text-xs sm:text-sm">Home Address</Label>
                   <Textarea
                     value={entry.address}
                     onChange={(e) =>
                       updateEntry(index, "address", e.target.value)
                     }
                     placeholder="Full home address"
+                    className="text-sm min-h-[72px]"
                   />
                 </div>
               </>
             ) : (
               <>
                 <div>
-                  <Label>First Name</Label>
+                  <Label className="text-xs sm:text-sm">First Name</Label>
                   <Input
                     value={entry.first_name}
                     onChange={(e) =>
                       updateEntry(index, "first_name", e.target.value)
                     }
                     placeholder="First name"
+                    className="text-sm h-9"
                   />
                 </div>
                 <div>
-                  <Label>Last Name</Label>
+                  <Label className="text-xs sm:text-sm">Last Name</Label>
                   <Input
                     value={entry.last_name}
                     onChange={(e) =>
                       updateEntry(index, "last_name", e.target.value)
                     }
                     placeholder="Last name"
+                    className="text-sm h-9"
                   />
                 </div>
                 <div>
-                  <Label>Email</Label>
+                  <Label className="text-xs sm:text-sm">Email</Label>
                   <Input
                     value={entry.email}
                     onChange={(e) =>
@@ -574,25 +603,27 @@ function ManualBulkEntry({
                     }
                     placeholder="email@example.com"
                     type="email"
+                    className="text-sm h-9"
                   />
                 </div>
                 <div>
-                  <Label>Phone</Label>
+                  <Label className="text-xs sm:text-sm">Phone</Label>
                   <Input
                     value={entry.phone}
                     onChange={(e) =>
                       updateEntry(index, "phone", e.target.value)
                     }
                     placeholder="+1234567890"
+                    className="text-sm h-9"
                   />
                 </div>
                 <div>
-                  <Label>Role</Label>
+                  <Label className="text-xs sm:text-sm">Role</Label>
                   <Select
                     value={entry.role}
                     onValueChange={(value) => updateEntry(index, "role", value)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm h-9">
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
@@ -603,23 +634,27 @@ function ManualBulkEntry({
                   </Select>
                 </div>
                 <div>
-                  <Label>Department</Label>
+                  <Label className="text-xs sm:text-sm">Department</Label>
                   <Input
                     value={entry.department}
                     onChange={(e) =>
                       updateEntry(index, "department", e.target.value)
                     }
                     placeholder="Department"
+                    className="text-sm h-9"
                   />
                 </div>
-                <div className="col-span-2">
-                  <Label>License Number (for doctors)</Label>
+                <div className="col-span-1 sm:col-span-2">
+                  <Label className="text-xs sm:text-sm">
+                    License Number (for doctors)
+                  </Label>
                   <Input
                     value={entry.license_number}
                     onChange={(e) =>
                       updateEntry(index, "license_number", e.target.value)
                     }
                     placeholder="License number"
+                    className="text-sm h-9"
                   />
                 </div>
               </>
@@ -628,18 +663,18 @@ function ManualBulkEntry({
         </Card>
       ))}
 
-      <div className="flex gap-2">
-        <Button 
-          variant="outline" 
+      <div className="flex flex-col sm:flex-row gap-2">
+        <Button
+          variant="outline"
           onClick={addEntry}
-          className="hover:bg-green-50 hover:text-green-700 hover:border-green-400 active:bg-green-100 active:scale-[0.97] transition-all duration-150"
+          className="hover:bg-green-50 hover:text-green-700 hover:border-green-400 active:bg-green-100 active:scale-[0.97] transition-all duration-150 text-sm sm:whitespace-nowrap order-2 sm:order-1"
         >
           Add Another Entry
         </Button>
         <Button
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="flex-1 hover:opacity-90 active:opacity-80 hover:scale-[0.99] active:scale-[0.97] transition-all duration-150"
+          className="flex-1 hover:opacity-90 active:opacity-80 hover:scale-[0.99] active:scale-[0.97] transition-all duration-150 text-sm order-1 sm:order-2"
         >
           {isSubmitting ? "Creating..." : `Create ${entries.length} ${type}`}
         </Button>

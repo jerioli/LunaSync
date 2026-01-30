@@ -9,13 +9,11 @@ import {
 } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useClinic } from "@/contexts/ClinicContext";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/services/api";
@@ -23,7 +21,14 @@ import {
   updateCurrentUserPermission,
   refreshCurrentUserPermissions,
 } from "@/utils/userPermissions";
-import { RefreshCw, Shield, Users } from "lucide-react";
+import {
+  RefreshCw,
+  Shield,
+  Users,
+  ChevronLeft,
+  ChevronRight,
+  User,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface UserPermissions {
@@ -62,7 +67,7 @@ const PermissionManagement = () => {
   const refreshCurrentUser = async () => {
     const result = await refreshCurrentUserPermissions(
       currentUser,
-      setCurrentUser
+      setCurrentUser,
     );
     return result;
   };
@@ -72,7 +77,7 @@ const PermissionManagement = () => {
       const response = await api.permissions.getAll();
       // Filter out superadmin users - backend already filters inactive users
       const filteredUsers = response.users.filter(
-        (user: UserPermissions) => user.role !== "superadmin"
+        (user: UserPermissions) => user.role !== "superadmin",
       );
       setUsers(filteredUsers);
       setCurrentPage(1); // Reset to first page when data changes
@@ -91,7 +96,7 @@ const PermissionManagement = () => {
   const updatePermission = async (
     userId: number,
     permissionKey: string,
-    value: boolean
+    value: boolean,
   ) => {
     try {
       setSaving(true);
@@ -107,8 +112,8 @@ const PermissionManagement = () => {
 
       setUsers((prev) =>
         prev.map((u) =>
-          u.id === userId ? { ...u, permissions: updatedPermissions } : u
-        )
+          u.id === userId ? { ...u, permissions: updatedPermissions } : u,
+        ),
       );
 
       // Always refresh current user permissions after any change
@@ -135,7 +140,7 @@ const PermissionManagement = () => {
   console.log("PermissionManagement - currentUser:", currentUser);
   console.log(
     "PermissionManagement - can_manage_permissions:",
-    currentUser?.can_manage_permissions
+    currentUser?.can_manage_permissions,
   );
 
   // Allow access for superadmin, admin, doctors with permission, or users with can_manage_permissions
@@ -199,14 +204,14 @@ const PermissionManagement = () => {
   const paginatedUsers = users.slice(startIndex, endIndex);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+    <div className="space-y-6 p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
             <Shield className="h-6 w-6" />
             Permission Management
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Manage user permissions and access controls
           </p>
         </div>
@@ -214,10 +219,11 @@ const PermissionManagement = () => {
           onClick={refreshCurrentUser}
           variant="outline"
           size="sm"
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 whitespace-nowrap"
         >
           <RefreshCw className="h-4 w-4" />
-          Refresh My Permissions
+          <span className="hidden sm:inline">Refresh My Permissions</span>
+          <span className="sm:hidden">Refresh</span>
         </Button>
       </div>
 
@@ -231,41 +237,47 @@ const PermissionManagement = () => {
             Configure permissions for each user role and individual users
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Role</TableHead>
-                  {Object.values(permissionLabels).map((label) => (
-                    <TableHead
-                      key={label}
-                      className="text-center min-w-[120px]"
-                    >
-                      {label}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{user.username}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {user.email}
+        <CardContent className="p-4 sm:p-6">
+          <Accordion type="single" collapsible className="space-y-3">
+            {paginatedUsers.map((user) => (
+              <AccordionItem
+                key={user.id}
+                value={`user-${user.id}`}
+                className="border rounded-lg overflow-hidden"
+              >
+                <AccordionTrigger className="hover:no-underline px-4 py-3">
+                  <div className="flex items-start gap-3 w-full pr-2">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <User className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="text-left min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium text-sm sm:text-base truncate">
+                          {user.username}
                         </div>
+                        <Badge
+                          className={`${getRoleBadgeColor(user.role)} flex-shrink-0 whitespace-nowrap`}
+                        >
+                          {user.role.charAt(0).toUpperCase() +
+                            user.role.slice(1)}
+                        </Badge>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getRoleBadgeColor(user.role)}>
-                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                      </Badge>
-                    </TableCell>
+                      <div className="text-xs sm:text-sm text-muted-foreground truncate">
+                        {user.email}
+                      </div>
+                    </div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4">
+                  <div className="pt-2 space-y-2">
                     {Object.entries(permissionLabels).map(([key, label]) => (
-                      <TableCell key={key} className="text-center">
+                      <div
+                        key={key}
+                        className="flex items-center justify-between py-3 px-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                      >
+                        <div className="flex-1 min-w-0 pr-4">
+                          <span className="text-sm font-medium">{label}</span>
+                        </div>
                         <Switch
                           checked={
                             user.permissions[
@@ -281,17 +293,17 @@ const PermissionManagement = () => {
                               currentUser?.role !== "superadmin")
                           }
                         />
-                      </TableCell>
+                      </div>
                     ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4 px-2">
+            <div className="flex flex-col sm:flex-row items-center justify-between mt-4 px-2 gap-4">
               <div className="text-sm text-muted-foreground">
                 Showing {startIndex + 1} to {Math.min(endIndex, users.length)}{" "}
                 of {users.length} users
@@ -305,7 +317,8 @@ const PermissionManagement = () => {
                   }
                   disabled={currentPage === 1}
                 >
-                  Previous
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline ml-2">Previous</span>
                 </Button>
                 <div className="flex items-center gap-1">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(
@@ -319,7 +332,7 @@ const PermissionManagement = () => {
                       >
                         {page}
                       </Button>
-                    )
+                    ),
                   )}
                 </div>
                 <Button
@@ -330,7 +343,8 @@ const PermissionManagement = () => {
                   }
                   disabled={currentPage === totalPages}
                 >
-                  Next
+                  <span className="hidden sm:inline mr-2">Next</span>
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>

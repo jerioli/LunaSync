@@ -1,36 +1,82 @@
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
-import { useClinic } from '@/hooks/useClinicContext';
-import { cn } from '@/lib/utils';
-import { axiosInstance } from '@/services/api';
-import { convertDisplayTimeTo24Hour, generateTimeSlots } from '@/utils/timeSlots';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
-import { ArrowLeft, ArrowRight, Calendar as CalendarIcon, Check, ChevronDown, Clock, FileText, Search, Stethoscope, User } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { useClinic } from "@/hooks/useClinicContext";
+import { cn } from "@/lib/utils";
+import { axiosInstance } from "@/services/api";
+import {
+  convertDisplayTimeTo24Hour,
+  generateTimeSlots,
+} from "@/utils/timeSlots";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Calendar as CalendarIcon,
+  Check,
+  ChevronDown,
+  Clock,
+  FileText,
+  Search,
+  Stethoscope,
+  User,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
 // Appointment types
 const APPOINTMENT_TYPES = [
-  'Check-up',
-  'Follow-up',
-  'Consultation',
-  'Vaccination',
-  'Lab Test',
-  'Physical Examination',
-  'Emergency'
+  "Check-up",
+  "Follow-up",
+  "Consultation",
+  "Vaccination",
+  "Lab Test",
+  "Physical Examination",
+  "Emergency",
 ];
 
 // Form schema for new patient
@@ -39,7 +85,9 @@ const newPatientSchema = z.object({
   middleInitial: z.string().optional(),
   lastName: z.string().min(1, "Last name is required"),
   suffix: z.string().optional(),
-  contactNumber: z.string().min(10, "Contact number must be at least 10 digits"),
+  contactNumber: z
+    .string()
+    .min(10, "Contact number must be at least 10 digits"),
   email: z.string().email("Invalid email address"),
   address: z.string().min(1, "Address is required"),
   dateOfBirth: z.date({
@@ -50,52 +98,82 @@ const newPatientSchema = z.object({
 });
 
 // Form schema for appointment wizard
-const appointmentSchema = z.object({
-  // Step 0: Patient Selection
-  isExistingPatient: z.boolean(),
-  patientId: z.string().optional(),
-  newPatient: newPatientSchema.optional(),
-  
-  // Step 1: Doctor & Type Selection
-  doctorId: z.string({
-    required_error: "Please select a doctor",
-  }),
-  appointmentType: z.string({
-    required_error: "Please select an appointment type",
-  }),
-  
-  // Step 2: Date Selection
-  date: z.date({
-    required_error: "Please select a date",
-  }),
-  
-  // Step 3: Time Selection
-  time: z.string({
-    required_error: "Please select a time",
-  }),
-  
-  // Step 4: Notes
-  notes: z.string().optional(),
-}).refine((data) => {
-  if (data.isExistingPatient) {
-    return data.patientId && data.patientId.length > 0;
-  } else {
-    return data.newPatient;
-  }
-}, {
-  message: "Please select a patient or fill in new patient details",
-  path: ["patientId"],
-});
+const appointmentSchema = z
+  .object({
+    // Step 0: Patient Selection
+    isExistingPatient: z.boolean(),
+    patientId: z.string().optional(),
+    newPatient: newPatientSchema.optional(),
+
+    // Step 1: Doctor & Type Selection
+    doctorId: z.string({
+      required_error: "Please select a doctor",
+    }),
+    appointmentType: z.string({
+      required_error: "Please select an appointment type",
+    }),
+
+    // Step 2: Date Selection
+    date: z.date({
+      required_error: "Please select a date",
+    }),
+
+    // Step 3: Time Selection
+    time: z.string({
+      required_error: "Please select a time",
+    }),
+
+    // Step 4: Notes
+    notes: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.isExistingPatient) {
+        return data.patientId && data.patientId.length > 0;
+      } else {
+        return data.newPatient;
+      }
+    },
+    {
+      message: "Please select a patient or fill in new patient details",
+      path: ["patientId"],
+    },
+  );
 
 type AppointmentFormValues = z.infer<typeof appointmentSchema>;
 
 // Step configuration
 const STEPS = [
-  { id: 0, title: "Patient Selection", icon: User, description: "Select or create patient" },
-  { id: 1, title: "Doctor & Type", icon: Stethoscope, description: "Choose doctor and appointment type" },
-  { id: 2, title: "Date & Time", icon: CalendarIcon, description: "Pick appointment date and time" },
-  { id: 3, title: "Notes", icon: FileText, description: "Add additional information" },
-  { id: 4, title: "Confirmation", icon: User, description: "Review and confirm details" },
+  {
+    id: 0,
+    title: "Patient Selection",
+    icon: User,
+    description: "Select or create patient",
+  },
+  {
+    id: 1,
+    title: "Doctor & Type",
+    icon: Stethoscope,
+    description: "Choose doctor and appointment type",
+  },
+  {
+    id: 2,
+    title: "Date & Time",
+    icon: CalendarIcon,
+    description: "Pick appointment date and time",
+  },
+  {
+    id: 3,
+    title: "Notes",
+    icon: FileText,
+    description: "Add additional information",
+  },
+  {
+    id: 4,
+    title: "Confirmation",
+    icon: User,
+    description: "Review and confirm details",
+  },
 ];
 
 interface NewAppointmentModalProps {
@@ -112,26 +190,33 @@ interface Patient {
   maritalStatus?: string;
 }
 
-const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) => {
+const NewAppointmentModal = ({
+  open,
+  onOpenChange,
+}: NewAppointmentModalProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [doctors, setDoctors] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(false);
-  const [availableTimeSlots, setAvailableTimeSlots] = useState<{ label: string; value: string }[]>([]);
-  
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<
+    { label: string; value: string }[]
+  >([]);
+
   // Patient search states
   const [patientSearchOpen, setPatientSearchOpen] = useState(false);
-  const [patientSearchTerm, setPatientSearchTerm] = useState('');
+  const [patientSearchTerm, setPatientSearchTerm] = useState("");
   const [isSearchingPatients, setIsSearchingPatients] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  
+
   // Doctor search states
   const [doctorSearchOpen, setDoctorSearchOpen] = useState(false);
-  const [doctorSearchTerm, setDoctorSearchTerm] = useState('');
+  const [doctorSearchTerm, setDoctorSearchTerm] = useState("");
   const [isSearchingDoctors, setIsSearchingDoctors] = useState(false);
   const [hasDoctorSearched, setHasDoctorSearched] = useState(false);
-  const [allDoctors, setAllDoctors] = useState<{ id: string; name: string }[]>([]);
-  
+  const [allDoctors, setAllDoctors] = useState<{ id: string; name: string }[]>(
+    [],
+  );
+
   const { clinicCustomization } = useClinic();
   const { toast } = useToast();
 
@@ -139,23 +224,23 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
       isExistingPatient: true,
-      notes: '',
+      notes: "",
     },
   });
 
   // Watch for changes
-  const isExistingPatient = form.watch('isExistingPatient');
-  const selectedDate = form.watch('date');
-  const selectedDoctor = form.watch('doctorId');
-  const selectedTime = form.watch('time');
+  const isExistingPatient = form.watch("isExistingPatient");
+  const selectedDate = form.watch("date");
+  const selectedDoctor = form.watch("doctorId");
+  const selectedTime = form.watch("time");
   const formValues = form.watch();
 
   // Reset patient fields when switching between existing/new patient
   useEffect(() => {
     if (isExistingPatient) {
-      form.setValue('newPatient', undefined);
+      form.setValue("newPatient", undefined);
     } else {
-      form.setValue('patientId', undefined);
+      form.setValue("patientId", undefined);
     }
   }, [isExistingPatient, form]);
 
@@ -165,18 +250,18 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
       setCurrentStep(0);
       form.reset({
         isExistingPatient: true,
-        notes: '',
+        notes: "",
       });
       setAvailableTimeSlots([]);
       setPatients([]); // Clear patients when modal closes
-      setPatientSearchTerm('');
+      setPatientSearchTerm("");
       setHasSearched(false);
       setPatientSearchOpen(false);
       setIsSearchingPatients(false);
-      
+
       // Reset doctor search states
       setDoctors([]);
-      setDoctorSearchTerm('');
+      setDoctorSearchTerm("");
       setHasDoctorSearched(false);
       setDoctorSearchOpen(false);
       setIsSearchingDoctors(false);
@@ -188,20 +273,20 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
     if (open) {
       const fetchDoctors = async () => {
         try {
-          const doctorsResponse = await axiosInstance.get('/doctors/');
-          console.log('Loaded doctors:', doctorsResponse.data);
+          const doctorsResponse = await axiosInstance.get("/doctors/");
+          console.log("Loaded doctors:", doctorsResponse.data);
           const formattedDoctors = doctorsResponse.data.map((doctor: any) => ({
             id: doctor.id.toString(),
-            name: `Dr. ${doctor.first_name} ${doctor.last_name}`
+            name: `Dr. ${doctor.first_name} ${doctor.last_name}`,
           }));
           setAllDoctors(formattedDoctors); // Store all doctors for searching
           setDoctors([]); // Initially empty for searchable display
         } catch (error) {
-          console.error('Error fetching doctors:', error);
+          console.error("Error fetching doctors:", error);
           toast({
             title: "Error",
             description: "Failed to fetch doctors. Please try again.",
-            variant: "destructive"
+            variant: "destructive",
           });
         }
       };
@@ -220,48 +305,51 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
 
     setIsSearchingPatients(true);
     try {
-      console.log('Searching for patients with term:', searchTerm);
-      const response = await axiosInstance.get('/patients/', {
+      console.log("Searching for patients with term:", searchTerm);
+      const response = await axiosInstance.get("/patients/", {
         params: {
           search: searchTerm,
-          ordering: 'name',
-          limit: 50
-        }
+          ordering: "name",
+          limit: 50,
+        },
       });
-      
-      console.log('Patient search response:', response.data);
-      console.log('Response data length:', response.data.length);
-      
+
+      console.log("Patient search response:", response.data);
+      console.log("Response data length:", response.data.length);
+
       // The response should be an array of patients
       const patientData = Array.isArray(response.data) ? response.data : [];
-      
+
       // Convert patient data to match our interface
       const formattedPatients = patientData.map((patient: any) => {
-        console.log('Processing patient:', patient);
+        console.log("Processing patient:", patient);
         return {
           id: patient.id.toString(),
           patient_id: patient.patient_id, // Include the actual patient_id field
-          name: patient.name || `${patient.first_name || ''} ${patient.last_name || ''}`.trim(),
-          email: patient.email || '',
-          phone: patient.phone || ''
+          name:
+            patient.name ||
+            `${patient.first_name || ""} ${patient.last_name || ""}`.trim(),
+          email: patient.email || "",
+          phone: patient.phone || "",
         };
       });
-      
-      console.log('Formatted patients:', formattedPatients);
+
+      console.log("Formatted patients:", formattedPatients);
       setPatients(formattedPatients);
       setHasSearched(true);
-      
+
       // Debug: Log the state after setting patients
-      console.log('Patients state will be set to:', formattedPatients);
-      console.log('hasSearched will be set to: true');
-      console.log('isSearchingPatients will be set to: false (in finally block)');
-      
+      console.log("Patients state will be set to:", formattedPatients);
+      console.log("hasSearched will be set to: true");
+      console.log(
+        "isSearchingPatients will be set to: false (in finally block)",
+      );
     } catch (error) {
-      console.error('Error searching patients:', error);
+      console.error("Error searching patients:", error);
       toast({
-        title: "Error", 
+        title: "Error",
         description: "Failed to search patients. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
       setPatients([]);
       setHasSearched(true);
@@ -280,18 +368,18 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
 
     setIsSearchingDoctors(true);
     try {
-      console.log('Searching for doctors with term:', searchTerm);
-      
+      console.log("Searching for doctors with term:", searchTerm);
+
       // Filter from allDoctors (client-side search since doctors list is usually small)
-      const filteredDoctors = allDoctors.filter(doctor => 
-        doctor.name.toLowerCase().includes(searchTerm.toLowerCase())
+      const filteredDoctors = allDoctors.filter((doctor) =>
+        doctor.name.toLowerCase().includes(searchTerm.toLowerCase()),
       );
-      
-      console.log('Filtered doctors:', filteredDoctors);
+
+      console.log("Filtered doctors:", filteredDoctors);
       setDoctors(filteredDoctors);
       setHasDoctorSearched(true);
     } catch (error) {
-      console.error('Error searching doctors:', error);
+      console.error("Error searching doctors:", error);
       setDoctors([]);
     } finally {
       setIsSearchingDoctors(false);
@@ -314,7 +402,7 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
     return () => clearTimeout(debounceTimer);
   }, [patientSearchTerm]);
 
-  // Debounced search effect for doctors  
+  // Debounced search effect for doctors
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
       if (doctorSearchTerm.trim().length >= 2) {
@@ -333,66 +421,75 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
   // Fetch available time slots when date is selected
   const fetchAvailableTimeSlots = async (date: Date, doctorId: string) => {
     try {
-      console.log('Fetching available time slots for doctor:', doctorId, 'on date:', date);
-      
+      console.log(
+        "Fetching available time slots for doctor:",
+        doctorId,
+        "on date:",
+        date,
+      );
+
       // Format date to YYYY-MM-DD without timezone conversion (same as chatbot)
       const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
       const dateString = `${year}-${month}-${day}`;
-      
-      console.log('Formatted date string:', dateString);
-      
+
+      console.log("Formatted date string:", dateString);
+
       // Fetch existing appointments for this doctor on this date
       let bookedTimeSlots: string[] = [];
       try {
-        const appointmentsResponse = await axiosInstance.get('/appointments/', {
+        const appointmentsResponse = await axiosInstance.get("/appointments/", {
           params: {
             doctor_id: doctorId,
             appointment_date: dateString,
-            status: 'upcoming,ongoing' // Only upcoming and ongoing appointments block slots
-          }
+            status: "upcoming,ongoing", // Only upcoming and ongoing appointments block slots
+          },
         });
-        
-        console.log('Existing appointments response:', appointmentsResponse.data);
-        
+
+        console.log(
+          "Existing appointments response:",
+          appointmentsResponse.data,
+        );
+
         // Extract booked time slots from appointments
         if (Array.isArray(appointmentsResponse.data)) {
           bookedTimeSlots = appointmentsResponse.data
-            .filter(apt => apt.appointment_time) // Only include appointments with time
-            .map(apt => {
+            .filter((apt) => apt.appointment_time) // Only include appointments with time
+            .map((apt) => {
               // Convert appointment time to match the format used in time slots
               // If appointment_time is already in HH:MM format, use it directly
               const timeStr = apt.appointment_time;
-              if (timeStr && timeStr.includes(':')) {
+              if (timeStr && timeStr.includes(":")) {
                 return timeStr;
               }
               return null;
             })
-            .filter(time => time !== null);
-          
-          console.log('Booked time slots from appointments:', bookedTimeSlots);
+            .filter((time) => time !== null);
+
+          console.log("Booked time slots from appointments:", bookedTimeSlots);
         }
       } catch (appointmentError) {
-        console.error('Error fetching appointments:', appointmentError);
+        console.error("Error fetching appointments:", appointmentError);
         // Continue even if appointment fetch fails - we'll rely on is_booked from availability
       }
-      
+
       // Use the same API endpoint as the chatbot
       const response = await axiosInstance.get(`/availability/`, {
         params: {
           doctor_id: doctorId,
-          date: dateString
-        }
+          date: dateString,
+        },
       });
-      
-      console.log('Time slots API response:', response.data);
-      
+
+      console.log("Time slots API response:", response.data);
+
       // Check if response is an array and has at least one item (same as chatbot logic)
       if (!Array.isArray(response.data) || response.data.length === 0) {
         toast({
           title: "Info",
-          description: "No available time slots found for the selected doctor and date."
+          description:
+            "No available time slots found for the selected doctor and date.",
         });
         setAvailableTimeSlots([]);
         return;
@@ -400,163 +497,191 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
 
       // Get the first availability object (same as chatbot)
       const availability = response.data[0];
-      
+
       // Check if availability has time_slots array
-      if (!availability || !availability.time_slots || !Array.isArray(availability.time_slots)) {
-        console.log('No time slots in availability:', availability);
+      if (
+        !availability ||
+        !availability.time_slots ||
+        !Array.isArray(availability.time_slots)
+      ) {
+        console.log("No time slots in availability:", availability);
         toast({
           title: "Info",
-          description: "No available time slots for the selected doctor and date."
+          description:
+            "No available time slots for the selected doctor and date.",
         });
         setAvailableTimeSlots([]);
         return;
       }
-      
-      console.log('Raw time slots:', availability.time_slots);
-     
+
+      console.log("Raw time slots:", availability.time_slots);
+
       // Log all time slots before filtering (same as chatbot)
-      console.log('All time slots before filtering:', availability.time_slots.map(slot => ({
-        start: slot.start_time,
-        end: slot.end_time,
-        booked: slot.is_booked
-      })));
-      
+      console.log(
+        "All time slots before filtering:",
+        availability.time_slots.map((slot) => ({
+          start: slot.start_time,
+          end: slot.end_time,
+          booked: slot.is_booked,
+        })),
+      );
+
       // Filter out booked slots and lunch break (12:00 PM - 1:00 PM) matching chatbot logic
-      const availableSlots = availability.time_slots.filter(slot => {
+      const availableSlots = availability.time_slots.filter((slot) => {
         // Check if slot is marked as booked in the availability data
         const isBookedInAvailability = Boolean(
-          slot.is_booked === true || 
-          slot.is_booked === 1 || 
-          slot.is_booked === "true" || 
+          slot.is_booked === true ||
+          slot.is_booked === 1 ||
+          slot.is_booked === "true" ||
           slot.is_booked === "1" ||
           slot.is_booked === "True" ||
           slot.is_booked === "TRUE" ||
           slot.is_booked === "yes" ||
           slot.is_booked === "YES" ||
-          slot.is_booked === "Yes"
+          slot.is_booked === "Yes",
         );
-        
+
         // Also check if this time slot has an existing appointment
         const isBookedByAppointment = bookedTimeSlots.includes(slot.start_time);
-        
+
         const isBooked = isBookedInAvailability || isBookedByAppointment;
-        
+
         if (isBookedByAppointment) {
-          console.log(`Time slot ${slot.start_time} is booked by an existing appointment`);
+          console.log(
+            `Time slot ${slot.start_time} is booked by an existing appointment`,
+          );
         }
-        
+
         // Skip lunch break (12:00 PM to 1:00 PM) - same logic as chatbot
-        const [hours] = slot.start_time.split(':');
+        const [hours] = slot.start_time.split(":");
         const hour = parseInt(hours);
-        const isLunchBreak = (hour === 12);
-        
+        const isLunchBreak = hour === 12;
+
         // Debug logging for lunch break filtering
         if (isLunchBreak) {
-          console.log(`Filtering out lunch break slot: ${slot.start_time} - ${slot.end_time} (hour: ${hour})`);
+          console.log(
+            `Filtering out lunch break slot: ${slot.start_time} - ${slot.end_time} (hour: ${hour})`,
+          );
         }
-        
+
         // Only show slots that are NOT booked AND NOT lunch break
         return !isBooked && !isLunchBreak && slot.start_time && slot.end_time;
       });
-      
-      console.log('Available (unbooked) slots after filtering:', availableSlots);
-     
+
+      console.log(
+        "Available (unbooked) slots after filtering:",
+        availableSlots,
+      );
+
       // Format for display (same as chatbot logic)
-      const formattedSlots = availableSlots.map(slot => {
+      const formattedSlots = availableSlots.map((slot) => {
         // Parse time and convert to 12-hour format for display
         const startTime = new Date(`2000-01-01T${slot.start_time}`);
         const endTime = new Date(`2000-01-01T${slot.end_time}`);
-        
-        const startTime12h = startTime.toLocaleTimeString('en-US', {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true
+
+        const startTime12h = startTime.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
         });
-        const endTime12h = endTime.toLocaleTimeString('en-US', {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true
+        const endTime12h = endTime.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
         });
-        
+
         return {
           label: `${startTime12h} - ${endTime12h}`,
           value: slot.start_time, // Use 24-hour format for form submission
           start_time: slot.start_time,
-          end_time: slot.end_time
+          end_time: slot.end_time,
         };
       });
 
-      console.log('Formatted time slots:', formattedSlots);
-      
+      console.log("Formatted time slots:", formattedSlots);
+
       if (formattedSlots.length > 0) {
         setAvailableTimeSlots(formattedSlots);
         toast({
           title: "Success",
-          description: `Found ${formattedSlots.length} available time slots.`
+          description: `Found ${formattedSlots.length} available time slots.`,
         });
       } else {
         toast({
           title: "Info",
-          description: "No available time slots for the selected doctor and date."
+          description:
+            "No available time slots for the selected doctor and date.",
         });
         setAvailableTimeSlots([]);
       }
-      
     } catch (error: any) {
-      console.error('Error fetching available time slots:', error);
-      
+      console.error("Error fetching available time slots:", error);
+
       if (error.response?.status === 404) {
         toast({
           title: "Error",
-          description: "Doctor not found or not available on the selected date.",
-          variant: "destructive"
+          description:
+            "Doctor not found or not available on the selected date.",
+          variant: "destructive",
         });
         setAvailableTimeSlots([]);
       } else if (error.response?.status === 400) {
         toast({
-          title: "Error", 
+          title: "Error",
           description: "Invalid date or doctor selection.",
-          variant: "destructive"
+          variant: "destructive",
         });
         setAvailableTimeSlots([]);
       } else {
         // Fallback to client-side generation if API fails
-        console.log('API failed, falling back to client-side generation');
+        console.log("API failed, falling back to client-side generation");
         try {
-          const generatedTimeSlots = generateTimeSlots(date, clinicCustomization);
-          
+          const generatedTimeSlots = generateTimeSlots(
+            date,
+            clinicCustomization,
+          );
+
           if (generatedTimeSlots.length === 0) {
-            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const dayNames = [
+              "Sunday",
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+            ];
             const dayName = dayNames[date.getDay()];
-            
+
             toast({
               title: "Error",
               description: `The clinic is closed on ${dayName}s. Please select a different date.`,
-              variant: "destructive"
+              variant: "destructive",
             });
             setAvailableTimeSlots([]);
             return;
           }
-          
+
           // Convert generated time slots to the format expected by the component
-          const slots = generatedTimeSlots.map(timeSlot => ({
+          const slots = generatedTimeSlots.map((timeSlot) => ({
             label: timeSlot,
-            value: convertDisplayTimeTo24Hour(timeSlot)
+            value: convertDisplayTimeTo24Hour(timeSlot),
           }));
-          
+
           setAvailableTimeSlots(slots);
           toast({
             title: "Warning",
-            description: "Using default time slots. Doctor-specific availability not found.",
-            variant: "destructive"
+            description:
+              "Using default time slots. Doctor-specific availability not found.",
+            variant: "destructive",
           });
-          
         } catch (fallbackError) {
-          console.error('Fallback time slot generation failed:', fallbackError);
+          console.error("Fallback time slot generation failed:", fallbackError);
           toast({
             title: "Error",
-            description: "Failed to load available time slots. Please try again.",
-            variant: "destructive"
+            description:
+              "Failed to load available time slots. Please try again.",
+            variant: "destructive",
           });
           setAvailableTimeSlots([]);
         }
@@ -572,15 +697,15 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
 
   // Step navigation functions
   const nextStep = async () => {
-    console.log('nextStep called - current step:', currentStep);
-    console.log('Total steps:', STEPS.length);
-    
+    console.log("nextStep called - current step:", currentStep);
+    console.log("Total steps:", STEPS.length);
+
     // Prevent going past the final step
     if (currentStep >= STEPS.length - 1) {
-      console.log('Already on final step, cannot proceed further');
+      console.log("Already on final step, cannot proceed further");
       return;
     }
-    
+
     let isValid = false;
     const formValues = form.getValues();
 
@@ -588,28 +713,29 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
     switch (currentStep) {
       case 0: // Patient Selection
         if (isExistingPatient) {
-          await form.trigger(['patientId']);
-          isValid = !!formValues.patientId && formValues.patientId.trim() !== '';
+          await form.trigger(["patientId"]);
+          isValid =
+            !!formValues.patientId && formValues.patientId.trim() !== "";
           if (!isValid) {
             toast({
               title: "Error",
               description: "Please select a patient",
-              variant: "destructive"
+              variant: "destructive",
             });
           }
         } else {
           // Trigger validation for all new patient fields
           await form.trigger([
-            'newPatient.firstName', 
-            'newPatient.lastName', 
-            'newPatient.contactNumber', 
-            'newPatient.email', 
-            'newPatient.address', 
-            'newPatient.dateOfBirth', 
-            'newPatient.gender',
-            'newPatient.maritalStatus'
+            "newPatient.firstName",
+            "newPatient.lastName",
+            "newPatient.contactNumber",
+            "newPatient.email",
+            "newPatient.address",
+            "newPatient.dateOfBirth",
+            "newPatient.gender",
+            "newPatient.maritalStatus",
           ] as const);
-          
+
           const newPatient = formValues.newPatient;
           isValid = !!(
             newPatient?.firstName?.trim() &&
@@ -621,49 +747,49 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
             newPatient?.gender?.trim() &&
             newPatient?.maritalStatus?.trim()
           );
-          
+
           if (!isValid) {
             const errors = form.formState.errors;
-            console.log('Form errors:', errors);
-            console.log('Form values:', formValues);
+            console.log("Form errors:", errors);
+            console.log("Form values:", formValues);
             toast({
               title: "Error",
               description: "Please fill in all required patient information",
-              variant: "destructive"
+              variant: "destructive",
             });
           }
         }
         break;
       case 1: // Doctor & Type
-        await form.trigger(['doctorId', 'appointmentType']);
+        await form.trigger(["doctorId", "appointmentType"]);
         isValid = !!formValues.doctorId && !!formValues.appointmentType;
         if (!isValid) {
           toast({
             title: "Error",
             description: "Please select a doctor and appointment type",
-            variant: "destructive"
+            variant: "destructive",
           });
         }
         break;
       case 2: // Date
-        await form.trigger(['date']);
+        await form.trigger(["date"]);
         isValid = !!formValues.date;
         if (!isValid) {
           toast({
             title: "Error",
             description: "Please select a date",
-            variant: "destructive"
+            variant: "destructive",
           });
         }
         break;
       case 3: // Time
-        await form.trigger(['time']);
+        await form.trigger(["time"]);
         isValid = !!formValues.time;
         if (!isValid) {
           toast({
             title: "Error",
             description: "Please select a time slot",
-            variant: "destructive"
+            variant: "destructive",
           });
         }
         break;
@@ -676,12 +802,12 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
 
     if (isValid && currentStep < STEPS.length - 1) {
       const nextStepNumber = currentStep + 1;
-      console.log('Moving to next step:', nextStepNumber);
+      console.log("Moving to next step:", nextStepNumber);
       setCurrentStep(nextStepNumber);
     } else if (isValid && currentStep === STEPS.length - 1) {
-      console.log('Already on final step, cannot proceed further');
+      console.log("Already on final step, cannot proceed further");
     } else {
-      console.log('Validation failed, staying on current step');
+      console.log("Validation failed, staying on current step");
     }
   };
 
@@ -696,54 +822,66 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
   };
 
   // Function to create a new patient
-  const createNewPatient = async (patientData: z.infer<typeof newPatientSchema>) => {
+  const createNewPatient = async (
+    patientData: z.infer<typeof newPatientSchema>,
+  ) => {
     try {
       // Construct full name from individual components
       const nameComponents = [
         patientData.firstName,
         patientData.middleInitial,
         patientData.lastName,
-        patientData.suffix
-      ].filter(component => component && component.trim()).join(' ');
+        patientData.suffix,
+      ]
+        .filter((component) => component && component.trim())
+        .join(" ");
 
       // Format the patient data for the backend
       const formattedPatientData = {
         first_name: patientData.firstName,
-        middle_initial: patientData.middleInitial || '',
+        middle_initial: patientData.middleInitial || "",
         last_name: patientData.lastName,
-        suffix: patientData.suffix || '',
+        suffix: patientData.suffix || "",
         name: nameComponents, // Keep full name for backward compatibility
         email: patientData.email,
-        phone: patientData.contactNumber.replace(/\D/g, ''), // Remove non-digits
+        phone: patientData.contactNumber.replace(/\D/g, ""), // Remove non-digits
         address: patientData.address,
-        date_of_birth: format(patientData.dateOfBirth, 'yyyy-MM-dd'),
+        date_of_birth: format(patientData.dateOfBirth, "yyyy-MM-dd"),
         gender: patientData.gender,
-        marital_status: patientData.maritalStatus || '',
+        marital_status: patientData.maritalStatus || "",
       };
 
-      console.log('Creating new patient:', formattedPatientData);
+      console.log("Creating new patient:", formattedPatientData);
 
-      const response = await axiosInstance.post('/patients/', formattedPatientData);
-      console.log('Patient created:', response.data);
-      
+      const response = await axiosInstance.post(
+        "/patients/",
+        formattedPatientData,
+      );
+      console.log("Patient created:", response.data);
+
       return response.data;
     } catch (error: any) {
-      console.error('Error creating patient:', error.response?.data);
-      throw new Error(error.response?.data?.error || 'Failed to create patient');
+      console.error("Error creating patient:", error.response?.data);
+      throw new Error(
+        error.response?.data?.error || "Failed to create patient",
+      );
     }
   };
 
   const onSubmit = async (data: AppointmentFormValues) => {
-    console.log('onSubmit called with currentStep:', currentStep);
-    console.log('Expected final step:', STEPS.length - 1);
-    
+    console.log("onSubmit called with currentStep:", currentStep);
+    console.log("Expected final step:", STEPS.length - 1);
+
     // Only allow submission when on the final confirmation step
     if (currentStep !== STEPS.length - 1) {
-      console.log('Form submission prevented - not on confirmation step. Current step:', currentStep);
+      console.log(
+        "Form submission prevented - not on confirmation step. Current step:",
+        currentStep,
+      );
       return;
     }
 
-    console.log('Form submission started - on confirmation step');
+    console.log("Form submission started - on confirmation step");
     setLoading(true);
     try {
       let patientId: string;
@@ -756,89 +894,110 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
       // Handle patient creation or selection
       if (data.isExistingPatient) {
         // Use existing patient
-        selectedPatient = patients.find(p => p.id.toString() === data.patientId);
+        selectedPatient = patients.find(
+          (p) => p.id.toString() === data.patientId,
+        );
         if (!selectedPatient) {
-          throw new Error('Selected patient not found');
+          throw new Error("Selected patient not found");
         }
-        
+
         // Fetch full patient details for existing patient
         try {
-          const patientResponse = await axiosInstance.get(`/patients/${selectedPatient.id}/`);
+          const patientResponse = await axiosInstance.get(
+            `/patients/${selectedPatient.id}/`,
+          );
           const fullPatientData = patientResponse.data;
-          
+
           patientId = selectedPatient.id;
           patientName = selectedPatient.name;
           patientEmail = selectedPatient.email;
           patientPhone = selectedPatient.phone;
-          
+
           // Use actual patient data from the database
           patientData = {
-            firstName: fullPatientData.first_name || fullPatientData.name?.split(' ')[0] || '',
-            middleInitial: fullPatientData.middle_initial || '',
-            lastName: fullPatientData.last_name || fullPatientData.name?.split(' ').slice(1).join(' ') || '',
-            suffix: fullPatientData.suffix || '',
-            date_of_birth: fullPatientData.date_of_birth || '1990-01-01',
-            gender: fullPatientData.gender || 'Not Specified',
-            address: fullPatientData.address || 'Address on file',
-            marital_status: fullPatientData.marital_status || 'Not Specified',
+            firstName:
+              fullPatientData.first_name ||
+              fullPatientData.name?.split(" ")[0] ||
+              "",
+            middleInitial: fullPatientData.middle_initial || "",
+            lastName:
+              fullPatientData.last_name ||
+              fullPatientData.name?.split(" ").slice(1).join(" ") ||
+              "",
+            suffix: fullPatientData.suffix || "",
+            date_of_birth: fullPatientData.date_of_birth || "1990-01-01",
+            gender: fullPatientData.gender || "Not Specified",
+            address: fullPatientData.address || "Address on file",
+            marital_status: fullPatientData.marital_status || "Not Specified",
           };
         } catch (fetchError) {
-          console.warn('Could not fetch full patient details, using placeholder values:', fetchError);
+          console.warn(
+            "Could not fetch full patient details, using placeholder values:",
+            fetchError,
+          );
           // Fallback to placeholder values if fetch fails
           patientData = {
-            firstName: selectedPatient.name.split(' ')[0] || '',
-            middleInitial: '',
-            lastName: selectedPatient.name.split(' ').slice(1).join(' ') || '',
-            suffix: '',
-            date_of_birth: '1990-01-01',
-            gender: 'Not Specified',
-            address: 'Address on file',
-            marital_status: 'Not Specified',
+            firstName: selectedPatient.name.split(" ")[0] || "",
+            middleInitial: "",
+            lastName: selectedPatient.name.split(" ").slice(1).join(" ") || "",
+            suffix: "",
+            date_of_birth: "1990-01-01",
+            gender: "Not Specified",
+            address: "Address on file",
+            marital_status: "Not Specified",
           };
         }
       } else {
         // Create new patient first
         if (!data.newPatient) {
-          throw new Error('New patient data is required');
+          throw new Error("New patient data is required");
         }
-        
+
         const newPatient = await createNewPatient(data.newPatient);
         patientId = newPatient.id.toString();
         patientName = newPatient.name;
         patientEmail = newPatient.email;
         patientPhone = newPatient.phone;
-        
+
         // Use new patient data
         patientData = {
           firstName: data.newPatient.firstName,
-          middleInitial: data.newPatient.middleInitial || '',
+          middleInitial: data.newPatient.middleInitial || "",
           lastName: data.newPatient.lastName,
-          suffix: data.newPatient.suffix || '',
-          date_of_birth: format(data.newPatient.dateOfBirth, 'yyyy-MM-dd'),
+          suffix: data.newPatient.suffix || "",
+          date_of_birth: format(data.newPatient.dateOfBirth, "yyyy-MM-dd"),
           gender: data.newPatient.gender,
           address: data.newPatient.address,
           marital_status: data.newPatient.maritalStatus,
         };
-        
+
         // Update the patients list with the new patient
-        setPatients(prev => [...prev, {
-          id: newPatient.id.toString(),
-          name: newPatient.name,
-          email: newPatient.email,
-          phone: newPatient.phone,
-        }]);
+        setPatients((prev) => [
+          ...prev,
+          {
+            id: newPatient.id.toString(),
+            name: newPatient.name,
+            email: newPatient.email,
+            phone: newPatient.phone,
+          },
+        ]);
       }
 
       // Format the date to YYYY-MM-DD string
-      const formattedDate = format(data.date, 'yyyy-MM-dd');
+      const formattedDate = format(data.date, "yyyy-MM-dd");
 
       // Validate phone number length
-      const formattedPhone = patientPhone ? patientPhone.replace(/\D/g, '') : null;
-      if (formattedPhone && (formattedPhone.length < 10 || formattedPhone.length > 15)) {
+      const formattedPhone = patientPhone
+        ? patientPhone.replace(/\D/g, "")
+        : null;
+      if (
+        formattedPhone &&
+        (formattedPhone.length < 10 || formattedPhone.length > 15)
+      ) {
         toast({
           title: "Error",
           description: "Phone number must be between 10 and 15 digits",
-          variant: "destructive"
+          variant: "destructive",
         });
         return;
       }
@@ -848,12 +1007,13 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
         patient_name: patientName,
         patient_email: patientEmail,
         patient_phone: formattedPhone,
-        
+
         // Add patient_id for existing patients to avoid creating duplicates
-        ...(data.isExistingPatient && selectedPatient && {
-          patient_id: selectedPatient.patient_id || selectedPatient.id // Use patient_id if available, fallback to database id
-        }),
-        
+        ...(data.isExistingPatient &&
+          selectedPatient && {
+            patient_id: selectedPatient.patient_id || selectedPatient.id, // Use patient_id if available, fallback to database id
+          }),
+
         // Patient details - now using actual or new patient data
         firstName: patientData.firstName,
         middleInitial: patientData.middleInitial,
@@ -863,38 +1023,40 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
         gender: patientData.gender,
         address: patientData.address,
         marital_status: patientData.marital_status,
-        
+
         // Appointment details
         type: data.appointmentType,
         appointment_type: data.appointmentType,
         date: formattedDate,
         time: data.time,
-        notes: data.notes || '',
+        notes: data.notes || "",
         doctor_id: parseInt(data.doctorId),
-        status: 'scheduled'
+        status: "scheduled",
       };
 
-      console.log('Creating appointment:', appointmentData);
+      console.log("Creating appointment:", appointmentData);
 
-      const response = await axiosInstance.post('/appointments/create/', appointmentData);
-      console.log('Appointment created:', response.data);
-      
+      const response = await axiosInstance.post(
+        "/appointments/create/",
+        appointmentData,
+      );
+      console.log("Appointment created:", response.data);
+
       toast({
         title: "Success",
-        description: `Appointment scheduled successfully${!data.isExistingPatient ? ' and patient record created' : ''}`
+        description: `Appointment scheduled successfully${!data.isExistingPatient ? " and patient record created" : ""}`,
       });
       onOpenChange(false);
-      
+
       // Reset form and step
       setCurrentStep(1);
       form.reset({
         isExistingPatient: true,
-        notes: '',
+        notes: "",
       });
-      
     } catch (error: any) {
-      console.error('Error:', error);
-      
+      console.error("Error:", error);
+
       // Better error handling with specific messages
       if (error.response?.status === 400) {
         const errorData = error.response.data;
@@ -902,38 +1064,39 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
           toast({
             title: "Error",
             description: `Failed to schedule appointment: ${errorData.error}`,
-            variant: "destructive"
+            variant: "destructive",
           });
         } else if (errorData.detail) {
           toast({
-            title: "Error", 
+            title: "Error",
             description: `Failed to schedule appointment: ${errorData.detail}`,
-            variant: "destructive"
+            variant: "destructive",
           });
         } else {
           toast({
             title: "Error",
-            description: "Failed to schedule appointment: Please check all required fields",
-            variant: "destructive"
+            description:
+              "Failed to schedule appointment: Please check all required fields",
+            variant: "destructive",
           });
         }
       } else if (error.response?.status === 401) {
         toast({
           title: "Error",
           description: "Please log in to schedule appointments",
-          variant: "destructive"
+          variant: "destructive",
         });
       } else if (error.response?.status === 500) {
         toast({
           title: "Error",
           description: "Server error. Please try again later",
-          variant: "destructive"
+          variant: "destructive",
         });
       } else {
         toast({
           title: "Error",
           description: error.message || "Failed to schedule appointment",
-          variant: "destructive"
+          variant: "destructive",
         });
       }
     } finally {
@@ -972,7 +1135,10 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Select Patient *</FormLabel>
-              <Popover open={patientSearchOpen} onOpenChange={setPatientSearchOpen}>
+              <Popover
+                open={patientSearchOpen}
+                onOpenChange={setPatientSearchOpen}
+              >
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
@@ -981,11 +1147,12 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                       aria-expanded={patientSearchOpen}
                       className={cn(
                         "w-full justify-between",
-                        !field.value && "text-muted-foreground"
+                        !field.value && "text-muted-foreground",
                       )}
                     >
                       {field.value
-                        ? patients.find((patient) => patient.id === field.value)?.name
+                        ? patients.find((patient) => patient.id === field.value)
+                            ?.name
                         : "Search and select a patient..."}
                       <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
@@ -997,7 +1164,7 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                       placeholder="Type patient name to search..."
                       value={patientSearchTerm}
                       onValueChange={(value) => {
-                        console.log('Search term changed:', value);
+                        console.log("Search term changed:", value);
                         setPatientSearchTerm(value);
                         if (value.trim().length >= 2) {
                           setIsSearchingPatients(true);
@@ -1008,16 +1175,16 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                     <CommandList>
                       {/* Debug logging */}
                       {(() => {
-                        console.log('Render conditions:', {
+                        console.log("Render conditions:", {
                           isSearchingPatients,
                           hasSearched,
                           patientsLength: patients.length,
                           patientSearchTermLength: patientSearchTerm.length,
-                          patients: patients
+                          patients: patients,
                         });
                         return null;
                       })()}
-                      
+
                       {isSearchingPatients && (
                         <CommandEmpty>
                           <div className="flex items-center justify-center py-6">
@@ -1026,29 +1193,40 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                           </div>
                         </CommandEmpty>
                       )}
-                      
-                      {!isSearchingPatients && patientSearchTerm && patientSearchTerm.length < 2 && (
-                        <CommandEmpty>
-                          Type at least 2 characters to search patients
-                        </CommandEmpty>
-                      )}
-                      
-                      {!isSearchingPatients && hasSearched && patients.length === 0 && patientSearchTerm.length >= 2 && (
-                        <CommandEmpty>
-                          No patients found for "{patientSearchTerm}"
-                        </CommandEmpty>
-                      )}
-                      
-                      {!isSearchingPatients && !hasSearched && patientSearchTerm.length < 2 && (
-                        <CommandEmpty>
-                          <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
-                            <Search className="h-8 w-8 mb-2" />
-                            <p>Start typing to search patients</p>
-                            <p className="text-xs">Search by name, email, or phone</p>
-                            <p className="text-xs text-muted-foreground mt-1">Available patients: Mari, Steph, JR, John, Jane</p>
-                          </div>
-                        </CommandEmpty>
-                      )}
+
+                      {!isSearchingPatients &&
+                        patientSearchTerm &&
+                        patientSearchTerm.length < 2 && (
+                          <CommandEmpty>
+                            Type at least 2 characters to search patients
+                          </CommandEmpty>
+                        )}
+
+                      {!isSearchingPatients &&
+                        hasSearched &&
+                        patients.length === 0 &&
+                        patientSearchTerm.length >= 2 && (
+                          <CommandEmpty>
+                            No patients found for "{patientSearchTerm}"
+                          </CommandEmpty>
+                        )}
+
+                      {!isSearchingPatients &&
+                        !hasSearched &&
+                        patientSearchTerm.length < 2 && (
+                          <CommandEmpty>
+                            <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+                              <Search className="h-8 w-8 mb-2" />
+                              <p>Start typing to search patients</p>
+                              <p className="text-xs">
+                                Search by name, email, or phone
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Available patients: Mari, Steph, JR, John, Jane
+                              </p>
+                            </div>
+                          </CommandEmpty>
+                        )}
 
                       {!isSearchingPatients && patients.length > 0 && (
                         <CommandGroup>
@@ -1057,23 +1235,31 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                               key={patient.id}
                               value={patient.name.toLowerCase()}
                               onSelect={() => {
-                                console.log('Patient selected:', patient);
+                                console.log("Patient selected:", patient);
                                 field.onChange(patient.id);
                                 setPatientSearchOpen(false);
                               }}
                               className="flex items-center justify-between"
                             >
                               <div className="flex flex-col">
-                                <span className="font-medium">{patient.name}</span>
-                                <span className="text-sm text-muted-foreground">{patient.email}</span>
+                                <span className="font-medium">
+                                  {patient.name}
+                                </span>
+                                <span className="text-sm text-muted-foreground">
+                                  {patient.email}
+                                </span>
                                 {patient.phone && (
-                                  <span className="text-xs text-muted-foreground">{patient.phone}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {patient.phone}
+                                  </span>
                                 )}
                               </div>
                               <Check
                                 className={cn(
                                   "ml-2 h-4 w-4",
-                                  patient.id === field.value ? "opacity-100" : "opacity-0"
+                                  patient.id === field.value
+                                    ? "opacity-100"
+                                    : "opacity-0",
                                 )}
                               />
                             </CommandItem>
@@ -1087,7 +1273,9 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
               <FormDescription>
                 {hasSearched && patients.length > 0 && (
                   <span className="text-sm text-muted-foreground">
-                    Found {patients.length} patient{patients.length !== 1 ? 's' : ''} matching "{patientSearchTerm}"
+                    Found {patients.length} patient
+                    {patients.length !== 1 ? "s" : ""} matching "
+                    {patientSearchTerm}"
                   </span>
                 )}
                 {!hasSearched && (
@@ -1103,7 +1291,7 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
       ) : (
         <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
           <h4 className="font-medium text-lg">New Patient Information</h4>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
@@ -1191,7 +1379,9 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                       <SelectItem value="male">Male</SelectItem>
                       <SelectItem value="female">Female</SelectItem>
                       <SelectItem value="other">Other</SelectItem>
-                      <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+                      <SelectItem value="prefer_not_to_say">
+                        Prefer not to say
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -1207,7 +1397,11 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
               <FormItem>
                 <FormLabel>Email Address *</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="patient@example.com" {...field} />
+                  <Input
+                    type="email"
+                    placeholder="patient@example.com"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -1239,7 +1433,9 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
-                    disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                    disabled={(date) =>
+                      date > new Date() || date < new Date("1900-01-01")
+                    }
                     initialFocus
                     className="mx-auto scale-90"
                   />
@@ -1266,7 +1462,9 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                     <SelectItem value="married">Married</SelectItem>
                     <SelectItem value="divorced">Divorced</SelectItem>
                     <SelectItem value="widowed">Widowed</SelectItem>
-                    <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+                    <SelectItem value="prefer_not_to_say">
+                      Prefer not to say
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -1295,12 +1493,14 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                     aria-expanded={doctorSearchOpen}
                     className={cn(
                       "w-full justify-between",
-                      !field.value && "text-muted-foreground"
+                      !field.value && "text-muted-foreground",
                     )}
                   >
                     {field.value
-                      ? allDoctors.find((doctor) => doctor.id === field.value)?.name || 
-                        doctors.find((doctor) => doctor.id === field.value)?.name
+                      ? allDoctors.find((doctor) => doctor.id === field.value)
+                          ?.name ||
+                        doctors.find((doctor) => doctor.id === field.value)
+                          ?.name
                       : "Search and select a doctor..."}
                     <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
@@ -1312,7 +1512,7 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                     placeholder="Type doctor name to search..."
                     value={doctorSearchTerm}
                     onValueChange={(value) => {
-                      console.log('Doctor search term changed:', value);
+                      console.log("Doctor search term changed:", value);
                       setDoctorSearchTerm(value);
                       if (value.trim().length >= 2) {
                         setIsSearchingDoctors(true);
@@ -1323,16 +1523,16 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                   <CommandList>
                     {/* Debug logging */}
                     {(() => {
-                      console.log('Doctor render conditions:', {
+                      console.log("Doctor render conditions:", {
                         isSearchingDoctors,
                         hasDoctorSearched,
                         doctorsLength: doctors.length,
                         doctorSearchTermLength: doctorSearchTerm.length,
-                        doctors: doctors
+                        doctors: doctors,
                       });
                       return null;
                     })()}
-                    
+
                     {isSearchingDoctors && (
                       <CommandEmpty>
                         <div className="flex items-center justify-center py-6">
@@ -1341,29 +1541,38 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                         </div>
                       </CommandEmpty>
                     )}
-                    
-                    {!isSearchingDoctors && doctorSearchTerm && doctorSearchTerm.length < 2 && (
-                      <CommandEmpty>
-                        Type at least 2 characters to search doctors
-                      </CommandEmpty>
-                    )}
-                    
-                    {!isSearchingDoctors && hasDoctorSearched && doctors.length === 0 && doctorSearchTerm.length >= 2 && (
-                      <CommandEmpty>
-                        No doctors found for "{doctorSearchTerm}"
-                      </CommandEmpty>
-                    )}
-                    
-                    {!isSearchingDoctors && !hasDoctorSearched && doctorSearchTerm.length < 2 && (
-                      <CommandEmpty>
-                        <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
-                          <Search className="h-8 w-8 mb-2" />
-                          <p>Start typing to search doctors</p>
-                          <p className="text-xs">Search by doctor name</p>
-                          <p className="text-xs text-muted-foreground mt-1">Available doctors: {allDoctors.length} total</p>
-                        </div>
-                      </CommandEmpty>
-                    )}
+
+                    {!isSearchingDoctors &&
+                      doctorSearchTerm &&
+                      doctorSearchTerm.length < 2 && (
+                        <CommandEmpty>
+                          Type at least 2 characters to search doctors
+                        </CommandEmpty>
+                      )}
+
+                    {!isSearchingDoctors &&
+                      hasDoctorSearched &&
+                      doctors.length === 0 &&
+                      doctorSearchTerm.length >= 2 && (
+                        <CommandEmpty>
+                          No doctors found for "{doctorSearchTerm}"
+                        </CommandEmpty>
+                      )}
+
+                    {!isSearchingDoctors &&
+                      !hasDoctorSearched &&
+                      doctorSearchTerm.length < 2 && (
+                        <CommandEmpty>
+                          <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+                            <Search className="h-8 w-8 mb-2" />
+                            <p>Start typing to search doctors</p>
+                            <p className="text-xs">Search by doctor name</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Available doctors: {allDoctors.length} total
+                            </p>
+                          </div>
+                        </CommandEmpty>
+                      )}
 
                     {!isSearchingDoctors && doctors.length > 0 && (
                       <CommandGroup>
@@ -1372,7 +1581,7 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                             key={doctor.id}
                             value={doctor.name.toLowerCase()}
                             onSelect={() => {
-                              console.log('Doctor selected:', doctor);
+                              console.log("Doctor selected:", doctor);
                               field.onChange(doctor.id);
                               setDoctorSearchOpen(false);
                             }}
@@ -1384,7 +1593,9 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                             <Check
                               className={cn(
                                 "ml-2 h-4 w-4",
-                                doctor.id === field.value ? "opacity-100" : "opacity-0"
+                                doctor.id === field.value
+                                  ? "opacity-100"
+                                  : "opacity-0",
                               )}
                             />
                           </CommandItem>
@@ -1398,7 +1609,8 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
             <FormDescription>
               {hasDoctorSearched && doctors.length > 0 && (
                 <span className="text-sm text-muted-foreground">
-                  Found {doctors.length} doctor{doctors.length !== 1 ? 's' : ''} matching "{doctorSearchTerm}"
+                  Found {doctors.length} doctor{doctors.length !== 1 ? "s" : ""}{" "}
+                  matching "{doctorSearchTerm}"
                 </span>
               )}
               {!hasDoctorSearched && (
@@ -1425,7 +1637,7 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {APPOINTMENT_TYPES.map(type => (
+                {APPOINTMENT_TYPES.map((type) => (
                   <SelectItem key={type} value={type}>
                     {type}
                   </SelectItem>
@@ -1455,7 +1667,7 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                     variant="outline"
                     className={cn(
                       "w-full pl-3 text-left font-normal",
-                      !field.value && "text-muted-foreground"
+                      !field.value && "text-muted-foreground",
                     )}
                   >
                     {field.value ? (
@@ -1506,7 +1718,7 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                       variant="outline"
                       className={cn(
                         "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
+                        !field.value && "text-muted-foreground",
                       )}
                     >
                       {field.value ? (
@@ -1526,13 +1738,24 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                       className="grid grid-cols-2 gap-2"
                     >
                       {availableTimeSlots.map((slot) => (
-                        <div key={slot.value} className="flex items-center space-x-2">
-                          <Card className={`p-2 cursor-pointer transition-all hover:shadow-md w-full ${
-                            field.value === slot.value ? 'ring-2 ring-primary bg-primary/5' : ''
-                          }`}>
-                            <RadioGroupItem value={slot.value} id={slot.value} className="sr-only" />
-                            <label 
-                              htmlFor={slot.value} 
+                        <div
+                          key={slot.value}
+                          className="flex items-center space-x-2"
+                        >
+                          <Card
+                            className={`p-2 cursor-pointer transition-all hover:shadow-md w-full ${
+                              field.value === slot.value
+                                ? "ring-2 ring-primary bg-primary/5"
+                                : ""
+                            }`}
+                          >
+                            <RadioGroupItem
+                              value={slot.value}
+                              id={slot.value}
+                              className="sr-only"
+                            />
+                            <label
+                              htmlFor={slot.value}
                               className="text-sm font-medium cursor-pointer w-full block text-center"
                             >
                               {slot.label}
@@ -1545,10 +1768,9 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                 </PopoverContent>
               </Popover>
               <FormDescription>
-                {availableTimeSlots.length > 0 
-                  ? `${availableTimeSlots.length} available time slots for ${format(selectedDate, 'MMMM d, yyyy')}`
-                  : 'No available time slots for this date'
-                }
+                {availableTimeSlots.length > 0
+                  ? `${availableTimeSlots.length} available time slots for ${format(selectedDate, "MMMM d, yyyy")}`
+                  : "No available time slots for this date"}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -1608,12 +1830,20 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
               >
                 {availableTimeSlots.map((slot) => (
                   <div key={slot.value} className="flex items-center space-x-2">
-                    <Card className={`p-3 cursor-pointer transition-all hover:shadow-md ${
-                      field.value === slot.value ? 'ring-2 ring-primary bg-primary/5' : ''
-                    }`}>
-                      <RadioGroupItem value={slot.value} id={slot.value} className="sr-only" />
-                      <label 
-                        htmlFor={slot.value} 
+                    <Card
+                      className={`p-3 cursor-pointer transition-all hover:shadow-md ${
+                        field.value === slot.value
+                          ? "ring-2 ring-primary bg-primary/5"
+                          : ""
+                      }`}
+                    >
+                      <RadioGroupItem
+                        value={slot.value}
+                        id={slot.value}
+                        className="sr-only"
+                      />
+                      <label
+                        htmlFor={slot.value}
                         className="text-sm font-medium cursor-pointer w-full block text-center"
                       >
                         {slot.label}
@@ -1624,10 +1854,9 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
               </RadioGroup>
             </FormControl>
             <FormDescription>
-              {availableTimeSlots.length > 0 
-                ? `${availableTimeSlots.length} available time slots for ${selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'selected date'}`
-                : 'Please select a doctor and date first to see available times'
-              }
+              {availableTimeSlots.length > 0
+                ? `${availableTimeSlots.length} available time slots for ${selectedDate ? format(selectedDate, "MMMM d, yyyy") : "selected date"}`
+                : "Please select a doctor and date first to see available times"}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -1664,28 +1893,36 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
   const renderConfirmation = () => {
     const formValues = form.getValues();
     const currentIsExistingPatient = formValues.isExistingPatient;
-    
+
     // Debug log to see what we have
-    console.log('Confirmation step - form values:', formValues);
-    console.log('Is existing patient:', currentIsExistingPatient);
-    console.log('Patient ID:', formValues.patientId);
-    console.log('New patient data:', formValues.newPatient);
-    console.log('Available patients:', patients);
-    
-    const selectedPatient = currentIsExistingPatient 
-      ? patients.find(p => p.id.toString() === formValues.patientId?.toString())
+    console.log("Confirmation step - form values:", formValues);
+    console.log("Is existing patient:", currentIsExistingPatient);
+    console.log("Patient ID:", formValues.patientId);
+    console.log("New patient data:", formValues.newPatient);
+    console.log("Available patients:", patients);
+
+    const selectedPatient = currentIsExistingPatient
+      ? patients.find(
+          (p) => p.id.toString() === formValues.patientId?.toString(),
+        )
       : null;
-    
-    console.log('Selected patient:', selectedPatient);
-    
-    const selectedDoctorObj = doctors.find(d => d.id === formValues.doctorId);
-    const selectedTimeSlot = availableTimeSlots.find(t => t.value === formValues.time);
+
+    console.log("Selected patient:", selectedPatient);
+
+    const selectedDoctorObj = doctors.find((d) => d.id === formValues.doctorId);
+    const selectedTimeSlot = availableTimeSlots.find(
+      (t) => t.value === formValues.time,
+    );
 
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-gray-900">Review Appointment Details</h3>
-          <p className="text-sm text-gray-600">Please review all details before confirming</p>
+          <h3 className="text-lg font-semibold text-gray-900">
+            Review Appointment Details
+          </h3>
+          <p className="text-sm text-gray-600">
+            Please review all details before confirming
+          </p>
         </div>
 
         <div className="space-y-4">
@@ -1697,30 +1934,64 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
               {currentIsExistingPatient ? (
                 selectedPatient ? (
                   <div className="space-y-2">
-                    <p><strong>Name:</strong> {selectedPatient.name}</p>
-                    <p><strong>Email:</strong> {selectedPatient.email}</p>
-                    <p><strong>Phone:</strong> {selectedPatient.phone}</p>
+                    <p>
+                      <strong>Name:</strong> {selectedPatient.name}
+                    </p>
+                    <p>
+                      <strong>Email:</strong> {selectedPatient.email}
+                    </p>
+                    <p>
+                      <strong>Phone:</strong> {selectedPatient.phone}
+                    </p>
                   </div>
                 ) : (
                   <p className="text-red-600">Please select a patient</p>
                 )
               ) : formValues.newPatient ? (
                 <div className="space-y-2">
-                  <p><strong>Name:</strong> {[
-                    formValues.newPatient.firstName,
-                    formValues.newPatient.middleInitial,
-                    formValues.newPatient.lastName,
-                    formValues.newPatient.suffix
-                  ].filter(part => part && part.trim()).join(' ')}</p>
-                  <p><strong>Email:</strong> {formValues.newPatient.email}</p>
-                  <p><strong>Phone:</strong> {formValues.newPatient.contactNumber}</p>
-                  <p><strong>Home Address:</strong> {formValues.newPatient.address}</p>
-                  <p><strong>Date of Birth:</strong> {formValues.newPatient.dateOfBirth ? format(formValues.newPatient.dateOfBirth, 'MMMM d, yyyy') : 'N/A'}</p>
-                  <p><strong>Sex:</strong> {formValues.newPatient.gender}</p>
+                  <p>
+                    <strong>Name:</strong>{" "}
+                    {[
+                      formValues.newPatient.firstName,
+                      formValues.newPatient.middleInitial,
+                      formValues.newPatient.lastName,
+                      formValues.newPatient.suffix,
+                    ]
+                      .filter((part) => part && part.trim())
+                      .join(" ")}
+                  </p>
+                  <p>
+                    <strong>Email:</strong> {formValues.newPatient.email}
+                  </p>
+                  <p>
+                    <strong>Phone:</strong>{" "}
+                    {formValues.newPatient.contactNumber}
+                  </p>
+                  <p>
+                    <strong>Home Address:</strong>{" "}
+                    {formValues.newPatient.address}
+                  </p>
+                  <p>
+                    <strong>Date of Birth:</strong>{" "}
+                    {formValues.newPatient.dateOfBirth
+                      ? format(
+                          formValues.newPatient.dateOfBirth,
+                          "MMMM d, yyyy",
+                        )
+                      : "N/A"}
+                  </p>
+                  <p>
+                    <strong>Sex:</strong> {formValues.newPatient.gender}
+                  </p>
                   {formValues.newPatient.maritalStatus && (
-                    <p><strong>Marital Status:</strong> {formValues.newPatient.maritalStatus}</p>
+                    <p>
+                      <strong>Marital Status:</strong>{" "}
+                      {formValues.newPatient.maritalStatus}
+                    </p>
                   )}
-                  <p className="text-sm text-blue-600 mt-2">* New patient record will be created</p>
+                  <p className="text-sm text-blue-600 mt-2">
+                    * New patient record will be created
+                  </p>
                 </div>
               ) : (
                 <p className="text-red-600">No patient information available</p>
@@ -1735,18 +2006,33 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p><strong>Doctor:</strong> {selectedDoctorObj?.name || 'N/A'}</p>
-                  <p><strong>Type:</strong> {formValues.appointmentType || 'N/A'}</p>
+                  <p>
+                    <strong>Doctor:</strong> {selectedDoctorObj?.name || "N/A"}
+                  </p>
+                  <p>
+                    <strong>Type:</strong> {formValues.appointmentType || "N/A"}
+                  </p>
                 </div>
                 <div>
-                  <p><strong>Date:</strong> {formValues.date ? format(formValues.date, 'MMMM d, yyyy') : 'N/A'}</p>
-                  <p><strong>Time:</strong> {selectedTimeSlot?.label || 'N/A'}</p>
+                  <p>
+                    <strong>Date:</strong>{" "}
+                    {formValues.date
+                      ? format(formValues.date, "MMMM d, yyyy")
+                      : "N/A"}
+                  </p>
+                  <p>
+                    <strong>Time:</strong> {selectedTimeSlot?.label || "N/A"}
+                  </p>
                 </div>
               </div>
               {formValues.notes && (
                 <div className="mt-4">
-                  <p><strong>Notes:</strong></p>
-                  <p className="text-sm text-gray-600 mt-1">{formValues.notes}</p>
+                  <p>
+                    <strong>Notes:</strong>
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {formValues.notes}
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -1758,16 +2044,19 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[800px]">
-        <DialogHeader>
-          <DialogTitle>Schedule New Appointment</DialogTitle>
-          <DialogDescription>
-            Step {currentStep + 1} of {STEPS.length}: {STEPS[currentStep].description}
+      <DialogContent className="w-full max-w-[95vw] sm:max-w-[800px] max-h-[95vh] overflow-y-auto">
+        <DialogHeader className="pb-2 sm:pb-4">
+          <DialogTitle className="text-base sm:text-lg">
+            Schedule New Appointment
+          </DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm">
+            Step {currentStep + 1} of {STEPS.length}:{" "}
+            {STEPS[currentStep].description}
           </DialogDescription>
         </DialogHeader>
 
         {/* Step Progress Indicator */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4 sm:mb-6 px-2 sm:px-0">
           {STEPS.map((step, index) => {
             const Icon = step.icon;
             const isActive = index === currentStep;
@@ -1775,40 +2064,56 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
             const isAccessible = index <= currentStep;
 
             return (
-              <div key={step.id} className="flex flex-col items-center space-y-2">
+              <div
+                key={step.id}
+                className="flex flex-col items-center space-y-1 sm:space-y-2 relative"
+              >
                 <button
                   onClick={() => isAccessible && goToStep(index)}
                   disabled={!isAccessible}
                   className={`
-                    w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium
-                    transition-all duration-200
-                    ${isActive 
-                      ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2' 
-                      : isCompleted
-                        ? 'bg-green-500 text-white hover:bg-green-600'
-                        : isAccessible
-                          ? 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium
+                    transition-all duration-200 flex-shrink-0
+                    ${
+                      isActive
+                        ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1"
+                        : isCompleted
+                          ? "bg-green-500 text-white hover:bg-green-600"
+                          : isAccessible
+                            ? "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                            : "bg-gray-100 text-gray-400 cursor-not-allowed"
                     }
                   `}
                 >
                   {isCompleted ? (
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    <svg
+                      className="w-4 h-4 sm:w-5 sm:h-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   ) : (
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-3 h-3 sm:w-4 sm:h-4" />
                   )}
                 </button>
-                <span className={`text-xs text-center max-w-[80px] ${
-                  isActive ? 'text-primary font-medium' : 'text-gray-500'
-                }`}>
+                <span
+                  className={`hidden sm:block text-xs text-center max-w-[80px] ${
+                    isActive ? "text-primary font-medium" : "text-gray-500"
+                  }`}
+                >
                   {step.title}
                 </span>
                 {index < STEPS.length - 1 && (
-                  <div className={`absolute h-0.5 w-16 translate-x-12 ${
-                    isCompleted ? 'bg-green-500' : 'bg-gray-200'
-                  }`} />
+                  <div
+                    className={`hidden sm:block absolute h-0.5 w-12 lg:w-16 translate-x-10 lg:translate-x-12 ${
+                      isCompleted ? "bg-green-500" : "bg-gray-200"
+                    }`}
+                  />
                 )}
               </div>
             );
@@ -1816,28 +2121,30 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
         </div>
 
         <Form {...form}>
-          <form 
+          <form
             onSubmit={(e) => {
-              console.log('Form submit event triggered');
-              console.log('Current step during submit:', currentStep);
+              console.log("Form submit event triggered");
+              console.log("Current step during submit:", currentStep);
               e.preventDefault();
               e.stopPropagation();
-              
+
               // Only submit if we're on the confirmation step
               if (currentStep === STEPS.length - 1) {
-                console.log('Allowing form submission - on confirmation step');
+                console.log("Allowing form submission - on confirmation step");
                 form.handleSubmit(onSubmit)(e);
               } else {
-                console.log('Preventing form submission - not on confirmation step. Current step:', currentStep);
+                console.log(
+                  "Preventing form submission - not on confirmation step. Current step:",
+                  currentStep,
+                );
                 return false;
               }
-            }} 
+            }}
             className="space-y-6"
             noValidate
           >
-            
             {/* Step Content */}
-            <div className="min-h-[400px]">
+            <div className="min-h-[300px] sm:min-h-[400px] px-1 sm:px-0">
               {currentStep === 0 && renderPatientSelection()}
               {currentStep === 1 && renderDoctorAndType()}
               {currentStep === 2 && renderDateAndTimeSelection()}
@@ -1846,33 +2153,39 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
             </div>
 
             {/* Navigation Footer */}
-            <DialogFooter className="pt-6 border-t">
-              <div className="flex justify-between w-full">
+            <DialogFooter className="pt-4 sm:pt-6 border-t">
+              <div className="flex justify-between w-full gap-2">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={currentStep === 0 ? () => onOpenChange(false) : prevStep}
+                  onClick={
+                    currentStep === 0 ? () => onOpenChange(false) : prevStep
+                  }
                   disabled={loading}
+                  className="text-sm h-9 sm:h-10"
                 >
                   {currentStep === 0 ? (
-                    'Cancel'
+                    "Cancel"
                   ) : (
                     <>
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      Back
+                      <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                      <span className="hidden sm:inline">Back</span>
+                      <span className="sm:hidden">Back</span>
                     </>
                   )}
                 </Button>
 
-                <div className="flex space-x-2">
+                <div className="flex gap-2">
                   {currentStep < STEPS.length - 1 ? (
                     <Button
                       type="button"
                       onClick={nextStep}
                       disabled={loading}
+                      className="text-sm h-9 sm:h-10"
                     >
-                      Next
-                      <ArrowRight className="w-4 h-4 ml-2" />
+                      <span className="hidden sm:inline">Next</span>
+                      <span className="sm:hidden">Next</span>
+                      <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
                     </Button>
                   ) : (
                     <Button
@@ -1880,16 +2193,28 @@ const NewAppointmentModal = ({ open, onOpenChange }: NewAppointmentModalProps) =
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log('Submit button clicked, current step:', currentStep);
+                        console.log(
+                          "Submit button clicked, current step:",
+                          currentStep,
+                        );
                         if (currentStep === STEPS.length - 1) {
-                          console.log('Manually triggering form submission');
+                          console.log("Manually triggering form submission");
                           form.handleSubmit(onSubmit)();
                         }
                       }}
                       disabled={loading}
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-green-600 hover:bg-green-700 text-sm h-9 sm:h-10 whitespace-nowrap"
                     >
-                      {loading ? 'Creating...' : 'Create Appointment'}
+                      {loading ? (
+                        "Creating..."
+                      ) : (
+                        <>
+                          <span className="hidden sm:inline">
+                            Create Appointment
+                          </span>
+                          <span className="sm:hidden">Create</span>
+                        </>
+                      )}
                     </Button>
                   )}
                 </div>

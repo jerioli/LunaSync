@@ -460,57 +460,64 @@ const Inventory = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Doctor Inventory</h1>
-          <p className="text-gray-600">
-            Manage medicine database for e-prescription creation
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+        <div className="flex-1">
+          <h1 className="text-xl sm:text-2xl font-bold">Inventory</h1>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">
+            Manage medicine database
           </p>
         </div>
-        <Button onClick={() => setIsAddModalOpen(true)}>
+        <Button
+          onClick={() => setIsAddModalOpen(true)}
+          className="w-full sm:w-auto text-sm"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add Medicine
         </Button>
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4 sm:pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">
                   Total Medicines
                 </p>
-                <p className="text-2xl font-bold">{medicineRecords.length}</p>
+                <p className="text-xl sm:text-2xl font-bold">
+                  {medicineRecords.length}
+                </p>
               </div>
-              <Package className="h-8 w-8 text-blue-500" />
+              <Package className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4 sm:pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Low Stock</p>
-                <p className="text-2xl font-bold text-orange-600">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">
+                  Low Stock
+                </p>
+                <p className="text-xl sm:text-2xl font-bold text-orange-600">
                   {medicineRecords.filter((item) => item.is_low_stock).length}
                 </p>
               </div>
-              <AlertTriangle className="h-8 w-8 text-orange-500" />
+              <AlertTriangle className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4 sm:pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">
                   Near Expiration
                 </p>
-                <p className="text-2xl font-bold text-amber-600">
+                <p className="text-xl sm:text-2xl font-bold text-amber-600">
                   {
                     medicineRecords.filter(
                       (item) => item.is_near_expiration && !item.is_expired,
@@ -518,20 +525,22 @@ const Inventory = () => {
                   }
                 </p>
               </div>
-              <AlertTriangle className="h-8 w-8 text-amber-500" />
+              <AlertTriangle className="h-6 w-6 sm:h-8 sm:w-8 text-amber-500" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4 sm:pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Expired</p>
-                <p className="text-2xl font-bold text-red-600">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">
+                  Expired
+                </p>
+                <p className="text-xl sm:text-2xl font-bold text-red-600">
                   {medicineRecords.filter((item) => item.is_expired).length}
                 </p>
               </div>
-              <TrendingDown className="h-8 w-8 text-red-500" />
+              <TrendingDown className="h-6 w-6 sm:h-8 sm:w-8 text-red-500" />
             </div>
           </CardContent>
         </Card>
@@ -539,45 +548,47 @@ const Inventory = () => {
 
       {/* Filters and Search */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
+        <CardContent className="pt-4 sm:pt-6">
+          <div className="flex flex-col gap-3 sm:gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-2.5 sm:top-3 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Search medicines..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 text-xs sm:text-sm h-9 sm:h-10"
                 />
               </div>
             </div>
-            <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger className="w-full md:w-[200px]">
-                <SelectValue placeholder="Filter by dosage form" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Dosage Forms</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={itemsPerPage.toString()}
-              onValueChange={(value) => setItemsPerPage(parseInt(value))}
-            >
-              <SelectTrigger className="w-full md:w-[120px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">10 / page</SelectItem>
-                <SelectItem value="25">25 / page</SelectItem>
-                <SelectItem value="50">50 / page</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+              <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <SelectTrigger className="w-full sm:w-[200px] text-xs sm:text-sm h-9 sm:h-10">
+                  <SelectValue placeholder="Filter by dosage form" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Dosage Forms</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={itemsPerPage.toString()}
+                onValueChange={(value) => setItemsPerPage(parseInt(value))}
+              >
+                <SelectTrigger className="w-full sm:w-[120px] text-xs sm:text-sm h-9 sm:h-10">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10 / page</SelectItem>
+                  <SelectItem value="25">25 / page</SelectItem>
+                  <SelectItem value="50">50 / page</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -585,10 +596,11 @@ const Inventory = () => {
       {/* Medicine Records Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Medicine Records</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">Medicine Records</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden lg:block overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -742,35 +754,191 @@ const Inventory = () => {
             </Table>
           </div>
 
+          {/* Mobile Card View with Accordion */}
+          <div className="lg:hidden space-y-3">
+            {paginatedItems.map((item) => (
+              <details key={item.id} className="group border rounded-lg">
+                <summary className="cursor-pointer p-3 sm:p-4 hover:bg-muted/50 transition-colors list-none">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-semibold text-sm sm:text-base">
+                          {item.name}
+                        </h3>
+                        <span className="text-xs sm:text-sm font-medium text-blue-600">
+                          {item.dosage}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <span className="capitalize text-xs bg-gray-100 px-2 py-0.5 rounded">
+                          {item.category}
+                        </span>
+                        {item.is_expired && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            Expired
+                          </span>
+                        )}
+                        {item.is_near_expiration && !item.is_expired && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                            Near Expiry
+                          </span>
+                        )}
+                        {item.is_low_stock && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                            Low Stock
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-gray-400 transition-transform group-open:rotate-90 flex-shrink-0" />
+                  </div>
+                </summary>
+
+                <div className="border-t p-3 sm:p-4 space-y-3 bg-muted/20">
+                  <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
+                    <div>
+                      <span className="text-gray-600 font-medium">
+                        Stock Quantity:
+                      </span>
+                      <p
+                        className={`mt-1 ${
+                          item.is_low_stock
+                            ? "text-orange-600 font-semibold"
+                            : "text-gray-900"
+                        }`}
+                      >
+                        {item.stock_quantity ?? "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-600 font-medium">
+                        Expiration:
+                      </span>
+                      <p
+                        className={`mt-1 ${
+                          item.is_expired
+                            ? "text-red-600 font-semibold"
+                            : item.is_near_expiration
+                              ? "text-amber-600 font-semibold"
+                              : "text-gray-900"
+                        }`}
+                      >
+                        {item.expiration_date
+                          ? format(
+                              new Date(item.expiration_date),
+                              "MMM dd, yyyy",
+                            )
+                          : "Not set"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-600 font-medium">
+                        Alert Status:
+                      </span>
+                      <div className="mt-1">
+                        {item.is_expired && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            <AlertTriangle className="h-3 w-3 mr-1" />
+                            Expired
+                          </span>
+                        )}
+                        {item.is_near_expiration && !item.is_expired && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                            <Clock className="h-3 w-3 mr-1" />
+                            Near Expiry
+                          </span>
+                        )}
+                        {!item.is_near_expiration &&
+                          !item.is_expired &&
+                          item.expiration_date && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              OK
+                            </span>
+                          )}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-gray-600 font-medium">
+                        Date Added:
+                      </span>
+                      <p className="text-gray-900 mt-1">
+                        {format(new Date(item.created_at), "MMM dd, yyyy")}
+                      </p>
+                    </div>
+                  </div>
+
+                  {item.description && (
+                    <div>
+                      <span className="text-gray-600 font-medium text-xs sm:text-sm">
+                        Description:
+                      </span>
+                      <p className="text-gray-700 mt-1 text-xs sm:text-sm">
+                        {item.description}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(item)}
+                      className="flex-1 text-xs sm:text-sm"
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDelete(item.id)}
+                      className="flex-1 text-xs sm:text-sm"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              </details>
+            ))}
+          </div>
+
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
-              <div className="text-sm text-gray-600">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-4 pt-4 border-t">
+              <div className="text-xs sm:text-sm text-gray-600">
                 Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of{" "}
                 {totalItems} items
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="px-3 py-2 text-sm">
+              <div className="flex items-center space-x-4 lg:space-x-6">
+                <div className="flex w-[100px] items-center justify-center text-xs sm:text-sm font-medium">
                   Page {currentPage} of {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    <span className="hidden sm:inline">Previous</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setCurrentPage(Math.min(totalPages, currentPage + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                    className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
+                  >
+                    <span className="hidden sm:inline">Next</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           )}

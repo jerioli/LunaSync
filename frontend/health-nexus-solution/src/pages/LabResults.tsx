@@ -11,6 +11,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -127,10 +134,10 @@ const LabResults = () => {
 
   const [ocrExtractedText, setOcrExtractedText] = useState<string | null>(null);
   const [matchedPatientId, setMatchedPatientId] = useState<string | undefined>(
-    undefined
+    undefined,
   );
   const [authorizedBy, setAuthorizedBy] = useState<string | undefined>(
-    undefined
+    undefined,
   );
   const [extractedTestResults, setExtractedTestResults] = useState<
     LabTestResult[]
@@ -141,7 +148,7 @@ const LabResults = () => {
   // Delete confirmation state
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [labResultToDelete, setLabResultToDelete] = useState<LabResult | null>(
-    null
+    null,
   );
 
   // Textract specific states
@@ -214,7 +221,7 @@ const LabResults = () => {
 
   // Handle file upload and processing
   const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -341,7 +348,7 @@ const LabResults = () => {
         // Remove trailing credentials like ", MD" or job titles
         doctorName = doctorName.replace(
           /,\s*(MD|DO|PhD|DVM|Pathologist|Radiologist).*$/i,
-          ""
+          "",
         );
         // Clean up extra whitespace
         doctorName = doctorName.replace(/\s+/g, " ").trim();
@@ -407,7 +414,7 @@ const LabResults = () => {
     patientId?: string,
     doctor?: string,
     structuredData?: LabTestResult[],
-    documentDetails?: any
+    documentDetails?: any,
   ) => {
     console.log("OCR Complete called with:", {
       text: text.substring(0, 200),
@@ -417,7 +424,7 @@ const LabResults = () => {
     });
     console.log(
       "Available patients:",
-      patients.map((p) => ({ id: p.id, name: p.name }))
+      patients.map((p) => ({ id: p.id, name: p.name })),
     );
 
     setOcrExtractedText(text);
@@ -445,12 +452,12 @@ const LabResults = () => {
           "OCR matched patient verified:",
           patientExists.name,
           "ID:",
-          patientId
+          patientId,
         );
       } else {
         console.log(
           "OCR provided patient ID not found in current list:",
-          patientId
+          patientId,
         );
         finalPatientId = undefined;
       }
@@ -467,7 +474,7 @@ const LabResults = () => {
             "Found patient through enhanced text matching:",
             foundPatient.name,
             "ID:",
-            foundPatientId
+            foundPatientId,
           );
         }
       }
@@ -482,7 +489,7 @@ const LabResults = () => {
     // Show success message if patient was matched
     if (finalPatientId || matchedPatientId) {
       const matchedPatient = patients.find(
-        (p) => p.id === (finalPatientId || matchedPatientId)
+        (p) => p.id === (finalPatientId || matchedPatientId),
       );
       if (matchedPatient) {
         toast({
@@ -504,7 +511,7 @@ const LabResults = () => {
     console.log("Searching for patient in text...");
     console.log(
       "Available patients:",
-      patients.map((p) => ({ id: p.id, name: p.name }))
+      patients.map((p) => ({ id: p.id, name: p.name })),
     );
 
     // Helper function to detect doctor names
@@ -529,7 +536,7 @@ const LabResults = () => {
             // Remove trailing credentials like ", MD" or job titles
             name = name.replace(
               /,\s*(MD|DO|PhD|DVM|Pathologist|Radiologist).*$/i,
-              ""
+              "",
             );
             // Clean up extra whitespace
             name = name.replace(/\s+/g, " ").trim();
@@ -549,7 +556,7 @@ const LabResults = () => {
 
     // Helper function to detect patient names with context validation
     const detectPatientName = (
-      text: string
+      text: string,
     ): { name: string; confidence: number }[] => {
       const results: { name: string; confidence: number }[] = [];
       const lines = text.split("\n");
@@ -610,7 +617,7 @@ const LabResults = () => {
             ) {
               results.push({ name: extractedName, confidence: 0.95 }); // Highest confidence
               console.log(
-                `Added from "Name: " pattern: "${extractedName}" (confidence: 0.95)`
+                `Added from "Name: " pattern: "${extractedName}" (confidence: 0.95)`,
               );
             }
           }
@@ -688,7 +695,7 @@ const LabResults = () => {
                 ) {
                   results.push({ name: extractedName, confidence });
                   console.log(
-                    `Extracted potential patient name: "${extractedName}" (confidence: ${confidence})`
+                    `Extracted potential patient name: "${extractedName}" (confidence: ${confidence})`,
                   );
                 }
               }
@@ -746,7 +753,7 @@ const LabResults = () => {
           matrix[i][j] = Math.min(
             matrix[i - 1][j] + 1, // deletion
             matrix[i][j - 1] + 1, // insertion
-            matrix[i - 1][j - 1] + cost // substitution
+            matrix[i - 1][j - 1] + cost, // substitution
           );
         }
       }
@@ -759,13 +766,13 @@ const LabResults = () => {
     for (const { name: detectedName, confidence } of detectedNames) {
       if (confidence < 0.6) {
         console.log(
-          `Skipping low confidence name: "${detectedName}" (${confidence})`
+          `Skipping low confidence name: "${detectedName}" (${confidence})`,
         );
         continue;
       }
 
       console.log(
-        `Trying to match detected name: "${detectedName}" (confidence: ${confidence})`
+        `Trying to match detected name: "${detectedName}" (confidence: ${confidence})`,
       );
 
       let bestMatch: { patient: any; similarity: number } | null = null;
@@ -777,7 +784,7 @@ const LabResults = () => {
         // Priority 1: Exact match (highest priority)
         if (detectedNameUpper === patientNameUpper) {
           console.log(
-            `✓ Found exact match: ${patient.name} (ID: ${patient.id})`
+            `✓ Found exact match: ${patient.name} (ID: ${patient.id})`,
           );
           return patient.id;
         }
@@ -788,7 +795,7 @@ const LabResults = () => {
         console.log(
           `  Comparing "${detectedName}" with "${
             patient.name
-          }" -> similarity: ${(similarity * 100).toFixed(1)}%`
+          }" -> similarity: ${(similarity * 100).toFixed(1)}%`,
         );
 
         // Keep track of the best match
@@ -809,12 +816,14 @@ const LabResults = () => {
           const commonParts = nameParts.filter(
             (part) =>
               part.length > 2 &&
-              detectedParts.some((dp) => dp.includes(part) || part.includes(dp))
+              detectedParts.some(
+                (dp) => dp.includes(part) || part.includes(dp),
+              ),
           );
 
           if (commonParts.length >= Math.min(2, nameParts.length)) {
             console.log(
-              `✓ Found validated contains match: ${patient.name} (ID: ${patient.id})`
+              `✓ Found validated contains match: ${patient.name} (ID: ${patient.id})`,
             );
             return patient.id;
           }
@@ -826,14 +835,14 @@ const LabResults = () => {
         console.log(
           `✓ Found best fuzzy match: ${bestMatch.patient.name} (ID: ${
             bestMatch.patient.id
-          }, similarity: ${(bestMatch.similarity * 100).toFixed(1)}%)`
+          }, similarity: ${(bestMatch.similarity * 100).toFixed(1)}%)`,
         );
         return bestMatch.patient.id;
       } else if (bestMatch) {
         console.log(
           `  Best match found but similarity too low: ${
             bestMatch.patient.name
-          } (${(bestMatch.similarity * 100).toFixed(1)}%)`
+          } (${(bestMatch.similarity * 100).toFixed(1)}%)`,
         );
       }
     }
@@ -857,7 +866,7 @@ const LabResults = () => {
             ...(token && { Authorization: `Bearer ${token}` }),
           },
           credentials: "include",
-        }
+        },
       );
 
       if (response.ok) {
@@ -923,7 +932,7 @@ const LabResults = () => {
             ...(token && { Authorization: `Bearer ${token}` }),
           },
           credentials: "include",
-        }
+        },
       );
 
       if (response.ok) {
@@ -1004,7 +1013,7 @@ const LabResults = () => {
               test.result_value.toLowerCase().includes(searchLower) ||
               (test.unit && test.unit.toLowerCase().includes(searchLower)) ||
               (test.reference_range &&
-                test.reference_range.toLowerCase().includes(searchLower))
+                test.reference_range.toLowerCase().includes(searchLower)),
           ));
 
       if (activeTab === "all") {
@@ -1090,26 +1099,58 @@ const LabResults = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Lab Results List</h1>
-        <p className="text-muted-foreground">
-          View, manage, and analyze patient lab results
-        </p>
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+        <div className="flex-1">
+          <h1 className="text-xl sm:text-2xl font-bold">Lab Results List</h1>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">
+            View, manage, and analyze patient lab results
+          </p>
+        </div>
+        <div className="flex flex-col items-start gap-1.5">
+          <Button
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full sm:w-auto text-sm"
+            disabled={isProcessing}
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4 mr-2" />
+                Upload Lab Result
+              </>
+            )}
+          </Button>
+          <span className="text-[10px] sm:text-xs text-gray-500 italic">
+            PDF, PNG, JPG only
+          </span>
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
+          onChange={handleFileUpload}
+          className="hidden"
+        />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6">
+        <div>
           <Card>
             <CardHeader className="pb-3">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <div className="relative">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="search"
                       placeholder="Search results..."
-                      className="pl-8 w-full md:w-[200px]"
+                      className="pl-8 w-full sm:w-[200px] text-xs sm:text-sm"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -1119,7 +1160,7 @@ const LabResults = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => handleSort("date")}
-                      className="flex items-center gap-1"
+                      className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3"
                     >
                       Date {getSortIcon("date")}
                     </Button>
@@ -1127,24 +1168,24 @@ const LabResults = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => handleSort("patient")}
-                      className="flex items-center gap-1"
+                      className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3"
                     >
                       Patient {getSortIcon("patient")}
                     </Button>
                   </div>
                   <Button
                     variant="outline"
-                    size="default"
+                    size="sm"
                     onClick={handleRefreshResults}
                     disabled={isLoadingResults}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3"
                   >
                     <RefreshCw
                       className={`h-4 w-4 ${
                         isLoadingResults ? "animate-spin" : ""
                       }`}
                     />
-                    Refresh
+                    <span className="hidden sm:inline">Refresh</span>
                   </Button>
                 </div>
               </div>
@@ -1185,12 +1226,12 @@ const LabResults = () => {
                         return (
                           <div
                             key={result.id}
-                            className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-3"
                           >
-                            <div className="flex items-center gap-3">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <div className="font-medium">
+                            <div className="flex items-start gap-3 flex-1">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <div className="font-medium text-sm sm:text-base">
                                     {result.patientName || "Unknown Patient"}
                                   </div>
                                   {hasCritical && (
@@ -1204,7 +1245,7 @@ const LabResults = () => {
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
+                                <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2 flex-wrap mt-1">
                                   {(result as any).laboratoryName && (
                                     <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
                                       {(result as any).laboratoryName}
@@ -1216,16 +1257,19 @@ const LabResults = () => {
                                     </span>
                                   )}
                                 </div>
+                                <div className="sm:hidden text-xs text-muted-foreground mt-2">
+                                  {new Date(result.date).toLocaleDateString()}
+                                </div>
                                 {result.notes && (
-                                  <div className="text-xs text-muted-foreground mt-1 truncate max-w-md">
+                                  <div className="text-xs text-muted-foreground mt-1 truncate max-w-full sm:max-w-md">
                                     {result.notes}
                                   </div>
                                 )}
                               </div>
                             </div>
-                            <div className="flex items-center gap-4">
-                              <div className="text-right">
-                                <div className="text-sm font-medium">
+                            <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
+                              <div className="text-left sm:text-right hidden sm:block">
+                                <div className="text-xs sm:text-sm font-medium">
                                   {new Date(result.date).toLocaleDateString()}
                                 </div>
                                 {(result as any).reportedDate &&
@@ -1234,7 +1278,7 @@ const LabResults = () => {
                                     <div className="text-xs text-muted-foreground">
                                       Reported:{" "}
                                       {new Date(
-                                        (result as any).reportedDate
+                                        (result as any).reportedDate,
                                       ).toLocaleDateString()}
                                     </div>
                                   )}
@@ -1244,6 +1288,7 @@ const LabResults = () => {
                                   size="sm"
                                   variant="outline"
                                   onClick={() => handleViewLabResult(result)}
+                                  className="text-xs sm:text-sm px-2 sm:px-3"
                                 >
                                   View
                                 </Button>
@@ -1251,7 +1296,7 @@ const LabResults = () => {
                                   size="sm"
                                   variant="outline"
                                   onClick={() => handleDeleteLabResult(result)}
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50 px-2 sm:px-3"
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -1295,12 +1340,12 @@ const LabResults = () => {
                         return (
                           <div
                             key={result.id}
-                            className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-3"
                           >
-                            <div className="flex items-center gap-3">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <div className="font-medium">
+                            <div className="flex items-start gap-3 flex-1">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <div className="font-medium text-sm sm:text-base">
                                     {result.patientName || "Unknown Patient"}
                                   </div>
                                   {hasCritical && (
@@ -1314,7 +1359,7 @@ const LabResults = () => {
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
+                                <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2 flex-wrap mt-1">
                                   {(result as any).laboratoryName && (
                                     <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
                                       {(result as any).laboratoryName}
@@ -1326,18 +1371,27 @@ const LabResults = () => {
                                     </span>
                                   )}
                                 </div>
+                                <div className="sm:hidden text-xs text-muted-foreground mt-2">
+                                  {new Date(result.date).toLocaleDateString()} •{" "}
+                                  {Math.floor(
+                                    (Date.now() -
+                                      new Date(result.date).getTime()) /
+                                      (1000 * 60 * 60 * 24),
+                                  )}{" "}
+                                  days ago
+                                </div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-4">
-                              <div className="text-right">
-                                <div className="text-sm font-medium">
+                            <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
+                              <div className="text-left sm:text-right hidden sm:block">
+                                <div className="text-xs sm:text-sm font-medium">
                                   {new Date(result.date).toLocaleDateString()}
                                 </div>
                                 <div className="text-xs text-muted-foreground">
                                   {Math.floor(
                                     (Date.now() -
                                       new Date(result.date).getTime()) /
-                                      (1000 * 60 * 60 * 24)
+                                      (1000 * 60 * 60 * 24),
                                   )}{" "}
                                   days ago
                                 </div>
@@ -1347,6 +1401,7 @@ const LabResults = () => {
                                   size="sm"
                                   variant="outline"
                                   onClick={() => handleViewLabResult(result)}
+                                  className="text-xs sm:text-sm px-2 sm:px-3"
                                 >
                                   View
                                 </Button>
@@ -1354,7 +1409,7 @@ const LabResults = () => {
                                   size="sm"
                                   variant="outline"
                                   onClick={() => handleDeleteLabResult(result)}
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50 px-2 sm:px-3"
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -1378,14 +1433,16 @@ const LabResults = () => {
 
               {/* Pagination Controls */}
               {filteredCount > 0 && (
-                <div className="flex items-center justify-between px-2 py-4 border-t">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-2 py-4 border-t">
                   <div className="flex items-center space-x-2">
-                    <p className="text-sm text-muted-foreground">Show</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Show
+                    </p>
                     <Select
                       value={resultsPerPage.toString()}
                       onValueChange={handleResultsPerPageChange}
                     >
-                      <SelectTrigger className="h-8 w-16">
+                      <SelectTrigger className="h-8 w-14 sm:w-16 text-xs sm:text-sm">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1395,30 +1452,29 @@ const LabResults = () => {
                         <SelectItem value="50">50</SelectItem>
                       </SelectContent>
                     </Select>
-                    <p className="text-sm text-muted-foreground">entries</p>
                   </div>
 
-                  <div className="flex items-center space-x-6 lg:space-x-8">
-                    <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                  <div className="flex items-center space-x-4 lg:space-x-6">
+                    <div className="flex w-[100px] items-center justify-center text-xs sm:text-sm font-medium">
                       Page {currentPage} of {totalPages}
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
                         variant="outline"
-                        size="sm"
+                        className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage <= 1}
                       >
                         <ChevronLeft className="h-4 w-4" />
-                        Previous
+                        <span className="hidden sm:inline">Previous</span>
                       </Button>
                       <Button
                         variant="outline"
-                        size="sm"
+                        className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage >= totalPages}
                       >
-                        Next
+                        <span className="hidden sm:inline">Next</span>
                         <ChevronRight className="h-4 w-4" />
                       </Button>
                     </div>
@@ -1428,134 +1484,103 @@ const LabResults = () => {
             </CardContent>
           </Card>
         </div>
+      </div>
 
-        <div className="space-y-6">
-          {!ocrExtractedText ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Upload className="h-5 w-5" />
-                  AWS Textract Document Scanner
-                </CardTitle>
-                <CardDescription>
-                  Upload lab result images or PDF files for advanced text
-                  extraction using AWS Textract
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*,application/pdf"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                  {isProcessing ? (
-                    <div className="flex flex-col items-center gap-3">
-                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                      <p className="text-sm text-muted-foreground">
-                        Processing document with AWS Textract...
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-3">
-                      <Image className="h-8 w-8 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">
-                        Click to upload lab result image or PDF
-                      </p>
-                      <Button onClick={() => fileInputRef.current?.click()}>
-                        Choose File
-                      </Button>
-                    </div>
-                  )}
-                </div>
-                {uploadedFile && (
-                  <div className="text-sm text-muted-foreground">
-                    <strong>File:</strong> {uploadedFile.name}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
+      {/* OCR Processing Dialog */}
+      <Dialog
+        open={isProcessing || ocrExtractedText !== null}
+        onOpenChange={(open) => {
+          if (!open && !isProcessing) {
+            startNewScan();
+          }
+        }}
+      >
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              AWS Textract Document Scanner
+            </DialogTitle>
+            <DialogDescription>
+              {isProcessing
+                ? "Processing document with AWS Textract..."
+                : "Document processed successfully. Review and manage extracted data."}
+            </DialogDescription>
+          </DialogHeader>
+
+          {isProcessing ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-4">
+              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">
+                Processing document with AWS Textract...
+              </p>
+              {uploadedFile && (
+                <p className="text-xs text-muted-foreground">
+                  File: {uploadedFile.name}
+                </p>
+              )}
+            </div>
+          ) : ocrExtractedText ? (
             <div className="space-y-4">
               {/* Status indicators */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Processing Status
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Backend connectivity status */}
+              <div className="space-y-3">
+                {/* Backend connectivity status */}
+                <div
+                  className={`flex items-center gap-2 p-3 rounded-lg ${
+                    backendConnected ? "bg-green-50" : "bg-orange-50"
+                  }`}
+                >
                   <div
-                    className={`flex items-center gap-2 p-3 rounded-lg ${
-                      backendConnected ? "bg-green-50" : "bg-orange-50"
+                    className={`w-2 h-2 rounded-full ${
+                      backendConnected ? "bg-green-500" : "bg-orange-500"
+                    }`}
+                  ></div>
+                  <span
+                    className={`text-sm font-medium ${
+                      backendConnected ? "text-green-800" : "text-orange-800"
                     }`}
                   >
-                    <div
-                      className={`w-2 h-2 rounded-full ${
-                        backendConnected ? "bg-green-500" : "bg-orange-500"
-                      }`}
-                    ></div>
-                    <span
-                      className={`text-sm font-medium ${
-                        backendConnected ? "text-green-800" : "text-orange-800"
-                      }`}
-                    >
-                      Backend:{" "}
-                      {backendConnected
-                        ? `${backendType} Connected`
-                        : "Using Simulation Mode"}
-                    </span>
+                    Backend:{" "}
+                    {backendConnected
+                      ? `${backendType} Connected`
+                      : "Using Simulation Mode"}
+                  </span>
+                </div>
+
+                {matchedPatientId && (
+                  <div className="bg-green-50 p-3 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-green-800">
+                        Patient Identified:{" "}
+                        {patients.find((p) => p.id === matchedPatientId)?.name}
+                      </span>
+                    </div>
                   </div>
+                )}
 
-                  {matchedPatientId && (
-                    <div className="bg-green-50 p-3 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span className="text-sm font-medium text-green-800">
-                          Patient Identified:{" "}
-                          {
-                            patients.find((p) => p.id === matchedPatientId)
-                              ?.name
-                          }
-                        </span>
-                      </div>
+                {authorizedBy && (
+                  <div className="bg-blue-50 p-3 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-blue-800">
+                        Doctor Identified: {authorizedBy}
+                      </span>
                     </div>
-                  )}
-
-                  {authorizedBy && (
-                    <div className="bg-blue-50 p-3 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <span className="text-sm font-medium text-blue-800">
-                          Doctor Identified: {authorizedBy}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {extractedTestResults.length > 0 && (
-                    <div className="bg-purple-50 p-3 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                        <span className="text-sm font-medium text-purple-800">
-                          {extractedTestResults.length} Test Result(s) Extracted
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={startNewScan}>
-                      <Upload className="h-4 w-4 mr-2" />
-                      New Scan
-                    </Button>
                   </div>
-                </CardContent>
-              </Card>
+                )}
+
+                {extractedTestResults.length > 0 && (
+                  <div className="bg-purple-50 p-3 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-purple-800">
+                        {extractedTestResults.length} Test Result(s) Extracted
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* OCR Visualizer Component */}
               <OCRVisualizer
@@ -1567,34 +1592,34 @@ const LabResults = () => {
                 visualizationData={visualizationData}
               />
 
-              {/* Export Button for lab results */}
-              {ocrExtractedText && (
-                <div className="mt-4 flex justify-between">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      if (uploadedFile && ocrExtractedText) {
-                        navigate("/document-comparison", {
-                          state: {
-                            originalFile: uploadedFile,
-                            extractedText: ocrExtractedText,
-                            visualizationData: visualizationData,
-                            patientId: matchedPatientId,
-                            patientName: matchedPatientId
-                              ? patients.find((p) => p.id === matchedPatientId)
-                                  ?.name
-                              : undefined,
-                            returnPath: "/lab-results",
-                          },
-                        });
-                      }
-                    }}
-                    className="flex items-center gap-2"
-                  >
-                    <Edit className="h-4 w-4" />
-                    Review & Edit Text
-                  </Button>
+              {/* Action buttons */}
+              <div className="flex justify-between pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    if (uploadedFile && ocrExtractedText) {
+                      navigate("/document-comparison", {
+                        state: {
+                          originalFile: uploadedFile,
+                          extractedText: ocrExtractedText,
+                          visualizationData: visualizationData,
+                          patientId: matchedPatientId,
+                          patientName: matchedPatientId
+                            ? patients.find((p) => p.id === matchedPatientId)
+                                ?.name
+                            : undefined,
+                          returnPath: "/lab-results",
+                        },
+                      });
+                    }
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Edit className="h-4 w-4" />
+                  Review & Edit Text
+                </Button>
 
+                <div className="flex gap-2">
                   <ExportButton
                     text={ocrExtractedText || ""}
                     visualizationData={visualizationData}
@@ -1605,60 +1630,16 @@ const LabResults = () => {
                     }
                     isDisabled={isProcessing}
                   />
-                </div>
-              )}
-            </div>
-          )}
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                <span>AWS Textract Integration</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4 text-sm">
-                <div>
-                  <h3 className="font-medium">Advanced OCR Scanning</h3>
-                  <p className="text-muted-foreground">
-                    Upload lab result images or PDF files for advanced text
-                    extraction using AWS Textract. The system automatically
-                    preserves document layout and can detect tables and
-                    structured data.
-                  </p>
-                </div>
-                <div>
-                  <h3 className="font-medium">Smart Patient Matching</h3>
-                  <p className="text-muted-foreground">
-                    The system automatically identifies patient names and doctor
-                    information from lab reports, matching them against your
-                    patient database for quick data entry.
-                  </p>
-                </div>
-                <div>
-                  <h3 className="font-medium">Editable Results</h3>
-                  <p className="text-muted-foreground">
-                    After extraction, you can edit the text content before
-                    saving. The system maintains the original formatting while
-                    allowing corrections and additions.
-                  </p>
-                </div>
-                <div>
-                  <h3 className="font-medium">Supported Formats</h3>
-                  <ul className="text-muted-foreground list-disc pl-5 space-y-1">
-                    <li>JPEG, PNG, image formats</li>
-                    <li>PDF documents</li>
-                    <li>High-resolution scanned documents</li>
-                    <li>Mobile phone camera captures</li>
-                    <li>Multi-column lab reports</li>
-                  </ul>
+                  <Button onClick={startNewScan}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    New Scan
+                  </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>

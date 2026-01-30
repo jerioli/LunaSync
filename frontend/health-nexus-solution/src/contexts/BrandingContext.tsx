@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 interface BrandingColors {
   primaryColor: string;
@@ -14,22 +14,26 @@ interface BrandingContextType {
 }
 
 const defaultColors: BrandingColors = {
-  primaryColor: '#195883',   // Matches CSS primary
-  secondaryColor: '#30c7b4', // Matches CSS secondary
-  tertiaryColor: '#6fca8f',  // Matches CSS accent
+  primaryColor: "#068406", // Dark green for buttons, links, highlights
+  secondaryColor: "#087733", // Medium green for cards, backgrounds
+  tertiaryColor: "#6fca8f", // Light green for accents, icons
 };
 
-const BrandingContext = createContext<BrandingContextType | undefined>(undefined);
+const BrandingContext = createContext<BrandingContextType | undefined>(
+  undefined,
+);
 
 export const useBranding = () => {
   const context = useContext(BrandingContext);
   if (!context) {
-    throw new Error('useBranding must be used within a BrandingProvider');
+    throw new Error("useBranding must be used within a BrandingProvider");
   }
   return context;
 };
 
-export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [colors, setColors] = useState<BrandingColors>(defaultColors);
 
   // Convert hex to HSL for CSS variables
@@ -40,7 +44,9 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
-    let h, s, l = (max + min) / 2;
+    let h,
+      s,
+      l = (max + min) / 2;
 
     if (max === min) {
       h = s = 0;
@@ -48,10 +54,17 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const d = max - min;
       s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
       switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
-        default: h = 0;
+        case r:
+          h = (g - b) / d + (g < b ? 6 : 0);
+          break;
+        case g:
+          h = (b - r) / d + 2;
+          break;
+        case b:
+          h = (r - g) / d + 4;
+          break;
+        default:
+          h = 0;
       }
       h /= 6;
     }
@@ -61,45 +74,51 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const applyColors = (brandingColors: BrandingColors) => {
     const root = document.documentElement;
-    
+
     // Apply primary color
-    root.style.setProperty('--primary', hexToHsl(brandingColors.primaryColor));
-    root.style.setProperty('--sidebar-primary', hexToHsl(brandingColors.primaryColor));
-    
+    root.style.setProperty("--primary", hexToHsl(brandingColors.primaryColor));
+    root.style.setProperty(
+      "--sidebar-primary",
+      hexToHsl(brandingColors.primaryColor),
+    );
+
     // Apply secondary color
-    root.style.setProperty('--secondary', hexToHsl(brandingColors.secondaryColor));
-    
+    root.style.setProperty(
+      "--secondary",
+      hexToHsl(brandingColors.secondaryColor),
+    );
+
     // Apply tertiary color (using accent for tertiary)
-    root.style.setProperty('--accent', hexToHsl(brandingColors.tertiaryColor));
+    root.style.setProperty("--accent", hexToHsl(brandingColors.tertiaryColor));
 
     // Update clinic colors in Tailwind as well
-    root.style.setProperty('--clinic-blue', brandingColors.primaryColor);
-    root.style.setProperty('--clinic-teal', brandingColors.secondaryColor);
-    root.style.setProperty('--clinic-green', brandingColors.tertiaryColor);
+    root.style.setProperty("--clinic-blue", brandingColors.primaryColor);
+    root.style.setProperty("--clinic-teal", brandingColors.secondaryColor);
+    root.style.setProperty("--clinic-green", brandingColors.tertiaryColor);
   };
 
   const updateColors = (newColors: BrandingColors) => {
     setColors(newColors);
     applyColors(newColors);
-    localStorage.setItem('brandingSettings', JSON.stringify(newColors));
+    localStorage.setItem("brandingSettings", JSON.stringify(newColors));
   };
 
   const resetColors = () => {
     setColors(defaultColors);
     applyColors(defaultColors);
-    localStorage.removeItem('brandingSettings');
+    localStorage.removeItem("brandingSettings");
   };
 
   // Load saved colors on mount
   useEffect(() => {
-    const savedColors = localStorage.getItem('brandingSettings');
+    const savedColors = localStorage.getItem("brandingSettings");
     if (savedColors) {
       try {
         const parsedColors = JSON.parse(savedColors);
         setColors(parsedColors);
         applyColors(parsedColors);
       } catch (error) {
-        console.error('Error loading saved branding colors:', error);
+        console.error("Error loading saved branding colors:", error);
         applyColors(defaultColors);
       }
     } else {

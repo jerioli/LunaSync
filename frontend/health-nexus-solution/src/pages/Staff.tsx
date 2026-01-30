@@ -108,7 +108,7 @@ const StaffPage = () => {
   const [doctorsList, setDoctorsList] = useState<Doctor[]>([]);
   const [isLoadingDoctors, setIsLoadingDoctors] = useState(false);
   const [receptionistsList, setReceptionistsList] = useState<Receptionist[]>(
-    []
+    [],
   );
   const [isLoadingReceptionists, setIsLoadingReceptionists] = useState(false);
   const [adminsList, setAdminsList] = useState<Admin[]>([]);
@@ -163,7 +163,7 @@ const StaffPage = () => {
     currentSort: { field: SortField; direction: SortDirection },
     setSortState: React.Dispatch<
       React.SetStateAction<{ field: SortField; direction: SortDirection }>
-    >
+    >,
   ) => {
     if (currentSort.field === field) {
       setSortState({
@@ -182,10 +182,10 @@ const StaffPage = () => {
       phone?: string;
       username?: string;
       is_active?: boolean;
-    }
+    },
   >(
     data: T[],
-    sortConfig: { field: SortField; direction: SortDirection }
+    sortConfig: { field: SortField; direction: SortDirection },
   ): T[] => {
     return [...data].sort((a, b) => {
       let aValue: any = a[sortConfig.field];
@@ -206,7 +206,7 @@ const StaffPage = () => {
 
   const renderSortIcon = (
     field: SortField,
-    currentSort: { field: SortField; direction: SortDirection }
+    currentSort: { field: SortField; direction: SortDirection },
   ) => {
     if (currentSort.field !== field) {
       return <ArrowUpDown className="ml-2 h-4 w-4" />;
@@ -282,7 +282,7 @@ const StaffPage = () => {
         setIsLoadingSuperAdmins(true);
         try {
           const response = await axiosInstance.get(
-            "/staff/list/?role=superadmin"
+            "/staff/list/?role=superadmin",
           );
           setSuperAdminsList(response.data);
         } catch (error) {
@@ -361,7 +361,7 @@ const StaffPage = () => {
           .toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
           (user.email &&
-            user.email.toLowerCase().includes(searchTerm.toLowerCase())))
+            user.email.toLowerCase().includes(searchTerm.toLowerCase()))),
     );
   };
 
@@ -373,7 +373,7 @@ const StaffPage = () => {
           .toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
         (doctor.email &&
-          doctor.email.toLowerCase().includes(searchTerm.toLowerCase()))
+          doctor.email.toLowerCase().includes(searchTerm.toLowerCase())),
     );
   };
 
@@ -385,7 +385,7 @@ const StaffPage = () => {
           .toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
         (receptionist.email &&
-          receptionist.email.toLowerCase().includes(searchTerm.toLowerCase()))
+          receptionist.email.toLowerCase().includes(searchTerm.toLowerCase())),
     );
   };
 
@@ -397,7 +397,7 @@ const StaffPage = () => {
           .toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
         (admin.email &&
-          admin.email.toLowerCase().includes(searchTerm.toLowerCase()))
+          admin.email.toLowerCase().includes(searchTerm.toLowerCase())),
     );
   };
 
@@ -407,7 +407,7 @@ const StaffPage = () => {
       ...doctor,
       name: formatFullName(doctor),
     })),
-    doctorSort
+    doctorSort,
   );
   const receptionists = filterStaff("receptionist");
   const filteredReceptionists = sortData(
@@ -415,7 +415,7 @@ const StaffPage = () => {
       ...receptionist,
       name: formatFullName(receptionist),
     })),
-    receptionistSort
+    receptionistSort,
   );
   const admins = filterStaff("admin");
   const filteredAdmins = sortData(
@@ -423,7 +423,7 @@ const StaffPage = () => {
       ...admin,
       name: formatFullName(admin),
     })),
-    adminSort
+    adminSort,
   );
 
   // Filter and sort super admins
@@ -435,13 +435,13 @@ const StaffPage = () => {
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
           (admin.email &&
-            admin.email.toLowerCase().includes(searchTerm.toLowerCase()))
+            admin.email.toLowerCase().includes(searchTerm.toLowerCase())),
       )
       .map((admin) => ({
         ...admin,
         name: formatFullName(admin),
       })),
-    superAdminSort
+    superAdminSort,
   );
 
   // Pagination logic for each tab
@@ -460,12 +460,12 @@ const StaffPage = () => {
   const doctorPagination = paginateData(filteredDoctors, doctorPage);
   const receptionistPagination = paginateData(
     filteredReceptionists,
-    receptionistPage
+    receptionistPage,
   );
   const adminPagination = paginateData(filteredAdmins, adminPage);
   const superAdminPagination = paginateData(
     filteredSuperAdmins,
-    superAdminPage
+    superAdminPage,
   );
 
   // Reset pages when search or sort changes
@@ -523,7 +523,7 @@ const StaffPage = () => {
 
   // Handle input changes for the form
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     let { id, value } = e.target;
 
@@ -548,17 +548,17 @@ const StaffPage = () => {
 
     // Check in all staff lists
     const existsInDoctors = doctorsList.some(
-      (doctor) => doctor.email && doctor.email.toLowerCase() === emailLower
+      (doctor) => doctor.email && doctor.email.toLowerCase() === emailLower,
     );
     const existsInReceptionists = receptionistsList.some(
       (receptionist) =>
-        receptionist.email && receptionist.email.toLowerCase() === emailLower
+        receptionist.email && receptionist.email.toLowerCase() === emailLower,
     );
     const existsInAdmins = adminsList.some(
-      (admin) => admin.email && admin.email.toLowerCase() === emailLower
+      (admin) => admin.email && admin.email.toLowerCase() === emailLower,
     );
     const existsInSuperAdmins = superAdminsList.some(
-      (admin) => admin.email && admin.email.toLowerCase() === emailLower
+      (admin) => admin.email && admin.email.toLowerCase() === emailLower,
     );
 
     return (
@@ -607,7 +607,7 @@ const StaffPage = () => {
     // Validate email doesn't already exist
     if (checkEmailExists(newStaff.email)) {
       setEmailValidationError(
-        "This email is already in use by another staff member"
+        "This email is already in use by another staff member",
       );
       toast({
         title: "Validation Error",
@@ -653,7 +653,7 @@ const StaffPage = () => {
     } catch (error) {
       console.error(
         "Error adding staff:",
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
       toast({
         title: "Error",
@@ -669,7 +669,7 @@ const StaffPage = () => {
 
   // Handle viewing staff details
   const handleViewDetails = async (
-    staffMember: Doctor | Receptionist | Admin | StaffMember
+    staffMember: Doctor | Receptionist | Admin | StaffMember,
   ) => {
     try {
       const details = await api.staff.getDetails(staffMember.id);
@@ -687,7 +687,7 @@ const StaffPage = () => {
 
   // Handle editing staff
   const handleEditStaff = async (
-    staffMember: Doctor | Receptionist | Admin | StaffMember
+    staffMember: Doctor | Receptionist | Admin | StaffMember,
   ) => {
     try {
       const details = await api.staff.getDetails(staffMember.id);
@@ -713,7 +713,7 @@ const StaffPage = () => {
 
   // Handle delete staff confirmation dialog
   const handleDeleteClick = (
-    staffMember: Doctor | Receptionist | Admin | StaffMember
+    staffMember: Doctor | Receptionist | Admin | StaffMember,
   ) => {
     setStaffToDelete(staffMember as StaffMember);
     setIsDeleteDialogOpen(true);
@@ -980,12 +980,16 @@ const StaffPage = () => {
         </div>
       </div>
 
-      <Tabs value={currentTab} onValueChange={setCurrentTab}>
+      <Tabs
+        value={currentTab}
+        onValueChange={setCurrentTab}
+        className="space-y-4"
+      >
         <TabsList
           className={`grid w-full text-xs sm:text-sm ${
             currentUser?.role === "superadmin"
               ? "grid-cols-2 sm:grid-cols-4"
-              : "grid-cols-1 sm:grid-cols-3"
+              : "grid-cols-3"
           }`}
         >
           <TabsTrigger
@@ -1120,7 +1124,7 @@ const StaffPage = () => {
                         <TableHead>
                           <Button
                             variant="ghost"
-                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                            className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                             onClick={() =>
                               handleSort("name", doctorSort, setDoctorSort)
                             }
@@ -1129,10 +1133,10 @@ const StaffPage = () => {
                             {renderSortIcon("name", doctorSort)}
                           </Button>
                         </TableHead>
-                        <TableHead>
+                        <TableHead className="hidden md:table-cell">
                           <Button
                             variant="ghost"
-                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                            className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                             onClick={() =>
                               handleSort("email", doctorSort, setDoctorSort)
                             }
@@ -1141,10 +1145,10 @@ const StaffPage = () => {
                             {renderSortIcon("email", doctorSort)}
                           </Button>
                         </TableHead>
-                        <TableHead>
+                        <TableHead className="hidden lg:table-cell">
                           <Button
                             variant="ghost"
-                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                            className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                             onClick={() =>
                               handleSort("phone", doctorSort, setDoctorSort)
                             }
@@ -1153,10 +1157,10 @@ const StaffPage = () => {
                             {renderSortIcon("phone", doctorSort)}
                           </Button>
                         </TableHead>
-                        <TableHead>
+                        <TableHead className="hidden sm:table-cell">
                           <Button
                             variant="ghost"
-                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                            className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                             onClick={() =>
                               handleSort("is_active", doctorSort, setDoctorSort)
                             }
@@ -1165,15 +1169,17 @@ const StaffPage = () => {
                             {renderSortIcon("is_active", doctorSort)}
                           </Button>
                         </TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">
+                          Actions
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {doctorPagination.data.map((doctor) => (
                         <TableRow key={doctor.id}>
                           <TableCell>
-                            <div className="flex items-center space-x-3">
-                              <Avatar className="h-8 w-8">
+                            <div className="flex items-center space-x-2 sm:space-x-3">
+                              <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                                 <AvatarImage
                                   src={doctor.image}
                                   alt={formatFullName(doctor)}
@@ -1183,25 +1189,29 @@ const StaffPage = () => {
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <div className="font-medium">
+                                <div className="font-medium text-xs sm:text-sm">
                                   {formatFullName(doctor)}
+                                </div>
+                                {/* Show email on mobile when column is hidden */}
+                                <div className="text-xs text-muted-foreground md:hidden">
+                                  {doctor.email}
                                 </div>
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center">
+                          <TableCell className="hidden md:table-cell">
+                            <div className="flex items-center text-xs sm:text-sm">
                               <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
                               {doctor.email}
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center">
+                          <TableCell className="hidden lg:table-cell">
+                            <div className="flex items-center text-xs sm:text-sm">
                               <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
                               {doctor.phone || "Not provided"}
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden sm:table-cell">
                             <Badge
                               variant={
                                 doctor.is_active !== false
@@ -1210,8 +1220,8 @@ const StaffPage = () => {
                               }
                               className={
                                 doctor.is_active !== false
-                                  ? "bg-green-50 text-green-700 border-green-200"
-                                  : "bg-red-50 text-red-700 border-red-200"
+                                  ? "bg-green-50 text-green-700 border-green-200 text-xs"
+                                  : "bg-red-50 text-red-700 border-red-200 text-xs"
                               }
                             >
                               {doctor.is_active !== false
@@ -1226,25 +1236,27 @@ const StaffPage = () => {
                                 size="sm"
                                 onClick={() => handleViewDetails(doctor)}
                                 title="View Details"
+                                className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                               >
-                                <Eye className="h-4 w-4" />
+                                <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                               </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleEditStaff(doctor)}
                                 title="Edit Staff"
+                                className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                               >
-                                <Edit className="h-4 w-4" />
+                                <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                               </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleDeleteClick(doctor)}
                                 title="Delete Staff"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 h-7 w-7 sm:h-8 sm:w-8 p-0"
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                               </Button>
                             </div>
                           </TableCell>
@@ -1401,12 +1413,12 @@ const StaffPage = () => {
                         <TableHead>
                           <Button
                             variant="ghost"
-                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                            className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                             onClick={() =>
                               handleSort(
                                 "name",
                                 receptionistSort,
-                                setReceptionistSort
+                                setReceptionistSort,
                               )
                             }
                           >
@@ -1414,15 +1426,15 @@ const StaffPage = () => {
                             {renderSortIcon("name", receptionistSort)}
                           </Button>
                         </TableHead>
-                        <TableHead>
+                        <TableHead className="hidden md:table-cell">
                           <Button
                             variant="ghost"
-                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                            className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                             onClick={() =>
                               handleSort(
                                 "email",
                                 receptionistSort,
-                                setReceptionistSort
+                                setReceptionistSort,
                               )
                             }
                           >
@@ -1430,15 +1442,15 @@ const StaffPage = () => {
                             {renderSortIcon("email", receptionistSort)}
                           </Button>
                         </TableHead>
-                        <TableHead>
+                        <TableHead className="hidden lg:table-cell">
                           <Button
                             variant="ghost"
-                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                            className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                             onClick={() =>
                               handleSort(
                                 "phone",
                                 receptionistSort,
-                                setReceptionistSort
+                                setReceptionistSort,
                               )
                             }
                           >
@@ -1446,15 +1458,15 @@ const StaffPage = () => {
                             {renderSortIcon("phone", receptionistSort)}
                           </Button>
                         </TableHead>
-                        <TableHead>
+                        <TableHead className="hidden sm:table-cell">
                           <Button
                             variant="ghost"
-                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                            className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                             onClick={() =>
                               handleSort(
                                 "is_active",
                                 receptionistSort,
-                                setReceptionistSort
+                                setReceptionistSort,
                               )
                             }
                           >
@@ -1462,15 +1474,17 @@ const StaffPage = () => {
                             {renderSortIcon("is_active", receptionistSort)}
                           </Button>
                         </TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">
+                          Actions
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {receptionistPagination.data.map((receptionist) => (
                         <TableRow key={receptionist.id}>
                           <TableCell>
-                            <div className="flex items-center space-x-3">
-                              <Avatar className="h-8 w-8">
+                            <div className="flex items-center space-x-2 sm:space-x-3">
+                              <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                                 <AvatarImage
                                   src={receptionist.image}
                                   alt={formatFullName(receptionist)}
@@ -1480,25 +1494,29 @@ const StaffPage = () => {
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <div className="font-medium">
+                                <div className="font-medium text-xs sm:text-sm">
                                   {formatFullName(receptionist)}
+                                </div>
+                                {/* Show email on mobile when column is hidden */}
+                                <div className="text-xs text-muted-foreground md:hidden">
+                                  {receptionist.email}
                                 </div>
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center">
+                          <TableCell className="hidden md:table-cell">
+                            <div className="flex items-center text-xs sm:text-sm">
                               <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
                               {receptionist.email}
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center">
+                          <TableCell className="hidden lg:table-cell">
+                            <div className="flex items-center text-xs sm:text-sm">
                               <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
                               {receptionist.phone || "Not provided"}
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden sm:table-cell">
                             <Badge
                               variant={
                                 receptionist.is_active !== false
@@ -1507,8 +1525,8 @@ const StaffPage = () => {
                               }
                               className={
                                 receptionist.is_active !== false
-                                  ? "bg-green-50 text-green-700 border-green-200"
-                                  : "bg-red-50 text-red-700 border-red-200"
+                                  ? "bg-green-50 text-green-700 border-green-200 text-xs"
+                                  : "bg-red-50 text-red-700 border-red-200 text-xs"
                               }
                             >
                               {receptionist.is_active !== false
@@ -1523,25 +1541,27 @@ const StaffPage = () => {
                                 size="sm"
                                 onClick={() => handleViewDetails(receptionist)}
                                 title="View Details"
+                                className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                               >
-                                <Eye className="h-4 w-4" />
+                                <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                               </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleEditStaff(receptionist)}
                                 title="Edit Staff"
+                                className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                               >
-                                <Edit className="h-4 w-4" />
+                                <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                               </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleDeleteClick(receptionist)}
                                 title="Delete Staff"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 h-7 w-7 sm:h-8 sm:w-8 p-0"
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                               </Button>
                             </div>
                           </TableCell>
@@ -1587,7 +1607,7 @@ const StaffPage = () => {
                         onClick={() =>
                           handlePageChange(
                             "receptionists",
-                            receptionistPage - 1
+                            receptionistPage - 1,
                           )
                         }
                         disabled={receptionistPage <= 1}
@@ -1602,7 +1622,7 @@ const StaffPage = () => {
                         onClick={() =>
                           handlePageChange(
                             "receptionists",
-                            receptionistPage + 1
+                            receptionistPage + 1,
                           )
                         }
                         disabled={
@@ -1707,7 +1727,7 @@ const StaffPage = () => {
                         <TableHead>
                           <Button
                             variant="ghost"
-                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                            className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                             onClick={() =>
                               handleSort("name", adminSort, setAdminSort)
                             }
@@ -1716,10 +1736,10 @@ const StaffPage = () => {
                             {renderSortIcon("name", adminSort)}
                           </Button>
                         </TableHead>
-                        <TableHead>
+                        <TableHead className="hidden md:table-cell">
                           <Button
                             variant="ghost"
-                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                            className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                             onClick={() =>
                               handleSort("email", adminSort, setAdminSort)
                             }
@@ -1728,10 +1748,10 @@ const StaffPage = () => {
                             {renderSortIcon("email", adminSort)}
                           </Button>
                         </TableHead>
-                        <TableHead>
+                        <TableHead className="hidden lg:table-cell">
                           <Button
                             variant="ghost"
-                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                            className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                             onClick={() =>
                               handleSort("phone", adminSort, setAdminSort)
                             }
@@ -1740,10 +1760,10 @@ const StaffPage = () => {
                             {renderSortIcon("phone", adminSort)}
                           </Button>
                         </TableHead>
-                        <TableHead>
+                        <TableHead className="hidden sm:table-cell">
                           <Button
                             variant="ghost"
-                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                            className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                             onClick={() =>
                               handleSort("is_active", adminSort, setAdminSort)
                             }
@@ -1752,15 +1772,17 @@ const StaffPage = () => {
                             {renderSortIcon("is_active", adminSort)}
                           </Button>
                         </TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">
+                          Actions
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredAdmins.map((admin) => (
                         <TableRow key={admin.id}>
                           <TableCell>
-                            <div className="flex items-center space-x-3">
-                              <Avatar className="h-8 w-8">
+                            <div className="flex items-center space-x-2 sm:space-x-3">
+                              <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                                 <AvatarImage
                                   src={admin.image}
                                   alt={formatFullName(admin)}
@@ -1770,25 +1792,29 @@ const StaffPage = () => {
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <div className="font-medium">
+                                <div className="font-medium text-xs sm:text-sm">
                                   {formatFullName(admin)}
+                                </div>
+                                {/* Show email on mobile when column is hidden */}
+                                <div className="text-xs text-muted-foreground md:hidden">
+                                  {admin.email}
                                 </div>
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center">
+                          <TableCell className="hidden md:table-cell">
+                            <div className="flex items-center text-xs sm:text-sm">
                               <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
                               {admin.email}
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center">
+                          <TableCell className="hidden lg:table-cell">
+                            <div className="flex items-center text-xs sm:text-sm">
                               <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
                               {admin.phone || "Not provided"}
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden sm:table-cell">
                             <Badge
                               variant={
                                 admin.is_active !== false
@@ -1797,8 +1823,8 @@ const StaffPage = () => {
                               }
                               className={
                                 admin.is_active !== false
-                                  ? "bg-green-50 text-green-700 border-green-200"
-                                  : "bg-red-50 text-red-700 border-red-200"
+                                  ? "bg-green-50 text-green-700 border-green-200 text-xs"
+                                  : "bg-red-50 text-red-700 border-red-200 text-xs"
                               }
                             >
                               {admin.is_active !== false
@@ -1813,16 +1839,18 @@ const StaffPage = () => {
                                 size="sm"
                                 onClick={() => handleViewDetails(admin)}
                                 title="View Details"
+                                className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                               >
-                                <Eye className="h-4 w-4" />
+                                <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                               </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleEditStaff(admin)}
                                 title="Edit Administrator"
+                                className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                               >
-                                <Edit className="h-4 w-4" />
+                                <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                               </Button>
                               {currentUser?.role === "superadmin" && (
                                 <Button
@@ -1830,9 +1858,9 @@ const StaffPage = () => {
                                   size="sm"
                                   onClick={() => handleDeleteClick(admin)}
                                   title="Delete Administrator"
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50 h-7 w-7 sm:h-8 sm:w-8 p-0"
                                 >
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                                 </Button>
                               )}
                             </div>
@@ -1929,12 +1957,12 @@ const StaffPage = () => {
                         <TableHead>
                           <Button
                             variant="ghost"
-                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                            className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                             onClick={() =>
                               handleSort(
                                 "name",
                                 superAdminSort,
-                                setSuperAdminSort
+                                setSuperAdminSort,
                               )
                             }
                           >
@@ -1942,15 +1970,15 @@ const StaffPage = () => {
                             {renderSortIcon("name", superAdminSort)}
                           </Button>
                         </TableHead>
-                        <TableHead>
+                        <TableHead className="hidden md:table-cell">
                           <Button
                             variant="ghost"
-                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                            className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                             onClick={() =>
                               handleSort(
                                 "email",
                                 superAdminSort,
-                                setSuperAdminSort
+                                setSuperAdminSort,
                               )
                             }
                           >
@@ -1958,15 +1986,15 @@ const StaffPage = () => {
                             {renderSortIcon("email", superAdminSort)}
                           </Button>
                         </TableHead>
-                        <TableHead>
+                        <TableHead className="hidden lg:table-cell">
                           <Button
                             variant="ghost"
-                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                            className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                             onClick={() =>
                               handleSort(
                                 "phone",
                                 superAdminSort,
-                                setSuperAdminSort
+                                setSuperAdminSort,
                               )
                             }
                           >
@@ -1974,15 +2002,15 @@ const StaffPage = () => {
                             {renderSortIcon("phone", superAdminSort)}
                           </Button>
                         </TableHead>
-                        <TableHead>
+                        <TableHead className="hidden sm:table-cell">
                           <Button
                             variant="ghost"
-                            className="h-auto p-0 font-semibold hover:bg-transparent"
+                            className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                             onClick={() =>
                               handleSort(
                                 "is_active",
                                 superAdminSort,
-                                setSuperAdminSort
+                                setSuperAdminSort,
                               )
                             }
                           >
@@ -1990,15 +2018,17 @@ const StaffPage = () => {
                             {renderSortIcon("is_active", superAdminSort)}
                           </Button>
                         </TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead className="text-right text-xs sm:text-sm">
+                          Actions
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredSuperAdmins.map((superAdmin) => (
                         <TableRow key={superAdmin.id}>
                           <TableCell>
-                            <div className="flex items-center space-x-3">
-                              <Avatar className="h-8 w-8">
+                            <div className="flex items-center space-x-2 sm:space-x-3">
+                              <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                                 <AvatarImage
                                   src={superAdmin.image}
                                   alt={formatFullName(superAdmin)}
@@ -2008,25 +2038,29 @@ const StaffPage = () => {
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <div className="font-medium">
+                                <div className="font-medium text-xs sm:text-sm">
                                   {formatFullName(superAdmin)}
+                                </div>
+                                {/* Show email on mobile when column is hidden */}
+                                <div className="text-xs text-muted-foreground md:hidden">
+                                  {superAdmin.email}
                                 </div>
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center">
+                          <TableCell className="hidden md:table-cell">
+                            <div className="flex items-center text-xs sm:text-sm">
                               <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
                               {superAdmin.email}
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center">
+                          <TableCell className="hidden lg:table-cell">
+                            <div className="flex items-center text-xs sm:text-sm">
                               <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
                               {superAdmin.phone || "Not provided"}
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden sm:table-cell">
                             <Badge
                               variant={
                                 superAdmin.is_active !== false
@@ -2035,8 +2069,8 @@ const StaffPage = () => {
                               }
                               className={
                                 superAdmin.is_active !== false
-                                  ? "bg-green-50 text-green-700 border-green-200"
-                                  : "bg-red-50 text-red-700 border-red-200"
+                                  ? "bg-green-50 text-green-700 border-green-200 text-xs"
+                                  : "bg-red-50 text-red-700 border-red-200 text-xs"
                               }
                             >
                               {superAdmin.is_active !== false
@@ -2051,17 +2085,18 @@ const StaffPage = () => {
                                 size="sm"
                                 onClick={() => handleViewDetails(superAdmin)}
                                 title="View Details"
+                                className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                               >
-                                <Eye className="h-4 w-4" />
+                                <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                               </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleDeleteClick(superAdmin)}
                                 title="Delete Staff"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 h-7 w-7 sm:h-8 sm:w-8 p-0"
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                               </Button>
                             </div>
                           </TableCell>

@@ -178,11 +178,11 @@ const PatientManagement = () => {
   const handleMedicationChange = (
     index: number,
     field: string,
-    value: string
+    value: string,
   ) => {
     setDocumentData((prev: any) => {
       const updatedMeds = (prev.medications || []).map((med: any, i: number) =>
-        i === index ? { ...med, [field]: value } : med
+        i === index ? { ...med, [field]: value } : med,
       );
       return { ...prev, medications: updatedMeds };
     });
@@ -210,7 +210,7 @@ const PatientManagement = () => {
     setDocumentData((prev: any) => ({
       ...prev,
       medications: (prev.medications || []).filter(
-        (_: any, i: number) => i !== index
+        (_: any, i: number) => i !== index,
       ),
     }));
   };
@@ -221,7 +221,7 @@ const PatientManagement = () => {
 
     try {
       const response = await axiosInstance.get(
-        `/medical-documents/medical-certificates/?patient_id=${patientData.id}`
+        `/medical-documents/medical-certificates/?patient_id=${patientData.id}`,
       );
       console.log("Fetched certificates from database:", response.data);
 
@@ -267,10 +267,10 @@ const PatientManagement = () => {
               dbRecord.certificate_type === "fitness"
                 ? "fit"
                 : dbRecord.certificate_type === "sports_clearance"
-                ? "fit_physical_activities"
-                : dbRecord.certificate_type === "sick_leave"
-                ? "unfit"
-                : "fit",
+                  ? "fit_physical_activities"
+                  : dbRecord.certificate_type === "sick_leave"
+                    ? "unfit"
+                    : "fit",
             diagnosis: dbRecord.medical_opinion || "",
             chiefComplaint: dbRecord.purpose || "",
             medicalRecommendations: dbRecord.examination_findings || "",
@@ -322,7 +322,7 @@ const PatientManagement = () => {
 
       console.log(
         "Filtered completed appointments for patient:",
-        patientCompletedAppointments
+        patientCompletedAppointments,
       );
       setCompletedAppointments(patientCompletedAppointments);
     } catch (error) {
@@ -342,7 +342,7 @@ const PatientManagement = () => {
   const handleTemplateSave = async () => {
     console.log(
       "🔵 handleTemplateSave CLICKED - selectedTemplate:",
-      selectedTemplate
+      selectedTemplate,
     );
     console.log("🔵 Template Data:", templateData);
 
@@ -392,7 +392,7 @@ const PatientManagement = () => {
         console.log("Sending prescription data:", prescriptionData);
         const response = await axiosInstance.post(
           "/medical-documents/prescriptions/",
-          prescriptionData
+          prescriptionData,
         );
 
         toast({
@@ -440,7 +440,7 @@ const PatientManagement = () => {
           patientId,
           "(from patientData.id:",
           patientData?.id,
-          ")"
+          ")",
         );
 
         if (!patientId || patientId === 0) {
@@ -491,12 +491,12 @@ const PatientManagement = () => {
           "Patient ID type:",
           typeof soapData.patient,
           "Value:",
-          soapData.patient
+          soapData.patient,
         );
 
         const response = await axiosInstance.post(
           "/medical-documents/soap-notes/",
-          soapData
+          soapData,
         );
 
         console.log("SOAP Note created successfully! Response:", response.data);
@@ -644,7 +644,7 @@ const PatientManagement = () => {
       console.log("Sending clinical note data:", clinicalData);
       const response = await axiosInstance.post(
         "/medical-documents/clinical-notes/",
-        clinicalData
+        clinicalData,
       );
 
       toast({
@@ -775,11 +775,11 @@ const PatientManagement = () => {
           const storedPatients = JSON.parse(stored);
           // First try to find by patient_id, then fallback to database id
           let patient = storedPatients.find(
-            (p: Patient) => p.patient_id === id
+            (p: Patient) => p.patient_id === id,
           );
           if (!patient) {
             patient = storedPatients.find(
-              (p: Patient) => String(p.id) === String(id)
+              (p: Patient) => String(p.id) === String(id),
             );
           }
           if (patient) {
@@ -822,11 +822,11 @@ const PatientManagement = () => {
             updated = JSON.parse(stored);
             // Find existing by patient_id or database id
             let existingIndex = updated.findIndex(
-              (p: Patient) => p.patient_id === mappedPatient.patient_id
+              (p: Patient) => p.patient_id === mappedPatient.patient_id,
             );
             if (existingIndex === -1) {
               existingIndex = updated.findIndex(
-                (p: Patient) => String(p.id) === String(mappedPatient.id)
+                (p: Patient) => String(p.id) === String(mappedPatient.id),
               );
             }
             if (existingIndex >= 0) {
@@ -938,7 +938,7 @@ const PatientManagement = () => {
       // Check if the certificate already has a database record (already saved)
       if (certificate.dbRecord || certificate.backendId) {
         console.log(
-          "Certificate already exists in database, just updating local state"
+          "Certificate already exists in database, just updating local state",
         );
         // Certificate already exists in database, just update local state
         setCertificates((prev) => [
@@ -1020,19 +1020,19 @@ const PatientManagement = () => {
     try {
       // Find the certificate to get its backend ID
       const certificate = certificates.find(
-        (cert) => cert.id === certificateId
+        (cert) => cert.id === certificateId,
       );
 
       if (certificate?.backendId) {
         // Delete from backend
         await medicalDocumentsAPI.deleteMedicalCertificate(
-          certificate.backendId
+          certificate.backendId,
         );
       }
 
       // Update local state
       setCertificates((prev) =>
-        prev.filter((cert) => cert.id !== certificateId)
+        prev.filter((cert) => cert.id !== certificateId),
       );
 
       toast({
@@ -1052,7 +1052,7 @@ const PatientManagement = () => {
   const handleDeleteLabResult = async (labResultId: string) => {
     if (
       !window.confirm(
-        "Are you sure you want to delete this lab result? This action cannot be undone."
+        "Are you sure you want to delete this lab result? This action cannot be undone.",
       )
     ) {
       return;
@@ -1064,7 +1064,7 @@ const PatientManagement = () => {
 
       // Update local state
       setLabResults((prev) =>
-        prev.filter((result) => result.id !== labResultId)
+        prev.filter((result) => result.id !== labResultId),
       );
 
       toast({
@@ -1175,7 +1175,7 @@ const PatientManagement = () => {
         console.log("Sending prescription data:", prescriptionData);
         const response = await axiosInstance.post(
           "/medical-documents/prescriptions/",
-          prescriptionData
+          prescriptionData,
         );
 
         toast({
@@ -1255,9 +1255,8 @@ const PatientManagement = () => {
           follow_up_required: false,
         };
 
-        const savedNote = await medicalDocumentsAPI.createClinicalNote(
-          clinicalNoteData
-        );
+        const savedNote =
+          await medicalDocumentsAPI.createClinicalNote(clinicalNoteData);
 
         // Update local state
         const document = {
@@ -1296,7 +1295,7 @@ const PatientManagement = () => {
 
   const handleDeleteDocument = async (
     docId: number,
-    type: "prescription" | "soap" | "blank"
+    type: "prescription" | "soap" | "blank",
   ) => {
     try {
       let document;
@@ -1344,7 +1343,7 @@ const PatientManagement = () => {
     const printWindow = window.open(
       "about:blank",
       "_blank",
-      "width=1,height=1,left=10000"
+      "width=1,height=1,left=10000",
     );
     if (printWindow) {
       // Write the print content
@@ -1372,7 +1371,7 @@ const PatientManagement = () => {
 
   const handlePrintSettingsChange = (
     setting: keyof typeof printSettings,
-    value: boolean
+    value: boolean,
   ) => {
     setPrintSettings((prev) => ({
       ...prev,
@@ -1518,12 +1517,12 @@ const PatientManagement = () => {
               <div style="margin-top: 10px;">
                 Prescribed on: ${format(
                   new Date(prescription.dateCreated),
-                  "MMMM dd, yyyy"
+                  "MMMM dd, yyyy",
                 )}
               </div>
               <div>${format(
                 new Date(prescription.dateCreated),
-                "hh:mm a"
+                "hh:mm a",
               )} PHT</div>
             </div>
 
@@ -1535,7 +1534,7 @@ const PatientManagement = () => {
                   ? Math.floor(
                       (new Date().getTime() -
                         new Date(patientData.date_of_birth).getTime()) /
-                        (365.25 * 24 * 60 * 60 * 1000)
+                        (365.25 * 24 * 60 * 60 * 1000),
                     )
                   : "N/A"
               } years old</div>
@@ -1559,8 +1558,8 @@ const PatientManagement = () => {
                     i + 1
                   }. ${med.name}</div>
                   <div style="margin-bottom: 6px;">${med.dose || ""} - ${
-                          med.quantity || ""
-                        } ${med.frequency ? `- ${med.frequency}` : ""}</div>
+                    med.quantity || ""
+                  } ${med.frequency ? `- ${med.frequency}` : ""}</div>
                   ${
                     med.notes
                       ? `<div style="margin-left: 20px; color: #555;">${med.notes}</div>`
@@ -1570,7 +1569,7 @@ const PatientManagement = () => {
                     med.startDate ? `Start: ${med.startDate}` : ""
                   } ${med.endDate ? ` | End: ${med.endDate}` : ""}</div>
                 </div>
-              `
+              `,
                       )
                       .join("")
                   : "<div>No medications listed.</div>"
@@ -1635,7 +1634,7 @@ const PatientManagement = () => {
               <div><strong>Patient:</strong> ${patientData?.name}</div>
               <div><strong>Date:</strong> ${format(
                 new Date(note.dateCreated),
-                "MMMM dd, yyyy"
+                "MMMM dd, yyyy",
               )}</div>
               <div><strong>Provider:</strong> ${
                 note.createdBy || currentUser?.name || "Medical Staff"
@@ -1724,7 +1723,7 @@ const PatientManagement = () => {
               <div><strong>Patient:</strong> ${patientData?.name}</div>
               <div><strong>Date:</strong> ${format(
                 new Date(note.dateCreated),
-                "MMMM dd, yyyy"
+                "MMMM dd, yyyy",
               )}</div>
               <div><strong>Provider:</strong> ${
                 note.createdBy || currentUser?.name || "Medical Staff"
@@ -1761,7 +1760,7 @@ const PatientManagement = () => {
         if (labResultContent.includes("<!DOCTYPE html>")) {
           // Extract just the body content to avoid nested HTML structures
           let bodyMatch = labResultContent.match(
-            /<body[^>]*>([\s\S]*?)<\/body>/i
+            /<body[^>]*>([\s\S]*?)<\/body>/i,
           );
           if (bodyMatch) {
             labResultContent = bodyMatch[1];
@@ -1770,14 +1769,14 @@ const PatientManagement = () => {
             labResultContent = labResultContent.replace(/<\/?html[^>]*>/gi, "");
             labResultContent = labResultContent.replace(
               /<head[^>]*>[\s\S]*?<\/head>/gi,
-              ""
+              "",
             );
             labResultContent = labResultContent.replace(/<\/?body[^>]*>/gi, "");
           }
 
           // Extract and preserve the original styles
           let styleMatch = result.document?.content?.match(
-            /<style[^>]*>([\s\S]*?)<\/style>/i
+            /<style[^>]*>([\s\S]*?)<\/style>/i,
           );
           let originalStyles = styleMatch ? styleMatch[1] : "";
 
@@ -1808,7 +1807,7 @@ const PatientManagement = () => {
                 <h1 style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">LABORATORY RESULT REPORT</h1>
                 <p style="font-size: 12px;">Generated: ${format(
                   new Date(),
-                  "MMMM dd, yyyy"
+                  "MMMM dd, yyyy",
                 )}</p>
               </div>
               
@@ -1824,9 +1823,9 @@ const PatientManagement = () => {
                   new Date(
                     result.document?.document_date ||
                       result.document?.created_at ||
-                      new Date()
+                      new Date(),
                   ),
-                  "MMMM dd, yyyy"
+                  "MMMM dd, yyyy",
                 )}</div>
               </div>
               
@@ -1857,7 +1856,7 @@ const PatientManagement = () => {
         if (certificateContent.includes("<!DOCTYPE html>")) {
           // Extract just the body content to avoid nested HTML structures
           let bodyMatch = certificateContent.match(
-            /<body[^>]*>([\s\S]*?)<\/body>/i
+            /<body[^>]*>([\s\S]*?)<\/body>/i,
           );
           if (bodyMatch) {
             certificateContent = bodyMatch[1];
@@ -1865,21 +1864,21 @@ const PatientManagement = () => {
             // Fallback: remove html, head tags but keep the content
             certificateContent = certificateContent.replace(
               /<\/?html[^>]*>/gi,
-              ""
+              "",
             );
             certificateContent = certificateContent.replace(
               /<head[^>]*>[\s\S]*?<\/head>/gi,
-              ""
+              "",
             );
             certificateContent = certificateContent.replace(
               /<\/?body[^>]*>/gi,
-              ""
+              "",
             );
           }
 
           // Extract and preserve the original styles
           let styleMatch = cert.content?.match(
-            /<style[^>]*>([\s\S]*?)<\/style>/i
+            /<style[^>]*>([\s\S]*?)<\/style>/i,
           );
           let originalStyles = styleMatch ? styleMatch[1] : "";
 
@@ -2100,8 +2099,8 @@ const PatientManagement = () => {
         <div class="clinic-info">
           ${clinicInfo?.address || "Clinic Address"}<br>
           ${clinicInfo?.phone ? `Tel: ${clinicInfo.phone}` : ""} ${
-      clinicInfo?.email ? `| Email: ${clinicInfo.email}` : ""
-    }
+            clinicInfo?.email ? `| Email: ${clinicInfo.email}` : ""
+          }
         </div>
         <div class="document-title">Complete Medical Record</div>
         <div style="font-size: 11px;">DOC ID: ${documentId}</div>
@@ -2115,7 +2114,7 @@ const PatientManagement = () => {
           <span><strong>Patient:</strong> ${patientData.name}</span>
           <span><strong>Date:</strong> ${format(
             new Date(),
-            "MMM dd, yyyy"
+            "MMM dd, yyyy",
           )}</span>
         </div>
         <div class="patient-row">
@@ -2124,7 +2123,7 @@ const PatientManagement = () => {
               ? Math.floor(
                   (new Date().getTime() -
                     new Date(patientData.date_of_birth).getTime()) /
-                    (365.25 * 24 * 60 * 60 * 1000)
+                    (365.25 * 24 * 60 * 60 * 1000),
                 )
               : "N/A"
           } years</span>
@@ -2155,7 +2154,7 @@ const PatientManagement = () => {
                   patientData.date_of_birth
                     ? format(
                         new Date(patientData.date_of_birth),
-                        "MMM dd, yyyy"
+                        "MMM dd, yyyy",
                       )
                     : "N/A"
                 }</div>
@@ -2346,7 +2345,7 @@ const PatientManagement = () => {
             <div class="document-meta">
               Prescribed on: ${format(
                 new Date(prescription.dateCreated),
-                "MMM dd, yyyy"
+                "MMM dd, yyyy",
               )}
             </div>
             <div class="content">
@@ -2460,9 +2459,9 @@ const PatientManagement = () => {
                 new Date(
                   (result as any)?.test_date ||
                     (result as any)?.date ||
-                    new Date()
+                    new Date(),
                 ),
-                "MMM dd, yyyy"
+                "MMM dd, yyyy",
               )}
             </div>
             <div class="content">
@@ -2521,7 +2520,7 @@ const PatientManagement = () => {
         certificateContent = certificateContent.replace(/<\/html>/gi, "");
         certificateContent = certificateContent.replace(
           /<head[^>]*>[\s\S]*?<\/head>/gi,
-          ""
+          "",
         );
         certificateContent = certificateContent.replace(/<body[^>]*>/gi, "");
         certificateContent = certificateContent.replace(/<\/body>/gi, "");
@@ -2557,7 +2556,7 @@ const PatientManagement = () => {
       <div class="footer">
         <div>Generated on ${format(
           new Date(),
-          "MMM dd, yyyy"
+          "MMM dd, yyyy",
         )} | Document ID: ${documentId}</div>
         <div>Generated by: ${currentUser?.name || "Medical Staff"}</div>
       </div>
@@ -2840,8 +2839,8 @@ const PatientManagement = () => {
         <div class="clinic-info">
           ${clinicData.address || "Clinic Address"}<br>
           ${clinicData.phone ? `Tel: ${clinicData.phone}` : ""}${
-      clinicData.email ? ` | Email: ${clinicData.email}` : ""
-    }${clinicData.website ? ` | ${clinicData.website}` : ""}
+            clinicData.email ? ` | Email: ${clinicData.email}` : ""
+          }${clinicData.website ? ` | ${clinicData.website}` : ""}
         </div>
       </div>
     `;
@@ -3096,7 +3095,7 @@ const PatientManagement = () => {
                     appointment.appointment_type || "General Consultation"
                   }</td>
                 </tr>
-              `
+              `,
                 )
                 .join("")}
             </tbody>
@@ -3122,7 +3121,7 @@ const PatientManagement = () => {
                 ${
                   clinicData.logo
                     ? `<img src="${getLogoUrl(
-                        clinicData.logo
+                        clinicData.logo,
                       )}" alt="Clinic Logo" style="height: 50px; width: auto; margin-bottom: 10px;">`
                     : `<div style="width: 50px; height: 50px; background: #f0f0f0; margin-bottom: 10px;"></div>`
                 }
@@ -3148,12 +3147,12 @@ const PatientManagement = () => {
               <div style="margin-top: 10px;">
                 Prescribed on: ${format(
                   new Date(prescription.dateCreated),
-                  "MMMM dd, yyyy"
+                  "MMMM dd, yyyy",
                 )}
               </div>
               <div>${format(
                 new Date(prescription.dateCreated),
-                "hh:mm a"
+                "hh:mm a",
               )} PHT</div>
             </div>
 
@@ -3165,7 +3164,7 @@ const PatientManagement = () => {
                   ? Math.floor(
                       (new Date().getTime() -
                         new Date(patientData.date_of_birth).getTime()) /
-                        (365.25 * 24 * 60 * 60 * 1000)
+                        (365.25 * 24 * 60 * 60 * 1000),
                     )
                   : "N/A"
               } years old</div>
@@ -3247,7 +3246,7 @@ const PatientManagement = () => {
               <div><strong>Patient:</strong> ${patientData?.name}</div>
               <div><strong>Date:</strong> ${format(
                 new Date(note.dateCreated),
-                "MMMM dd, yyyy"
+                "MMMM dd, yyyy",
               )}</div>
               <div><strong>Provider:</strong> ${
                 note.createdBy || currentUser?.name || "Medical Staff"
@@ -3336,7 +3335,7 @@ const PatientManagement = () => {
               <div><strong>Patient:</strong> ${patientData?.name}</div>
               <div><strong>Date:</strong> ${format(
                 new Date(note.dateCreated),
-                "MMMM dd, yyyy"
+                "MMMM dd, yyyy",
               )}</div>
               <div><strong>Provider:</strong> ${
                 note.createdBy || currentUser?.name || "Medical Staff"
@@ -3373,7 +3372,7 @@ const PatientManagement = () => {
         if (labResultContent.includes("<!DOCTYPE html>")) {
           // Extract just the body content to avoid nested HTML structures
           let bodyMatch = labResultContent.match(
-            /<body[^>]*>([\s\S]*?)<\/body>/i
+            /<body[^>]*>([\s\S]*?)<\/body>/i,
           );
           if (bodyMatch) {
             labResultContent = bodyMatch[1];
@@ -3382,14 +3381,14 @@ const PatientManagement = () => {
             labResultContent = labResultContent.replace(/<\/?html[^>]*>/gi, "");
             labResultContent = labResultContent.replace(
               /<head[^>]*>[\s\S]*?<\/head>/gi,
-              ""
+              "",
             );
             labResultContent = labResultContent.replace(/<\/?body[^>]*>/gi, "");
           }
 
           // Extract and preserve the original styles
           let styleMatch = result.document?.content?.match(
-            /<style[^>]*>([\s\S]*?)<\/style>/i
+            /<style[^>]*>([\s\S]*?)<\/style>/i,
           );
           let originalStyles = styleMatch ? styleMatch[1] : "";
 
@@ -3420,7 +3419,7 @@ const PatientManagement = () => {
                 <h1 style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">LABORATORY RESULT REPORT</h1>
                 <p style="font-size: 12px;">Generated: ${format(
                   new Date(),
-                  "MMMM dd, yyyy"
+                  "MMMM dd, yyyy",
                 )}</p>
               </div>
               
@@ -3436,9 +3435,9 @@ const PatientManagement = () => {
                   new Date(
                     result.document?.document_date ||
                       result.document?.created_at ||
-                      new Date()
+                      new Date(),
                   ),
-                  "MMMM dd, yyyy"
+                  "MMMM dd, yyyy",
                 )}</div>
               </div>
               
@@ -3469,7 +3468,7 @@ const PatientManagement = () => {
         if (certificateContent.includes("<!DOCTYPE html>")) {
           // Extract just the body content to avoid nested HTML structures
           let bodyMatch = certificateContent.match(
-            /<body[^>]*>([\s\S]*?)<\/body>/i
+            /<body[^>]*>([\s\S]*?)<\/body>/i,
           );
           if (bodyMatch) {
             certificateContent = bodyMatch[1];
@@ -3477,21 +3476,21 @@ const PatientManagement = () => {
             // Fallback: remove html, head tags but keep the content
             certificateContent = certificateContent.replace(
               /<\/?html[^>]*>/gi,
-              ""
+              "",
             );
             certificateContent = certificateContent.replace(
               /<head[^>]*>[\s\S]*?<\/head>/gi,
-              ""
+              "",
             );
             certificateContent = certificateContent.replace(
               /<\/?body[^>]*>/gi,
-              ""
+              "",
             );
           }
 
           // Extract and preserve the original styles
           let styleMatch = cert.content?.match(
-            /<style[^>]*>([\s\S]*?)<\/style>/i
+            /<style[^>]*>([\s\S]*?)<\/style>/i,
           );
           let originalStyles = styleMatch ? styleMatch[1] : "";
 
@@ -3526,7 +3525,7 @@ const PatientManagement = () => {
         <div class="footer">
           <div class="footer-info">Generated on ${format(
             new Date(),
-            "PPP"
+            "PPP",
           )} by ${currentUser?.name || "Medical Staff"}</div>
           <div class="footer-info">This is a computer-generated document.</div>
           <div class="confidential-notice">
@@ -3621,7 +3620,7 @@ const PatientManagement = () => {
       </html>
     `,
       ],
-      { type: "text/html" }
+      { type: "text/html" },
     );
 
     const url = URL.createObjectURL(blob);
@@ -3629,7 +3628,7 @@ const PatientManagement = () => {
     a.href = url;
     a.download = `Medical_Certificate_${certificate.data.patientName}_${format(
       new Date(certificate.dateCreated),
-      "yyyy-MM-dd"
+      "yyyy-MM-dd",
     )}.html`;
     document.body.appendChild(a);
     a.click();
@@ -3648,7 +3647,7 @@ const PatientManagement = () => {
   const loadAllDocuments = async () => {
     console.log(
       "📂 loadAllDocuments STARTED - patientData.id:",
-      patientData?.id
+      patientData?.id,
     );
     if (!patientData?.id) return; // Use patientData.id instead of id parameter
 
@@ -3656,7 +3655,7 @@ const PatientManagement = () => {
       // Load medical certificates
       const certificatesResponse =
         await medicalDocumentsAPI.getMedicalCertificatesByPatient(
-          patientData.id
+          patientData.id,
         );
       const mappedCertificates = certificatesResponse.map((cert: any) => ({
         id: cert.id,
@@ -3712,14 +3711,14 @@ const PatientManagement = () => {
           createdBy: prescription.document?.created_by?.name || "Medical Staff",
           backendId: prescription.id,
           documentId: prescription.document?.id,
-        })
+        }),
       );
       setPrescriptions(mappedPrescriptions);
 
       // Load SOAP notes
       console.log("📝 Loading SOAP notes for patient:", patientData.id);
       const soapResponse = await medicalDocumentsAPI.getSOAPNotesByPatient(
-        patientData.id
+        patientData.id,
       );
       console.log("📝 SOAP notes received:", soapResponse.length, "notes");
       const mappedSoapNotes = soapResponse.map((soap: any) => ({
@@ -3741,7 +3740,7 @@ const PatientManagement = () => {
       console.log(
         "📝 Setting SOAP notes state with:",
         mappedSoapNotes.length,
-        "notes"
+        "notes",
       );
       setSoapNotes(mappedSoapNotes);
       console.log("✅ SOAP notes state updated");
@@ -3813,7 +3812,7 @@ const PatientManagement = () => {
 
     try {
       const results = await medicalDocumentsAPI.getLabResultsByPatient(
-        patientData.id
+        patientData.id,
       );
       setLabResults(results.lab_results || []);
     } catch (error) {
@@ -3913,7 +3912,7 @@ const PatientManagement = () => {
       if (isReceptionist && !isDoctor) {
         // Keep original medical_info and physical_examination for receptionists - don't send modified medical data
         const originalPatient = patients.find(
-          (p) => String(p.id) === String(patientData.id)
+          (p) => String(p.id) === String(patientData.id),
         );
         if (originalPatient) {
           dataToSend.medical_info = originalPatient.medical_info;
@@ -3952,7 +3951,7 @@ const PatientManagement = () => {
 
       const response = await axiosInstance.put(
         `patients/${patientData.id}/`,
-        dataToSend
+        dataToSend,
       );
 
       // Map backend response fields to frontend camelCase
@@ -3972,7 +3971,7 @@ const PatientManagement = () => {
       if (stored) {
         const storedPatients = JSON.parse(stored);
         const updatedPatients = storedPatients.map((p: Patient) =>
-          String(p.id) === String(patientData.id) ? updatedPatient : p
+          String(p.id) === String(patientData.id) ? updatedPatient : p,
         );
         localStorage.setItem("patientsList", JSON.stringify(updatedPatients));
       }
@@ -3986,7 +3985,7 @@ const PatientManagement = () => {
         try {
           await axiosInstance.post(
             `appointments/update-status/${appointmentId}/`,
-            { status: "completed" }
+            { status: "completed" },
           );
 
           toast({
@@ -4023,7 +4022,7 @@ const PatientManagement = () => {
       // Use the error handler utility to get a better error message
       const parsedError = parseApiError(
         error,
-        "Failed to update patient. Please try again later."
+        "Failed to update patient. Please try again later.",
       );
 
       toast({
@@ -4047,7 +4046,7 @@ const PatientManagement = () => {
       if (stored) {
         const storedPatients = JSON.parse(stored);
         const patient = storedPatients.find(
-          (p: Patient) => String(p.id) === String(id)
+          (p: Patient) => String(p.id) === String(id),
         );
         if (patient) {
           setPatientData(patient);
@@ -4073,8 +4072,8 @@ const PatientManagement = () => {
     // Add confirmation dialog
     const confirmDelete = window.confirm(
       `Are you sure you want to delete ${getFullName(
-        patientData
-      )}'s record? This action cannot be undone.`
+        patientData,
+      )}'s record? This action cannot be undone.`,
     );
 
     if (!confirmDelete) return;
@@ -4092,7 +4091,7 @@ const PatientManagement = () => {
       if (stored) {
         const storedPatients = JSON.parse(stored);
         const updatedPatients = storedPatients.filter(
-          (p: Patient) => String(p.id) !== String(patientData.id)
+          (p: Patient) => String(p.id) !== String(patientData.id),
         );
         localStorage.setItem("patientsList", JSON.stringify(updatedPatients));
       }
@@ -4109,7 +4108,7 @@ const PatientManagement = () => {
       // Use the error handler utility to get a better error message
       const parsedError = parseApiError(
         error,
-        "Failed to delete patient. Please try again later."
+        "Failed to delete patient. Please try again later.",
       );
 
       toast({
@@ -4188,13 +4187,13 @@ const PatientManagement = () => {
                         const fetchPatientData = async () => {
                           try {
                             const response = await axiosInstance.get(
-                              `patients/${id}/`
+                              `patients/${id}/`,
                             );
                             setPatientData(response.data);
                           } catch (error) {
                             console.error(
                               "Error fetching patient data:",
-                              error
+                              error,
                             );
                           }
                         };
@@ -4226,7 +4225,7 @@ const PatientManagement = () => {
                   {patientData.registrationDate
                     ? format(
                         new Date(patientData.registrationDate),
-                        "MMM dd, yyyy"
+                        "MMM dd, yyyy",
                       )
                     : "Not Specified"}
                 </div>
@@ -4303,7 +4302,7 @@ const PatientManagement = () => {
                             year: "numeric",
                             month: "2-digit",
                             day: "2-digit",
-                          }
+                          },
                         )}
                       </td>
                       <td className="py-2 px-4">
@@ -4348,33 +4347,42 @@ const PatientManagement = () => {
           value={activeDocumentTab}
           onValueChange={(value: any) => setActiveDocumentTab(value)}
         >
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+          <TabsList className="grid w-full grid-cols-5 gap-1 sm:gap-2">
             <TabsTrigger
               value="prescriptions"
-              className="flex items-center gap-2"
+              className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm"
             >
-              <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+              <div className="w-4 h-4 sm:w-5 sm:h-5 bg-blue-600 rounded-full flex items-center justify-center text-white text-[10px] sm:text-xs font-bold shrink-0">
                 Rx
               </div>
               <span className="hidden sm:inline">E-Prescriptions</span>
             </TabsTrigger>
-            <TabsTrigger value="soap" className="flex items-center gap-2">
-              <Stethoscope className="h-4 w-4" />
+            <TabsTrigger
+              value="soap"
+              className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm"
+            >
+              <Stethoscope className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">SOAP</span>
             </TabsTrigger>
-            <TabsTrigger value="clinical" className="flex items-center gap-2">
-              <File className="h-4 w-4" />
+            <TabsTrigger
+              value="clinical"
+              className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm"
+            >
+              <File className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">Clinical</span>
             </TabsTrigger>
-            <TabsTrigger value="lab" className="flex items-center gap-2">
-              <TestTube className="h-4 w-4" />
+            <TabsTrigger
+              value="lab"
+              className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm"
+            >
+              <TestTube className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">Lab Results</span>
             </TabsTrigger>
             <TabsTrigger
               value="certificates"
-              className="flex items-center gap-2"
+              className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm"
             >
-              <FileText className="h-4 w-4" />
+              <FileText className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">Certificates</span>
             </TabsTrigger>
           </TabsList>
@@ -4401,7 +4409,7 @@ const PatientManagement = () => {
                   {prescriptions
                     .slice(
                       (prescriptionsPage - 1) * itemsPerPage,
-                      prescriptionsPage * itemsPerPage
+                      prescriptionsPage * itemsPerPage,
                     )
                     .map((prescription, index) => (
                       <div
@@ -4470,7 +4478,7 @@ const PatientManagement = () => {
                                     } catch (error) {
                                       console.error(
                                         "Failed to fetch clinic settings:",
-                                        error
+                                        error,
                                       );
                                       currentClinicSettings = {};
                                     }
@@ -4481,12 +4489,12 @@ const PatientManagement = () => {
                                     prescription,
                                     patientData,
                                     currentClinicSettings,
-                                    currentUser
+                                    currentUser,
                                   );
 
                                   // View as PDF
                                   await HTMLToPDFConverter.viewPDFFromHTML(
-                                    htmlContent
+                                    htmlContent,
                                   );
 
                                   toast({
@@ -4496,7 +4504,7 @@ const PatientManagement = () => {
                                 } catch (error) {
                                   console.error(
                                     "Error generating prescription PDF:",
-                                    error
+                                    error,
                                   );
                                   toast({
                                     title: "Error",
@@ -4524,7 +4532,7 @@ const PatientManagement = () => {
                                     } catch (error) {
                                       console.error(
                                         "Failed to fetch clinic settings:",
-                                        error
+                                        error,
                                       );
                                       currentClinicSettings = {};
                                     }
@@ -4535,7 +4543,7 @@ const PatientManagement = () => {
                                     prescription,
                                     patientData,
                                     currentClinicSettings,
-                                    currentUser
+                                    currentUser,
                                   );
 
                                   // Generate filename
@@ -4543,13 +4551,13 @@ const PatientManagement = () => {
                                     patientData?.name || "patient"
                                   }-${format(
                                     new Date(prescription.dateCreated),
-                                    "yyyy-MM-dd"
+                                    "yyyy-MM-dd",
                                   )}.pdf`;
 
                                   // Download as PDF
                                   await HTMLToPDFConverter.downloadPDFFromHTML(
                                     htmlContent,
-                                    filename
+                                    filename,
                                   );
 
                                   toast({
@@ -4559,7 +4567,7 @@ const PatientManagement = () => {
                                 } catch (error) {
                                   console.error(
                                     "Error downloading prescription PDF:",
-                                    error
+                                    error,
                                   );
                                   toast({
                                     title: "Error",
@@ -4580,7 +4588,7 @@ const PatientManagement = () => {
                                 onClick={() =>
                                   handleDeleteDocument(
                                     prescription.id,
-                                    "prescription"
+                                    "prescription",
                                   )
                                 }
                                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
@@ -4604,7 +4612,7 @@ const PatientManagement = () => {
                           setPrescriptionsPage(1);
                         }}
                       >
-                        <SelectTrigger className="h-8 w-16">
+                        <SelectTrigger className="h-8 w-14 sm:w-16 text-xs sm:text-sm">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -4613,15 +4621,17 @@ const PatientManagement = () => {
                           <SelectItem value="20">20</SelectItem>
                         </SelectContent>
                       </Select>
-                      <p className="text-sm text-muted-foreground">entries</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        entries
+                      </p>
                     </div>
 
-                    <div className="flex items-center space-x-6 lg:space-x-8">
-                      <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6 lg:gap-8">
+                      <div className="flex w-full sm:w-[100px] items-center justify-center text-xs sm:text-sm font-medium">
                         Page {prescriptionsPage} of{" "}
                         {Math.ceil(prescriptions.length / itemsPerPage)}
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
                         <Button
                           variant="outline"
                           size="sm"
@@ -4629,20 +4639,23 @@ const PatientManagement = () => {
                             setPrescriptionsPage((p) => Math.max(1, p - 1))
                           }
                           disabled={prescriptionsPage <= 1}
+                          className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
                         >
-                          <ChevronLeft className="h-4 w-4" />
-                          Previous
+                          <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="hidden sm:inline ml-1">
+                            Previous
+                          </span>
                         </Button>
 
                         {/* Page Number Buttons */}
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 overflow-x-auto">
                           {Array.from(
                             {
                               length: Math.ceil(
-                                prescriptions.length / itemsPerPage
+                                prescriptions.length / itemsPerPage,
                               ),
                             },
-                            (_, i) => i + 1
+                            (_, i) => i + 1,
                           ).map((page) => (
                             <Button
                               key={page}
@@ -4653,7 +4666,7 @@ const PatientManagement = () => {
                               }
                               size="sm"
                               onClick={() => setPrescriptionsPage(page)}
-                              className={`w-8 h-8 p-0`}
+                              className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
                               style={{
                                 backgroundColor:
                                   page === prescriptionsPage
@@ -4697,17 +4710,18 @@ const PatientManagement = () => {
                             setPrescriptionsPage((p) =>
                               Math.min(
                                 Math.ceil(prescriptions.length / itemsPerPage),
-                                p + 1
-                              )
+                                p + 1,
+                              ),
                             )
                           }
                           disabled={
                             prescriptionsPage >=
                             Math.ceil(prescriptions.length / itemsPerPage)
                           }
+                          className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
                         >
-                          Next
-                          <ChevronRight className="h-4 w-4" />
+                          <span className="hidden sm:inline mr-1">Next</span>
+                          <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                       </div>
                     </div>
@@ -4757,7 +4771,7 @@ const PatientManagement = () => {
                   {soapNotes
                     .slice(
                       (soapNotesPage - 1) * itemsPerPage,
-                      soapNotesPage * itemsPerPage
+                      soapNotesPage * itemsPerPage,
                     )
                     .map((note, index) => (
                       <div
@@ -4783,7 +4797,7 @@ const PatientManagement = () => {
                               <div className="text-xs text-gray-500">
                                 Created:{" "}
                                 {new Date(
-                                  note.dateCreated
+                                  note.dateCreated,
                                 ).toLocaleDateString()}
                               </div>
                             </div>
@@ -4803,7 +4817,7 @@ const PatientManagement = () => {
                                     } catch (error) {
                                       console.error(
                                         "Failed to fetch clinic settings:",
-                                        error
+                                        error,
                                       );
                                       currentClinicSettings = {};
                                     }
@@ -4814,12 +4828,12 @@ const PatientManagement = () => {
                                     note,
                                     patientData,
                                     currentClinicSettings,
-                                    currentUser
+                                    currentUser,
                                   );
 
                                   // View as PDF
                                   await HTMLToPDFConverter.viewPDFFromHTML(
-                                    htmlContent
+                                    htmlContent,
                                   );
 
                                   toast({
@@ -4829,7 +4843,7 @@ const PatientManagement = () => {
                                 } catch (error) {
                                   console.error(
                                     "Error viewing SOAP note PDF:",
-                                    error
+                                    error,
                                   );
                                   toast({
                                     title: "Error",
@@ -4856,7 +4870,7 @@ const PatientManagement = () => {
                                     } catch (error) {
                                       console.error(
                                         "Failed to fetch clinic settings:",
-                                        error
+                                        error,
                                       );
                                       currentClinicSettings = {};
                                     }
@@ -4867,7 +4881,7 @@ const PatientManagement = () => {
                                     note,
                                     patientData,
                                     currentClinicSettings,
-                                    currentUser
+                                    currentUser,
                                   );
 
                                   // Generate filename
@@ -4875,13 +4889,13 @@ const PatientManagement = () => {
                                     patientData?.name || "patient"
                                   }-${format(
                                     new Date(note.dateCreated),
-                                    "yyyy-MM-dd"
+                                    "yyyy-MM-dd",
                                   )}.pdf`;
 
                                   // Download as PDF
                                   await HTMLToPDFConverter.downloadPDFFromHTML(
                                     htmlContent,
-                                    filename
+                                    filename,
                                   );
 
                                   toast({
@@ -4891,7 +4905,7 @@ const PatientManagement = () => {
                                 } catch (error) {
                                   console.error(
                                     "Error downloading SOAP note PDF:",
-                                    error
+                                    error,
                                   );
                                   toast({
                                     title: "Error",
@@ -4946,11 +4960,11 @@ const PatientManagement = () => {
                     </div>
 
                     <div className="flex items-center space-x-6 lg:space-x-8">
-                      <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                      <div className="flex w-full sm:w-[100px] items-center justify-center text-xs sm:text-sm font-medium">
                         Page {soapNotesPage} of{" "}
                         {Math.ceil(soapNotes.length / itemsPerPage)}
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
                         <Button
                           variant="outline"
                           size="sm"
@@ -4958,20 +4972,23 @@ const PatientManagement = () => {
                             setSoapNotesPage((p) => Math.max(1, p - 1))
                           }
                           disabled={soapNotesPage <= 1}
+                          className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
                         >
-                          <ChevronLeft className="h-4 w-4" />
-                          Previous
+                          <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="hidden sm:inline ml-1">
+                            Previous
+                          </span>
                         </Button>
 
                         {/* Page Number Buttons */}
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 overflow-x-auto">
                           {Array.from(
                             {
                               length: Math.ceil(
-                                soapNotes.length / itemsPerPage
+                                soapNotes.length / itemsPerPage,
                               ),
                             },
-                            (_, i) => i + 1
+                            (_, i) => i + 1,
                           ).map((page) => (
                             <Button
                               key={page}
@@ -4980,7 +4997,7 @@ const PatientManagement = () => {
                               }
                               size="sm"
                               onClick={() => setSoapNotesPage(page)}
-                              className={`w-8 h-8 p-0`}
+                              className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
                               style={{
                                 backgroundColor:
                                   page === soapNotesPage
@@ -5024,17 +5041,18 @@ const PatientManagement = () => {
                             setSoapNotesPage((p) =>
                               Math.min(
                                 Math.ceil(soapNotes.length / itemsPerPage),
-                                p + 1
-                              )
+                                p + 1,
+                              ),
                             )
                           }
                           disabled={
                             soapNotesPage >=
                             Math.ceil(soapNotes.length / itemsPerPage)
                           }
+                          className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
                         >
-                          Next
-                          <ChevronRight className="h-4 w-4" />
+                          <span className="hidden sm:inline mr-1">Next</span>
+                          <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                       </div>
                     </div>
@@ -5084,7 +5102,7 @@ const PatientManagement = () => {
                   {blankNotes
                     .slice(
                       (clinicalNotesPage - 1) * itemsPerPage,
-                      clinicalNotesPage * itemsPerPage
+                      clinicalNotesPage * itemsPerPage,
                     )
                     .map((note, index) => (
                       <div
@@ -5110,7 +5128,7 @@ const PatientManagement = () => {
                               <div className="text-xs text-gray-500">
                                 Created:{" "}
                                 {new Date(
-                                  note.dateCreated
+                                  note.dateCreated,
                                 ).toLocaleDateString()}
                               </div>
                             </div>
@@ -5130,7 +5148,7 @@ const PatientManagement = () => {
                                     } catch (error) {
                                       console.error(
                                         "Failed to fetch clinic settings:",
-                                        error
+                                        error,
                                       );
                                       currentClinicSettings = {};
                                     }
@@ -5141,12 +5159,12 @@ const PatientManagement = () => {
                                     note,
                                     patientData,
                                     currentClinicSettings,
-                                    currentUser
+                                    currentUser,
                                   );
 
                                   // View as PDF
                                   await HTMLToPDFConverter.viewPDFFromHTML(
-                                    htmlContent
+                                    htmlContent,
                                   );
 
                                   toast({
@@ -5156,7 +5174,7 @@ const PatientManagement = () => {
                                 } catch (error) {
                                   console.error(
                                     "Error viewing clinical note PDF:",
-                                    error
+                                    error,
                                   );
                                   toast({
                                     title: "Error",
@@ -5184,7 +5202,7 @@ const PatientManagement = () => {
                                     } catch (error) {
                                       console.error(
                                         "Failed to fetch clinic settings:",
-                                        error
+                                        error,
                                       );
                                       currentClinicSettings = {};
                                     }
@@ -5195,7 +5213,7 @@ const PatientManagement = () => {
                                     note,
                                     patientData,
                                     currentClinicSettings,
-                                    currentUser
+                                    currentUser,
                                   );
 
                                   // Generate filename
@@ -5203,13 +5221,13 @@ const PatientManagement = () => {
                                     patientData?.name || "patient"
                                   }-${format(
                                     new Date(note.dateCreated),
-                                    "yyyy-MM-dd"
+                                    "yyyy-MM-dd",
                                   )}.pdf`;
 
                                   // Download as PDF
                                   await HTMLToPDFConverter.downloadPDFFromHTML(
                                     htmlContent,
-                                    filename
+                                    filename,
                                   );
 
                                   toast({
@@ -5219,7 +5237,7 @@ const PatientManagement = () => {
                                 } catch (error) {
                                   console.error(
                                     "Error downloading clinical note PDF:",
-                                    error
+                                    error,
                                   );
                                   toast({
                                     title: "Error",
@@ -5251,9 +5269,11 @@ const PatientManagement = () => {
                       </div>
                     ))}
                   {/* Pagination Controls */}
-                  <div className="flex items-center justify-between px-2 py-4">
-                    <div className="flex items-center space-x-2">
-                      <p className="text-sm text-muted-foreground">Show</p>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-2 py-4">
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        Show
+                      </p>
                       <Select
                         value={itemsPerPage.toString()}
                         onValueChange={(value) => {
@@ -5261,7 +5281,7 @@ const PatientManagement = () => {
                           setClinicalNotesPage(1);
                         }}
                       >
-                        <SelectTrigger className="h-8 w-16">
+                        <SelectTrigger className="h-8 w-14 sm:w-16 text-xs sm:text-sm">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -5270,15 +5290,17 @@ const PatientManagement = () => {
                           <SelectItem value="20">20</SelectItem>
                         </SelectContent>
                       </Select>
-                      <p className="text-sm text-muted-foreground">entries</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        entries
+                      </p>
                     </div>
 
-                    <div className="flex items-center space-x-6 lg:space-x-8">
-                      <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6 lg:gap-8">
+                      <div className="flex w-full sm:w-[100px] items-center justify-center text-xs sm:text-sm font-medium">
                         Page {clinicalNotesPage} of{" "}
                         {Math.ceil(blankNotes.length / itemsPerPage)}
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
                         <Button
                           variant="outline"
                           size="sm"
@@ -5286,20 +5308,23 @@ const PatientManagement = () => {
                             setClinicalNotesPage((p) => Math.max(1, p - 1))
                           }
                           disabled={clinicalNotesPage <= 1}
+                          className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
                         >
-                          <ChevronLeft className="h-4 w-4" />
-                          Previous
+                          <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="hidden sm:inline ml-1">
+                            Previous
+                          </span>
                         </Button>
 
                         {/* Page Number Buttons */}
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 overflow-x-auto">
                           {Array.from(
                             {
                               length: Math.ceil(
-                                blankNotes.length / itemsPerPage
+                                blankNotes.length / itemsPerPage,
                               ),
                             },
-                            (_, i) => i + 1
+                            (_, i) => i + 1,
                           ).map((page) => (
                             <Button
                               key={page}
@@ -5310,7 +5335,7 @@ const PatientManagement = () => {
                               }
                               size="sm"
                               onClick={() => setClinicalNotesPage(page)}
-                              className={`w-8 h-8 p-0`}
+                              className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
                               style={{
                                 backgroundColor:
                                   page === clinicalNotesPage
@@ -5354,17 +5379,18 @@ const PatientManagement = () => {
                             setClinicalNotesPage((p) =>
                               Math.min(
                                 Math.ceil(blankNotes.length / itemsPerPage),
-                                p + 1
-                              )
+                                p + 1,
+                              ),
                             )
                           }
                           disabled={
                             clinicalNotesPage >=
                             Math.ceil(blankNotes.length / itemsPerPage)
                           }
+                          className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
                         >
-                          Next
-                          <ChevronRight className="h-4 w-4" />
+                          <span className="hidden sm:inline mr-1">Next</span>
+                          <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                       </div>
                     </div>
@@ -5405,8 +5431,8 @@ const PatientManagement = () => {
                       `/lab-results?patientId=${
                         patientData?.id
                       }&patientName=${encodeURIComponent(
-                        patientData?.name || ""
-                      )}&returnTo=patient`
+                        patientData?.name || "",
+                      )}&returnTo=patient`,
                     )
                   }
                   className="flex items-center gap-2"
@@ -5422,7 +5448,7 @@ const PatientManagement = () => {
                   {labResults
                     .slice(
                       (labResultsPage - 1) * itemsPerPage,
-                      labResultsPage * itemsPerPage
+                      labResultsPage * itemsPerPage,
                     )
                     .map((result, index) => (
                       <div
@@ -5442,7 +5468,7 @@ const PatientManagement = () => {
                               Date:{" "}
                               {result.document?.document_date
                                 ? new Date(
-                                    result.document.document_date
+                                    result.document.document_date,
                                   ).toLocaleDateString()
                                 : "Date not available"}
                             </div>
@@ -5480,10 +5506,10 @@ const PatientManagement = () => {
                                   // Open the saved professional PDF directly
                                   const baseUrl = ENV.API_URL.replace(
                                     "/api",
-                                    ""
+                                    "",
                                   );
                                   const pdfUrl = processedFileUrl.startsWith(
-                                    "http"
+                                    "http",
                                   )
                                     ? processedFileUrl
                                     : `${baseUrl}${processedFileUrl}`;
@@ -5523,10 +5549,10 @@ const PatientManagement = () => {
                                   // Download the saved professional PDF
                                   const baseUrl = ENV.API_URL.replace(
                                     "/api",
-                                    ""
+                                    "",
                                   );
                                   const pdfUrl = processedFileUrl.startsWith(
-                                    "http"
+                                    "http",
                                   )
                                     ? processedFileUrl
                                     : `${baseUrl}${processedFileUrl}`;
@@ -5542,9 +5568,9 @@ const PatientManagement = () => {
                                     new Date(
                                       result.document?.document_date ||
                                         result.document?.created_at ||
-                                        new Date()
+                                        new Date(),
                                     ),
-                                    "yyyy-MM-dd"
+                                    "yyyy-MM-dd",
                                   )}.pdf`;
                                   document.body.appendChild(link);
                                   link.click();
@@ -5585,9 +5611,11 @@ const PatientManagement = () => {
                       </div>
                     ))}
                   {/* Pagination Controls */}
-                  <div className="flex items-center justify-between px-2 py-4">
-                    <div className="flex items-center space-x-2">
-                      <p className="text-sm text-muted-foreground">Show</p>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-2 py-4">
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        Show
+                      </p>
                       <Select
                         value={itemsPerPage.toString()}
                         onValueChange={(value) => {
@@ -5595,7 +5623,7 @@ const PatientManagement = () => {
                           setLabResultsPage(1);
                         }}
                       >
-                        <SelectTrigger className="h-8 w-16">
+                        <SelectTrigger className="h-8 w-14 sm:w-16 text-xs sm:text-sm">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -5604,15 +5632,17 @@ const PatientManagement = () => {
                           <SelectItem value="20">20</SelectItem>
                         </SelectContent>
                       </Select>
-                      <p className="text-sm text-muted-foreground">entries</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        entries
+                      </p>
                     </div>
 
-                    <div className="flex items-center space-x-6 lg:space-x-8">
-                      <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6 lg:gap-8">
+                      <div className="flex w-full sm:w-[100px] items-center justify-center text-xs sm:text-sm font-medium">
                         Page {labResultsPage} of{" "}
                         {Math.ceil(labResults.length / itemsPerPage)}
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
                         <Button
                           variant="outline"
                           size="sm"
@@ -5620,20 +5650,23 @@ const PatientManagement = () => {
                             setLabResultsPage((p) => Math.max(1, p - 1))
                           }
                           disabled={labResultsPage <= 1}
+                          className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
                         >
-                          <ChevronLeft className="h-4 w-4" />
-                          Previous
+                          <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="hidden sm:inline ml-1">
+                            Previous
+                          </span>
                         </Button>
 
                         {/* Page Number Buttons */}
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 overflow-x-auto">
                           {Array.from(
                             {
                               length: Math.ceil(
-                                labResults.length / itemsPerPage
+                                labResults.length / itemsPerPage,
                               ),
                             },
-                            (_, i) => i + 1
+                            (_, i) => i + 1,
                           ).map((page) => (
                             <Button
                               key={page}
@@ -5642,7 +5675,7 @@ const PatientManagement = () => {
                               }
                               size="sm"
                               onClick={() => setLabResultsPage(page)}
-                              className={`w-8 h-8 p-0`}
+                              className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
                               style={{
                                 backgroundColor:
                                   page === labResultsPage
@@ -5686,17 +5719,18 @@ const PatientManagement = () => {
                             setLabResultsPage((p) =>
                               Math.min(
                                 Math.ceil(labResults.length / itemsPerPage),
-                                p + 1
-                              )
+                                p + 1,
+                              ),
                             )
                           }
                           disabled={
                             labResultsPage >=
                             Math.ceil(labResults.length / itemsPerPage)
                           }
+                          className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
                         >
-                          Next
-                          <ChevronRight className="h-4 w-4" />
+                          <span className="hidden sm:inline mr-1">Next</span>
+                          <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                       </div>
                     </div>
@@ -5745,65 +5779,84 @@ const PatientManagement = () => {
       />
       {/* Patient Header */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 md:p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
             <Button
               variant="outline"
               size="sm"
               onClick={() => navigate("/patients")}
+              className="self-start sm:self-auto"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
                 {getFullName(patientData)}
               </h1>
-              <div className="flex items-center space-x-4 mt-2">
-                <Badge variant="secondary">
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                <Badge variant="secondary" className="text-xs sm:text-sm">
                   {patientData.date_of_birth
                     ? new Date().getFullYear() -
                       new Date(patientData.date_of_birth).getFullYear()
                     : "N/A"}{" "}
                   years old
                 </Badge>
-                <Badge variant="outline" className="capitalize">
+                <Badge
+                  variant="outline"
+                  className="capitalize text-xs sm:text-sm"
+                >
                   {patientData.gender}
                 </Badge>
-                <Badge variant="outline">
+                <Badge variant="outline" className="text-xs sm:text-sm">
                   ID: {patientData.patient_id || patientData.id}
                 </Badge>
               </div>
             </div>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap gap-2">
             {isEditing ? (
               <>
                 <Button
                   variant="outline"
                   onClick={handleCancel}
                   disabled={isSaving}
+                  className="text-xs sm:text-sm"
+                  size="sm"
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleSave} disabled={isSaving}>
-                  <Save className="mr-2 h-4 w-4" />
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  size="sm"
+                  className="text-xs sm:text-sm"
+                >
+                  <Save className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                   {isSaving ? "Saving..." : "Save Changes"}
                 </Button>
               </>
             ) : (
               <>
-                <Button variant="outline" onClick={handlePrintRecord}>
-                  <Printer className="mr-2 h-4 w-4" />
-                  Print Record
+                <Button
+                  variant="outline"
+                  onClick={handlePrintRecord}
+                  size="sm"
+                  className="text-xs sm:text-sm"
+                >
+                  <Printer className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Print Record</span>
+                  <span className="sm:hidden">Print</span>
                 </Button>
                 {canDelete && (
                   <Button
                     variant="destructive"
                     onClick={handleDelete}
                     disabled={isDeleting}
+                    size="sm"
+                    className="text-xs sm:text-sm"
                   >
-                    <Trash2 className="mr-2 h-4 w-4" />
+                    <Trash2 className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                     {isDeleting ? "Deleting..." : "Delete"}
                   </Button>
                 )}
@@ -5811,13 +5864,16 @@ const PatientManagement = () => {
                   <Button
                     onClick={() => setIsEditing(true)}
                     disabled={isDeleting}
+                    size="sm"
+                    className="text-xs sm:text-sm"
                   >
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit Record
+                    <Edit className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Edit Record</span>
+                    <span className="sm:hidden">Edit</span>
                   </Button>
                 )}
                 {!canEdit && !canDelete && (
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-xs sm:text-sm text-muted-foreground">
                     View only - Contact a doctor or receptionist to make changes
                   </div>
                 )}
@@ -5836,71 +5892,71 @@ const PatientManagement = () => {
               | "personal"
               | "physical"
               | "medical"
-              | "documents"
+              | "documents",
           )
         }
         className="w-full"
       >
-        <TabsList className="mb-4 grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+        <TabsList className="mb-4 grid w-full grid-cols-5 gap-1 sm:gap-2">
           <TabsTrigger
             value="overview"
-            className="flex items-center gap-2 transition-colors"
+            className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 transition-colors px-2 sm:px-3 py-2 text-xs sm:text-sm"
             style={{
               backgroundColor:
                 activeTab === "overview" ? colors.primaryColor : undefined,
               color: activeTab === "overview" ? "white" : undefined,
             }}
           >
-            <User className="h-4 w-4" />
-            Overview
+            <User className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">Overview</span>
           </TabsTrigger>
           <TabsTrigger
             value="personal"
-            className="flex items-center gap-2 transition-colors"
+            className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 transition-colors px-2 sm:px-3 py-2 text-xs sm:text-sm"
             style={{
               backgroundColor:
                 activeTab === "personal" ? colors.primaryColor : undefined,
               color: activeTab === "personal" ? "white" : undefined,
             }}
           >
-            <User className="h-4 w-4" />
-            Personal Info
+            <User className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">Personal Info</span>
           </TabsTrigger>
           <TabsTrigger
             value="physical"
-            className="flex items-center gap-2 transition-colors"
+            className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 transition-colors px-2 sm:px-3 py-2 text-xs sm:text-sm"
             style={{
               backgroundColor:
                 activeTab === "physical" ? colors.primaryColor : undefined,
               color: activeTab === "physical" ? "white" : undefined,
             }}
           >
-            <Stethoscope className="h-4 w-4" />
-            Physical Exam
+            <Stethoscope className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">Physical Exam</span>
           </TabsTrigger>
           <TabsTrigger
             value="medical"
-            className="flex items-center gap-2 transition-colors"
+            className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 transition-colors px-2 sm:px-3 py-2 text-xs sm:text-sm"
             style={{
               backgroundColor:
                 activeTab === "medical" ? colors.primaryColor : undefined,
               color: activeTab === "medical" ? "white" : undefined,
             }}
           >
-            <Heart className="h-4 w-4" />
-            Medical Info
+            <Heart className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">Medical Info</span>
           </TabsTrigger>
           <TabsTrigger
             value="documents"
-            className="flex items-center gap-2 transition-colors"
+            className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 transition-colors px-2 sm:px-3 py-2 text-xs sm:text-sm"
             style={{
               backgroundColor:
                 activeTab === "documents" ? colors.primaryColor : undefined,
               color: activeTab === "documents" ? "white" : undefined,
             }}
           >
-            <FileText className="h-4 w-4" />
-            Documents
+            <FileText className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">Documents</span>
           </TabsTrigger>
         </TabsList>
 
@@ -6033,7 +6089,7 @@ const PatientManagement = () => {
                             rows={3}
                           />
                         </div>
-                      )
+                      ),
                     )}
                     <div className="flex justify-end gap-2">
                       <Button
@@ -6134,13 +6190,13 @@ const PatientManagement = () => {
                                   if (medicine) {
                                     handleMedicationChangeTemplate(
                                       "name",
-                                      medicine.name
+                                      medicine.name,
                                     );
                                     // Auto-fill dosage if available
                                     if (medicine.dosage) {
                                       handleMedicationChangeTemplate(
                                         "dose",
-                                        medicine.dosage
+                                        medicine.dosage,
                                       );
                                     }
                                   } else {
@@ -6159,7 +6215,7 @@ const PatientManagement = () => {
                                 onChange={(e) =>
                                   handleMedicationChangeTemplate(
                                     "dose",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                               />
@@ -6176,7 +6232,7 @@ const PatientManagement = () => {
                                   if (/^\d*$/.test(e.target.value))
                                     handleMedicationChangeTemplate(
                                       "quantity",
-                                      e.target.value
+                                      e.target.value,
                                     );
                                 }}
                               />
@@ -6188,7 +6244,7 @@ const PatientManagement = () => {
                                 onValueChange={(val) =>
                                   handleMedicationChangeTemplate(
                                     "frequency",
-                                    val
+                                    val,
                                   )
                                 }
                               >
@@ -6228,7 +6284,7 @@ const PatientManagement = () => {
                                 onChange={(e) =>
                                   handleMedicationChangeTemplate(
                                     "startDate",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                               />
@@ -6241,7 +6297,7 @@ const PatientManagement = () => {
                                 onChange={(e) =>
                                   handleMedicationChangeTemplate(
                                     "endDate",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                               />
@@ -6254,7 +6310,7 @@ const PatientManagement = () => {
                             onChange={(e) =>
                               handleMedicationChangeTemplate(
                                 "notes",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             rows={2}
@@ -6367,7 +6423,7 @@ const PatientManagement = () => {
                           onChange={(e) =>
                             handlePrescriptionChange(
                               "generalNotes",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           rows={3}
@@ -6481,7 +6537,7 @@ const PatientManagement = () => {
                         <AccordionTrigger className="text-left">
                           E-Prescription -{" "}
                           {new Date(
-                            prescription.dateCreated
+                            prescription.dateCreated,
                           ).toLocaleDateString()}
                         </AccordionTrigger>
                         <AccordionContent>
@@ -6551,7 +6607,7 @@ const PatientManagement = () => {
                                                   "-"}
                                               </td>
                                             </tr>
-                                          )
+                                          ),
                                         )}
                                       </tbody>
                                     </table>
@@ -6576,7 +6632,7 @@ const PatientManagement = () => {
                             <div className="mt-2 text-sm text-gray-600">
                               Created by: {prescription.createdBy} on{" "}
                               {new Date(
-                                prescription.dateCreated
+                                prescription.dateCreated,
                               ).toLocaleString()}
                             </div>
                           </div>
@@ -6663,8 +6719,8 @@ const PatientManagement = () => {
               {createDocumentType === "prescription"
                 ? "E-Prescription"
                 : createDocumentType === "soap"
-                ? "SOAP Note"
-                : "Clinical Note"}
+                  ? "SOAP Note"
+                  : "Clinical Note"}
             </DialogTitle>
           </DialogHeader>
 
@@ -6685,13 +6741,13 @@ const PatientManagement = () => {
                             if (medicine) {
                               handleMedicationChangeTemplate(
                                 "name",
-                                medicine.name
+                                medicine.name,
                               );
                               // Auto-fill dosage if available
                               if (medicine.dosage) {
                                 handleMedicationChangeTemplate(
                                   "dose",
-                                  medicine.dosage
+                                  medicine.dosage,
                                 );
                               }
                             } else {
@@ -6710,7 +6766,7 @@ const PatientManagement = () => {
                           onChange={(e) =>
                             handleMedicationChangeTemplate(
                               "dose",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                         />
@@ -6727,7 +6783,7 @@ const PatientManagement = () => {
                             if (/^\d*$/.test(e.target.value))
                               handleMedicationChangeTemplate(
                                 "quantity",
-                                e.target.value
+                                e.target.value,
                               );
                           }}
                         />
@@ -6774,7 +6830,7 @@ const PatientManagement = () => {
                           onChange={(e) =>
                             handleMedicationChangeTemplate(
                               "startDate",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                         />
@@ -6787,7 +6843,7 @@ const PatientManagement = () => {
                           onChange={(e) =>
                             handleMedicationChangeTemplate(
                               "endDate",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                         />
@@ -6892,7 +6948,7 @@ const PatientManagement = () => {
                     onChange={(e) =>
                       handleDocumentInputChange(
                         "generalInstructions",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     rows={3}
@@ -7008,8 +7064,8 @@ const PatientManagement = () => {
               {createDocumentType === "prescription"
                 ? "Prescription"
                 : createDocumentType === "soap"
-                ? "SOAP Note"
-                : "Note"}
+                  ? "SOAP Note"
+                  : "Note"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -7036,7 +7092,7 @@ const PatientManagement = () => {
                   onCheckedChange={(checked) =>
                     handlePrintSettingsChange(
                       "includeComprehensiveProfile",
-                      !!checked
+                      !!checked,
                     )
                   }
                 />
@@ -7131,7 +7187,7 @@ const PatientManagement = () => {
                   onCheckedChange={(checked) =>
                     handlePrintSettingsChange(
                       "includeMedicalCertificates",
-                      !!checked
+                      !!checked,
                     )
                   }
                   disabled={certificates.length === 0}
