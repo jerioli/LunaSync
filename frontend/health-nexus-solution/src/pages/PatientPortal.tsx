@@ -39,6 +39,7 @@ import {
   ChevronRight,
   FileText,
   Info,
+  MessageCircle,
   Pill,
   Stethoscope,
   User,
@@ -3008,40 +3009,54 @@ const PatientPortal = () => {
         </button>
       )}
 
-      {/* Chatbot Greeting & Trigger - left side of the chatbot icon */}
+      {/* Chatbot Greeting & Trigger - Improved visibility and accessibility */}
       <div
         className={`fixed ${
           showArrow ? "bottom-20" : "bottom-6"
-        } right-2 md:right-6 z-50 flex flex-col md:flex-row items-end md:items-center gap-2`}
+        } right-2 md:right-6 z-50 flex flex-col-reverse md:flex-row items-center md:items-end gap-2 md:gap-3`}
       >
-        <div className="order-2 md:order-1 mb-2 md:mb-0">
-          <span className="text-[#79c942] font-medium text-[10px] md:text-xs italic flex items-center p-2 rounded-lg shadow-sm bg-white/40 backdrop-blur-sm max-w-[200px] md:max-w-none">
-            {greetingDisplay}
-            <span
-              className={`inline-block w-2 h-4 align-middle ml-1 bg-[#79c942]`}
-              style={{
-                borderRadius: "2px",
-                verticalAlign: "middle",
-                marginLeft: "2px",
-                transition: "background 0.2s",
-                opacity: typing ? 1 : 0,
-                animation: typing
-                  ? "blink-cursor 1s steps(1) infinite"
-                  : "none",
-              }}
-            ></span>
-          </span>
-        </div>
+        {/* Animated Luna icon */}
         <button
           onClick={() => setIsChatbotOpen(!isChatbotOpen)}
-          className="transition-transform hover:scale-110 order-1 md:order-2"
+          className="transition-transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-[#79c942]/50 rounded-full md:order-2"
+          aria-label="Open chat with Luna"
         >
           <img
             src="/gif.webp"
-            alt="Chat Assistant"
-            className="w-16 h-16 md:w-20 md:h-20 object-contain"
+            alt="Luna virtual assistant - Click to chat"
+            className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 object-contain"
           />
         </button>
+
+        {/* Greeting with typing effect */}
+        <div
+          onClick={() => setIsChatbotOpen(!isChatbotOpen)}
+          className="bg-white px-3 py-2 md:px-4 md:py-3 lg:px-5 lg:py-4 rounded-lg md:rounded-xl shadow-lg md:shadow-2xl hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-[#79c942]/20 md:order-1 max-w-[240px] md:max-w-xs focus:outline-none focus:ring-4 focus:ring-[#79c942]/50"
+          role="button"
+          tabIndex={0}
+          aria-label="Click to chat with Luna, our virtual assistant"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setIsChatbotOpen(!isChatbotOpen);
+            }
+          }}
+        >
+          <div className="flex items-start gap-2">
+            <MessageCircle className="w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 text-[#79c942] flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs md:text-sm lg:text-base font-semibold text-gray-900 mb-0.5">
+                Hi! I'm Luna 👋
+              </p>
+              <p className="text-[10px] md:text-xs lg:text-sm text-gray-700">
+                <span className="typing-effect">
+                  Click here to chat with me!
+                </span>
+                <span className="cursor-blink">|</span>
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
       <style>
         {`
@@ -3049,24 +3064,35 @@ const PatientPortal = () => {
             0%, 100% { opacity: 1; }
             50% { opacity: 0; }
           }
+          
+          .cursor-blink {
+            animation: blink-cursor 1s infinite;
+            margin-left: 2px;
+            font-weight: 400;
+            color: #79c942;
+          }
+          
+          .typing-effect {
+            display: inline-block;
+          }
         `}
       </style>
 
       {/* Chatbot Modal */}
       {isChatbotOpen && (
-        <div className="fixed bottom-32 right-2 md:right-6 z-50 w-[calc(100vw-1rem)] md:w-96 max-w-96">
+        <div className="fixed bottom-20 md:bottom-32 right-2 md:right-6 z-50 w-[calc(100vw-1rem)] sm:w-[calc(100vw-2rem)] md:w-96 max-w-[calc(100vw-1rem)] md:max-w-96">
           <AppointmentChatbot onClose={() => setIsChatbotOpen(false)} />
         </div>
       )}
 
       {/* Hero Section */}
-      <section id="home" className="py-10 md:py-20">
-        <div className="container mx-auto flex flex-col md:flex-row items-center gap-8 md:gap-12 px-4">
-          <div className="flex-1 space-y-6 w-full">
-            <h1 className="text-4xl md:text-5xl font-bold text-[#79c942]">
+      <section id="home" className="py-8 sm:py-10 md:py-16 lg:py-20">
+        <div className="container mx-auto flex flex-col md:flex-row items-center gap-6 sm:gap-8 md:gap-12 px-4">
+          <div className="flex-1 space-y-4 sm:space-y-6 w-full">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#79c942] leading-tight">
               {clinic.hero_title || "Your Health Is Our Priority"}
             </h1>
-            <p className="text-lg text-gray-600">
+            <p className="text-base sm:text-lg text-gray-600">
               {clinic.hero_subtitle ||
                 `${
                   clinic.clinic_name || "Welcome"
@@ -3093,9 +3119,9 @@ const PatientPortal = () => {
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-10 md:py-20">
+      <section id="about" className="py-8 sm:py-10 md:py-16 lg:py-20">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8 md:mb-12 text-[#79c942]">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 md:mb-12 text-[#79c942]">
             {clinic.about_title ||
               `About ${clinic.clinic_name || "Our Clinic"}`}
           </h2>
@@ -3116,17 +3142,17 @@ const PatientPortal = () => {
               )}
             </div>
             <div className="space-y-6">
-              <h3 className="text-2xl font-semibold text-[#79c942]">
+              <h3 className="text-xl sm:text-2xl font-semibold text-[#79c942]">
                 Our Story
               </h3>
-              <p className="text-gray-600">
+              <p className="text-sm sm:text-base text-gray-600">
                 {clinic.about_text ||
                   "Founded in 2010, HealthNexus has grown to become one of the leading healthcare providers in the region. Our mission is to deliver accessible, high-quality healthcare services in a compassionate environment."}
               </p>
-              <h3 className="text-2xl font-semibold text-[#79c942]">
+              <h3 className="text-xl sm:text-2xl font-semibold text-[#79c942]">
                 Our Values
               </h3>
-              <ul className="space-y-2 text-gray-600">
+              <ul className="space-y-2 text-sm sm:text-base text-gray-600">
                 <li className="flex items-center gap-2">
                   <div
                     className="h-2 w-2 rounded-full"
@@ -3162,22 +3188,25 @@ const PatientPortal = () => {
       </section>
 
       {/* Services Section */}
-      <section id="services" className="py-10 md:py-20 relative">
+      <section
+        id="services"
+        className="py-8 sm:py-10 md:py-16 lg:py-20 relative"
+      >
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8 md:mb-12 text-[#79c942]">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 md:mb-12 text-[#79c942]">
             Our Services
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 w-full max-w-6xl mx-auto">
             {/* Appointment Card */}
             <Card className="service-card">
               <CardHeader>
-                <CardTitle className="text-[#79c942] flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
+                <CardTitle className="text-base md:text-lg text-[#79c942] flex items-center gap-2">
+                  <Calendar className="h-4 w-4 md:h-5 md:w-5" />
                   Schedule Appointment
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="mb-4 text-sm text-gray-600">
+                <p className="mb-3 md:mb-4 text-xs md:text-sm text-gray-600">
                   Book a clinic appointment.
                 </p>
                 <Button
@@ -3192,13 +3221,13 @@ const PatientPortal = () => {
             {/* MedCert Card */}
             <Card className="service-card">
               <CardHeader>
-                <CardTitle className="text-[#79c942] flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
+                <CardTitle className="text-base md:text-lg text-[#79c942] flex items-center gap-2">
+                  <FileText className="h-4 w-4 md:h-5 md:w-5" />
                   Request MedCert
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="mb-4 text-sm text-gray-600">
+                <p className="mb-3 md:mb-4 text-xs md:text-sm text-gray-600">
                   Request an official medical certificate.
                 </p>
                 <Button
@@ -3213,13 +3242,13 @@ const PatientPortal = () => {
             {/* E-Prescription Card */}
             <Card className="service-card">
               <CardHeader>
-                <CardTitle className="text-[#79c942] flex items-center gap-2">
-                  <Pill className="h-5 w-5" />
+                <CardTitle className="text-base md:text-lg text-[#79c942] flex items-center gap-2">
+                  <Pill className="h-4 w-4 md:h-5 md:w-5" />
                   Request Refill Prescription
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="mb-4 text-sm text-gray-600">
+                <p className="mb-3 md:mb-4 text-xs md:text-sm text-gray-600">
                   Request an electronic prescription.
                 </p>
                 <Button
@@ -3235,9 +3264,12 @@ const PatientPortal = () => {
       </section>
 
       {/* Reviews Section */}
-      <section id="reviews" className="py-10 md:py-20 relative">
+      <section
+        id="reviews"
+        className="py-8 sm:py-10 md:py-16 lg:py-20 relative"
+      >
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8 md:mb-12 text-[#79c942]">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 md:mb-12 text-[#79c942]">
             Patient Reviews
           </h2>
 
@@ -3441,9 +3473,9 @@ const PatientPortal = () => {
       </section>
 
       {/* FAQs Section */}
-      <section id="faqs" className="py-10 md:py-20 relative">
+      <section id="faqs" className="py-8 sm:py-10 md:py-16 lg:py-20 relative">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8 md:mb-12 text-[#79c942]">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 md:mb-12 text-[#79c942]">
             Frequently Asked Questions
           </h2>
           {clinic.faqs && clinic.faqs.length > 0 ? (
@@ -3515,15 +3547,18 @@ const PatientPortal = () => {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-10 md:py-20 relative bg-white/70">
+      <section
+        id="contact"
+        className="py-8 sm:py-10 md:py-16 lg:py-20 relative bg-white/70"
+      >
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8 md:mb-12 text-[#79c942]">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 md:mb-12 text-[#79c942]">
             Contact Us
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-start">
             {/* Our Location */}
-            <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center">
-              <h3 className="text-xl font-semibold mb-4 text-[#79c942] flex items-center gap-2">
+            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 flex flex-col items-center">
+              <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-[#79c942] flex items-center gap-2">
                 <svg
                   className="inline-block text-[#79c942]"
                   width="22"
@@ -3566,9 +3601,9 @@ const PatientPortal = () => {
               </div>
             </div>
             {/* Combined Contact Information & Operation Hours */}
-            <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col gap-6">
+            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 flex flex-col gap-4 sm:gap-6">
               <div>
-                <h3 className="text-xl font-semibold mb-4 text-[#79c942] flex items-center gap-2">
+                <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-[#79c942] flex items-center gap-2">
                   <svg
                     className="inline-block text-[#79c942]"
                     width="22"
@@ -3711,11 +3746,12 @@ const PatientPortal = () => {
             position: fixed;
             top: 0;
             left: 0;
-            width: 70%; /* Only cover 70% of screen width */
+            width: 75%; /* Responsive width for mobile menu */
+            max-width: 320px;
             height: 100%;
             background-color: white;
             z-index: 100;
-            padding: 1.5rem;
+            padding: 1.25rem;
             display: flex;
             flex-direction: column;
             overflow-y: auto;
@@ -3788,6 +3824,19 @@ const PatientPortal = () => {
           .service-card {
             margin-bottom: 1rem;
           }
+          
+          /* Chatbot greeting responsive */
+          .chatbot-greeting {
+            max-width: 250px !important;
+          }
+        }
+        
+        /* Tablet breakpoint */
+        @media (min-width: 640px) and (max-width: 1024px) {
+          .container {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+          }
         }
         
         /* Smooth scrolling and scroll padding for fixed header */
@@ -3820,10 +3869,25 @@ const PatientPortal = () => {
           ></div>
           <div className="mobile-menu">
             <div className="flex justify-between items-center mb-6">
-              <div className="text-xl font-bold text-[#79c942]">
-                {clinic.clinic_name || "Clinic"}
+              {/* Clinic Logo */}
+              <div className="flex items-center">
+                {clinic.logo ? (
+                  <img
+                    src={getLogoUrl(clinic.logo)}
+                    alt="Clinic Logo"
+                    className="h-8 w-auto object-contain"
+                    style={{ maxWidth: 120 }}
+                  />
+                ) : (
+                  <div className="text-xl font-bold text-[#79c942]">
+                    {clinic.clinic_name || "Clinic"}
+                  </div>
+                )}
               </div>
-              <button onClick={() => setMobileMenuOpen(false)}>
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -3840,7 +3904,7 @@ const PatientPortal = () => {
                 </svg>
               </button>
             </div>
-            <nav className="space-y-4">
+            <nav className="space-y-3">
               {[
                 { label: "Home", href: "#home" },
                 { label: "About", href: "#about" },
@@ -3852,7 +3916,7 @@ const PatientPortal = () => {
                 <a
                   key={item.href}
                   href={item.href}
-                  className="block py-2 text-lg font-medium text-[#79c942]"
+                  className="block py-3 px-4 text-lg font-medium text-[#79c942] rounded-xl hover:bg-green-50 hover:shadow-sm transition-all duration-200"
                   onClick={(e) => {
                     e.preventDefault();
                     scrollToSection(item.href.substring(1)); // Remove # from href
