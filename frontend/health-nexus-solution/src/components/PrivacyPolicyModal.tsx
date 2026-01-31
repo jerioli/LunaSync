@@ -41,11 +41,11 @@ const PrivacyPolicyModal = ({ isOpen, onClose }: PrivacyPolicyModalProps) => {
                 1. Introduction
               </h2>
               <p className="text-sm sm:text-base">
-                LunaSync Health Nexus Solution ("we," "our," or "us") is
-                committed to protecting your privacy and personal information.
-                This Privacy Policy explains how we collect, use, disclose, and
-                safeguard your information in compliance with the Data Privacy
-                Act of 2012 (RA 10173) and other applicable laws.
+                LunaSync ("we," "our," or "us") is committed to protecting your
+                privacy and personal information. This Privacy Policy explains
+                how we collect, use, disclose, and safeguard your information in
+                compliance with the Data Privacy Act of 2012 (RA 10173) and
+                other applicable laws.
               </p>
             </section>
 
@@ -61,27 +61,6 @@ const PrivacyPolicyModal = ({ isOpen, onClose }: PrivacyPolicyModalProps) => {
                 <li>Government-issued identification numbers</li>
                 <li>Email address and phone number</li>
                 <li>Address and demographic information</li>
-              </ul>
-
-              <h3 className="text-base sm:text-lg font-medium text-gray-900 mt-4 mb-2">
-                2.2 Medical Information
-              </h3>
-              <ul className="list-disc list-inside space-y-2 ml-4 text-sm sm:text-base">
-                <li>Medical history and health records</li>
-                <li>Prescription and medication information</li>
-                <li>Laboratory results and medical documents</li>
-                <li>Appointment and consultation records</li>
-                <li>Insurance information</li>
-              </ul>
-
-              <h3 className="text-base sm:text-lg font-medium text-gray-900 mt-4 mb-2">
-                2.3 Technical Information
-              </h3>
-              <ul className="list-disc list-inside space-y-2 ml-4 text-sm sm:text-base">
-                <li>IP address and device information</li>
-                <li>Browser type and version</li>
-                <li>Usage data and system logs</li>
-                <li>Session information</li>
               </ul>
             </section>
 
