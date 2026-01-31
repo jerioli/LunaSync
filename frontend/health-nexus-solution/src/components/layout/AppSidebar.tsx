@@ -179,7 +179,7 @@ export const AppSidebar = () => {
       >
         {/* Show favicon when collapsed, LUNASync text when expanded */}
         {open ? (
-          <div className="text-xl font-bold text-[#79c942] transition-all duration-200 opacity-100 h-auto mb-2">
+          <div className="text-3xl font-bold text-[#79c942] transition-all duration-200 opacity-100 h-auto mb-2">
             LUNASync
           </div>
         ) : (
@@ -196,12 +196,17 @@ export const AppSidebar = () => {
           to="/user-settings"
           className={cn(
             "flex items-center gap-2 cursor-pointer hover:bg-gray-100 rounded p-2 transition-all duration-200",
-            open ? "w-fit mt-0" : "w-12 h-12 justify-center mt-2",
+            open
+              ? "w-full mt-0 justify-start"
+              : "w-12 h-12 justify-center mt-2",
           )}
           title="Go to Settings"
         >
           <Avatar
-            className={cn("transition-all duration-200", open ? "" : "w-8 h-8")}
+            className={cn(
+              "transition-all duration-200",
+              open ? "w-10 h-10" : "w-10 h-10",
+            )}
           >
             <AvatarImage src={currentUser.image} alt={currentUser.name} />
             <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
@@ -226,7 +231,9 @@ export const AppSidebar = () => {
           <SidebarGroupLabel
             className={cn(
               "transition-all duration-200",
-              open ? "opacity-100 h-auto" : "opacity-0 h-0 overflow-hidden",
+              open
+                ? "opacity-100 h-auto mb-4"
+                : "opacity-0 h-0 overflow-hidden",
             )}
           >
             Navigation
@@ -252,10 +259,10 @@ export const AppSidebar = () => {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <SidebarMenuButton
-                            className="flex items-center gap-2 w-full justify-center h-12"
+                            className="flex items-center gap-2 w-full justify-center h-14"
                             title={item.title}
                           >
-                            <item.icon className="h-5 w-5 flex-shrink-0" />
+                            <item.icon className="h-9 w-9 flex-shrink-0" />
                           </SidebarMenuButton>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
@@ -270,8 +277,8 @@ export const AppSidebar = () => {
                                 className="flex items-center gap-2 cursor-pointer"
                                 onClick={handleMenuClick}
                               >
-                                <sub.icon className="h-4 w-4" />
-                                <span>{sub.title}</span>
+                                <sub.icon className="h-6 w-6" />
+                                <span className="text-base">{sub.title}</span>
                               </Link>
                             </DropdownMenuItem>
                           ))}
@@ -285,8 +292,8 @@ export const AppSidebar = () => {
                           onClick={() => setOpenDocMgmt((v) => !v)}
                           title={item.title}
                         >
-                          <item.icon className="h-5 w-5 flex-shrink-0" />
-                          <span className="transition-all duration-200 opacity-100 w-auto">
+                          <item.icon className="h-7 w-7 flex-shrink-0" />
+                          <span className="transition-all duration-200 opacity-100 w-auto text-lg whitespace-nowrap">
                             {item.title}
                           </span>
                           <span className="ml-auto transition-all duration-200 opacity-100 w-auto">
@@ -331,8 +338,10 @@ export const AppSidebar = () => {
                                     onClick={handleMenuClick}
                                     title={sub.title}
                                   >
-                                    <sub.icon className="h-5 w-5 flex-shrink-0" />
-                                    <span>{sub.title}</span>
+                                    <sub.icon className="h-7 w-7 flex-shrink-0" />
+                                    <span className="text-base">
+                                      {sub.title}
+                                    </span>
                                   </Link>
                                 </SidebarMenuButton>
                               </SidebarMenuItem>
@@ -356,7 +365,7 @@ export const AppSidebar = () => {
                         className={cn(
                           "flex items-center gap-2 hover:text-white w-full transition-all duration-200",
                           location.pathname === item.path ? "text-white" : "",
-                          !open && "justify-center h-12",
+                          !open && "justify-center h-14",
                         )}
                         style={{
                           backgroundColor:
@@ -381,10 +390,10 @@ export const AppSidebar = () => {
                         onClick={handleMenuClick}
                         title={!open ? item.title : undefined}
                       >
-                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        <item.icon className="h-8 w-8 flex-shrink-0" />
                         <span
                           className={cn(
-                            "transition-all duration-200",
+                            "transition-all duration-200 text-lg",
                             open
                               ? "opacity-100 w-auto"
                               : "opacity-0 w-0 overflow-hidden",
