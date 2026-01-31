@@ -8206,3 +8206,87 @@ INFO 2026-02-01 00:44:38,155 autoreload 23164 23892 Watching for file changes wi
 2026-02-01 02:25:28,901 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
 2026-02-01 02:25:28,925 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
 2026-02-01 02:25:28,928 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 02:28:54,331 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:28:54,332 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:28:54,374 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 02:28:54,381 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 02:28:54,403 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:28:54,410 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-02-01 02:29:06,231 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:29:06,241 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 02:29:06,251 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:29:06,258 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:29:06,269 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 02:29:06,277 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-02-01 02:29:20,983 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:29:20,983 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:29:20,995 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 397
+2026-02-01 02:29:21,008 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 02:29:21,017 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:29:21,023 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-02-01 02:32:00,775 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-logout/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": false}
+2026-02-01 02:32:00,794 - accounts.session_views - INFO - User 4 logged out. Session 3o5fku1mm55hn64lo1cqphs15voew8e7 cleared.
+2026-02-01 02:32:00,814 - django.server - INFO - "POST /api/auth/session-logout/ HTTP/1.1" 200 52
+2026-02-01 02:32:09,088 - root - INFO - Request: {"method": "POST", "path": "/api/auth/session-login/", "user_id": null, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-02-01 02:32:09,758 - django.server - INFO - "POST /api/auth/session-login/ HTTP/1.1" 200 571
+2026-02-01 02:32:09,804 - root - INFO - Request: {"method": "GET", "path": "/api/security-status/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:32:09,805 - root - INFO - Request: {"method": "GET", "path": "/api/inventory/medicines/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:32:09,892 - django.server - INFO - "GET /api/inventory/medicines/ HTTP/1.1" 200 832
+2026-02-01 02:32:09,901 - root - INFO - Request: {"method": "GET", "path": "/api/staff/list/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:32:09,956 - django.server - INFO - "GET /api/security-status/ HTTP/1.1" 200 1097
+2026-02-01 02:32:09,965 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:32:09,969 - appointments.views - INFO - Starting list method...
+2026-02-01 02:32:09,970 - appointments.views - INFO - Starting to fetch appointments...
+2026-02-01 02:32:09,971 - appointments.views - INFO - Successfully accessed database
+2026-02-01 02:32:09,988 - django.server - INFO - "GET /api/staff/list/ HTTP/1.1" 200 5219
+2026-02-01 02:32:10,000 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:32:10,002 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1769884330.0021825, "client_ip": "127.0.0.1"}
+2026-02-01 02:32:10,003 - appointments.views - INFO - Found 13 appointments after filtering
+2026-02-01 02:32:10,014 - appointments.views - INFO - Sample appointment: id=6, status=cancelled, date=2025-11-21
+2026-02-01 02:32:10,014 - appointments.views - INFO - Patient: None
+2026-02-01 02:32:10,017 - appointments.views - INFO - Doctor: Jeri (doctor)
+2026-02-01 02:32:10,018 - appointments.views - INFO - Appointment Type: Consultation
+2026-02-01 02:32:10,018 - appointments.views - INFO - Sample appointment: id=7, status=cancelled, date=2025-11-21
+2026-02-01 02:32:10,018 - appointments.views - INFO - Patient: None
+2026-02-01 02:32:10,019 - appointments.views - INFO - Doctor: Jeri (doctor)
+2026-02-01 02:32:10,019 - appointments.views - INFO - Appointment Type: Consultation
+2026-02-01 02:32:10,019 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-23
+2026-02-01 02:32:10,019 - appointments.views - INFO - Patient: Queenie Parl Torrejos
+2026-02-01 02:32:10,020 - appointments.views - INFO - Doctor: Jeri (doctor)
+2026-02-01 02:32:10,020 - appointments.views - INFO - Appointment Type: Follow-up
+2026-02-01 02:32:10,035 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 6724
+2026-02-01 02:32:10,041 - appointments.views - INFO - Testing serialization with first appointment: 6
+2026-02-01 02:32:10,044 - appointments.views - INFO - Successfully serialized first appointment: {'id': 6, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Miggie C Oli', 'patient_id': None, 'patient_email': 'miggie@gmail.com', 'patient_phone': '09857463535', 'date_of_birth': '2001-12-12', 'gender': 'male', 'address': 'gma cavite', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-21', 'time': '13:00:00', 'status': 'cancelled', 'created_at': '2025-11-21T12:42:16.083947+08:00', 'display_patient_name': 'Miggie C Oli', 'display_doctor_name': 'Jeri Oli', 'display_time': '01:00 PM', 'display_date': 'November 21, 2025', 'patient_is_deleted': False, 'doctor': 3, 'doctor_name': 'Jeri Oli', 'patient': None}
+2026-02-01 02:32:10,047 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:32:10,053 - appointments.views - INFO - Successfully serialized all appointments. Count: 13
+2026-02-01 02:32:10,059 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 374
+2026-02-01 02:32:10,065 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 8861
+2026-02-01 02:32:10,175 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:32:10,180 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 374
+2026-02-01 02:32:12,630 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:32:12,630 - root - INFO - Request: {"method": "GET", "path": "/api/security-status/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:32:12,659 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 02:32:12,682 - django.server - INFO - "GET /api/security-status/ HTTP/1.1" 200 1097
+2026-02-01 02:32:20,610 - django.server - INFO - "OPTIONS /api/clinic/ HTTP/1.1" 200 0
+2026-02-01 02:32:20,944 - root - INFO - Request: {"method": "PUT", "path": "/api/clinic/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-02-01 02:32:20,961 - django.request - WARNING - Bad Request: /api/clinic/
+2026-02-01 02:32:20,962 - django.server - WARNING - "PUT /api/clinic/ HTTP/1.1" 400 48
+2026-02-01 02:33:06,469 - root - INFO - Request: {"method": "PUT", "path": "/api/clinic/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-02-01 02:33:06,546 - django.server - INFO - "PUT /api/clinic/ HTTP/1.1" 200 929
+2026-02-01 02:33:12,406 - root - INFO - Request: {"method": "PUT", "path": "/api/clinic/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-02-01 02:33:12,413 - django.request - WARNING - Bad Request: /api/clinic/
+2026-02-01 02:33:12,414 - django.server - WARNING - "PUT /api/clinic/ HTTP/1.1" 400 48
+2026-02-01 02:34:22,219 - root - INFO - Request: {"method": "GET", "path": "/api/security-status/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:34:22,220 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:34:22,242 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 929
+2026-02-01 02:34:22,268 - django.server - INFO - "GET /api/security-status/ HTTP/1.1" 200 1097
+2026-02-01 02:34:32,000 - root - INFO - Request: {"method": "PUT", "path": "/api/clinic/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "has_body": true}
+2026-02-01 02:34:32,016 - django.server - INFO - "PUT /api/clinic/ HTTP/1.1" 200 1082
+2026-02-01 02:34:35,562 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:34:35,563 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:34:35,578 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 374
+2026-02-01 02:34:35,586 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 1082
+2026-02-01 02:34:35,632 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:34:35,637 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 2
+2026-02-01 02:34:35,685 - root - INFO - Request: {"method": "GET", "path": "/media/branding/medratrics.png", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:34:35,701 - django.server - INFO - "GET /media/branding/medratrics.png HTTP/1.1" 200 159116

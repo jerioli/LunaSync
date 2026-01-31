@@ -3830,6 +3830,7 @@ const PatientPortal = () => {
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                   title="Clinic Location"
+                  allow="geolocation"
                 />
               </div>
               <div className="text-center text-sm text-gray-700 font-medium">

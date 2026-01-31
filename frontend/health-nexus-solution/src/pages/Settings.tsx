@@ -608,12 +608,18 @@ const Settings = () => {
                   <Input
                     id="googleMapsUrl"
                     value={generalSettings.googleMapsUrl}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      let value = e.target.value;
+                      // Auto-extract URL if user pastes full iframe HTML
+                      const srcMatch = value.match(/src=["']([^"']+)["']/);
+                      if (srcMatch) {
+                        value = srcMatch[1];
+                      }
                       setGeneralSettings({
                         ...generalSettings,
-                        googleMapsUrl: e.target.value,
-                      })
-                    }
+                        googleMapsUrl: value,
+                      });
+                    }}
                     disabled={!isEditing}
                     placeholder="https://www.google.com/maps/embed?pb=..."
                   />
