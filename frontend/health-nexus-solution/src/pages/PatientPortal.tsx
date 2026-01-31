@@ -79,11 +79,68 @@ const patientSchema = z.object({
   middleName: z.string().min(1, "Middle name is required"),
   lastName: z.string().min(1, "Last name is required"),
   suffix: z.string().optional(),
-  phone: z.string().min(10, "Contact number must be at least 10 digits"),
+  phone: z
+    .string()
+    .min(11, "Contact number must be exactly 11 digits")
+    .max(11, "Contact number must be exactly 11 digits")
+    .regex(/^09\d{9}$/, "Phone number must start with 09 and be 11 digits"),
   sex: z.enum(["male", "female", "prefer_not_to_say"], {
     required_error: "Sex is required",
   }),
-  email: z.string().email("Invalid email address"),
+  email: z
+    .string()
+    .email("Invalid email address")
+    .refine((email) => {
+      const validTLDs = [
+        "com",
+        "net",
+        "org",
+        "edu",
+        "gov",
+        "mil",
+        "co",
+        "uk",
+        "ph",
+        "au",
+        "ca",
+        "de",
+        "fr",
+        "jp",
+        "cn",
+        "in",
+        "br",
+        "ru",
+        "es",
+        "it",
+        "nl",
+        "se",
+        "no",
+        "dk",
+        "fi",
+        "be",
+        "ch",
+        "at",
+        "nz",
+        "sg",
+        "hk",
+        "tw",
+        "kr",
+        "my",
+        "th",
+        "vn",
+        "id",
+        "ae",
+        "sa",
+        "za",
+        "eg",
+        "ng",
+        "ke",
+      ];
+      const domain = email.split("@")[1];
+      if (!domain) return false;
+      const tld = domain.split(".").pop()?.toLowerCase();
+      return tld ? validTLDs.includes(tld) : false;
+    }, "Please enter a valid email domain (e.g., gmail.com, yahoo.com)"),
   address: z.string().min(1, "Home address is required"),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
   religion: z.string().min(1, "Religion is required"),
@@ -114,8 +171,65 @@ const medicalCertSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   suffix: z.string().optional(),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  email: z
+    .string()
+    .email("Invalid email address")
+    .refine((email) => {
+      const validTLDs = [
+        "com",
+        "net",
+        "org",
+        "edu",
+        "gov",
+        "mil",
+        "co",
+        "uk",
+        "ph",
+        "au",
+        "ca",
+        "de",
+        "fr",
+        "jp",
+        "cn",
+        "in",
+        "br",
+        "ru",
+        "es",
+        "it",
+        "nl",
+        "se",
+        "no",
+        "dk",
+        "fi",
+        "be",
+        "ch",
+        "at",
+        "nz",
+        "sg",
+        "hk",
+        "tw",
+        "kr",
+        "my",
+        "th",
+        "vn",
+        "id",
+        "ae",
+        "sa",
+        "za",
+        "eg",
+        "ng",
+        "ke",
+      ];
+      const domain = email.split("@")[1];
+      if (!domain) return false;
+      const tld = domain.split(".").pop()?.toLowerCase();
+      return tld ? validTLDs.includes(tld) : false;
+    }, "Please enter a valid email domain (e.g., gmail.com, yahoo.com)"),
+  phone: z
+    .string()
+    .min(11, "Phone number must be exactly 11 digits")
+    .max(11, "Phone number must be exactly 11 digits")
+    .regex(/^09\d{9}$/, "Phone number must start with 09 and be 11 digits"),
   additionalInfo: z.string().optional(),
   emailNotifications: z.boolean().default(true),
   smsNotifications: z.boolean().default(false),
@@ -132,8 +246,65 @@ const prescriptionSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   suffix: z.string().optional(),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  email: z
+    .string()
+    .email("Invalid email address")
+    .refine((email) => {
+      const validTLDs = [
+        "com",
+        "net",
+        "org",
+        "edu",
+        "gov",
+        "mil",
+        "co",
+        "uk",
+        "ph",
+        "au",
+        "ca",
+        "de",
+        "fr",
+        "jp",
+        "cn",
+        "in",
+        "br",
+        "ru",
+        "es",
+        "it",
+        "nl",
+        "se",
+        "no",
+        "dk",
+        "fi",
+        "be",
+        "ch",
+        "at",
+        "nz",
+        "sg",
+        "hk",
+        "tw",
+        "kr",
+        "my",
+        "th",
+        "vn",
+        "id",
+        "ae",
+        "sa",
+        "za",
+        "eg",
+        "ng",
+        "ke",
+      ];
+      const domain = email.split("@")[1];
+      if (!domain) return false;
+      const tld = domain.split(".").pop()?.toLowerCase();
+      return tld ? validTLDs.includes(tld) : false;
+    }, "Please enter a valid email domain (e.g., gmail.com, yahoo.com)"),
+  phone: z
+    .string()
+    .min(11, "Phone number must be exactly 11 digits")
+    .max(11, "Phone number must be exactly 11 digits")
+    .regex(/^09\d{9}$/, "Phone number must start with 09 and be 11 digits"),
   additionalNotes: z.string().optional(),
   emailNotifications: z.boolean().default(true),
   smsNotifications: z.boolean().default(false),
@@ -2185,12 +2356,78 @@ const PatientPortal = () => {
             return;
           }
 
-          // Email validation
+          // Email validation - basic format
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (!emailRegex.test(formData.email)) {
             toast({
               title: "Invalid Email",
               description: "Please enter a valid email address",
+              variant: "destructive",
+            });
+            return;
+          }
+
+          // Email domain validation
+          const validTLDs = [
+            "com",
+            "net",
+            "org",
+            "edu",
+            "gov",
+            "mil",
+            "co",
+            "uk",
+            "ph",
+            "au",
+            "ca",
+            "de",
+            "fr",
+            "jp",
+            "cn",
+            "in",
+            "br",
+            "ru",
+            "es",
+            "it",
+            "nl",
+            "se",
+            "no",
+            "dk",
+            "fi",
+            "be",
+            "ch",
+            "at",
+            "nz",
+            "sg",
+            "hk",
+            "tw",
+            "kr",
+            "my",
+            "th",
+            "vn",
+            "id",
+            "ae",
+            "sa",
+            "za",
+            "eg",
+            "ng",
+            "ke",
+          ];
+          const domain = formData.email.split("@")[1];
+          if (!domain) {
+            toast({
+              title: "Invalid Email",
+              description: "Please enter a valid email address",
+              variant: "destructive",
+            });
+            return;
+          }
+          const tld = domain.split(".").pop()?.toLowerCase();
+          if (!tld || !validTLDs.includes(tld)) {
+            toast({
+              title: "Invalid Email Domain",
+              description:
+                "Please enter a valid email domain (e.g., gmail.com, yahoo.com)",
               variant: "destructive",
             });
             return;
@@ -4630,12 +4867,17 @@ const PatientPortal = () => {
                                 <Input
                                   placeholder="Enter your registered phone number"
                                   value={forgotIdForm.phone}
-                                  onChange={(e) =>
+                                  maxLength={11}
+                                  onChange={(e) => {
+                                    const value = e.target.value.replace(
+                                      /\D/g,
+                                      "",
+                                    );
                                     setForgotIdForm({
                                       ...forgotIdForm,
-                                      phone: e.target.value,
-                                    })
-                                  }
+                                      phone: value,
+                                    });
+                                  }}
                                 />
                               </div>
                             </div>
@@ -4822,7 +5064,15 @@ const PatientPortal = () => {
                         <label className="block text-sm font-medium mb-1">
                           Contact Number *
                         </label>
-                        <Input {...patientForm.register("phone")} />
+                        <Input
+                          {...patientForm.register("phone")}
+                          maxLength={11}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, "");
+                            patientForm.setValue("phone", value);
+                          }}
+                          placeholder="09123456789"
+                        />
                         {patientForm.formState.errors.phone && (
                           <p className="text-red-500 text-sm mt-1">
                             {patientForm.formState.errors.phone.message}
@@ -5373,12 +5623,17 @@ const PatientPortal = () => {
                                 <Input
                                   placeholder="Enter your registered phone number"
                                   value={medCertForgotIdForm.phone}
-                                  onChange={(e) =>
+                                  maxLength={11}
+                                  onChange={(e) => {
+                                    const value = e.target.value.replace(
+                                      /\D/g,
+                                      "",
+                                    );
                                     setMedCertForgotIdForm({
                                       ...medCertForgotIdForm,
-                                      phone: e.target.value,
-                                    })
-                                  }
+                                      phone: value,
+                                    });
+                                  }}
                                 />
                               </div>
                             </div>

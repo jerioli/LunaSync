@@ -1,9 +1,9 @@
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { ChatbotHeader } from './ChatbotHeader';
-import { ChatbotWelcome } from './ChatbotWelcome';
-import { ChatInput } from './ChatInput';
-import { ChatMessagesContainer } from './ChatMessagesContainer';
-import { useChatbotLogic } from './useChatbotLogic';
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { ChatbotHeader } from "./ChatbotHeader";
+import { ChatbotWelcome } from "./ChatbotWelcome";
+import { ChatInput } from "./ChatInput";
+import { ChatMessagesContainer } from "./ChatMessagesContainer";
+import { useChatbotLogic } from "./useChatbotLogic";
 
 interface AppointmentChatbotProps {
   onClose?: () => void;
@@ -26,19 +26,22 @@ export const AppointmentChatbot = ({ onClose }: AppointmentChatbotProps) => {
     handleFormSubmit,
     handleFormCancel,
     handleBackToMainMenu,
+    handleCancelTransaction,
     startChat,
-    isInputDisabled
+    isInputDisabled,
+    chatMode,
+    chatStep,
   } = useChatbotLogic();
 
   return (
     <Card className="w-full shadow-lg">
       <ChatbotHeader onClose={onClose} />
-      
+
       <CardContent className="p-0">
         {!showChat ? (
           <ChatbotWelcome onStartChat={startChat} />
         ) : (
-          <ChatMessagesContainer 
+          <ChatMessagesContainer
             messages={messages}
             appointmentForm={appointmentForm}
             onOptionSelect={handleOptionSelect}
@@ -53,15 +56,19 @@ export const AppointmentChatbot = ({ onClose }: AppointmentChatbotProps) => {
           />
         )}
       </CardContent>
-      
+
       {showChat && (
         <CardFooter className="p-2 border-t">
           <ChatInput
             input={input}
             setInput={setInput}
             handleSendMessage={handleSendMessage}
-            placeholder={input === '' ? "Say hi to start..." : "Type your message..."}
+            placeholder={
+              input === "" ? "Say hi to start..." : "Type your message..."
+            }
             isInputDisabled={isInputDisabled}
+            onCancel={handleCancelTransaction}
+            showCancel={chatMode !== null && chatStep !== 0 && chatStep !== 1}
           />
         </CardFooter>
       )}

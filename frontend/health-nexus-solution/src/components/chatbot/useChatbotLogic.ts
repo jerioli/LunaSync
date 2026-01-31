@@ -513,8 +513,20 @@ export const useChatbotLogic = () => {
   };
 
   const validateEmail = (email: string): boolean => {
+    // Basic email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    if (!emailRegex.test(email)) {
+      return false;
+    }
+    
+    // Validate email domain (check for valid TLDs)
+    const validTLDs = ['com', 'net', 'org', 'edu', 'gov', 'mil', 'co', 'uk', 'ph', 'au', 'ca', 'de', 'fr', 'jp', 'cn', 'in', 'br', 'ru', 'es', 'it', 'nl', 'se', 'no', 'dk', 'fi', 'be', 'ch', 'at', 'nz', 'sg', 'hk', 'tw', 'kr', 'my', 'th', 'vn', 'id', 'ae', 'sa', 'za', 'eg', 'ng', 'ke', 'tz', 'gh', 'ug', 'zw', 'bw', 'zm', 'mw', 'rw', 'bi', 'so', 'et', 'sd', 'ss', 'er', 'dj', 'tz', 'ke', 'ug', 'so', 'et', 'sd', 'ss', 'er', 'dj'];
+    const domain = email.split('@')[1];
+    if (!domain) {
+      return false;
+    }
+    const tld = domain.split('.').pop()?.toLowerCase();
+    return tld ? validTLDs.includes(tld) : false;
   };
 
   const validatePhone = (phone: string): boolean => {
@@ -1854,8 +1866,11 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
               if (databaseFaqs.length > 0) {
                 addBotMessage('Here are our frequently asked questions. Click on any question to see the answer:', [], false, false, [], false, '', '', 'faq-accordion', [], [], undefined, undefined, 500, false, undefined, false, databaseFaqs);
               } else {
-                addBotMessage('Sorry, I couldn\'t load the FAQ information right now. Please try again later or contact us directly for assistance.', [
-                  { label: 'Back to Main Menu', value: 'main' }
+                addBotMessage('📋 No FAQs Available\n\nThe clinic administrator has not set up any frequently asked questions yet. Please contact the clinic directly for any inquiries.\n\nYou can also explore our other services:', [
+                  { label: '📅 Book an Appointment', value: 'appointment' },
+                  { label: '📋 Get Medical Certificate', value: 'medicalRecord' },
+                  { label: '💊 Request Prescription Refill', value: 'prescription' },
+                  { label: '🏠 Back to Main Menu', value: 'back-to-main' }
                 ]);
               }
             }, 1000);
@@ -2990,7 +3005,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
               label: 'Religion',
               type: 'text',
               required: true,
-              placeholder: 'Enter your religion (optional)'
+              placeholder: 'Enter your religion'
             },
             {
               name: 'address',
@@ -4061,10 +4076,13 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
 
   const startChat = () => {
     setShowChat(true);
-    setMessages([]);
-    setChatStep(0);
-    setIsInputDisabled(false); // Ensure input is enabled when starting chat
-    resetForms();
+    // Only reset if there are no messages (first time opening)
+    if (messages.length === 0) {
+      setMessages([]);
+      setChatStep(0);
+      setIsInputDisabled(false);
+      resetForms();
+    }
   };
 
   // Add cache and loading state to prevent infinite loops
@@ -4958,6 +4976,29 @@ Would you like to use this information or update it?`, [
     }, 500);
   };
 
+  // Handler for canceling current transaction
+  const handleCancelTransaction = () => {
+    addMessage('user', 'Cancel');
+    addBotMessage('Transaction cancelled. Returning to main menu...');
+    
+    setChatMode(null);
+    setChatStep(1);
+    setIsInputDisabled(false);
+    resetForms();
+    
+    setTimeout(() => {
+      addBotMessage(
+        'How can I help you today?',
+        [
+          { label: '📅 Book Appointment', value: 'appointment' },
+          { label: '📄 Medical Certificate', value: 'medicalRecord' },
+          { label: '💊 E-Prescription', value: 'prescription' },
+          { label: '❓ FAQs', value: 'faq' }
+        ]
+      );
+    }, 500);
+  };
+
   return {
     messages,
     input,
@@ -4974,6 +5015,7 @@ Would you like to use this information or update it?`, [
     handleFormSubmit,
     handleFormCancel,
     handleBackToMainMenu,
+    handleCancelTransaction,
     startChat,
     isLoadingDoctors,
     isLoadingProfanityWords,
@@ -4981,6 +5023,8 @@ Would you like to use this information or update it?`, [
     isInputDisabled,
     isTyping,
     patientLookupForm,
-    lookupResult
+    lookupResult,
+    chatMode,
+    chatStep
   };
 };

@@ -7429,3 +7429,780 @@ INFO 2026-02-01 00:44:38,155 autoreload 23164 23892 Watching for file changes wi
 2026-02-01 00:57:30,893 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 397
 2026-02-01 00:57:31,007 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
 2026-02-01 00:57:31,012 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 397
+2026-02-01 01:00:14,145 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:00:14,156 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 01:00:14,173 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:00:14,174 - appointments.views - INFO - Starting list method...
+2026-02-01 01:00:14,174 - appointments.views - INFO - Starting to fetch appointments...
+2026-02-01 01:00:14,175 - appointments.views - INFO - Successfully accessed database
+2026-02-01 01:00:14,176 - appointments.views - INFO - Filtering by doctor_id: 3
+2026-02-01 01:00:14,177 - appointments.views - INFO - Filtering by date: 2026-02-01
+2026-02-01 01:00:14,178 - appointments.views - INFO - Found 0 appointments after filtering
+2026-02-01 01:00:14,184 - appointments.views - INFO - Successfully serialized all appointments. Count: 0
+2026-02-01 01:00:14,189 - django.server - INFO - "GET /api/appointments/?doctor_id=3&date=2026-02-01&_t=1769878814161 HTTP/1.1" 200 2
+2026-02-01 01:00:14,206 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:00:14,282 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-01&_t=1769878814195 HTTP/1.1" 200 3489
+2026-02-01 01:00:55,053 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:00:55,054 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:00:55,055 - appointments.views - INFO - Starting list method...
+2026-02-01 01:00:55,056 - appointments.views - INFO - Starting to fetch appointments...
+2026-02-01 01:00:55,060 - appointments.views - INFO - Successfully accessed database
+2026-02-01 01:00:55,061 - appointments.views - INFO - Filtering by doctor_id: 3
+2026-02-01 01:00:55,061 - appointments.views - INFO - Filtering by date: 2026-02-01
+2026-02-01 01:00:55,065 - appointments.views - INFO - Found 0 appointments after filtering
+2026-02-01 01:00:55,082 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 01:00:55,103 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:00:55,103 - appointments.views - INFO - Successfully serialized all appointments. Count: 0
+2026-02-01 01:00:55,104 - appointments.views - INFO - Starting list method...
+2026-02-01 01:00:55,105 - appointments.views - INFO - Starting to fetch appointments...
+2026-02-01 01:00:55,106 - appointments.views - INFO - Successfully accessed database
+2026-02-01 01:00:55,107 - appointments.views - INFO - Filtering by doctor_id: 3
+2026-02-01 01:00:55,108 - appointments.views - INFO - Filtering by date: 2026-02-01
+2026-02-01 01:00:55,110 - django.server - INFO - "GET /api/appointments/?doctor_id=3&date=2026-02-01&_t=1769878854717 HTTP/1.1" 200 2
+2026-02-01 01:00:55,112 - appointments.views - INFO - Found 0 appointments after filtering
+2026-02-01 01:00:55,121 - appointments.views - INFO - Successfully serialized all appointments. Count: 0
+2026-02-01 01:00:55,137 - django.server - INFO - "GET /api/appointments/?doctor_id=3&date=2026-02-01&_t=1769878855088 HTTP/1.1" 200 2
+2026-02-01 01:00:55,150 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:00:55,158 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:00:55,301 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-01&_t=1769878855114 HTTP/1.1" 200 3489
+2026-02-01 01:00:55,321 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-01&_t=1769878855140 HTTP/1.1" 200 3489
+2026-02-01 01:01:14,213 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:01:14,214 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:01:14,217 - appointments.views - INFO - Starting list method...
+2026-02-01 01:01:14,217 - appointments.views - INFO - Starting to fetch appointments...
+2026-02-01 01:01:14,222 - appointments.views - INFO - Successfully accessed database
+2026-02-01 01:01:14,222 - appointments.views - INFO - Filtering by doctor_id: 3
+2026-02-01 01:01:14,223 - appointments.views - INFO - Filtering by date: 2026-02-01
+2026-02-01 01:01:14,226 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 01:01:14,231 - appointments.views - INFO - Found 0 appointments after filtering
+2026-02-01 01:01:14,240 - appointments.views - INFO - Successfully serialized all appointments. Count: 0
+2026-02-01 01:01:14,244 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:01:14,245 - appointments.views - INFO - Starting list method...
+2026-02-01 01:01:14,245 - appointments.views - INFO - Starting to fetch appointments...
+2026-02-01 01:01:14,248 - django.server - INFO - "GET /api/appointments/?doctor_id=3&date=2026-02-01&_t=1769878873889 HTTP/1.1" 200 2
+2026-02-01 01:01:14,260 - appointments.views - INFO - Successfully accessed database
+2026-02-01 01:01:14,261 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:01:14,261 - appointments.views - INFO - Filtering by doctor_id: 3
+2026-02-01 01:01:14,265 - appointments.views - INFO - Filtering by date: 2026-02-01
+2026-02-01 01:01:14,268 - appointments.views - INFO - Found 0 appointments after filtering
+2026-02-01 01:01:14,280 - appointments.views - INFO - Successfully serialized all appointments. Count: 0
+2026-02-01 01:01:14,300 - django.server - INFO - "GET /api/appointments/?doctor_id=3&date=2026-02-01&_t=1769878874229 HTTP/1.1" 200 2
+2026-02-01 01:01:14,310 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:01:14,485 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-01&_t=1769878874251 HTTP/1.1" 200 3489
+2026-02-01 01:01:14,519 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-01&_t=1769878874302 HTTP/1.1" 200 3489
+2026-02-01 01:01:56,626 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:01:56,626 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:01:56,628 - appointments.views - INFO - Starting list method...
+2026-02-01 01:01:56,628 - appointments.views - INFO - Starting to fetch appointments...
+2026-02-01 01:01:56,635 - appointments.views - INFO - Successfully accessed database
+2026-02-01 01:01:56,636 - appointments.views - INFO - Filtering by doctor_id: 3
+2026-02-01 01:01:56,636 - appointments.views - INFO - Filtering by date: 2026-02-01
+2026-02-01 01:01:56,639 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 01:01:56,650 - appointments.views - INFO - Found 0 appointments after filtering
+2026-02-01 01:01:56,655 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:01:56,656 - appointments.views - INFO - Starting list method...
+2026-02-01 01:01:56,657 - appointments.views - INFO - Successfully serialized all appointments. Count: 0
+2026-02-01 01:01:56,657 - appointments.views - INFO - Starting to fetch appointments...
+2026-02-01 01:01:56,659 - appointments.views - INFO - Successfully accessed database
+2026-02-01 01:01:56,660 - appointments.views - INFO - Filtering by doctor_id: 3
+2026-02-01 01:01:56,660 - appointments.views - INFO - Filtering by date: 2026-02-01
+2026-02-01 01:01:56,663 - django.server - INFO - "GET /api/appointments/?doctor_id=3&date=2026-02-01&_t=1769878916300 HTTP/1.1" 200 2
+2026-02-01 01:01:56,666 - appointments.views - INFO - Found 0 appointments after filtering
+2026-02-01 01:01:56,674 - appointments.views - INFO - Successfully serialized all appointments. Count: 0
+2026-02-01 01:01:56,678 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:01:56,689 - django.server - INFO - "GET /api/appointments/?doctor_id=3&date=2026-02-01&_t=1769878916643 HTTP/1.1" 200 2
+2026-02-01 01:01:56,717 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:01:56,817 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-01&_t=1769878916669 HTTP/1.1" 200 3489
+2026-02-01 01:01:56,845 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-01&_t=1769878916693 HTTP/1.1" 200 3489
+2026-02-01 01:02:20,759 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:02:20,760 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:02:20,761 - security_audit - INFO - Data access: {"user_id": 4, "username": "receptionist", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1769878940.76108, "client_ip": "127.0.0.1"}
+2026-02-01 01:02:20,761 - appointments.views - INFO - Starting list method...
+2026-02-01 01:02:20,762 - appointments.views - INFO - Starting to fetch appointments...
+2026-02-01 01:02:20,765 - appointments.views - INFO - Successfully accessed database
+2026-02-01 01:02:20,770 - appointments.views - INFO - Found 13 appointments after filtering
+2026-02-01 01:02:20,773 - appointments.views - INFO - Sample appointment: id=6, status=cancelled, date=2025-11-21
+2026-02-01 01:02:20,773 - appointments.views - INFO - Patient: None
+2026-02-01 01:02:20,773 - appointments.views - INFO - Doctor: Jeri (doctor)
+2026-02-01 01:02:20,773 - appointments.views - INFO - Appointment Type: Consultation
+2026-02-01 01:02:20,774 - appointments.views - INFO - Sample appointment: id=7, status=cancelled, date=2025-11-21
+2026-02-01 01:02:20,774 - appointments.views - INFO - Patient: None
+2026-02-01 01:02:20,774 - appointments.views - INFO - Doctor: Jeri (doctor)
+2026-02-01 01:02:20,775 - appointments.views - INFO - Appointment Type: Consultation
+2026-02-01 01:02:20,775 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-23
+2026-02-01 01:02:20,775 - appointments.views - INFO - Patient: Queenie Parl Torrejos
+2026-02-01 01:02:20,775 - appointments.views - INFO - Doctor: Jeri (doctor)
+2026-02-01 01:02:20,776 - appointments.views - INFO - Appointment Type: Follow-up
+2026-02-01 01:02:20,784 - appointments.views - INFO - Testing serialization with first appointment: 6
+2026-02-01 01:02:20,786 - appointments.views - INFO - Successfully serialized first appointment: {'id': 6, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Miggie C Oli', 'patient_id': None, 'patient_email': 'miggie@gmail.com', 'patient_phone': '09857463535', 'date_of_birth': '2001-12-12', 'gender': 'male', 'address': 'gma cavite', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-21', 'time': '13:00:00', 'status': 'cancelled', 'created_at': '2025-11-21T12:42:16.083947+08:00', 'display_patient_name': 'Miggie C Oli', 'display_doctor_name': 'Jeri Oli', 'display_time': '01:00 PM', 'display_date': 'November 21, 2025', 'patient_is_deleted': False, 'doctor': 3, 'doctor_name': 'Jeri Oli', 'patient': None}
+2026-02-01 01:02:20,789 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 6724
+2026-02-01 01:02:20,804 - appointments.views - INFO - Successfully serialized all appointments. Count: 13
+2026-02-01 01:02:20,811 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 8861
+2026-02-01 01:08:26,332 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:08:26,335 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:08:26,418 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 397
+2026-02-01 01:08:26,435 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:08:26,447 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:08:26,455 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-02-01 01:08:26,498 - root - INFO - Request: {"method": "GET", "path": "/media/branding/medratrics.png", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:08:26,515 - django.server - INFO - "GET /media/branding/medratrics.png HTTP/1.1" 200 159116
+2026-02-01 01:09:05,207 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:09:05,208 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:09:05,217 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:09:05,235 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:11:30,811 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:11:30,835 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:11:43,860 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:11:43,860 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:11:43,903 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:11:43,920 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:12:04,297 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:12:04,298 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:12:04,317 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:12:04,337 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:14:11,219 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:14:11,240 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:14:29,228 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:14:29,240 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:14:29,251 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:14:29,259 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-02-01 01:15:03,992 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:15:03,992 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:15:04,002 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:15:04,021 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:15:12,724 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:15:12,725 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:15:12,736 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:15:12,740 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:17:34,244 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:17:34,244 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:17:34,268 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 397
+2026-02-01 01:17:34,270 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:17:34,279 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:17:34,283 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-02-01 01:18:24,757 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:18:24,758 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:18:24,770 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:18:24,789 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:18:33,362 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:18:33,364 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:18:33,376 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:18:33,391 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:18:43,039 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:18:43,040 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:18:43,055 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:18:43,073 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:19:00,207 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:19:00,208 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:19:00,217 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:19:00,222 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:19:07,830 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:19:07,845 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 01:19:07,855 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:19:07,859 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:19:07,863 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:19:07,864 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:19:07,864 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:19:07,864 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:19:07,865 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:19:07,865 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:19:07,870 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769879947848 HTTP/1.1" 200 53
+2026-02-01 01:19:10,854 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:19:10,854 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:19:10,871 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:19:10,889 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:20:04,912 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:20:04,916 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:20:04,932 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:20:04,948 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:20:58,520 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:20:58,537 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 01:20:58,552 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:20:58,553 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:20:58,555 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:20:58,556 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:20:58,556 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:20:58,557 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:20:58,557 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:20:58,558 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:20:58,563 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769880058540 HTTP/1.1" 200 53
+2026-02-01 01:21:01,014 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:21:01,015 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:21:01,016 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:21:01,018 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:21:01,018 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:21:01,018 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:21:01,018 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:21:01,019 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:21:01,024 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769880061001 HTTP/1.1" 200 53
+2026-02-01 01:21:04,516 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:21:04,518 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:21:04,531 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:21:04,539 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:22:23,213 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:22:23,224 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:23:10,011 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:23:10,012 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:23:10,038 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:23:10,057 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:23:19,529 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:23:19,529 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:23:19,538 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:23:19,558 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:23:41,726 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:23:41,728 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:23:41,736 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:23:41,741 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:25:12,221 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:25:12,238 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:25:52,896 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:25:52,897 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:25:52,906 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 397
+2026-02-01 01:25:52,915 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:25:52,924 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:25:52,929 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-02-01 01:25:54,134 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:25:54,135 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:25:54,158 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:25:54,173 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:26:07,959 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:26:07,966 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 01:26:07,977 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:26:07,978 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:26:07,980 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:26:07,981 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:26:07,981 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:26:07,982 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:26:07,982 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:26:07,982 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:26:07,985 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769880367969 HTTP/1.1" 200 53
+2026-02-01 01:26:09,869 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:26:09,870 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:26:09,889 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:26:09,908 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:26:32,845 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:26:32,870 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:27:35,218 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:27:35,227 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:28:57,504 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:28:57,504 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:28:57,523 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:28:57,530 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:29:08,203 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:29:08,215 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 01:29:08,233 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:29:08,235 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:29:08,238 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:29:08,239 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:29:08,240 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:29:08,240 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:29:08,240 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:29:08,241 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:29:08,246 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769880548218 HTTP/1.1" 200 53
+2026-02-01 01:30:14,911 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:30:14,922 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:30:18,913 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:30:18,925 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:30:47,917 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:30:47,919 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:30:47,931 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 397
+2026-02-01 01:30:47,943 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:30:47,952 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:30:47,960 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-02-01 01:31:34,208 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:31:34,209 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:31:34,228 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 397
+2026-02-01 01:31:34,245 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:31:34,258 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:31:34,267 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-02-01 01:33:54,500 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:33:54,500 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:33:54,525 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:33:54,543 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:34:03,048 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:34:03,049 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:34:03,060 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:34:03,065 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:34:07,635 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:34:07,651 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 01:34:07,660 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:34:07,662 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:34:07,665 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:34:07,666 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:34:07,666 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:34:07,667 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:34:07,667 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:34:07,667 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:34:07,672 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769880847653 HTTP/1.1" 200 53
+2026-02-01 01:34:09,971 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:34:09,973 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:34:09,975 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:34:09,977 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:34:09,977 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:34:09,977 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:34:09,977 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:34:09,978 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:34:09,983 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769880849962 HTTP/1.1" 200 53
+2026-02-01 01:34:12,707 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:34:12,710 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:34:12,726 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:34:12,744 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:35:45,230 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:35:45,242 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:35:55,213 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:35:55,223 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:36:12,654 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:36:12,655 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:36:12,671 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:36:12,688 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:36:20,249 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:36:20,249 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:36:20,261 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 397
+2026-02-01 01:36:20,266 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:36:20,301 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:36:20,306 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-02-01 01:36:21,471 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:36:21,472 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:36:21,493 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:36:21,510 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:36:25,672 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:36:25,672 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:36:25,682 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 397
+2026-02-01 01:36:25,691 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:36:25,699 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:36:25,704 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-02-01 01:36:26,590 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:36:26,591 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:36:26,609 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:36:26,630 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:36:31,741 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:36:31,748 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 01:36:31,758 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:36:31,759 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:36:31,760 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:36:31,761 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:36:31,761 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:36:31,762 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:36:31,762 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:36:31,762 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:36:31,765 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769880991751 HTTP/1.1" 200 53
+2026-02-01 01:36:34,072 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:36:34,073 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:36:34,075 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:36:34,077 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:36:34,078 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:36:34,078 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:36:34,079 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:36:34,079 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:36:34,085 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769880994059 HTTP/1.1" 200 53
+2026-02-01 01:36:37,414 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:36:37,479 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-02&_t=1769880997406 HTTP/1.1" 200 3489
+2026-02-01 01:36:39,287 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:36:39,287 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:36:39,310 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:36:39,327 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:38:13,231 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:38:13,241 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:38:55,731 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:38:55,732 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:38:55,743 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 397
+2026-02-01 01:38:55,762 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:38:55,780 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:38:55,786 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-02-01 01:38:56,887 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:38:56,888 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:38:56,913 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:38:56,933 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:39:03,389 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:39:03,405 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 01:39:03,422 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:39:03,424 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:39:03,426 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:39:03,427 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:39:03,427 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:39:03,428 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:39:03,428 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:39:03,428 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:39:03,433 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769881143410 HTTP/1.1" 200 53
+2026-02-01 01:39:05,709 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:39:05,710 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:39:05,712 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:39:05,713 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:39:05,713 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:39:05,713 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:39:05,714 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:39:05,714 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:39:05,718 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769881145697 HTTP/1.1" 200 53
+2026-02-01 01:39:08,526 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:39:08,581 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-04&_t=1769881148516 HTTP/1.1" 200 3489
+2026-02-01 01:39:14,057 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:39:14,107 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-04&_t=1769881154047 HTTP/1.1" 200 3489
+2026-02-01 01:39:16,955 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:39:16,955 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:39:16,977 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:39:16,994 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:39:35,891 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:39:35,892 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:39:35,927 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:39:35,945 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:39:42,969 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:39:42,977 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 01:39:42,987 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:39:42,987 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:39:42,989 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:39:42,989 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:39:42,990 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:39:42,990 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:39:42,990 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:39:42,990 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:39:42,996 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769881182980 HTTP/1.1" 200 53
+2026-02-01 01:39:45,240 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:39:45,241 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:39:45,243 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:39:45,245 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:39:45,245 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:39:45,246 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:39:45,246 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:39:45,246 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:39:45,251 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769881185218 HTTP/1.1" 200 53
+2026-02-01 01:39:48,509 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:39:48,577 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-03&_t=1769881188501 HTTP/1.1" 200 3490
+2026-02-01 01:39:51,825 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:39:51,826 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:39:51,833 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:39:51,848 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:42:06,379 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:42:06,422 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:42:54,345 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:42:54,354 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 01:42:54,365 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:42:54,366 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:42:54,369 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:42:54,370 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:42:54,371 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:42:54,371 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:42:54,371 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:42:54,371 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:42:54,376 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769881374357 HTTP/1.1" 200 53
+2026-02-01 01:42:56,789 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:42:56,790 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:42:56,792 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:42:56,794 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:42:56,795 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:42:56,795 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:42:56,795 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:42:56,796 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:42:56,801 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769881376769 HTTP/1.1" 200 53
+2026-02-01 01:43:00,378 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:43:00,378 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:43:00,395 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:43:00,413 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:46:25,245 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:46:25,269 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:46:40,770 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:46:40,770 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:46:40,791 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:46:40,809 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:46:49,383 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:46:49,391 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 01:46:49,402 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:46:49,403 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:46:49,405 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:46:49,406 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:46:49,406 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:46:49,406 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:46:49,407 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:46:49,407 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:46:49,412 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769881609395 HTTP/1.1" 200 53
+2026-02-01 01:46:52,487 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:46:52,488 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:46:52,489 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:46:52,490 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:46:52,490 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:46:52,490 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:46:52,490 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:46:52,490 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:46:52,496 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769881612466 HTTP/1.1" 200 53
+2026-02-01 01:46:55,552 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:46:55,628 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-04&_t=1769881615542 HTTP/1.1" 200 3489
+2026-02-01 01:47:03,175 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:47:03,184 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 01:47:03,194 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:47:03,195 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:47:03,196 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:47:03,197 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:47:03,198 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:47:03,198 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:47:03,198 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:47:03,198 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:47:03,202 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769881623186 HTTP/1.1" 200 53
+2026-02-01 01:47:05,842 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:47:05,843 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:47:05,844 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:47:05,846 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:47:05,846 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:47:05,846 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:47:05,846 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:47:05,846 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:47:05,850 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769881625665 HTTP/1.1" 200 53
+2026-02-01 01:47:09,067 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:47:09,070 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:47:09,079 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:47:09,097 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:51:34,324 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:51:34,350 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:52:43,909 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:52:43,920 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 01:52:43,932 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:52:43,933 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:52:43,935 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:52:43,936 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:52:43,936 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:52:43,936 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:52:43,936 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:52:43,936 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:52:43,940 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769881963923 HTTP/1.1" 200 53
+2026-02-01 01:52:46,319 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:52:46,320 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:52:46,321 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:52:46,322 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:52:46,322 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:52:46,322 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:52:46,322 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:52:46,323 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:52:46,327 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769881966297 HTTP/1.1" 200 53
+2026-02-01 01:52:49,470 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:52:49,473 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:52:49,502 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:52:49,516 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:53:41,234 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:53:41,251 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:54:01,953 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:54:01,953 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:54:01,963 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 397
+2026-02-01 01:54:01,982 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:54:01,991 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:54:01,999 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-02-01 01:54:03,027 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:54:03,027 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:54:03,037 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:54:03,044 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:54:10,232 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:54:10,241 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 01:54:10,255 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:54:10,256 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:54:10,257 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:54:10,259 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:54:10,259 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:54:10,260 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:54:10,260 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:54:10,260 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:54:10,266 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769882050244 HTTP/1.1" 200 53
+2026-02-01 01:54:12,585 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:54:12,585 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:54:12,587 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:54:12,588 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:54:12,588 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:54:12,589 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:54:12,589 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:54:12,589 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:54:12,595 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769882052561 HTTP/1.1" 200 53
+2026-02-01 01:54:18,012 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:54:18,013 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:54:18,033 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:54:18,048 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:54:27,902 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:54:27,903 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:54:27,917 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:54:27,934 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:54:35,388 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:54:35,394 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 01:54:35,404 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:54:35,405 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:54:35,406 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:54:35,407 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:54:35,408 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:54:35,408 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:54:35,408 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:54:35,408 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:54:35,412 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769882075397 HTTP/1.1" 200 53
+2026-02-01 01:54:38,034 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:54:38,035 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 01:54:38,036 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 01:54:38,037 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 01:54:38,037 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 01:54:38,037 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 01:54:38,038 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 01:54:38,038 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 01:54:38,041 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769882078010 HTTP/1.1" 200 53
+2026-02-01 01:55:48,239 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:55:48,252 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:56:00,098 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:56:00,099 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:56:00,116 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:56:00,137 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:57:11,188 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:57:11,189 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:57:11,213 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 397
+2026-02-01 01:57:11,233 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:57:11,244 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:57:11,250 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-02-01 01:57:12,290 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:57:12,291 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:57:12,302 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:57:12,337 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:57:16,383 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:57:16,384 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:57:16,401 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:57:16,419 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:57:36,777 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:57:36,778 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:57:36,798 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 01:57:36,816 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 01:59:10,400 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 01:59:10,403 - security_audit - INFO - Data access: {"user_id": 4, "username": "receptionist", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1769882350.4025226, "client_ip": "127.0.0.1"}
+2026-02-01 01:59:10,436 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 6724
+2026-02-01 02:01:28,639 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:01:28,639 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:01:28,651 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 02:01:28,670 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 02:06:54,214 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:06:54,233 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 02:07:50,309 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:07:50,327 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 02:07:55,701 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:07:55,704 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 02:07:55,707 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 02:07:55,708 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 02:07:55,708 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 02:07:55,709 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 02:07:55,709 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 02:07:55,709 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 02:07:55,714 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769882875692 HTTP/1.1" 200 53
+2026-02-01 02:07:58,247 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:07:58,320 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-03&_t=1769882878239 HTTP/1.1" 200 3490
+2026-02-01 02:08:00,316 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:08:00,317 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:08:00,434 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-03&_t=1769882880304 HTTP/1.1" 200 3490
+2026-02-01 02:08:00,452 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-03&_t=1769882880303 HTTP/1.1" 200 3490
+2026-02-01 02:08:37,048 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:08:37,057 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 02:08:37,070 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:08:37,070 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 02:08:37,071 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 02:08:37,072 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 02:08:37,072 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 02:08:37,073 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 02:08:37,073 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 02:08:37,073 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 02:08:37,077 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769882917060 HTTP/1.1" 200 53
+2026-02-01 02:08:39,630 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:08:39,631 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 02:08:39,632 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 02:08:39,633 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 02:08:39,634 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 02:08:39,634 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 02:08:39,634 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 02:08:39,635 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 02:08:39,640 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769882919618 HTTP/1.1" 200 53
+2026-02-01 02:08:42,412 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:08:42,471 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-04&_t=1769882922405 HTTP/1.1" 200 3489
+2026-02-01 02:08:44,606 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:08:44,657 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-04&_t=1769882924598 HTTP/1.1" 200 3489
+2026-02-01 02:10:18,321 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:10:18,333 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 02:10:18,342 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:10:18,353 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 02:10:18,363 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:10:18,370 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-02-01 02:11:24,237 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:11:24,252 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 02:11:24,269 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:11:24,276 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-02-01 02:11:58,272 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:11:58,285 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 02:12:00,514 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:12:00,516 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 02:12:00,518 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 02:12:00,520 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 02:12:00,520 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 02:12:00,521 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 02:12:00,521 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 02:12:00,521 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 02:12:00,525 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769883120183 HTTP/1.1" 200 53
+2026-02-01 02:12:03,086 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:12:03,143 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-04&_t=1769883123077 HTTP/1.1" 200 3489
+2026-02-01 02:12:05,409 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:12:05,465 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-04&_t=1769883125396 HTTP/1.1" 200 3489
+2026-02-01 02:12:05,472 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:12:05,532 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-04&_t=1769883125396 HTTP/1.1" 200 3489
+2026-02-01 02:13:23,345 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:13:23,361 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 02:13:23,372 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:13:23,375 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:13:23,389 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 02:13:23,399 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:13:23,413 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 02:13:23,420 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-02-01 02:15:11,802 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:15:11,817 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 02:15:13,788 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:15:13,790 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 02:15:13,793 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 02:15:13,794 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 02:15:13,794 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 02:15:13,795 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 02:15:13,795 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 02:15:13,795 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 02:15:13,799 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769883313777 HTTP/1.1" 200 53
+2026-02-01 02:15:15,769 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:15:15,833 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-03&_t=1769883315758 HTTP/1.1" 200 3490
+2026-02-01 02:15:20,612 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:15:20,662 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-03&_t=1769883320603 HTTP/1.1" 200 3490
+2026-02-01 02:15:20,669 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:15:20,731 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-03&_t=1769883320603 HTTP/1.1" 200 3490
+2026-02-01 02:18:36,406 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:18:36,443 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:18:36,456 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 02:18:36,492 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:18:36,506 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 02:18:36,529 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-02-01 02:19:18,322 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:19:18,324 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:19:18,350 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 397
+2026-02-01 02:19:18,370 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 02:19:18,382 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:19:18,388 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-02-01 02:19:19,916 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:19:19,918 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:19:19,936 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 02:19:19,956 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 02:19:22,160 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:19:22,167 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 02:19:24,163 - root - INFO - Request: {"method": "GET", "path": "/api/availability/available_dates/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:19:24,164 - doctor_availability.views - INFO - Available dates request received - doctor_id: 3
+2026-02-01 02:19:24,166 - doctor_availability.views - INFO - Found 4 availabilities for doctor 3
+2026-02-01 02:19:24,167 - doctor_availability.views - INFO - Availability: ID=34, Date=2026-02-01, Max Appointments=8
+2026-02-01 02:19:24,167 - doctor_availability.views - INFO - Availability: ID=35, Date=2026-02-02, Max Appointments=8
+2026-02-01 02:19:24,168 - doctor_availability.views - INFO - Availability: ID=36, Date=2026-02-03, Max Appointments=8
+2026-02-01 02:19:24,168 - doctor_availability.views - INFO - Availability: ID=37, Date=2026-02-04, Max Appointments=8
+2026-02-01 02:19:24,168 - doctor_availability.views - INFO - Returning dates: ['2026-02-01', '2026-02-02', '2026-02-03', '2026-02-04']
+2026-02-01 02:19:24,174 - django.server - INFO - "GET /api/availability/available_dates/?doctor_id=3&_t=1769883564151 HTTP/1.1" 200 53
+2026-02-01 02:19:26,751 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:19:26,811 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-04&_t=1769883566742 HTTP/1.1" 200 3489
+2026-02-01 02:19:28,484 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:19:28,544 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-04&_t=1769883568475 HTTP/1.1" 200 3489
+2026-02-01 02:19:28,549 - root - INFO - Request: {"method": "GET", "path": "/api/availability/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:19:28,605 - django.server - INFO - "GET /api/availability/?doctor_id=3&date=2026-02-04&_t=1769883568475 HTTP/1.1" 200 3489
+2026-02-01 02:25:26,246 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:25:26,276 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 02:25:27,987 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:25:28,003 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:25:28,014 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850
+2026-02-01 02:25:28,024 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 117
+2026-02-01 02:25:28,043 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/reviews/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:25:28,053 - django.server - INFO - "GET /api/clinic/reviews/ HTTP/1.1" 200 79
+2026-02-01 02:25:28,901 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:25:28,901 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/faqs/", "user_id": 4, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-01 02:25:28,925 - django.server - INFO - "GET /api/clinic/faqs/ HTTP/1.1" 200 1846
+2026-02-01 02:25:28,928 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 2850

@@ -87,8 +87,63 @@ const newPatientSchema = z.object({
   suffix: z.string().optional(),
   contactNumber: z
     .string()
-    .min(10, "Contact number must be at least 10 digits"),
-  email: z.string().email("Invalid email address"),
+    .min(11, "Contact number must be exactly 11 digits")
+    .max(11, "Contact number must be exactly 11 digits")
+    .regex(/^09\d{9}$/, "Phone number must start with 09 and be 11 digits"),
+  email: z
+    .string()
+    .email("Invalid email address")
+    .refine((email) => {
+      const validTLDs = [
+        "com",
+        "net",
+        "org",
+        "edu",
+        "gov",
+        "mil",
+        "co",
+        "uk",
+        "ph",
+        "au",
+        "ca",
+        "de",
+        "fr",
+        "jp",
+        "cn",
+        "in",
+        "br",
+        "ru",
+        "es",
+        "it",
+        "nl",
+        "se",
+        "no",
+        "dk",
+        "fi",
+        "be",
+        "ch",
+        "at",
+        "nz",
+        "sg",
+        "hk",
+        "tw",
+        "kr",
+        "my",
+        "th",
+        "vn",
+        "id",
+        "ae",
+        "sa",
+        "za",
+        "eg",
+        "ng",
+        "ke",
+      ];
+      const domain = email.split("@")[1];
+      if (!domain) return false;
+      const tld = domain.split(".").pop()?.toLowerCase();
+      return tld ? validTLDs.includes(tld) : false;
+    }, "Please enter a valid email domain (e.g., gmail.com, yahoo.com)"),
   address: z.string().min(1, "Address is required"),
   dateOfBirth: z.date({
     required_error: "Date of birth is required",
@@ -1356,7 +1411,15 @@ const NewAppointmentModal = ({
                 <FormItem>
                   <FormLabel>Contact Number *</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., +1234567890" {...field} />
+                    <Input
+                      placeholder="e.g., 09123456789"
+                      maxLength={11}
+                      {...field}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, "");
+                        field.onChange(value);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

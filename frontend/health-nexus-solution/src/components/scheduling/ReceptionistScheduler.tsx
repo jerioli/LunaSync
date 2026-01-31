@@ -146,7 +146,7 @@ const ReceptionistScheduler: React.FC = () => {
       for (const doctor of doctors) {
         try {
           console.log(
-            `Fetching availability for doctor ${doctor.id} (${doctor.first_name} ${doctor.last_name})`
+            `Fetching availability for doctor ${doctor.id} (${doctor.first_name} ${doctor.last_name})`,
           );
 
           // Fetch existing appointments for this doctor on this date
@@ -162,19 +162,19 @@ const ReceptionistScheduler: React.FC = () => {
                   date: dateStr, // Use 'date' parameter (not appointment_date)
                   _t: Date.now(), // Cache busting parameter
                 },
-              }
+              },
             );
 
             console.log(
               `Appointments response for doctor ${doctor.id}:`,
-              appointmentsResponse.data
+              appointmentsResponse.data,
             );
 
             // Store appointments by time slot - filter for pending, scheduled and ongoing status on frontend
             if (Array.isArray(appointmentsResponse.data)) {
               console.log(
                 `All appointments for doctor ${doctor.id} before filtering:`,
-                appointmentsResponse.data
+                appointmentsResponse.data,
               );
 
               // Check each appointment and log its fields
@@ -202,14 +202,14 @@ const ReceptionistScheduler: React.FC = () => {
                   console.log(
                     `Appointment ${apt.id}: status=${apt.status}, time=${
                       apt.appointment_time || apt.time
-                    }, include=${shouldInclude}`
+                    }, include=${shouldInclude}`,
                   );
                   return shouldInclude;
                 }); // Include pending, scheduled, ongoing, cancelled, and no-show
 
               console.log(
                 `Filtered appointments for doctor ${doctor.id}:`,
-                filteredAppointments
+                filteredAppointments,
               );
 
               filteredAppointments.forEach((apt) => {
@@ -233,24 +233,24 @@ const ReceptionistScheduler: React.FC = () => {
                   };
                   console.log(
                     `Added appointment to time slot ${timeStr}:`,
-                    appointmentsByTime[timeStr]
+                    appointmentsByTime[timeStr],
                   );
                 }
               });
 
               console.log(
                 `Booked time slots for doctor ${doctor.id}:`,
-                Object.keys(appointmentsByTime)
+                Object.keys(appointmentsByTime),
               );
               console.log(
                 `Appointment details for doctor ${doctor.id}:`,
-                appointmentsByTime
+                appointmentsByTime,
               );
             }
           } catch (appointmentError) {
             console.error(
               `Error fetching appointments for doctor ${doctor.id}:`,
-              appointmentError
+              appointmentError,
             );
             // Continue even if appointment fetch fails - we'll rely on is_booked from availability
           }
@@ -265,7 +265,7 @@ const ReceptionistScheduler: React.FC = () => {
 
           console.log(
             `Time slots API response for doctor ${doctor.id}:`,
-            response.data
+            response.data,
           );
 
           if (Array.isArray(response.data) && response.data.length > 0) {
@@ -279,20 +279,20 @@ const ReceptionistScheduler: React.FC = () => {
             ) {
               console.log(
                 `No time slots in availability for doctor ${doctor.id}:`,
-                availabilityData
+                availabilityData,
               );
               console.log(
                 `Doctor ${doctor.id} availability data structure:`,
-                JSON.stringify(availabilityData, null, 2)
+                JSON.stringify(availabilityData, null, 2),
               );
 
               // Create slots only from existing appointments, don't generate standard schedule
               if (Object.keys(appointmentsByTime).length > 0) {
                 console.log(
-                  `Creating slots from appointments only for doctor ${doctor.id}`
+                  `Creating slots from appointments only for doctor ${doctor.id}`,
                 );
                 const appointmentTimeSlots: TimeSlot[] = Object.keys(
-                  appointmentsByTime
+                  appointmentsByTime,
                 ).map((timeStr, index) => {
                   const appointment = appointmentsByTime[timeStr];
                   return {
@@ -322,7 +322,7 @@ const ReceptionistScheduler: React.FC = () => {
                 });
 
                 console.log(
-                  `Created ${appointmentTimeSlots.length} time slots from appointments for doctor ${doctor.id}`
+                  `Created ${appointmentTimeSlots.length} time slots from appointments for doctor ${doctor.id}`,
                 );
               } else {
                 // No schedule and no appointments - show as not available
@@ -340,7 +340,7 @@ const ReceptionistScheduler: React.FC = () => {
 
             console.log(
               `Raw time slots for doctor ${doctor.id}:`,
-              availabilityData.time_slots
+              availabilityData.time_slots,
             );
 
             // Log all time slots before filtering (same as ScheduleAppointmentModal)
@@ -350,7 +350,7 @@ const ReceptionistScheduler: React.FC = () => {
                 start: slot.start_time,
                 end: slot.end_time,
                 booked: slot.is_booked,
-              }))
+              })),
             );
 
             // Process time slots - map through all and mark booked ones
@@ -365,19 +365,19 @@ const ReceptionistScheduler: React.FC = () => {
                   const isBookedValue = slot.is_booked as any;
                   const isBookedInAvailability = Boolean(
                     isBookedValue === true ||
-                      isBookedValue === 1 ||
-                      isBookedValue === "true" ||
-                      isBookedValue === "1" ||
-                      isBookedValue === "True" ||
-                      isBookedValue === "TRUE" ||
-                      isBookedValue === "yes" ||
-                      isBookedValue === "YES" ||
-                      isBookedValue === "Yes"
+                    isBookedValue === 1 ||
+                    isBookedValue === "true" ||
+                    isBookedValue === "1" ||
+                    isBookedValue === "True" ||
+                    isBookedValue === "TRUE" ||
+                    isBookedValue === "yes" ||
+                    isBookedValue === "YES" ||
+                    isBookedValue === "Yes",
                   );
 
                   // Also check if this time slot has an existing appointment (same as ScheduleAppointmentModal)
                   const isBookedByAppointment = Object.keys(
-                    appointmentsByTime
+                    appointmentsByTime,
                   ).includes(slot.start_time);
 
                   // Mark as booked if either source indicates it
@@ -400,7 +400,7 @@ const ReceptionistScheduler: React.FC = () => {
                       slot.status = appointment.status; // Add status to slot
                       console.log(
                         `Time slot ${slot.start_time} is booked by appointment (${appointment.status}):`,
-                        appointment
+                        appointment,
                       );
                     }
                   }
@@ -415,7 +415,7 @@ const ReceptionistScheduler: React.FC = () => {
 
                   if (isLunchBreak) {
                     console.log(
-                      `Filtering out lunch break slot for doctor ${doctor.id}: ${slot.start_time} - ${slot.end_time}`
+                      `Filtering out lunch break slot for doctor ${doctor.id}: ${slot.start_time} - ${slot.end_time}`,
                     );
                   }
 
@@ -432,7 +432,7 @@ const ReceptionistScheduler: React.FC = () => {
                     start: slot.start_time,
                     end: slot.end_time,
                     booked: slot.is_booked,
-                  }))
+                  })),
               );
 
               // Also log booked slots separately
@@ -445,13 +445,13 @@ const ReceptionistScheduler: React.FC = () => {
                     end: slot.end_time,
                     patient: slot.patient_name,
                     gender: slot.patient_gender,
-                  }))
+                  })),
               );
             }
 
             console.log(
               `Filtered time slots for doctor ${doctor.id}:`,
-              filteredTimeSlots
+              filteredTimeSlots,
             );
 
             availability[doctor.id] = {
@@ -471,10 +471,10 @@ const ReceptionistScheduler: React.FC = () => {
             // No availability data returned - only show appointments if they exist
             if (Object.keys(appointmentsByTime).length > 0) {
               console.log(
-                `No availability data but found appointments for doctor ${doctor.id}, creating slots from appointments only`
+                `No availability data but found appointments for doctor ${doctor.id}, creating slots from appointments only`,
               );
               const appointmentTimeSlots: TimeSlot[] = Object.keys(
-                appointmentsByTime
+                appointmentsByTime,
               ).map((timeStr, index) => {
                 const appointment = appointmentsByTime[timeStr];
                 return {
@@ -503,7 +503,7 @@ const ReceptionistScheduler: React.FC = () => {
               });
 
               console.log(
-                `Created ${appointmentTimeSlots.length} time slots from appointments for doctor ${doctor.id}`
+                `Created ${appointmentTimeSlots.length} time slots from appointments for doctor ${doctor.id}`,
               );
             } else {
               // No availability data and no appointments - show as not available
@@ -520,7 +520,7 @@ const ReceptionistScheduler: React.FC = () => {
         } catch (error: any) {
           console.error(
             `Error fetching availability for doctor ${doctor.id}:`,
-            error
+            error,
           );
           availability[doctor.id] = {
             doctor_id: doctor.id,
@@ -549,7 +549,7 @@ const ReceptionistScheduler: React.FC = () => {
       console.log(`Final availability summary for ${dateStr}:`);
       Object.values(availability).forEach((doctorAvail) => {
         console.log(
-          `- ${doctorAvail.doctor_name}: ${doctorAvail.time_slots.length} time slots, is_available: ${doctorAvail.is_available}`
+          `- ${doctorAvail.doctor_name}: ${doctorAvail.time_slots.length} time slots, is_available: ${doctorAvail.is_available}`,
         );
       });
     } catch (error) {
@@ -609,7 +609,7 @@ const ReceptionistScheduler: React.FC = () => {
     <div className="w-full mx-auto mt-4 md:mt-8 space-y-4 md:space-y-6 px-2 md:px-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">Doctor Scheduling</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">Doctors' Schedule</h1>
           <p className="text-sm md:text-base text-muted-foreground">
             View available dates and times for all doctors
           </p>
@@ -746,7 +746,7 @@ const ReceptionistScheduler: React.FC = () => {
                                     {slotsInHour.map((timeSlot) => {
                                       const slot =
                                         doctorAvailability?.time_slots?.find(
-                                          (s) => s.start_time === timeSlot
+                                          (s) => s.start_time === timeSlot,
                                         );
 
                                       return (
@@ -761,8 +761,8 @@ const ReceptionistScheduler: React.FC = () => {
                                                 className={cn(
                                                   "w-full h-full flex items-center justify-center rounded px-1 py-1 border text-xs",
                                                   getAppointmentColor(
-                                                    slot.status
-                                                  )
+                                                    slot.status,
+                                                  ),
                                                 )}
                                               >
                                                 <div className="text-center truncate">
@@ -772,7 +772,7 @@ const ReceptionistScheduler: React.FC = () => {
                                                   </div>
                                                   <div className="text-[10px] opacity-75">
                                                     {formatTime(
-                                                      slot.start_time
+                                                      slot.start_time,
                                                     )}
                                                   </div>
                                                 </div>
@@ -805,11 +805,11 @@ const ReceptionistScheduler: React.FC = () => {
                   : // Check if there are any appointments across all doctors
                     (() => {
                       const hasAnyAppointments = Object.values(
-                        dayData.availability
+                        dayData.availability,
                       ).some(
                         (doctorAvail) =>
                           doctorAvail.time_slots.length > 0 &&
-                          doctorAvail.time_slots.some((slot) => slot.is_booked)
+                          doctorAvail.time_slots.some((slot) => slot.is_booked),
                       );
 
                       if (hasAnyAppointments) {

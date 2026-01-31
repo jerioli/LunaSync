@@ -1,6 +1,6 @@
-import { CardHeader, CardTitle } from '@/components/ui/card';
-import { Stethoscope, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { CardHeader, CardTitle } from "@/components/ui/card";
+import { Stethoscope, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface ChatbotHeaderProps {
   onClose?: () => void;
@@ -13,12 +13,12 @@ export const ChatbotHeader = ({ onClose }: ChatbotHeaderProps) => {
         <Stethoscope className="h-6 w-6 text-white" />
         <CardTitle className="text-base font-bold">Luna</CardTitle>
       </div>
-      
+
       {onClose && (
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={onClose} 
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
           className="h-8 w-8 text-white hover:bg-white/20 hover:text-white transition-colors"
         >
           <X className="h-4 w-4" />
