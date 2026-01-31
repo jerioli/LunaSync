@@ -1,5 +1,7 @@
 import { AppointmentChatbot } from "@/components/chatbot/AppointmentChatbot";
 import DateTimePicker from "@/components/chatbot/DateTimePicker";
+import PrivacyPolicyModal from "@/components/PrivacyPolicyModal";
+import TermsAndConditionsModal from "@/components/TermsAndConditionsModal";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -354,6 +356,8 @@ const PatientPortal = () => {
   const [showGreetingCursor, setShowGreetingCursor] = useState(true);
   const [showArrow, setShowArrow] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
   // Patient Request Modal States
   const [openModal, setOpenModal] = useState<
@@ -4646,7 +4650,7 @@ const PatientPortal = () => {
                             href="#"
                             onClick={(e) => {
                               e.preventDefault();
-                              window.open("/terms-and-conditions", "_blank");
+                              setShowTermsModal(true);
                             }}
                             className="text-[#79c942] hover:text-[#6bb33a] underline font-medium"
                           >
@@ -4657,7 +4661,7 @@ const PatientPortal = () => {
                             href="#"
                             onClick={(e) => {
                               e.preventDefault();
-                              window.open("/privacy-policy", "_blank");
+                              setShowPrivacyModal(true);
                             }}
                             className="text-[#79c942] hover:text-[#6bb33a] underline font-medium"
                           >
@@ -6529,6 +6533,16 @@ const PatientPortal = () => {
           }
         `}
       </style>
+
+      {/* Terms and Privacy Modals */}
+      <TermsAndConditionsModal
+        isOpen={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+      />
+      <PrivacyPolicyModal
+        isOpen={showPrivacyModal}
+        onClose={() => setShowPrivacyModal(false)}
+      />
     </div>
   );
 };
