@@ -49,12 +49,12 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
   const firstDayOfMonth = new Date(
     currentDate.getFullYear(),
     currentDate.getMonth(),
-    1
+    1,
   );
   const lastDayOfMonth = new Date(
     currentDate.getFullYear(),
     currentDate.getMonth() + 1,
-    0
+    0,
   );
 
   // Get the first day of the week for the calendar grid
@@ -93,19 +93,23 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
   // Navigate months
   const goToPreviousMonth = () => {
     setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
+      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1),
     );
   };
 
   const goToNextMonth = () => {
     setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
+      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1),
     );
   };
 
   // Get appointments for a specific date
   const getAppointmentsForDate = (date: Date) => {
-    const dateStr = date.toISOString().split("T")[0];
+    // Format date as YYYY-MM-DD in local timezone to avoid timezone issues
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const dateStr = `${year}-${month}-${day}`;
     return appointments.filter((apt) => apt.date === dateStr);
   };
 
@@ -159,7 +163,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
   // Handle showing more appointments for a specific day
   const handleShowMoreAppointments = (
     day: Date,
-    dayAppointments: Appointment[]
+    dayAppointments: Appointment[],
   ) => {
     setSelectedDate(day);
     setSelectedDayAppointments(dayAppointments);
@@ -229,7 +233,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                       <div
                         key={appointment.id}
                         className={`text-xs px-1 py-1 rounded text-white cursor-pointer transition-all duration-200 hover:opacity-80 ${getStatusColor(
-                          appointment.status
+                          appointment.status,
                         )}`}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -343,7 +347,7 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
                         : "secondary"
                     }
                     className={`text-xs ${getStatusColor(
-                      appointment.status
+                      appointment.status,
                     )} text-white border-none`}
                   >
                     {appointment.status}
