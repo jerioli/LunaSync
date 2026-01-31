@@ -4990,10 +4990,10 @@ Would you like to use this information or update it?`, [
       addBotMessage(
         'How can I help you today?',
         [
-          { label: '📅 Book Appointment', value: 'appointment' },
-          { label: '📄 Medical Certificate', value: 'medicalRecord' },
-          { label: '💊 E-Prescription', value: 'prescription' },
-          { label: '❓ FAQs', value: 'faq' }
+          { label: '📅 Book an Appointment', value: 'appointment' },
+          { label: '📄 Get Medical Certificate', value: 'medicalRecord' },
+          { label: '💊 Request Prescription Refill', value: 'prescription' },
+          { label: '❓ Ask Questions (FAQ)', value: 'faq' }
         ]
       );
     }, 500);

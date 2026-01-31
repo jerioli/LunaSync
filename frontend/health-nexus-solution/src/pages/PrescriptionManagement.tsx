@@ -1060,8 +1060,9 @@ const PrescriptionManagement: React.FC = () => {
                                             </div>
                                           )}
                                           <div className="flex gap-2">
-                                            {currentUserRole ===
-                                              "receptionist" &&
+                                            {(currentUserRole ===
+                                              "receptionist" ||
+                                              currentUserRole === "admin") &&
                                               selectedRequest.status ===
                                                 "pending" && (
                                                 <>
