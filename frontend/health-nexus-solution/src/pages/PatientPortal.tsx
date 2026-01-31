@@ -3269,35 +3269,37 @@ const PatientPortal = () => {
           />
         </button>
 
-        {/* Greeting with typing effect */}
-        <div
-          onClick={() => setIsChatbotOpen(!isChatbotOpen)}
-          className="bg-white px-3 py-2 md:px-4 md:py-3 lg:px-5 lg:py-4 rounded-lg md:rounded-xl shadow-lg md:shadow-2xl hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-[#79c942]/20 md:order-1 max-w-[240px] md:max-w-xs focus:outline-none focus:ring-4 focus:ring-[#79c942]/50"
-          role="button"
-          tabIndex={0}
-          aria-label="Click to chat with Luna, our virtual assistant"
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              setIsChatbotOpen(!isChatbotOpen);
-            }
-          }}
-        >
-          <div className="flex items-start gap-2">
-            <MessageCircle className="w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 text-[#79c942] flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-xs md:text-sm lg:text-base font-semibold text-gray-900 mb-0.5">
-                Hi! I'm Luna 👋
-              </p>
-              <p className="text-[10px] md:text-xs lg:text-sm text-gray-700">
-                <span className="typing-effect">
-                  Click here to chat with me!
-                </span>
-                <span className="cursor-blink">|</span>
-              </p>
+        {/* Greeting with typing effect - only show when chatbot is closed */}
+        {!isChatbotOpen && (
+          <div
+            onClick={() => setIsChatbotOpen(!isChatbotOpen)}
+            className="bg-white px-3 py-2 md:px-4 md:py-3 lg:px-5 lg:py-4 rounded-lg md:rounded-xl shadow-lg md:shadow-2xl hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-[#79c942]/20 md:order-1 max-w-[240px] md:max-w-xs focus:outline-none focus:ring-4 focus:ring-[#79c942]/50"
+            role="button"
+            tabIndex={0}
+            aria-label="Click to chat with Luna, our virtual assistant"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setIsChatbotOpen(!isChatbotOpen);
+              }
+            }}
+          >
+            <div className="flex items-start gap-2">
+              <MessageCircle className="w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 text-[#79c942] flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs md:text-sm lg:text-base font-semibold text-gray-900 mb-0.5">
+                  Hi! I'm Luna 👋
+                </p>
+                <p className="text-[10px] md:text-xs lg:text-sm text-gray-700">
+                  <span className="typing-effect">
+                    Click here to chat with me!
+                  </span>
+                  <span className="cursor-blink">|</span>
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
       <style>
         {`
