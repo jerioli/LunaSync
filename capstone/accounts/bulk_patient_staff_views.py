@@ -157,9 +157,20 @@ class BulkPatientUploadView(APIView):
                         # Clean and prepare data with proper empty value handling
                         def clean_field(value):
                             """Clean field value, returning None for empty values"""
-                            if not value or str(value).strip() == '':
+                            if value is None or str(value).strip() == '' or str(value).lower() == 'nan':
                                 return None
-                            return str(value).strip()
+                            # Convert to string and strip, remove .0 from floats
+                            cleaned = str(value).strip()
+                            # If it's a float with .0, remove the .0
+                            if cleaned.endswith('.0') and cleaned.replace('.', '').replace('-', '').isdigit():
+                                cleaned = cleaned[:-2]
+                            return cleaned
+                        
+                        # Handle both 'sex' and 'gender' field names for backward compatibility
+                        gender_value = clean_field(patient_data.get('gender') or patient_data.get('sex')) or 'other'
+                        
+                        # Handle both 'address' and 'home_address' field names for backward compatibility
+                        address_value = clean_field(patient_data.get('address') or patient_data.get('home_address'))
                         
                         clean_data = {
                             'name': name,
@@ -170,9 +181,10 @@ class BulkPatientUploadView(APIView):
                             'email': clean_field(patient_data.get('email')),
                             'phone': clean_field(patient_data.get('phone')),
                             'date_of_birth': patient_data.get('date_of_birth'),
-                            'gender': clean_field(patient_data.get('gender')) or 'other',
-                            'address': clean_field(patient_data.get('address')),
+                            'gender': gender_value,
+                            'address': address_value,
                             'marital_status': clean_field(patient_data.get('marital_status')) or 'single',
+                            'religion': clean_field(patient_data.get('religion')),
                         }
                         
                         # Ensure email is lowercase if present
@@ -393,8 +405,8 @@ class BulkImportTemplateView(APIView):
                 return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
             
             template_data = {
-                'headers': ['name', 'email', 'phone', 'date_of_birth', 'gender', 'address', 'marital_status'],
-                'sample': ['John Doe', 'john.doe@email.com', '+1234567890', '1990-01-01', 'male', '123 Main St', 'single']
+                'headers': ['first_name', 'last_name', 'middle_initial', 'suffix', 'email', 'phone', 'date_of_birth', 'gender', 'address', 'marital_status', 'religion'],
+                'sample': ['John', 'Doe', 'M', 'Jr', 'john.doe@email.com', '09123456789', '1990-01-01', 'male', '123 Main St', 'single', 'Roman Catholic']
             }
             
         elif template_type == 'staff':

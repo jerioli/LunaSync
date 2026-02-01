@@ -2091,6 +2091,67 @@ const PatientPortal = () => {
   const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 7));
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
+  // Determine if a step can be navigated to
+  const canNavigateToStep = (step: number): boolean => {
+    // Can always go to step 1
+    if (step === 1) return true;
+
+    // Step 2 requires booking preference
+    if (step === 2) return bookingPreference !== null;
+
+    // Step 3 requires:
+    // - Doctor-first flow: doctor selected
+    // - Date-first flow: date selected
+    if (step === 3) {
+      if (bookingPreference === "doctor") {
+        return selectedDoctor !== null;
+      } else {
+        return selectedDate !== undefined;
+      }
+    }
+
+    // Step 4 requires:
+    // - Doctor-first flow: doctor + date selected
+    // - Date-first flow: date + doctor selected
+    if (step === 4) {
+      return selectedDoctor !== null && selectedDate !== undefined;
+    }
+
+    // Step 5 requires patient type selection
+    if (step === 5) return isExistingPatient !== null;
+
+    // Step 6 requires:
+    // - Existing patient: patient ID validated/selected
+    // - New patient: patient form completed
+    if (step === 6) {
+      if (isExistingPatient) {
+        return selectedPatient !== null;
+      } else {
+        return termsAccepted;
+      }
+    }
+
+    // Step 7 requires appointment type and time slot
+    if (step === 7) {
+      return selectedAppointmentType !== "" && selectedTimeSlot !== "";
+    }
+
+    return false;
+  };
+
+  // Handle clicking on a wizard step
+  const handleStepClick = (step: number) => {
+    // Don't allow clicking on future steps that haven't been unlocked
+    if (step > currentStep && !canNavigateToStep(step)) {
+      return;
+    }
+
+    // Allow navigation to any previous step or the next unlocked step
+    if (step <= currentStep || canNavigateToStep(step)) {
+      setCurrentStep(step);
+    }
+  };
+
   // Handle step navigation with validation
   const handleNextStep = async () => {
     // Validate Patient ID in Step 5 for existing patients
@@ -3254,18 +3315,18 @@ const PatientPortal = () => {
       <div
         className={`fixed ${
           showArrow ? "bottom-20" : "bottom-6"
-        } right-2 md:right-6 z-50 flex flex-col-reverse md:flex-row items-center md:items-end gap-2 md:gap-3`}
+        } right-2 md:right-6 z-50 flex flex-col items-end gap-2 md:gap-3`}
       >
         {/* Animated Luna icon */}
         <button
           onClick={() => setIsChatbotOpen(!isChatbotOpen)}
-          className="transition-transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-[#79c942]/50 rounded-full md:order-2"
+          className="transition-transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-[#79c942]/50 rounded-full order-2"
           aria-label="Open chat with Luna"
         >
           <img
             src="/gif.webp"
             alt="Luna virtual assistant - Click to chat"
-            className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 object-contain"
+            className="w-16 h-16 md:w-16 md:h-16 lg:w-20 lg:h-20 object-contain"
           />
         </button>
 
@@ -3273,7 +3334,7 @@ const PatientPortal = () => {
         {!isChatbotOpen && (
           <div
             onClick={() => setIsChatbotOpen(!isChatbotOpen)}
-            className="bg-white px-3 py-2 md:px-4 md:py-3 lg:px-5 lg:py-4 rounded-lg md:rounded-xl shadow-lg md:shadow-2xl hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-[#79c942]/20 md:order-1 max-w-[240px] md:max-w-xs focus:outline-none focus:ring-4 focus:ring-[#79c942]/50"
+            className="relative bg-white px-4 py-3 md:px-4 md:py-3 lg:px-5 lg:py-4 rounded-lg md:rounded-xl shadow-lg md:shadow-2xl hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-[#79c942]/20 order-1 max-w-[280px] md:max-w-xs focus:outline-none focus:ring-4 focus:ring-[#79c942]/50 speech-bubble"
             role="button"
             tabIndex={0}
             aria-label="Click to chat with Luna, our virtual assistant"
@@ -3285,12 +3346,12 @@ const PatientPortal = () => {
             }}
           >
             <div className="flex items-start gap-2">
-              <MessageCircle className="w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 text-[#79c942] flex-shrink-0 mt-0.5" />
+              <MessageCircle className="w-6 h-6 md:w-6 md:h-6 lg:w-7 lg:h-7 text-[#79c942] flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs md:text-sm lg:text-base font-semibold text-gray-900 mb-0.5">
+                <p className="text-sm md:text-sm lg:text-base font-semibold text-gray-900 mb-0.5">
                   Hi! I'm Luna 👋
                 </p>
-                <p className="text-[10px] md:text-xs lg:text-sm text-gray-700">
+                <p className="text-xs md:text-xs lg:text-sm text-gray-700">
                   <span className="typing-effect">
                     Click here to chat with me!
                   </span>
@@ -3303,6 +3364,19 @@ const PatientPortal = () => {
       </div>
       <style>
         {`
+          .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -16px;
+            right: 20px;
+            width: 0;
+            height: 0;
+            border-left: 16px solid transparent;
+            border-right: 16px solid transparent;
+            border-top: 18px solid white;
+            filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.15));
+          }
+          
           @keyframes blink-cursor {
             0%, 100% { opacity: 1; }
             50% { opacity: 0; }
@@ -4189,34 +4263,58 @@ const PatientPortal = () => {
 
           {/* Progress Bar */}
           <div className="flex justify-between items-center mb-4 gap-1">
-            {[1, 2, 3, 4, 5, 6, 7].map((step) => (
-              <div key={step} className="flex flex-col items-center flex-1">
-                <div
-                  className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-medium ${
-                    step <= currentStep
-                      ? "bg-[#79c942] text-white"
-                      : "bg-gray-200 text-gray-600"
-                  }`}
-                >
-                  {step < currentStep ? (
-                    <CheckCircle className="w-4 h-4 md:w-5 md:h-5" />
-                  ) : (
-                    step
-                  )}
+            {[1, 2, 3, 4, 5, 6, 7].map((step) => {
+              const isAccessible =
+                step <= currentStep || canNavigateToStep(step);
+              const isCompleted = step < currentStep;
+              const isCurrent = step === currentStep;
+
+              return (
+                <div key={step} className="flex flex-col items-center flex-1">
+                  <button
+                    type="button"
+                    onClick={() => handleStepClick(step)}
+                    disabled={!isAccessible}
+                    style={{ cursor: isAccessible ? "pointer" : "not-allowed" }}
+                    className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-medium transition-all ${
+                      isCurrent
+                        ? "bg-[#79c942] text-white ring-2 ring-[#79c942] ring-offset-2 cursor-pointer"
+                        : isCompleted
+                          ? "bg-[#79c942] text-white hover:bg-[#68ab38] cursor-pointer"
+                          : isAccessible
+                            ? "bg-gray-200 text-gray-600 hover:bg-gray-300 cursor-pointer"
+                            : "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+                    } ${isAccessible ? "hover:scale-105" : ""}`}
+                    title={
+                      !isAccessible
+                        ? "Complete previous steps to unlock"
+                        : isCompleted
+                          ? "Click to return to this step"
+                          : isCurrent
+                            ? "Current step"
+                            : "Click to go to this step"
+                    }
+                  >
+                    {isCompleted ? (
+                      <CheckCircle className="w-4 h-4 md:w-5 md:h-5" />
+                    ) : (
+                      step
+                    )}
+                  </button>
+                  <span className="text-[9px] md:text-xs mt-1 text-center leading-tight hidden sm:block">
+                    {step === 1 && "Booking"}
+                    {step === 2 &&
+                      (bookingPreference === "doctor" ? "Doctor" : "Date")}
+                    {step === 3 &&
+                      (bookingPreference === "doctor" ? "Date/Time" : "Doctor")}
+                    {step === 4 && "Patient"}
+                    {step === 5 && "Info"}
+                    {step === 6 && "Service"}
+                    {step === 7 && "Summary"}
+                  </span>
                 </div>
-                <span className="text-[9px] md:text-xs mt-1 text-center leading-tight hidden sm:block">
-                  {step === 1 && "Booking"}
-                  {step === 2 &&
-                    (bookingPreference === "doctor" ? "Doctor" : "Date")}
-                  {step === 3 &&
-                    (bookingPreference === "doctor" ? "Date/Time" : "Doctor")}
-                  {step === 4 && "Patient"}
-                  {step === 5 && "Info"}
-                  {step === 6 && "Service"}
-                  {step === 7 && "Summary"}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="space-y-6">
@@ -4441,13 +4539,6 @@ const PatientPortal = () => {
                             });
                             setSelectedDate(date);
                             setSelectedTimeSlot(time);
-                            toast({
-                              title: "Appointment Scheduled",
-                              description: `Appointment scheduled for ${format(
-                                date,
-                                "MMM dd, yyyy",
-                              )} at ${time}`,
-                            });
                           }}
                         />
                       )

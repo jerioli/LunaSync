@@ -18,6 +18,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useBranding } from "@/contexts/BrandingContext";
 import { useClinic } from "@/hooks/useClinicContext";
 import { axiosInstance } from "@/services/api";
@@ -52,6 +62,13 @@ const Appointments = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [loadingAppointments, setLoadingAppointments] = useState(new Set());
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
+  const [checkInDialogOpen, setCheckInDialogOpen] = useState(false);
+  const [noShowDialogOpen, setNoShowDialogOpen] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
 
   const isReceptionist = currentUser?.role === "receptionist";
   const isDoctor = currentUser?.role === "doctor";
@@ -1013,6 +1030,89 @@ const Appointments = () => {
     }
   };
 
+  // Handler for opening confirmation dialogs
+  const handleConfirmClick = (appointment) => {
+    setPendingAction({
+      appointmentId: appointment.id,
+      status: "scheduled",
+      appointment,
+    });
+    setConfirmDialogOpen(true);
+  };
+
+  const handleDeclineClick = (appointment) => {
+    setPendingAction({
+      appointmentId: appointment.id,
+      status: "cancelled",
+      appointment,
+    });
+    setDeclineDialogOpen(true);
+  };
+
+  const handleCheckInClick = (appointment) => {
+    setPendingAction({
+      appointmentId: appointment.id,
+      status: "ongoing",
+      appointment,
+    });
+    setCheckInDialogOpen(true);
+  };
+
+  const handleNoShowClick = (appointment) => {
+    setPendingAction({
+      appointmentId: appointment.id,
+      status: "no-show",
+      appointment,
+    });
+    setNoShowDialogOpen(true);
+  };
+
+  const handleCancelClick = (appointment) => {
+    setPendingAction({
+      appointmentId: appointment.id,
+      status: "cancelled",
+      appointment,
+    });
+    setCancelDialogOpen(true);
+  };
+
+  const handleCompleteClick = (appointment) => {
+    setPendingAction({
+      appointmentId: appointment.id,
+      status: "completed",
+      appointment,
+    });
+    setCompleteDialogOpen(true);
+  };
+
+  // Handler for confirming the action
+  const handleConfirmAction = async () => {
+    if (pendingAction) {
+      await handleStatusUpdate(
+        pendingAction.appointmentId,
+        pendingAction.status,
+      );
+    }
+    setConfirmDialogOpen(false);
+    setDeclineDialogOpen(false);
+    setCheckInDialogOpen(false);
+    setNoShowDialogOpen(false);
+    setCancelDialogOpen(false);
+    setCompleteDialogOpen(false);
+    setPendingAction(null);
+  };
+
+  // Handler for canceling the action
+  const handleCancelAction = () => {
+    setConfirmDialogOpen(false);
+    setDeclineDialogOpen(false);
+    setCheckInDialogOpen(false);
+    setNoShowDialogOpen(false);
+    setCancelDialogOpen(false);
+    setCompleteDialogOpen(false);
+    setPendingAction(null);
+  };
+
   // Render action buttons for each appointment
   const renderActionButtons = (appointment) => {
     // Check if the patient for this appointment is soft-deleted
@@ -1040,7 +1140,7 @@ const Appointments = () => {
             variant="default"
             size="sm"
             className={buttonClass}
-            onClick={() => handleStatusUpdate(appointment.id, "ongoing")}
+            onClick={() => handleCheckInClick(appointment)}
           >
             Check In
           </Button>
@@ -1048,7 +1148,7 @@ const Appointments = () => {
             variant="outline"
             size="sm"
             className={buttonClass}
-            onClick={() => handleStatusUpdate(appointment.id, "no-show")}
+            onClick={() => handleNoShowClick(appointment)}
           >
             No Show
           </Button>
@@ -1056,7 +1156,7 @@ const Appointments = () => {
             variant="destructive"
             size="sm"
             className={buttonClass}
-            onClick={() => handleStatusUpdate(appointment.id, "cancelled")}
+            onClick={() => handleCancelClick(appointment)}
           >
             Cancel
           </Button>
@@ -1072,7 +1172,7 @@ const Appointments = () => {
             variant="default"
             size="sm"
             className={buttonClass}
-            onClick={() => handleStatusUpdate(appointment.id, "scheduled")}
+            onClick={() => handleConfirmClick(appointment)}
             disabled={isLoading}
           >
             {isLoading ? "Confirming..." : "Confirm"}
@@ -1081,7 +1181,7 @@ const Appointments = () => {
             variant="destructive"
             size="sm"
             className={buttonClass}
-            onClick={() => handleStatusUpdate(appointment.id, "cancelled")}
+            onClick={() => handleDeclineClick(appointment)}
             disabled={isLoading}
           >
             {isLoading ? "Declining..." : "Decline"}
@@ -1115,7 +1215,7 @@ const Appointments = () => {
               variant="default"
               size="sm"
               className={`${buttonClass} bg-green-600 hover:bg-green-700`}
-              onClick={() => handleStatusUpdate(appointment.id, "completed")}
+              onClick={() => handleCompleteClick(appointment)}
             >
               Complete
             </Button>
@@ -1143,7 +1243,7 @@ const Appointments = () => {
               variant="destructive"
               size="sm"
               className={buttonClass}
-              onClick={() => handleStatusUpdate(appointment.id, "cancelled")}
+              onClick={() => handleCancelClick(appointment)}
             >
               Cancel
             </Button>
@@ -2131,6 +2231,212 @@ const Appointments = () => {
         )}
         doctorId={selectedAppointment?.doctorId || selectedAppointment?.doctor}
       />
+
+      {/* Confirm Appointment Dialog */}
+      <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Appointment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to confirm this appointment for{" "}
+              <strong>
+                {pendingAction?.appointment &&
+                  getPatientName(
+                    pendingAction.appointment.patientId,
+                    pendingAction.appointment,
+                  )}
+              </strong>
+              ?
+              <br />
+              <br />
+              This will send a confirmation notification to the patient and
+              create their patient record if they are new.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelAction}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmAction}>
+              Confirm Appointment
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Decline Appointment Dialog */}
+      <AlertDialog open={declineDialogOpen} onOpenChange={setDeclineDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Decline Appointment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to decline this appointment for{" "}
+              <strong>
+                {pendingAction?.appointment &&
+                  getPatientName(
+                    pendingAction.appointment.patientId,
+                    pendingAction.appointment,
+                  )}
+              </strong>
+              ?
+              <br />
+              <br />
+              This will send a notification to the patient informing them that
+              their appointment request has been declined.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelAction}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmAction}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Decline Appointment
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Check In Dialog */}
+      <AlertDialog open={checkInDialogOpen} onOpenChange={setCheckInDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Check In Patient</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to check in{" "}
+              <strong>
+                {pendingAction?.appointment &&
+                  getPatientName(
+                    pendingAction.appointment.patientId,
+                    pendingAction.appointment,
+                  )}
+              </strong>
+              ?
+              <br />
+              <br />
+              This will mark the appointment as ongoing and the patient as
+              checked in.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelAction}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmAction}>
+              Check In
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* No Show Dialog */}
+      <AlertDialog open={noShowDialogOpen} onOpenChange={setNoShowDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark as No Show</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to mark{" "}
+              <strong>
+                {pendingAction?.appointment &&
+                  getPatientName(
+                    pendingAction.appointment.patientId,
+                    pendingAction.appointment,
+                  )}
+              </strong>{" "}
+              as no-show?
+              <br />
+              <br />
+              This will send a notification to the patient and mark the
+              appointment as missed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelAction}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmAction}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Mark as No Show
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Cancel Appointment Dialog */}
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Appointment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel the appointment for{" "}
+              <strong>
+                {pendingAction?.appointment &&
+                  getPatientName(
+                    pendingAction.appointment.patientId,
+                    pendingAction.appointment,
+                  )}
+              </strong>
+              ?
+              <br />
+              <br />
+              This action cannot be undone. The appointment will be moved to the
+              cancelled tab.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelAction}>
+              Go Back
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmAction}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Cancel Appointment
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Complete Appointment Dialog */}
+      <AlertDialog
+        open={completeDialogOpen}
+        onOpenChange={setCompleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Complete Appointment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to mark the appointment for{" "}
+              <strong>
+                {pendingAction?.appointment &&
+                  getPatientName(
+                    pendingAction.appointment.patientId,
+                    pendingAction.appointment,
+                  )}
+              </strong>{" "}
+              as completed?
+              <br />
+              <br />
+              This will move the appointment to the completed tab.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelAction}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmAction}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Complete Appointment
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

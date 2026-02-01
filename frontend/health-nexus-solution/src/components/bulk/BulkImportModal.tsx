@@ -272,7 +272,7 @@ export default function BulkImportModal({
             "phone",
             "date_of_birth",
             "sex",
-            "home_address",
+            "address",
             "marital_status",
             "religion",
           ]
@@ -418,7 +418,7 @@ export default function BulkImportModal({
                     </p>
                     <p className="text-xs text-blue-800">
                       {type === "patients"
-                        ? "first_name, last_name, email, phone, date_of_birth, sex, home_address, religion"
+                        ? "first_name, last_name, email, phone, date_of_birth, sex, address, religion"
                         : "first_name, last_name, email, phone, role"}
                     </p>
                     <p className="text-xs text-blue-700 mt-2">

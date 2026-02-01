@@ -146,6 +146,14 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
   const handleTimeSelect = (time: string) => {
     if (disabled) return;
     setCurrentSelectedTime(time);
+
+    // Auto-trigger onDateTimeSelect when both date and time are selected
+    if (!dateOnlyMode && !timeOnlyMode && currentSelectedDate) {
+      // Small delay for visual feedback
+      setTimeout(() => {
+        onDateTimeSelect(currentSelectedDate, time);
+      }, 300);
+    }
   };
 
   const handleConfirm = () => {
@@ -182,12 +190,12 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
           {dateOnlyMode
             ? "Please select your preferred appointment date 📅:"
             : timeOnlyMode
-            ? `Please select your preferred time slot for ${
-                selectedDate && !isNaN(selectedDate.getTime())
-                  ? format(selectedDate, "MM/dd/yyyy")
-                  : "your appointment"
-              } ⏰:`
-            : "Please select your preferred appointment date and time 📅 ⏰:"}
+              ? `Please select your preferred time slot for ${
+                  selectedDate && !isNaN(selectedDate.getTime())
+                    ? format(selectedDate, "MM/dd/yyyy")
+                    : "your appointment"
+                } ⏰:`
+              : "Please select your preferred appointment date and time 📅 ⏰:"}
         </span>
       </div>
 
@@ -270,7 +278,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
             currentSelectedDate &&
             currentSelectedTime)) && (
           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg min-w-0">
-            <div className="flex items-start gap-2 mb-2">
+            <div className="flex items-start gap-2">
               <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
               <span className="text-sm font-medium text-green-800 break-words">
                 {dateOnlyMode
@@ -281,39 +289,18 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                         : "Invalid date"
                     }`
                   : timeOnlyMode
-                  ? `✅ Time selected: ${currentSelectedTime} on ${
-                      selectedDate && !isNaN(selectedDate.getTime())
-                        ? format(selectedDate, "MM/dd/yyyy")
-                        : "Invalid date"
-                    }`
-                  : `✅ Appointment set for ${
-                      currentSelectedDate &&
-                      !isNaN(currentSelectedDate.getTime())
-                        ? format(currentSelectedDate, "MM/dd/yyyy")
-                        : "Invalid date"
-                    } at ${currentSelectedTime || "No time"}`}
+                    ? `✅ Time selected: ${currentSelectedTime} on ${
+                        selectedDate && !isNaN(selectedDate.getTime())
+                          ? format(selectedDate, "MM/dd/yyyy")
+                          : "Invalid date"
+                      }`
+                    : `✅ Appointment set for ${
+                        currentSelectedDate &&
+                        !isNaN(currentSelectedDate.getTime())
+                          ? format(currentSelectedDate, "MM/dd/yyyy")
+                          : "Invalid date"
+                      } at ${currentSelectedTime || "No time"}`}
               </span>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-2 mt-3">
-              <button
-                onClick={handleConfirm}
-                disabled={disabled}
-                className="flex-1 bg-[#79c942] text-white px-4 py-2 rounded text-sm font-medium hover:bg-[#6bb836] transition-colors min-w-0"
-              >
-                {dateOnlyMode
-                  ? "Continue with Date"
-                  : timeOnlyMode
-                  ? "Continue with Time"
-                  : "Confirm Appointment"}
-              </button>
-              <button
-                onClick={handleCancel}
-                disabled={disabled}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded text-sm hover:bg-gray-50 transition-colors flex items-center justify-center"
-              >
-                <X className="w-4 h-4" />
-              </button>
             </div>
           </div>
         )}
