@@ -105,16 +105,16 @@ const MedicalCertificateGenerator: React.FC<
   // Debug log to check what certificates are being passed
   console.log(
     "MedicalCertificateGenerator - savedCertificates:",
-    savedCertificates
+    savedCertificates,
   );
   console.log("MedicalCertificateGenerator - patient:", patient);
   console.log(
     "MedicalCertificateGenerator - onSaveCertificate function:",
-    typeof onSaveCertificate
+    typeof onSaveCertificate,
   );
   console.log(
     "MedicalCertificateGenerator - onDeleteCertificate function:",
-    typeof onDeleteCertificate
+    typeof onDeleteCertificate,
   );
   const { currentUser } = useClinic();
 
@@ -154,7 +154,7 @@ const MedicalCertificateGenerator: React.FC<
       patientAge: patient.date_of_birth
         ? String(
             new Date().getFullYear() -
-              new Date(patient.date_of_birth).getFullYear()
+              new Date(patient.date_of_birth).getFullYear(),
           )
         : "",
       patientAddress: patient.address || "",
@@ -165,7 +165,7 @@ const MedicalCertificateGenerator: React.FC<
       restFromDate: format(new Date(), "yyyy-MM-dd"),
       restToDate: format(
         new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        "yyyy-MM-dd"
+        "yyyy-MM-dd",
       ), // 7 days from now
       fitForWork: "unfit",
       limitations: "",
@@ -216,13 +216,13 @@ const MedicalCertificateGenerator: React.FC<
         if (response.data && Array.isArray(response.data)) {
           // Try different ways to match the doctor
           let doctor = response.data.find(
-            (d: DoctorInfo) => d.id === parseInt(currentUser.id)
+            (d: DoctorInfo) => d.id === parseInt(currentUser.id),
           );
 
           // If not found by ID, try to match by email
           if (!doctor && currentUser.email) {
             doctor = response.data.find(
-              (d: DoctorInfo) => d.email === currentUser.email
+              (d: DoctorInfo) => d.email === currentUser.email,
             );
           }
 
@@ -231,14 +231,14 @@ const MedicalCertificateGenerator: React.FC<
             doctor = response.data.find(
               (d: DoctorInfo) =>
                 `${d.first_name} ${d.last_name}`.toLowerCase() ===
-                currentUser.name.toLowerCase()
+                currentUser.name.toLowerCase(),
             );
           }
 
           // If still not found, use the first doctor (for demo purposes)
           if (!doctor && response.data.length > 0) {
             console.warn(
-              "No matching doctor found, using first doctor from the list"
+              "No matching doctor found, using first doctor from the list",
             );
             doctor = response.data[0];
           }
@@ -280,7 +280,7 @@ const MedicalCertificateGenerator: React.FC<
     if (showForm) {
       setLoading(true);
       Promise.all([fetchClinicInfo(), fetchDoctorInfo()]).finally(() =>
-        setLoading(false)
+        setLoading(false),
       );
     }
   }, [showForm, currentUser]);
@@ -295,7 +295,7 @@ const MedicalCertificateGenerator: React.FC<
 
   const handleInputChange = (
     field: keyof MedicalCertificateData,
-    value: string
+    value: string,
   ) => {
     setCertificateData((prev) => ({
       ...prev,
@@ -304,7 +304,7 @@ const MedicalCertificateGenerator: React.FC<
   };
   const handleSelectChange = (
     field: keyof MedicalCertificateData,
-    value: string
+    value: string,
   ) => {
     setCertificateData((prev) => ({
       ...prev,
@@ -339,14 +339,15 @@ const MedicalCertificateGenerator: React.FC<
 
       // Ensure patient ID is available
       const patientId = patient.id || patient.patient_id;
-      
+
       console.log("Patient object:", patient);
       console.log("Patient ID:", patientId);
-      
+
       if (!patientId) {
         const { toast } = await import("sonner");
         toast.error("Patient ID Required", {
-          description: "This patient must be saved to the database before generating a certificate. Please ensure the patient is properly registered first.",
+          description:
+            "This patient must be saved to the database before generating a certificate. Please ensure the patient is properly registered first.",
         });
         setLoading(false);
         return;
@@ -358,7 +359,7 @@ const MedicalCertificateGenerator: React.FC<
         description: `${certificateType
           .replace("_", " ")
           .replace(/\b\w/g, (l) =>
-            l.toUpperCase()
+            l.toUpperCase(),
           )} certificate for ${getPatientFullName()}`,
         certificate_type: certificateType,
         purpose:
@@ -382,7 +383,7 @@ Fitness Status: ${certificateData.fitForWork}
       // Save to database via API
       const response = await axiosInstance.post(
         "/medical-documents/medical-certificates/",
-        apiData
+        apiData,
       );
 
       console.log("Certificate saved to database:", response.data);
@@ -454,7 +455,8 @@ Fitness Status: ${certificateData.fitForWork}
       if (!patientId) {
         const { toast } = await import("sonner");
         toast.error("Patient ID is required", {
-          description: "Cannot send certificate via email without a valid patient ID",
+          description:
+            "Cannot send certificate via email without a valid patient ID",
         });
         return;
       }
@@ -465,7 +467,7 @@ Fitness Status: ${certificateData.fitForWork}
         description: `${certificateType
           .replace("_", " ")
           .replace(/\b\w/g, (l) =>
-            l.toUpperCase()
+            l.toUpperCase(),
           )} certificate for ${getPatientFullName()}`,
         certificate_type: certificateType,
         purpose:
@@ -489,7 +491,7 @@ Fitness Status: ${certificateData.fitForWork}
       // Save to database via API first
       const dbResponse = await axiosInstance.post(
         "/medical-documents/medical-certificates/",
-        apiData
+        apiData,
       );
       console.log("Certificate saved to database:", dbResponse.data);
 
@@ -516,18 +518,18 @@ Fitness Status: ${certificateData.fitForWork}
           certificateData.fitForWork === "unfit"
             ? "Sick Leave Certificate"
             : certificateData.fitForWork === "limited"
-            ? "Fitness Certificate (Limited)"
-            : certificateData.fitForWork === "fit_physical_activities"
-            ? "Physical Activities Certificate"
-            : "Fitness Certificate",
+              ? "Fitness Certificate (Limited)"
+              : certificateData.fitForWork === "fit_physical_activities"
+                ? "Physical Activities Certificate"
+                : "Fitness Certificate",
         doctor_name: certificateData.doctorName,
         hospital_name: certificateData.hospitalName,
         subject: `Medical Certificate - ${
           certificateData.fitForWork === "unfit"
             ? "Sick Leave Certificate"
             : certificateData.fitForWork === "limited"
-            ? "Fitness Certificate (Limited)"
-            : "Fitness Certificate"
+              ? "Fitness Certificate (Limited)"
+              : "Fitness Certificate"
         }`,
         email_body: `Dear ${getPatientFullName()},
 
@@ -538,8 +540,8 @@ Certificate Details:
           certificateData.fitForWork === "unfit"
             ? "Sick Leave Certificate"
             : certificateData.fitForWork === "limited"
-            ? "Fitness Certificate (Limited)"
-            : "Fitness Certificate"
+              ? "Fitness Certificate (Limited)"
+              : "Fitness Certificate"
         }
 - Date Issued: ${format(new Date(certificateData.dateIssued), "MMMM dd, yyyy")}
 - Issued by: ${certificateData.doctorName}
@@ -552,7 +554,7 @@ ${certificateData.hospitalName}`,
 
       await axiosInstance.post(
         "/medical-documents/send-medical-certificate-email/",
-        emailData
+        emailData,
       );
 
       setShowForm(false);
@@ -564,7 +566,7 @@ ${certificateData.hospitalName}`,
         "Medical certificate saved and sent via email successfully!",
         {
           description: `Email sent to ${patient.email}`,
-        }
+        },
       );
     } catch (error) {
       console.error("Error saving and sending certificate:", error);
@@ -674,7 +676,7 @@ ${certificateData.hospitalName}`,
                       orientation: "portrait",
                       margin: 10,
                       scale: 2,
-                    }
+                    },
                   );
                 }}
               >
@@ -736,7 +738,7 @@ ${certificateData.hospitalName}`,
                         | "fit"
                         | "unfit"
                         | "limited"
-                        | "fit_physical_activities"
+                        | "fit_physical_activities",
                     ) => handleSelectChange("fitForWork", value)}
                   >
                     <SelectTrigger>
@@ -809,7 +811,7 @@ ${certificateData.hospitalName}`,
                           onChange={(e) =>
                             handleInputChange(
                               "medicalRecommendations",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           placeholder="Enter medical recommendations"
@@ -965,8 +967,8 @@ ${certificateData.hospitalName}`,
                                 ? String(
                                     new Date().getFullYear() -
                                       new Date(
-                                        patient.date_of_birth
-                                      ).getFullYear()
+                                        patient.date_of_birth,
+                                      ).getFullYear(),
                                   )
                                 : ""),
                             patientAddress:
@@ -1007,7 +1009,7 @@ ${certificateData.hospitalName}`,
                               orientation: "portrait",
                               margin: 10,
                               scale: 2,
-                            }
+                            },
                           );
                         } else {
                           console.error("No certificate content available");
@@ -1064,8 +1066,8 @@ ${certificateData.hospitalName}`,
                                 ? String(
                                     new Date().getFullYear() -
                                       new Date(
-                                        patient.date_of_birth
-                                      ).getFullYear()
+                                        patient.date_of_birth,
+                                      ).getFullYear(),
                                   )
                                 : ""),
                             patientAddress:
@@ -1115,11 +1117,11 @@ ${certificateData.hospitalName}`,
                               orientation: "portrait",
                               margin: 10,
                               scale: 2,
-                            }
+                            },
                           );
                         } else {
                           console.error(
-                            "No certificate content available for download"
+                            "No certificate content available for download",
                           );
                         }
                       }}

@@ -679,20 +679,29 @@ const PrescriptionManagement: React.FC = () => {
 
     // If patient not found in list, assume they are archived
     if (!patient) {
-      console.log(`Patient not found in list (likely archived): ${request.patient_name}`);
+      console.log(
+        `Patient not found in list (likely archived): ${request.patient_name}`,
+      );
       return true; // Treat as deleted/archived
     }
 
     const isDeleted = patient?.is_deleted === true;
-    
+
     // Debug logging
-    if (request.patient_name.toLowerCase().includes('ana')) {
-      console.log('=== CHECKING ANA BETZ (Prescription) ===');
-      console.log('Request patient:', request.patient_name);
-      console.log('Request DOB:', request.date_of_birth);
-      console.log('Found patient:', patient);
-      console.log('Is deleted:', isDeleted);
-      console.log('Available patients:', clinicPatients.map(p => ({ name: p.name, dob: p.date_of_birth, is_deleted: p.is_deleted })));
+    if (request.patient_name.toLowerCase().includes("ana")) {
+      console.log("=== CHECKING ANA BETZ (Prescription) ===");
+      console.log("Request patient:", request.patient_name);
+      console.log("Request DOB:", request.date_of_birth);
+      console.log("Found patient:", patient);
+      console.log("Is deleted:", isDeleted);
+      console.log(
+        "Available patients:",
+        clinicPatients.map((p) => ({
+          name: p.name,
+          dob: p.date_of_birth,
+          is_deleted: p.is_deleted,
+        })),
+      );
     }
 
     return isDeleted;

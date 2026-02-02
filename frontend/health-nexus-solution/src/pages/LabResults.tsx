@@ -992,8 +992,8 @@ const LabResults = () => {
     }
     // Find patient by name
     const patient = patients.find((p) => {
-      const patientName = (p.name || '').toLowerCase().trim();
-      const resultPatientName = (result.patientName || '').toLowerCase().trim();
+      const patientName = (p.name || "").toLowerCase().trim();
+      const resultPatientName = (result.patientName || "").toLowerCase().trim();
       return patientName === resultPatientName;
     });
     return patient?.is_deleted === true;

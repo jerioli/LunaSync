@@ -446,20 +446,29 @@ const MedicalCertificateManagement: React.FC = () => {
 
     // If patient not found in list, assume they are archived
     if (!patient) {
-      console.log(`Patient not found in list (likely archived): ${request.patient_name}`);
+      console.log(
+        `Patient not found in list (likely archived): ${request.patient_name}`,
+      );
       return true; // Treat as deleted/archived
     }
 
     const isDeleted = patient?.is_deleted === true;
-    
+
     // Debug logging
-    if (request.patient_name.toLowerCase().includes('ana')) {
-      console.log('=== CHECKING ANA BETZ ===');
-      console.log('Request patient:', request.patient_name);
-      console.log('Request DOB:', request.date_of_birth);
-      console.log('Found patient:', patient);
-      console.log('Is deleted:', isDeleted);
-      console.log('Available patients:', patients.map(p => ({ name: p.name, dob: p.date_of_birth, is_deleted: p.is_deleted })));
+    if (request.patient_name.toLowerCase().includes("ana")) {
+      console.log("=== CHECKING ANA BETZ ===");
+      console.log("Request patient:", request.patient_name);
+      console.log("Request DOB:", request.date_of_birth);
+      console.log("Found patient:", patient);
+      console.log("Is deleted:", isDeleted);
+      console.log(
+        "Available patients:",
+        patients.map((p) => ({
+          name: p.name,
+          dob: p.date_of_birth,
+          is_deleted: p.is_deleted,
+        })),
+      );
     }
 
     return isDeleted;
@@ -485,7 +494,12 @@ const MedicalCertificateManagement: React.FC = () => {
       // Exclude archived patients
       const isPatientArchived = isRequestPatientSoftDeleted(request);
 
-      return matchesSearch && matchesStatus && matchesDeliveryMethod && !isPatientArchived;
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesDeliveryMethod &&
+        !isPatientArchived
+      );
     }),
   );
 

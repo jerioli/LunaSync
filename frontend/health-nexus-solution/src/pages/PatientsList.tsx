@@ -36,7 +36,7 @@ import {
   getPatientInitial,
 } from "@/utils/patientNameUtils";
 import "@/utils/sessionManager";
-import axios from "axios";
+import { axiosInstance } from "@/services/api";
 import { format } from "date-fns";
 import {
   Archive,
@@ -261,7 +261,7 @@ const PatientsList = () => {
       // Archive patients one by one
       for (const patientId of selectedIds) {
         try {
-          await axios.delete(`patients/${patientId}/`);
+          await axiosInstance.delete(`/patients/${patientId}/`);
           successCount++;
         } catch (error) {
           console.error(`Failed to archive patient ${patientId}:`, error);

@@ -19954,3 +19954,404 @@ INFO 2026-02-02 23:58:25,658 autoreload 34580 25720 Watching for file changes wi
 2026-02-03 00:41:46,971 - root - INFO - Request: {"method": "GET", "path": "/api/medical-certificates/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
 2026-02-03 00:41:46,976 - django.server - INFO - "GET /api/clinics/current/ HTTP/1.1" 200 1082
 2026-02-03 00:41:47,000 - django.server - INFO - "GET /api/medical-certificates/?_t=1770050506181 HTTP/1.1" 200 76914
+2026-02-03 01:44:38,483 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\security_app\security_middleware.py changed, reloading.
+INFO 2026-02-03 01:44:43,670 autoreload 16428 33212 Watching for file changes with StatReloader
+INFO 2026-02-03 02:31:43,945 autoreload 31860 31452 Watching for file changes with StatReloader
+2026-02-03 02:32:16,578 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:16,592 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 374
+2026-02-03 02:32:16,676 - root - INFO - Request: {"method": "GET", "path": "/api/security-status/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:16,691 - django.server - INFO - "GET /api/security-status/ HTTP/1.1" 200 1097
+2026-02-03 02:32:17,043 - django.server - INFO - "OPTIONS /api/inventory/medicines/stats/ HTTP/1.1" 200 0
+2026-02-03 02:32:17,044 - django.server - INFO - "OPTIONS /api/inventory/medicines/ HTTP/1.1" 200 0
+2026-02-03 02:32:17,045 - django.server - INFO - "OPTIONS /api/staff/list/ HTTP/1.1" 200 0
+2026-02-03 02:32:17,045 - django.server - INFO - "OPTIONS /api/inventory/low-stock/ HTTP/1.1" 200 0
+2026-02-03 02:32:17,047 - django.server - INFO - "OPTIONS /api/appointments/list/ HTTP/1.1" 200 0
+2026-02-03 02:32:17,048 - django.server - INFO - "OPTIONS /api/patients/ HTTP/1.1" 200 0
+2026-02-03 02:32:17,057 - root - INFO - Request: {"method": "GET", "path": "/api/inventory/medicines/stats/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:17,060 - root - INFO - Request: {"method": "GET", "path": "/api/inventory/medicines/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:17,093 - django.server - INFO - "GET /api/inventory/medicines/ HTTP/1.1" 200 443
+2026-02-03 02:32:17,100 - django.server - INFO - "GET /api/inventory/medicines/stats/ HTTP/1.1" 200 555
+2026-02-03 02:32:17,109 - root - INFO - Request: {"method": "GET", "path": "/api/staff/list/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:17,117 - root - INFO - Request: {"method": "GET", "path": "/api/inventory/low-stock/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:17,121 - django.server - INFO - "GET /api/staff/list/ HTTP/1.1" 200 5219
+2026-02-03 02:32:17,129 - root - INFO - Request: {"method": "GET", "path": "/api/appointments/list/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:17,130 - appointments.views - INFO - Starting list method...
+2026-02-03 02:32:17,130 - appointments.views - INFO - Starting to fetch appointments...
+2026-02-03 02:32:17,131 - appointments.views - INFO - Successfully accessed database
+2026-02-03 02:32:17,136 - appointments.views - INFO - Found 24 appointments after filtering
+2026-02-03 02:32:17,140 - django.server - INFO - "GET /api/inventory/low-stock/ HTTP/1.1" 200 22
+2026-02-03 02:32:17,149 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:17,151 - appointments.views - INFO - Sample appointment: id=6, status=cancelled, date=2025-11-21
+2026-02-03 02:32:17,151 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1770057137.1513596, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:17,151 - appointments.views - INFO - Patient: None
+2026-02-03 02:32:17,152 - appointments.views - INFO - Doctor: Jeri (doctor)
+2026-02-03 02:32:17,152 - appointments.views - INFO - Appointment Type: Consultation
+2026-02-03 02:32:17,152 - appointments.views - INFO - Sample appointment: id=7, status=cancelled, date=2025-11-21
+2026-02-03 02:32:17,153 - appointments.views - INFO - Patient: None
+2026-02-03 02:32:17,153 - appointments.views - INFO - Doctor: Jeri (doctor)
+2026-02-03 02:32:17,153 - appointments.views - INFO - Appointment Type: Consultation
+2026-02-03 02:32:17,154 - appointments.views - INFO - Sample appointment: id=9, status=cancelled, date=2025-11-23
+2026-02-03 02:32:17,154 - appointments.views - INFO - Patient: Queenie Parl Torrejos
+2026-02-03 02:32:17,154 - appointments.views - INFO - Doctor: Jeri (doctor)
+2026-02-03 02:32:17,154 - appointments.views - INFO - Appointment Type: Follow-up
+2026-02-03 02:32:17,161 - appointments.views - INFO - Testing serialization with first appointment: 6
+2026-02-03 02:32:17,163 - appointments.views - INFO - Successfully serialized first appointment: {'id': 6, 'firstName': None, 'middleInitial': None, 'lastName': None, 'suffix': None, 'patient_name': 'Miggie C Oli', 'patient_id': None, 'patient_email': 'miggie@gmail.com', 'patient_phone': '09857463535', 'date_of_birth': '2001-12-12', 'gender': 'male', 'address': 'gma cavite', 'marital_status': 'single', 'appointment_type': 'Consultation', 'doctor_id': 3, 'date': '2025-11-21', 'time': '13:00:00', 'status': 'cancelled', 'confirmation_method': 'email', 'created_at': '2025-11-21T12:42:16.083947+08:00', 'display_patient_name': 'Miggie C Oli', 'display_doctor_name': 'Jeri Oli', 'display_time': '01:00 PM', 'display_date': 'November 21, 2025', 'patient_is_deleted': False, 'doctor': 3, 'doctor_name': 'Jeri Oli', 'patient': None}
+2026-02-03 02:32:17,177 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 15677
+2026-02-03 02:32:17,210 - appointments.views - INFO - Successfully serialized all appointments. Count: 24
+2026-02-03 02:32:17,221 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 17257
+2026-02-03 02:32:19,891 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:19,892 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1770057139.892267, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:19,914 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 15677
+2026-02-03 02:32:30,946 - django.server - INFO - "OPTIONS /api/patients/14/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,256 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/14/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,257 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/14/", "timestamp": 1770057151.2570083, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,280 - django.server - INFO - "DELETE /api/patients/14/ HTTP/1.1" 200 77
+2026-02-03 02:32:31,284 - django.server - INFO - "OPTIONS /api/patients/32/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,290 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/32/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,290 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/32/", "timestamp": 1770057151.2905333, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,306 - django.server - INFO - "DELETE /api/patients/32/ HTTP/1.1" 200 74
+2026-02-03 02:32:31,310 - django.server - INFO - "OPTIONS /api/patients/36/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,317 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/36/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,317 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/36/", "timestamp": 1770057151.3177702, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,333 - django.server - INFO - "DELETE /api/patients/36/ HTTP/1.1" 200 76
+2026-02-03 02:32:31,337 - django.server - INFO - "OPTIONS /api/patients/25/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,344 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/25/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,344 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/25/", "timestamp": 1770057151.3446653, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,363 - django.server - INFO - "DELETE /api/patients/25/ HTTP/1.1" 200 78
+2026-02-03 02:32:31,368 - django.server - INFO - "OPTIONS /api/patients/30/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,374 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/30/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,374 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/30/", "timestamp": 1770057151.374873, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,389 - django.server - INFO - "DELETE /api/patients/30/ HTTP/1.1" 200 80
+2026-02-03 02:32:31,392 - django.server - INFO - "OPTIONS /api/patients/35/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,399 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/35/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,399 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/35/", "timestamp": 1770057151.3996828, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,414 - django.server - INFO - "DELETE /api/patients/35/ HTTP/1.1" 200 84
+2026-02-03 02:32:31,418 - django.server - INFO - "OPTIONS /api/patients/13/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,423 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/13/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,424 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/13/", "timestamp": 1770057151.4239774, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,440 - django.server - INFO - "DELETE /api/patients/13/ HTTP/1.1" 200 79
+2026-02-03 02:32:31,445 - django.server - INFO - "OPTIONS /api/patients/11/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,451 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/11/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,451 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/11/", "timestamp": 1770057151.451783, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,467 - django.server - INFO - "DELETE /api/patients/11/ HTTP/1.1" 200 84
+2026-02-03 02:32:31,470 - django.server - INFO - "OPTIONS /api/patients/19/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,476 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/19/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,476 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/19/", "timestamp": 1770057151.4766269, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,491 - django.server - INFO - "DELETE /api/patients/19/ HTTP/1.1" 200 87
+2026-02-03 02:32:31,494 - django.server - INFO - "OPTIONS /api/patients/17/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,499 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/17/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,499 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/17/", "timestamp": 1770057151.4997933, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,514 - django.server - INFO - "DELETE /api/patients/17/ HTTP/1.1" 200 81
+2026-02-03 02:32:31,518 - django.server - INFO - "OPTIONS /api/patients/23/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,525 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/23/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,525 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/23/", "timestamp": 1770057151.5256593, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,542 - django.server - INFO - "DELETE /api/patients/23/ HTTP/1.1" 200 91
+2026-02-03 02:32:31,546 - django.server - INFO - "OPTIONS /api/patients/34/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,552 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/34/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,552 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/34/", "timestamp": 1770057151.5527909, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,568 - django.server - INFO - "DELETE /api/patients/34/ HTTP/1.1" 200 92
+2026-02-03 02:32:31,572 - django.server - INFO - "OPTIONS /api/patients/21/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,577 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/21/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,577 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/21/", "timestamp": 1770057151.5777721, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,593 - django.server - INFO - "DELETE /api/patients/21/ HTTP/1.1" 200 88
+2026-02-03 02:32:31,596 - django.server - INFO - "OPTIONS /api/patients/31/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,602 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/31/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,602 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/31/", "timestamp": 1770057151.602528, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,616 - django.server - INFO - "DELETE /api/patients/31/ HTTP/1.1" 200 96
+2026-02-03 02:32:31,620 - django.server - INFO - "OPTIONS /api/patients/8/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,625 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/8/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,625 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/8/", "timestamp": 1770057151.6258252, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,643 - django.server - INFO - "DELETE /api/patients/8/ HTTP/1.1" 200 88
+2026-02-03 02:32:31,647 - django.server - INFO - "OPTIONS /api/patients/24/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,652 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/24/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,652 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/24/", "timestamp": 1770057151.6528811, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,667 - django.server - INFO - "DELETE /api/patients/24/ HTTP/1.1" 200 81
+2026-02-03 02:32:31,670 - django.server - INFO - "OPTIONS /api/patients/9/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,675 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/9/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,676 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/9/", "timestamp": 1770057151.6761196, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,692 - django.server - INFO - "DELETE /api/patients/9/ HTTP/1.1" 200 89
+2026-02-03 02:32:31,697 - django.server - INFO - "OPTIONS /api/patients/6/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,704 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/6/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,704 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/6/", "timestamp": 1770057151.7047942, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,722 - django.server - INFO - "DELETE /api/patients/6/ HTTP/1.1" 200 82
+2026-02-03 02:32:31,726 - django.server - INFO - "OPTIONS /api/patients/15/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,731 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/15/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,732 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/15/", "timestamp": 1770057151.7323318, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,747 - django.server - INFO - "DELETE /api/patients/15/ HTTP/1.1" 200 86
+2026-02-03 02:32:31,751 - django.server - INFO - "OPTIONS /api/patients/18/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,756 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/18/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,757 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/18/", "timestamp": 1770057151.757472, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,772 - django.server - INFO - "DELETE /api/patients/18/ HTTP/1.1" 200 83
+2026-02-03 02:32:31,775 - django.server - INFO - "OPTIONS /api/patients/3/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,780 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/3/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,781 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/3/", "timestamp": 1770057151.7812438, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,795 - django.server - INFO - "DELETE /api/patients/3/ HTTP/1.1" 200 88
+2026-02-03 02:32:31,800 - django.server - INFO - "OPTIONS /api/patients/33/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,804 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/33/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,805 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/33/", "timestamp": 1770057151.8053544, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,820 - django.server - INFO - "DELETE /api/patients/33/ HTTP/1.1" 200 97
+2026-02-03 02:32:31,823 - django.server - INFO - "OPTIONS /api/patients/7/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,829 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/7/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,830 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/7/", "timestamp": 1770057151.8304632, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,853 - django.server - INFO - "DELETE /api/patients/7/ HTTP/1.1" 200 79
+2026-02-03 02:32:31,860 - django.server - INFO - "OPTIONS /api/patients/4/ HTTP/1.1" 200 0
+2026-02-03 02:32:31,876 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/4/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,880 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/4/", "timestamp": 1770057151.8799107, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,912 - django.server - INFO - "DELETE /api/patients/4/ HTTP/1.1" 200 87
+2026-02-03 02:32:31,927 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:31,927 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1770057151.927883, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:31,992 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 17261
+2026-02-03 02:32:46,688 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/14/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:46,689 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/14/", "timestamp": 1770057166.689036, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:46,698 - django.request - WARNING - Not Found: /api/patients/14/
+2026-02-03 02:32:46,699 - django.server - WARNING - "DELETE /api/patients/14/ HTTP/1.1" 404 23
+2026-02-03 02:32:46,709 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/32/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:46,709 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/32/", "timestamp": 1770057166.7097886, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:46,715 - django.request - WARNING - Not Found: /api/patients/32/
+2026-02-03 02:32:46,716 - django.server - WARNING - "DELETE /api/patients/32/ HTTP/1.1" 404 23
+2026-02-03 02:32:46,724 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/36/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:46,724 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/36/", "timestamp": 1770057166.7246413, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:46,729 - django.request - WARNING - Not Found: /api/patients/36/
+2026-02-03 02:32:46,729 - django.server - WARNING - "DELETE /api/patients/36/ HTTP/1.1" 404 23
+2026-02-03 02:32:46,738 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/25/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:46,738 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/25/", "timestamp": 1770057166.7386823, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:46,743 - django.request - WARNING - Not Found: /api/patients/25/
+2026-02-03 02:32:46,743 - django.server - WARNING - "DELETE /api/patients/25/ HTTP/1.1" 404 23
+2026-02-03 02:32:46,752 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/30/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:46,753 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/30/", "timestamp": 1770057166.7532365, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:46,758 - django.request - WARNING - Not Found: /api/patients/30/
+2026-02-03 02:32:46,759 - django.server - WARNING - "DELETE /api/patients/30/ HTTP/1.1" 404 23
+2026-02-03 02:32:46,768 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/35/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:46,768 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/35/", "timestamp": 1770057166.7686749, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:46,772 - django.request - WARNING - Not Found: /api/patients/35/
+2026-02-03 02:32:46,773 - django.server - WARNING - "DELETE /api/patients/35/ HTTP/1.1" 404 23
+2026-02-03 02:32:46,781 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/13/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:46,782 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/13/", "timestamp": 1770057166.7827199, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:46,787 - django.request - WARNING - Not Found: /api/patients/13/
+2026-02-03 02:32:46,787 - django.server - WARNING - "DELETE /api/patients/13/ HTTP/1.1" 404 23
+2026-02-03 02:32:46,794 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/11/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:46,795 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/11/", "timestamp": 1770057166.7949924, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:46,801 - django.request - WARNING - Not Found: /api/patients/11/
+2026-02-03 02:32:46,801 - django.server - WARNING - "DELETE /api/patients/11/ HTTP/1.1" 404 23
+2026-02-03 02:32:46,808 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/19/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:46,809 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/19/", "timestamp": 1770057166.8093047, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:46,814 - django.request - WARNING - Not Found: /api/patients/19/
+2026-02-03 02:32:46,816 - django.server - WARNING - "DELETE /api/patients/19/ HTTP/1.1" 404 23
+2026-02-03 02:32:46,823 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/17/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:46,824 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/17/", "timestamp": 1770057166.8243442, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:46,836 - django.request - WARNING - Not Found: /api/patients/17/
+2026-02-03 02:32:46,838 - django.server - WARNING - "DELETE /api/patients/17/ HTTP/1.1" 404 23
+2026-02-03 02:32:46,852 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/23/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:46,853 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/23/", "timestamp": 1770057166.85335, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:46,860 - django.request - WARNING - Not Found: /api/patients/23/
+2026-02-03 02:32:46,861 - django.server - WARNING - "DELETE /api/patients/23/ HTTP/1.1" 404 23
+2026-02-03 02:32:46,874 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/34/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:46,875 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/34/", "timestamp": 1770057166.8751163, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:46,887 - django.request - WARNING - Not Found: /api/patients/34/
+2026-02-03 02:32:46,887 - django.server - WARNING - "DELETE /api/patients/34/ HTTP/1.1" 404 23
+2026-02-03 02:32:46,895 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/21/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:46,896 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/21/", "timestamp": 1770057166.8960848, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:46,901 - django.request - WARNING - Not Found: /api/patients/21/
+2026-02-03 02:32:46,902 - django.server - WARNING - "DELETE /api/patients/21/ HTTP/1.1" 404 23
+2026-02-03 02:32:46,909 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/31/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:46,910 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/31/", "timestamp": 1770057166.9100826, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:46,914 - django.request - WARNING - Not Found: /api/patients/31/
+2026-02-03 02:32:46,915 - django.server - WARNING - "DELETE /api/patients/31/ HTTP/1.1" 404 23
+2026-02-03 02:32:46,922 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/8/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:46,923 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/8/", "timestamp": 1770057166.9231205, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:46,927 - django.request - WARNING - Not Found: /api/patients/8/
+2026-02-03 02:32:46,928 - django.server - WARNING - "DELETE /api/patients/8/ HTTP/1.1" 404 23
+2026-02-03 02:32:46,936 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/24/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:46,937 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/24/", "timestamp": 1770057166.9371817, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:46,941 - django.request - WARNING - Not Found: /api/patients/24/
+2026-02-03 02:32:46,942 - django.server - WARNING - "DELETE /api/patients/24/ HTTP/1.1" 404 23
+2026-02-03 02:32:46,949 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/9/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:46,950 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/9/", "timestamp": 1770057166.9503772, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:46,954 - django.request - WARNING - Not Found: /api/patients/9/
+2026-02-03 02:32:46,955 - django.server - WARNING - "DELETE /api/patients/9/ HTTP/1.1" 404 23
+2026-02-03 02:32:46,962 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/6/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:46,963 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/6/", "timestamp": 1770057166.963327, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:46,967 - django.request - WARNING - Not Found: /api/patients/6/
+2026-02-03 02:32:46,968 - django.server - WARNING - "DELETE /api/patients/6/ HTTP/1.1" 404 23
+2026-02-03 02:32:46,975 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/15/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:46,976 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/15/", "timestamp": 1770057166.9761374, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:46,980 - django.request - WARNING - Not Found: /api/patients/15/
+2026-02-03 02:32:46,981 - django.server - WARNING - "DELETE /api/patients/15/ HTTP/1.1" 404 23
+2026-02-03 02:32:46,988 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/18/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:46,989 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/18/", "timestamp": 1770057166.9890761, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:46,993 - django.request - WARNING - Not Found: /api/patients/18/
+2026-02-03 02:32:46,993 - django.server - WARNING - "DELETE /api/patients/18/ HTTP/1.1" 404 23
+2026-02-03 02:32:47,001 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/3/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:47,002 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/3/", "timestamp": 1770057167.002369, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:47,006 - django.request - WARNING - Not Found: /api/patients/3/
+2026-02-03 02:32:47,007 - django.server - WARNING - "DELETE /api/patients/3/ HTTP/1.1" 404 23
+2026-02-03 02:32:47,016 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/33/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:47,016 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/33/", "timestamp": 1770057167.0167706, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:47,022 - django.request - WARNING - Not Found: /api/patients/33/
+2026-02-03 02:32:47,022 - django.server - WARNING - "DELETE /api/patients/33/ HTTP/1.1" 404 23
+2026-02-03 02:32:47,030 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/7/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:47,031 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/7/", "timestamp": 1770057167.0313385, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:47,035 - django.request - WARNING - Not Found: /api/patients/7/
+2026-02-03 02:32:47,036 - django.server - WARNING - "DELETE /api/patients/7/ HTTP/1.1" 404 23
+2026-02-03 02:32:47,043 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/4/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:47,044 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/4/", "timestamp": 1770057167.0440493, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:47,049 - django.request - WARNING - Not Found: /api/patients/4/
+2026-02-03 02:32:47,050 - django.server - WARNING - "DELETE /api/patients/4/ HTTP/1.1" 404 23
+2026-02-03 02:32:49,492 - root - INFO - Request: {"method": "GET", "path": "/api/patients/archived/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:49,493 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/patients/archived/", "timestamp": 1770057169.4932861, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:49,522 - django.server - INFO - "GET /api/patients/archived/ HTTP/1.1" 200 17261
+2026-02-03 02:32:52,507 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:52,508 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1770057172.5081224, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:52,547 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 17261
+2026-02-03 02:32:53,867 - django.server - INFO - "OPTIONS /api/doctors/ HTTP/1.1" 200 0
+2026-02-03 02:32:53,868 - django.server - INFO - "OPTIONS /api/receptionists/ HTTP/1.1" 200 0
+2026-02-03 02:32:53,872 - django.server - INFO - "OPTIONS /api/admins/ HTTP/1.1" 200 0
+2026-02-03 02:32:53,875 - root - INFO - Request: {"method": "GET", "path": "/api/staff/list/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:53,882 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:53,899 - django.server - INFO - "GET /api/staff/list/ HTTP/1.1" 200 5219
+2026-02-03 02:32:53,904 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 465
+2026-02-03 02:32:53,908 - root - INFO - Request: {"method": "GET", "path": "/api/receptionists/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:53,914 - root - INFO - Request: {"method": "GET", "path": "/api/admins/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:53,929 - django.server - INFO - "GET /api/receptionists/ HTTP/1.1" 200 494
+2026-02-03 02:32:53,952 - django.server - INFO - "GET /api/admins/ HTTP/1.1" 200 471
+2026-02-03 02:32:54,287 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:54,287 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1770057174.287776, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:54,324 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 17261
+2026-02-03 02:32:57,505 - django.server - INFO - "OPTIONS /api/clinic/ HTTP/1.1" 200 0
+2026-02-03 02:32:57,514 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:57,514 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1770057177.51489, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:57,518 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:57,565 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 1082
+2026-02-03 02:32:57,588 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 17261
+2026-02-03 02:32:57,608 - django.server - INFO - "OPTIONS /api/medical-documents/medical-certificates/?patient_id=14 HTTP/1.1" 200 0
+2026-02-03 02:32:57,617 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/medical-certificates/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:57,619 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/medical-documents/medical-certificates/", "timestamp": 1770057177.619208, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:57,629 - django.server - INFO - "GET /api/medical-documents/medical-certificates/?patient_id=14 HTTP/1.1" 200 636
+2026-02-03 02:32:57,635 - django.server - INFO - "OPTIONS /api/medical-documents/prescriptions/?patient_id=14 HTTP/1.1" 200 0
+2026-02-03 02:32:57,641 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/prescriptions/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:57,641 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/medical-documents/prescriptions/", "timestamp": 1770057177.6417732, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:57,650 - django.server - INFO - "GET /api/medical-documents/prescriptions/?patient_id=14 HTTP/1.1" 200 2
+2026-02-03 02:32:57,654 - django.server - INFO - "OPTIONS /api/medical-documents/soap-notes/?patient_id=14 HTTP/1.1" 200 0
+2026-02-03 02:32:57,659 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/soap-notes/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:57,659 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/medical-documents/soap-notes/", "timestamp": 1770057177.6598713, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:57,667 - django.server - INFO - "GET /api/medical-documents/soap-notes/?patient_id=14 HTTP/1.1" 200 2
+2026-02-03 02:32:57,671 - django.server - INFO - "OPTIONS /api/medical-documents/clinical-notes/?patient_id=14 HTTP/1.1" 200 0
+2026-02-03 02:32:57,677 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/clinical-notes/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:57,678 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/medical-documents/clinical-notes/", "timestamp": 1770057177.6781447, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:57,686 - django.server - INFO - "GET /api/medical-documents/clinical-notes/?patient_id=14 HTTP/1.1" 200 2
+2026-02-03 02:32:57,691 - django.server - INFO - "OPTIONS /api/medical-documents/lab-results/by_patient/?patient_id=14 HTTP/1.1" 200 0
+2026-02-03 02:32:57,701 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/by_patient/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:57,702 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/medical-documents/lab-results/by_patient/", "timestamp": 1770057177.7020664, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:57,707 - django.request - WARNING - Not Found: /api/medical-documents/lab-results/by_patient/
+2026-02-03 02:32:57,708 - django.server - WARNING - "GET /api/medical-documents/lab-results/by_patient/?patient_id=14 HTTP/1.1" 404 48
+2026-02-03 02:32:59,270 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:32:59,271 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1770057179.2716336, "client_ip": "127.0.0.1"}
+2026-02-03 02:32:59,304 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 17261
+2026-02-03 02:33:03,058 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/14/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:33:03,059 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/14/", "timestamp": 1770057183.0593007, "client_ip": "127.0.0.1"}
+2026-02-03 02:33:03,065 - django.request - WARNING - Not Found: /api/patients/14/
+2026-02-03 02:33:03,066 - django.server - WARNING - "DELETE /api/patients/14/ HTTP/1.1" 404 23
+2026-02-03 02:33:03,075 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/32/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:33:03,076 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/32/", "timestamp": 1770057183.0765061, "client_ip": "127.0.0.1"}
+2026-02-03 02:33:03,082 - django.request - WARNING - Not Found: /api/patients/32/
+2026-02-03 02:33:03,083 - django.server - WARNING - "DELETE /api/patients/32/ HTTP/1.1" 404 23
+2026-02-03 02:33:03,092 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/36/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:33:03,092 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/36/", "timestamp": 1770057183.0926948, "client_ip": "127.0.0.1"}
+2026-02-03 02:33:03,098 - django.request - WARNING - Not Found: /api/patients/36/
+2026-02-03 02:33:03,098 - django.server - WARNING - "DELETE /api/patients/36/ HTTP/1.1" 404 23
+2026-02-03 02:33:03,106 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/25/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:33:03,107 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/25/", "timestamp": 1770057183.1072779, "client_ip": "127.0.0.1"}
+2026-02-03 02:33:03,111 - django.request - WARNING - Not Found: /api/patients/25/
+2026-02-03 02:33:03,112 - django.server - WARNING - "DELETE /api/patients/25/ HTTP/1.1" 404 23
+2026-02-03 02:33:03,119 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/30/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:33:03,120 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/30/", "timestamp": 1770057183.1202538, "client_ip": "127.0.0.1"}
+2026-02-03 02:33:03,124 - django.request - WARNING - Not Found: /api/patients/30/
+2026-02-03 02:33:03,125 - django.server - WARNING - "DELETE /api/patients/30/ HTTP/1.1" 404 23
+2026-02-03 02:33:03,132 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/35/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:33:03,132 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/35/", "timestamp": 1770057183.1326077, "client_ip": "127.0.0.1"}
+2026-02-03 02:33:03,137 - django.request - WARNING - Not Found: /api/patients/35/
+2026-02-03 02:33:03,137 - django.server - WARNING - "DELETE /api/patients/35/ HTTP/1.1" 404 23
+2026-02-03 02:33:03,145 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/13/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:33:03,146 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/13/", "timestamp": 1770057183.1462076, "client_ip": "127.0.0.1"}
+2026-02-03 02:33:03,151 - django.request - WARNING - Not Found: /api/patients/13/
+2026-02-03 02:33:03,151 - django.server - WARNING - "DELETE /api/patients/13/ HTTP/1.1" 404 23
+2026-02-03 02:33:03,159 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/11/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:33:03,159 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/11/", "timestamp": 1770057183.1595268, "client_ip": "127.0.0.1"}
+2026-02-03 02:33:03,164 - django.request - WARNING - Not Found: /api/patients/11/
+2026-02-03 02:33:03,164 - django.server - WARNING - "DELETE /api/patients/11/ HTTP/1.1" 404 23
+2026-02-03 02:33:03,172 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/19/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:33:03,172 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/19/", "timestamp": 1770057183.1729438, "client_ip": "127.0.0.1"}
+2026-02-03 02:33:03,177 - django.request - WARNING - Not Found: /api/patients/19/
+2026-02-03 02:33:03,177 - django.server - WARNING - "DELETE /api/patients/19/ HTTP/1.1" 404 23
+2026-02-03 02:33:03,185 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/17/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:33:03,186 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/17/", "timestamp": 1770057183.1859922, "client_ip": "127.0.0.1"}
+2026-02-03 02:33:03,190 - django.request - WARNING - Not Found: /api/patients/17/
+2026-02-03 02:33:03,190 - django.server - WARNING - "DELETE /api/patients/17/ HTTP/1.1" 404 23
+2026-02-03 02:35:14,260 - root - INFO - Request: {"method": "GET", "path": "/api/clinic/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:35:14,261 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:35:14,266 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1770057314.266343, "client_ip": "127.0.0.1"}
+2026-02-03 02:35:14,280 - django.server - INFO - "GET /api/clinic/ HTTP/1.1" 200 1082
+2026-02-03 02:35:14,311 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 17261
+2026-02-03 02:35:14,339 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/medical-certificates/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:35:14,340 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/medical-documents/medical-certificates/", "timestamp": 1770057314.3401406, "client_ip": "127.0.0.1"}
+2026-02-03 02:35:14,350 - django.server - INFO - "GET /api/medical-documents/medical-certificates/?patient_id=14 HTTP/1.1" 200 636
+2026-02-03 02:35:14,358 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/prescriptions/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:35:14,359 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/medical-documents/prescriptions/", "timestamp": 1770057314.3592494, "client_ip": "127.0.0.1"}
+2026-02-03 02:35:14,368 - django.server - INFO - "GET /api/medical-documents/prescriptions/?patient_id=14 HTTP/1.1" 200 2
+2026-02-03 02:35:14,376 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/soap-notes/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:35:14,376 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/medical-documents/soap-notes/", "timestamp": 1770057314.3767588, "client_ip": "127.0.0.1"}
+2026-02-03 02:35:14,383 - django.server - INFO - "GET /api/medical-documents/soap-notes/?patient_id=14 HTTP/1.1" 200 2
+2026-02-03 02:35:14,392 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/clinical-notes/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:35:14,393 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/medical-documents/clinical-notes/", "timestamp": 1770057314.3930938, "client_ip": "127.0.0.1"}
+2026-02-03 02:35:14,401 - django.server - INFO - "GET /api/medical-documents/clinical-notes/?patient_id=14 HTTP/1.1" 200 2
+2026-02-03 02:35:14,408 - root - INFO - Request: {"method": "GET", "path": "/api/medical-documents/lab-results/by_patient/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:35:14,409 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/medical-documents/lab-results/by_patient/", "timestamp": 1770057314.4091895, "client_ip": "127.0.0.1"}
+2026-02-03 02:35:14,415 - django.request - WARNING - Not Found: /api/medical-documents/lab-results/by_patient/
+2026-02-03 02:35:14,416 - django.server - WARNING - "GET /api/medical-documents/lab-results/by_patient/?patient_id=14 HTTP/1.1" 404 48
+2026-02-03 02:35:16,587 - root - INFO - Request: {"method": "DELETE", "path": "/api/patients/14/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:35:16,588 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "DELETE", "endpoint": "/api/patients/14/", "timestamp": 1770057316.5883408, "client_ip": "127.0.0.1"}
+2026-02-03 02:35:16,592 - django.request - WARNING - Not Found: /api/patients/14/
+2026-02-03 02:35:16,593 - django.server - WARNING - "DELETE /api/patients/14/ HTTP/1.1" 404 23
+2026-02-03 02:35:19,301 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:35:19,302 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1770057319.30212, "client_ip": "127.0.0.1"}
+2026-02-03 02:35:19,340 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 17261
+2026-02-03 02:35:20,625 - root - INFO - Request: {"method": "GET", "path": "/api/patients/archived/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:35:20,626 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/patients/archived/", "timestamp": 1770057320.626204, "client_ip": "127.0.0.1"}
+2026-02-03 02:35:20,658 - django.server - INFO - "GET /api/patients/archived/ HTTP/1.1" 200 17261
+2026-02-03 02:35:24,850 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:35:24,850 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1770057324.8507125, "client_ip": "127.0.0.1"}
+2026-02-03 02:35:24,885 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 17261
+2026-02-03 02:35:31,333 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:35:31,335 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1770057331.335226, "client_ip": "127.0.0.1"}
+2026-02-03 02:35:31,412 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 17261
+2026-02-03 02:35:36,308 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:35:36,309 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1770057336.309569, "client_ip": "127.0.0.1"}
+2026-02-03 02:35:36,340 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 17261
+2026-02-03 02:37:29,014 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\patients\views.py changed, reloading.
+INFO 2026-02-03 02:37:30,696 autoreload 30284 31356 Watching for file changes with StatReloader
+2026-02-03 02:37:37,320 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\patients\views.py changed, reloading.
+INFO 2026-02-03 02:37:38,633 autoreload 7100 27196 Watching for file changes with StatReloader
+2026-02-03 02:37:57,327 - root - INFO - Request: {"method": "GET", "path": "/api/auth/current-user/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:37:57,342 - django.server - INFO - "GET /api/auth/current-user/ HTTP/1.1" 200 374
+2026-02-03 02:37:57,390 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:37:57,392 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1770057477.3923862, "client_ip": "127.0.0.1"}
+2026-02-03 02:37:57,417 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 2
+2026-02-03 02:38:00,553 - root - INFO - Request: {"method": "GET", "path": "/api/staff/list/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:38:00,554 - root - INFO - Request: {"method": "GET", "path": "/api/doctors/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:38:00,566 - django.server - INFO - "GET /api/doctors/ HTTP/1.1" 200 465
+2026-02-03 02:38:00,571 - django.server - INFO - "GET /api/staff/list/ HTTP/1.1" 200 5219
+2026-02-03 02:38:00,576 - root - INFO - Request: {"method": "GET", "path": "/api/receptionists/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:38:00,578 - root - INFO - Request: {"method": "GET", "path": "/api/admins/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:38:00,589 - django.server - INFO - "GET /api/receptionists/ HTTP/1.1" 200 494
+2026-02-03 02:38:00,595 - django.server - INFO - "GET /api/admins/ HTTP/1.1" 200 471
+2026-02-03 02:38:00,929 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:38:00,930 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1770057480.9299667, "client_ip": "127.0.0.1"}
+2026-02-03 02:38:00,940 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 2
+2026-02-03 02:38:02,883 - root - INFO - Request: {"method": "GET", "path": "/api/patients/archived/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:38:02,884 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/patients/archived/", "timestamp": 1770057482.8849213, "client_ip": "127.0.0.1"}
+2026-02-03 02:38:02,925 - django.server - INFO - "GET /api/patients/archived/ HTTP/1.1" 200 17261
+2026-02-03 02:38:08,561 - root - INFO - Request: {"method": "GET", "path": "/api/patients/", "user_id": 1, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-02-03 02:38:08,561 - security_audit - INFO - Data access: {"user_id": 1, "username": "admin", "action": "GET", "endpoint": "/api/patients/", "timestamp": 1770057488.5617464, "client_ip": "127.0.0.1"}
+2026-02-03 02:38:08,572 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 2
+2026-02-03 02:41:09,128 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\patients\views.py changed, reloading.
+INFO 2026-02-03 02:41:11,018 autoreload 14128 29808 Watching for file changes with StatReloader

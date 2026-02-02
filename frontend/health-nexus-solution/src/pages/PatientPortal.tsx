@@ -5776,8 +5776,9 @@ const PatientPortal = () => {
                           <div className="text-sm text-blue-800">
                             <p className="font-semibold">Pickup at Clinic</p>
                             <p>
-                              All medical certificates must be picked up at our clinic.
-                              You will be notified via email and SMS when your certificate is ready.
+                              All medical certificates must be picked up at our
+                              clinic. You will be notified via email and SMS
+                              when your certificate is ready.
                             </p>
                           </div>
                         </div>
@@ -5827,10 +5828,11 @@ const PatientPortal = () => {
                           if (file.size > maxSize) {
                             toast({
                               title: "File Too Large",
-                              description: "File size must be less than 5MB. Please compress or resize your image.",
+                              description:
+                                "File size must be less than 5MB. Please compress or resize your image.",
                               variant: "destructive",
                             });
-                            e.target.value = ''; // Clear the input
+                            e.target.value = ""; // Clear the input
                             return;
                           }
                           setMedCertIdFront(file);
@@ -5842,7 +5844,8 @@ const PatientPortal = () => {
                     <div className="flex items-center gap-1 text-xs text-[#79c942] mt-1">
                       <Info className="h-3 w-3" />
                       <span>
-                        Driver's License, Passport, National ID, Postal ID (Max 5MB)
+                        Driver's License, Passport, National ID, Postal ID (Max
+                        5MB)
                       </span>
                     </div>
                     {medCertIdFrontPreview && (
@@ -5868,10 +5871,11 @@ const PatientPortal = () => {
                           if (file.size > maxSize) {
                             toast({
                               title: "File Too Large",
-                              description: "File size must be less than 5MB. Please compress or resize your image.",
+                              description:
+                                "File size must be less than 5MB. Please compress or resize your image.",
                               variant: "destructive",
                             });
-                            e.target.value = ''; // Clear the input
+                            e.target.value = ""; // Clear the input
                             return;
                           }
                           setMedCertIdBack(file);
@@ -5988,7 +5992,8 @@ const PatientPortal = () => {
                       <p className="font-semibold">Processing Time:</p>
                       <p>
                         Your request will be processed within 2-3 business days.
-                        You will be notified via email and SMS when your medical certificate is ready for pickup at the clinic.
+                        You will be notified via email and SMS when your medical
+                        certificate is ready for pickup at the clinic.
                       </p>
                     </div>
                   </div>
@@ -6273,10 +6278,11 @@ const PatientPortal = () => {
                           if (file.size > maxSize) {
                             toast({
                               title: "File Too Large",
-                              description: "File size must be less than 5MB. Please compress or resize your image.",
+                              description:
+                                "File size must be less than 5MB. Please compress or resize your image.",
                               variant: "destructive",
                             });
-                            e.target.value = ''; // Clear the input
+                            e.target.value = ""; // Clear the input
                             return;
                           }
                           setPrescriptionIdFront(file);
@@ -6314,10 +6320,11 @@ const PatientPortal = () => {
                           if (file.size > maxSize) {
                             toast({
                               title: "File Too Large",
-                              description: "File size must be less than 5MB. Please compress or resize your image.",
+                              description:
+                                "File size must be less than 5MB. Please compress or resize your image.",
                               variant: "destructive",
                             });
-                            e.target.value = ''; // Clear the input
+                            e.target.value = ""; // Clear the input
                             return;
                           }
                           setPrescriptionIdBack(file);
@@ -6327,7 +6334,9 @@ const PatientPortal = () => {
                         }
                       }}
                     />
-                    <div className="text-xs text-gray-500 mt-1">Optional (Max 5MB)</div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Optional (Max 5MB)
+                    </div>
                     {prescriptionIdBackPreview && (
                       <img
                         src={prescriptionIdBackPreview}
