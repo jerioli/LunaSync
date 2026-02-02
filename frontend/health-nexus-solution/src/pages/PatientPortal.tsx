@@ -5769,54 +5769,17 @@ const PatientPortal = () => {
                         </div>
                       )}
 
-                      {/* Delivery Method Selection */}
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          How would you like to receive your medical
-                          certificate? *
-                        </label>
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="radio"
-                              id="pickup"
-                              value="pickup"
-                              checked={medCertDeliveryMethod === "pickup"}
-                              onChange={(e) =>
-                                setMedCertDeliveryMethod(e.target.value)
-                              }
-                              className="w-4 h-4 text-[#79c942] border-gray-300 focus:ring-[#79c942]"
-                            />
-                            <label
-                              htmlFor="pickup"
-                              className="text-sm text-gray-700"
-                            >
-                              Pick up at clinic
-                            </label>
+                      {/* Pickup Notice */}
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div className="flex items-start space-x-2">
+                          <Info className="w-5 h-5 text-blue-600 mt-0.5" />
+                          <div className="text-sm text-blue-800">
+                            <p className="font-semibold">Pickup at Clinic</p>
+                            <p>
+                              All medical certificates must be picked up at our clinic.
+                              You will be notified via email and SMS when your certificate is ready.
+                            </p>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="radio"
-                              id="email"
-                              value="email"
-                              checked={medCertDeliveryMethod === "email"}
-                              onChange={(e) =>
-                                setMedCertDeliveryMethod(e.target.value)
-                              }
-                              className="w-4 h-4 text-[#79c942] border-gray-300 focus:ring-[#79c942]"
-                            />
-                            <label
-                              htmlFor="email"
-                              className="text-sm text-gray-700"
-                            >
-                              Receive an e-medical certificate
-                            </label>
-                          </div>
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {medCertDeliveryMethod === "pickup"
-                            ? "You will be notified when your medical certificate is ready for pickup"
-                            : "An e-medical certificate will be sent to your registered email address"}
                         </div>
                       </div>
                     </div>
@@ -5859,6 +5822,17 @@ const PatientPortal = () => {
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
+                          // Check file size (max 5MB)
+                          const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+                          if (file.size > maxSize) {
+                            toast({
+                              title: "File Too Large",
+                              description: "File size must be less than 5MB. Please compress or resize your image.",
+                              variant: "destructive",
+                            });
+                            e.target.value = ''; // Clear the input
+                            return;
+                          }
                           setMedCertIdFront(file);
                           setMedCertIdFrontPreview(URL.createObjectURL(file));
                         }
@@ -5868,7 +5842,7 @@ const PatientPortal = () => {
                     <div className="flex items-center gap-1 text-xs text-[#79c942] mt-1">
                       <Info className="h-3 w-3" />
                       <span>
-                        Driver's License, Passport, National ID, Postal ID
+                        Driver's License, Passport, National ID, Postal ID (Max 5MB)
                       </span>
                     </div>
                     {medCertIdFrontPreview && (
@@ -5889,13 +5863,24 @@ const PatientPortal = () => {
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
+                          // Check file size (max 5MB)
+                          const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+                          if (file.size > maxSize) {
+                            toast({
+                              title: "File Too Large",
+                              description: "File size must be less than 5MB. Please compress or resize your image.",
+                              variant: "destructive",
+                            });
+                            e.target.value = ''; // Clear the input
+                            return;
+                          }
                           setMedCertIdBack(file);
                           setMedCertIdBackPreview(URL.createObjectURL(file));
                         }
                       }}
                     />
                     <div className="text-xs text-gray-500 mt-1">
-                      Optional for most IDs
+                      Optional for most IDs (Max 5MB)
                     </div>
                     {medCertIdBackPreview && (
                       <img
@@ -5932,17 +5917,7 @@ const PatientPortal = () => {
                       <h4 className="font-semibold text-gray-700">
                         Request Type
                       </h4>
-                      <p>Medical Certificate</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-700">
-                        Delivery Method
-                      </h4>
-                      <p>
-                        {medCertDeliveryMethod === "pickup"
-                          ? "Pick up at clinic"
-                          : "Receive an e-medical certificate"}
-                      </p>
+                      <p>Medical Certificate (Pickup at Clinic)</p>
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-700">
@@ -6013,7 +5988,7 @@ const PatientPortal = () => {
                       <p className="font-semibold">Processing Time:</p>
                       <p>
                         Your request will be processed within 2-3 business days.
-                        You will be contacted via email once ready.
+                        You will be notified via email and SMS when your medical certificate is ready for pickup at the clinic.
                       </p>
                     </div>
                   </div>
@@ -6059,17 +6034,6 @@ const PatientPortal = () => {
                         toast({
                           title: "Input Required",
                           description: "Please enter your Patient ID",
-                          variant: "destructive",
-                        });
-                        return;
-                      }
-
-                      // Validate delivery method
-                      if (!medCertDeliveryMethod) {
-                        toast({
-                          title: "Selection Required",
-                          description:
-                            "Please select how you want to receive your medical certificate",
                           variant: "destructive",
                         });
                         return;
@@ -6304,6 +6268,17 @@ const PatientPortal = () => {
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
+                          // Check file size (max 5MB)
+                          const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+                          if (file.size > maxSize) {
+                            toast({
+                              title: "File Too Large",
+                              description: "File size must be less than 5MB. Please compress or resize your image.",
+                              variant: "destructive",
+                            });
+                            e.target.value = ''; // Clear the input
+                            return;
+                          }
                           setPrescriptionIdFront(file);
                           setPrescriptionIdFrontPreview(
                             URL.createObjectURL(file),
@@ -6314,7 +6289,7 @@ const PatientPortal = () => {
                     />
                     <div className="flex items-center gap-1 text-xs text-[#79c942] mt-1">
                       <Info className="h-3 w-3" />
-                      <span>Valid government ID</span>
+                      <span>Valid government ID (Max 5MB)</span>
                     </div>
                     {prescriptionIdFrontPreview && (
                       <img
@@ -6334,6 +6309,17 @@ const PatientPortal = () => {
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
+                          // Check file size (max 5MB)
+                          const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+                          if (file.size > maxSize) {
+                            toast({
+                              title: "File Too Large",
+                              description: "File size must be less than 5MB. Please compress or resize your image.",
+                              variant: "destructive",
+                            });
+                            e.target.value = ''; // Clear the input
+                            return;
+                          }
                           setPrescriptionIdBack(file);
                           setPrescriptionIdBackPreview(
                             URL.createObjectURL(file),
@@ -6341,7 +6327,7 @@ const PatientPortal = () => {
                         }
                       }}
                     />
-                    <div className="text-xs text-gray-500 mt-1">Optional</div>
+                    <div className="text-xs text-gray-500 mt-1">Optional (Max 5MB)</div>
                     {prescriptionIdBackPreview && (
                       <img
                         src={prescriptionIdBackPreview}

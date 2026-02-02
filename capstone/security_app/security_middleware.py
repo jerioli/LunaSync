@@ -103,9 +103,26 @@ class SecurityLoggingMiddleware(MiddlewareMixin):
             'remote_addr': self.get_client_ip(request),
         }
         
-        # Don't log request body for security
+        # Don't log request body for security, and handle large file uploads
         if request.method in ['POST', 'PUT', 'PATCH']:
-            log_data['has_body'] = bool(request.body)
+            try:
+                # Check content length to avoid reading large files
+                content_length = request.META.get('CONTENT_LENGTH', 0)
+                if content_length:
+                    content_length = int(content_length)
+                    log_data['content_length'] = content_length
+                    # Only try to check body for small requests (< 1MB)
+                    if content_length < 1048576:  # 1MB
+                        log_data['has_body'] = bool(request.body)
+                    else:
+                        log_data['has_body'] = True  # Assume large requests have body
+                        log_data['is_file_upload'] = True
+                else:
+                    log_data['has_body'] = bool(request.body)
+            except Exception as e:
+                # If we can't read the body (too large, etc.), just log that
+                log_data['has_body'] = 'error_reading_body'
+                log_data['body_error'] = str(e)
         
         logging.info(f"Request: {json.dumps(log_data)}")
     

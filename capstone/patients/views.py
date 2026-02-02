@@ -41,15 +41,15 @@ class PatientListCreateView(APIView):
         ordering = request.GET.get('ordering', 'name')
         limit = request.GET.get('limit')
         
-        # Start with all patients
-        patients = Patient.objects.all()
+        # Start with all patients INCLUDING archived/deleted ones
+        patients = Patient.objects.all_including_deleted()
         
         # Apply search filter if search term provided
         if search_term:
             from django.db.models import Q
             
             # Get all patients first (for encrypted field searching)
-            all_patients = Patient.objects.all()
+            all_patients = Patient.objects.all_including_deleted()
             matching_ids = []
             
             # Search term splitting for multi-word searches
@@ -172,15 +172,15 @@ class PatientListView(APIView):
         ordering = request.GET.get('ordering', 'name')
         limit = request.GET.get('limit')
         
-        # Start with all patients
-        patients = Patient.objects.all()
+        # Start with all patients INCLUDING archived/deleted ones
+        patients = Patient.objects.all_including_deleted()
         
         # Apply search filter if search term provided
         if search_term:
             from django.db.models import Q
             
             # Get all patients first (for encrypted field searching)
-            all_patients = Patient.objects.all()
+            all_patients = Patient.objects.all_including_deleted()
             matching_ids = []
             
             # Search term splitting for multi-word searches

@@ -77,6 +77,8 @@ if PRODUCTION:
     ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else ['lunasync.site','www.lunasync.site','31.97.67.53','testserver']
     # Frontend URL for email links in production
     FRONTEND_URL = 'https://lunasync.site'
+    # Base URL for absolute URLs in emails
+    BASE_URL = 'https://lunasync.site'
     # Site configuration for production
     SITE_ID = 1
     SITE_DOMAIN = 'lunasync.site'
@@ -85,6 +87,8 @@ else:
     ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '*']  # Allow all hosts in development
     # Frontend URL for email links in development
     FRONTEND_URL = 'http://localhost:8080'
+    # Base URL for absolute URLs in emails
+    BASE_URL = 'http://localhost:8000'
     # Site configuration for development
     SITE_ID = 1
     SITE_DOMAIN = 'localhost:8000'
@@ -136,6 +140,10 @@ CSRF_COOKIE_NAME = 'csrftoken'     # Default CSRF cookie name
 
 # File Upload Security
 FILE_UPLOAD_PERMISSIONS = 0o644  # Secure file permissions
+
+# File Upload Size Limits (set to 10MB for ID verification images)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB in bytes
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB in bytes
 
 
 # Application definition
@@ -426,22 +434,22 @@ REST_FRAMEWORK = {
 
 # Email Configuration - SMTP for production emails
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER', 'medratrics.langgam@gmail.com')
+DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', 'medratrics.langgam@gmail.com')
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'medratrics.langgam@gmail.com')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', 'your_new_app_password_here')  # Use environment variable
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'medratrics.langgam@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'your_new_app_password_here')  # Use environment variable
 EMAIL_TIMEOUT = 30
 
 # AWS Configuration
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
 
 # Clinic Configuration
-CLINIC_DEFAULT_EMAIL = os.getenv('EMAIL_HOST_USER', 'medratrics.langgam@gmail.com')  # Email to receive review notifications
+CLINIC_DEFAULT_EMAIL = os.environ.get('EMAIL_HOST_USER', 'medratrics.langgam@gmail.com')  # Email to receive review notifications
 
 
 

@@ -236,8 +236,13 @@ def send_medical_certificate_email(patient_email, patient_name, certificate_html
                         <p style="font-size: 16px; margin-bottom: 25px;">Dear {patient_name},</p>
                         
                         <p style="font-size: 16px; margin-bottom: 25px;">
-                            Please find your medical certificate attached as a PDF. This is an official medical document issued by {doctor_name or 'our medical team'}.
+                            We are pleased to inform you that your medical certificate has been approved by {doctor_name or 'our medical team'} and is now ready for pickup at our clinic.
                         </p>
+                        
+                        <div style="background: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px; margin: 25px 0; border-radius: 4px;">
+                            <p style="margin: 0; font-size: 16px; color: #1e40af; font-weight: 600;">📍 Pickup Information</p>
+                            <p style="margin: 10px 0 0 0; font-size: 14px; color: #1e3a8a;">Please bring a valid ID when picking up your medical certificate.</p>
+                        </div>
                         
                         <p style="font-size: 16px; margin-top: 25px;">
                             If you have any questions or need further assistance, please don't hesitate to contact us.
@@ -268,9 +273,10 @@ def send_medical_certificate_email(patient_email, patient_name, certificate_html
         plain_text_message = f"""
 Dear {patient_name},
 
-Please find your medical certificate attached as a PDF. This is an official medical document.
+Your medical certificate has been approved and is now ready for pickup at our clinic.
+Please bring a valid ID when picking up your certificate.
 
-For verification or any questions about your certificate, please contact our clinic:
+For any questions, please contact our clinic:
 
 {clinic_name}
 Phone: {clinic_phone}
@@ -282,22 +288,7 @@ Best regards,
 {clinic_name}
         """
         
-        # Generate PDF
-        pdf_data = create_medical_certificate_pdf({
-            'patient_name': patient_name,
-            'patient_dob': patient_dob,
-            'certificate_html': certificate_html,
-            'doctor_name': doctor_name,
-            'fitness_status': fitness_status,
-            'clinic_name': clinic_name,
-            'clinic_address': clinic_address,
-            'clinic_phone': clinic_phone,
-            'request_type': certificate_request.get_request_type_display() if certificate_request else 'Medical Certificate',
-            'issue_date': certificate_request.doctor_approved_at.strftime('%B %d, %Y') if certificate_request and certificate_request.doctor_approved_at else None,
-            'doctor_notes': certificate_request.doctor_notes if certificate_request else None
-        })
-        
-        # Send email using smtplib with PDF attachment and embedded logo
+        # Send email notification without PDF attachment (pickup only)
         return send_email_with_embedded_logo(
             to_email=patient_email,
             subject=subject,
@@ -305,8 +296,8 @@ Best regards,
             text_content=plain_text_message,
             from_email=clinic_email,
             from_name=clinic_name,
-            pdf_attachment=pdf_data,
-            pdf_filename=f"Medical_Certificate_{patient_name.replace(' ', '_')}.pdf"
+            pdf_attachment=None,
+            pdf_filename=None
         )
         
     except Exception as email_error:

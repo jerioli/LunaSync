@@ -298,9 +298,81 @@ def approve_medical_certificate(request, request_id):
             except Exception as e:
                 logger.error(f"Error sending email: {str(e)}")
             
+            # Send SMS notification if phone number is provided
+            try:
+                if certificate_request.phone:
+                    from accounts.iprog_sms_service import IProgSMSService
+                    sms_service = IProgSMSService()
+                    
+                    # Medical certificates are pickup only
+                    sms_message = f"Hello {certificate_request.patient_name},\n\nYour medical certificate has been approved and is ready for pickup at our clinic.\n\nHealthNexus Medical Center"
+                    
+                    success, message, message_id = sms_service.send_sms(
+                        phone_number=certificate_request.phone,
+                        message=sms_message
+                    )
+                    
+                    if success:
+                        logger.info(f"SMS notification sent to {certificate_request.phone} for medical certificate approval")
+                    else:
+                        logger.error(f"Failed to send SMS notification: {message}")
+            except Exception as e:
+                logger.error(f"Error sending SMS notification: {str(e)}")
+            
         elif action == 'reject':
             certificate_request.status = 'rejected'
             certificate_request.rejection_reason = data.get('rejection_reason', '')
+            
+            # Send email notification about rejection
+            try:
+                from django.core.mail import send_mail
+                from clinic.models import ClinicSettings
+                
+                clinic_settings = ClinicSettings.objects.first()
+                clinic_name = clinic_settings.clinic_name if clinic_settings else "HealthNexus Medical Center"
+                
+                subject = f"Medical Certificate Request - Status Update"
+                message = f"""Dear {certificate_request.patient_name},
+
+We regret to inform you that your medical certificate request has been declined.
+
+Reason: {certificate_request.rejection_reason}
+
+If you have any questions or would like to discuss this further, please contact our clinic directly.
+
+Best regards,
+{clinic_name}"""
+                
+                send_mail(
+                    subject,
+                    message,
+                    settings.EMAIL_HOST_USER,
+                    [certificate_request.email],
+                    fail_silently=True,
+                )
+                logger.info(f"Rejection email sent to {certificate_request.email}")
+            except Exception as e:
+                logger.error(f"Error sending rejection email: {str(e)}")
+            
+            # Send SMS notification about rejection
+            try:
+                if certificate_request.phone:
+                    from accounts.iprog_sms_service import IProgSMSService
+                    sms_service = IProgSMSService()
+                    
+                    sms_message = f"Hello {certificate_request.patient_name},\n\nYour medical certificate request has been declined. Please check your email for details or contact us.\n\nHealthNexus Medical Center"
+                    
+                    success, message, message_id = sms_service.send_sms(
+                        phone_number=certificate_request.phone,
+                        message=sms_message
+                    )
+                    
+                    if success:
+                        logger.info(f"Rejection SMS sent to {certificate_request.phone}")
+                    else:
+                        logger.error(f"Failed to send rejection SMS: {message}")
+            except Exception as e:
+                logger.error(f"Error sending rejection SMS: {str(e)}")
             
         certificate_request.save()
         
@@ -601,9 +673,81 @@ def approve_prescription(request, request_id):
                 import traceback
                 logger.error(f"Email error traceback: {traceback.format_exc()}")
             
+            # Send SMS notification if phone number is provided
+            try:
+                if prescription_request.phone:
+                    from accounts.iprog_sms_service import IProgSMSService
+                    sms_service = IProgSMSService()
+                    
+                    # Determine the message based on delivery method (if available)
+                    sms_message = f"Hello {prescription_request.patient_name},\n\nYour prescription has been approved and is ready for pickup at our clinic. Please check your email for details.\n\nHealthNexus Medical Center"
+                    
+                    success, message, message_id = sms_service.send_sms(
+                        phone_number=prescription_request.phone,
+                        message=sms_message
+                    )
+                    
+                    if success:
+                        logger.info(f"SMS notification sent to {prescription_request.phone} for prescription approval")
+                    else:
+                        logger.error(f"Failed to send SMS notification: {message}")
+            except Exception as e:
+                logger.error(f"Error sending SMS notification: {str(e)}")
+            
         elif action == 'reject':
             prescription_request.status = 'rejected'
             prescription_request.rejection_reason = data.get('rejection_reason', '')
+            
+            # Send email notification about rejection
+            try:
+                from django.core.mail import send_mail
+                from clinic.models import ClinicSettings
+                
+                clinic_settings = ClinicSettings.objects.first()
+                clinic_name = clinic_settings.clinic_name if clinic_settings else "HealthNexus Medical Center"
+                
+                subject = f"Prescription Request - Status Update"
+                message = f"""Dear {prescription_request.patient_name},
+
+We regret to inform you that your prescription request has been declined.
+
+Reason: {prescription_request.rejection_reason}
+
+If you have any questions or would like to discuss this further, please contact our clinic directly.
+
+Best regards,
+{clinic_name}"""
+                
+                send_mail(
+                    subject,
+                    message,
+                    settings.EMAIL_HOST_USER,
+                    [prescription_request.email],
+                    fail_silently=True,
+                )
+                logger.info(f"Rejection email sent to {prescription_request.email}")
+            except Exception as e:
+                logger.error(f"Error sending rejection email: {str(e)}")
+            
+            # Send SMS notification about rejection
+            try:
+                if prescription_request.phone:
+                    from accounts.iprog_sms_service import IProgSMSService
+                    sms_service = IProgSMSService()
+                    
+                    sms_message = f"Hello {prescription_request.patient_name},\n\nYour prescription request has been declined. Please check your email for details or contact us.\n\nHealthNexus Medical Center"
+                    
+                    success, message, message_id = sms_service.send_sms(
+                        phone_number=prescription_request.phone,
+                        message=sms_message
+                    )
+                    
+                    if success:
+                        logger.info(f"Rejection SMS sent to {prescription_request.phone}")
+                    else:
+                        logger.error(f"Failed to send rejection SMS: {message}")
+            except Exception as e:
+                logger.error(f"Error sending rejection SMS: {str(e)}")
             
         prescription_request.save()
         

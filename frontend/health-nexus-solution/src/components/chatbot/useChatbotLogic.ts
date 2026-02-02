@@ -1260,11 +1260,8 @@ export const useChatbotLogic = () => {
             Email: ${patientData.email || 'Not provided'}
             Phone: ${patientData.phone || 'Not provided'}
             
-How would you like to receive your medical certificate?`, [
-            { label: 'Pickup from Clinic', value: 'pickup' },
-            { label: 'Send via Email', value: 'email' }
-          ]);
-          setChatStep('2.5');
+Your medical certificate will be ready for pickup at the clinic. Now please upload the FRONT side of your valid government-issued ID for verification.`, [], false, false, [], true, 'Upload ID Front', 'image/*');
+          setChatStep(3);
         }, 1000);
         
       } catch (error) {
@@ -1275,9 +1272,6 @@ How would you like to receive your medical certificate?`, [
       }
       
       setInput('');
-    } else if (chatMode === 'medicalRecord' && chatStep === '2.5') {
-      // Delivery method is handled by handleOptionSelect, not text input
-      return;
     } else if (chatMode === 'medicalRecord' && chatStep === 3) {
       // Front ID upload is handled by handleFileUpload - this step waits for file upload
       return;
@@ -1297,7 +1291,7 @@ How would you like to receive your medical certificate?`, [
           const summary = `
             Request Type: Medical Certificate
             Patient ID: ${medicalRecordForm.patientId}
-            Delivery Method: ${medicalRecordForm.deliveryMethod === 'pickup' ? 'Pickup from Clinic' : 'Send via Email'}
+            Delivery Method: Pickup from Clinic
             ID Verification: ${medicalRecordForm.idVerificationFront && medicalRecordForm.idVerificationBack ? 'Both sides uploaded' : 'Not complete'}
             Additional Info: ${medicalRecordForm.additionalInfo || 'None'}
           `;
@@ -2373,16 +2367,6 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
           ]);
           setChatStep(1);
           resetForms();
-        }, 500);
-      } else if (value === 'pickup' || value === 'email') {
-        // Handle delivery method selection
-        const deliveryText = value === 'pickup' ? 'Pickup from Clinic' : 'Send via Email';
-        addMessage('user', deliveryText);
-        setMedicalRecordForm(prev => ({ ...prev, deliveryMethod: value }));
-        
-        setTimeout(() => {
-          addBotMessage('Perfect! Now please upload the FRONT side of your valid government-issued ID for verification.', [], false, false, [], true, 'Upload ID Front', 'image/*');
-          setChatStep(3);
         }, 500);
       } else {
         handleMedicalRecordOptionSelect(value);
@@ -3660,15 +3644,9 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       setInput('');
       
       setTimeout(() => {
-        addBotMessage('How would you like to receive your medical certificate?', [
-          { label: 'Pickup from Clinic', value: 'pickup' },
-          { label: 'Send via Email', value: 'email' }
-        ]);
-        setChatStep('6.5');
+        addBotMessage('Perfect! Your medical certificate will be ready for pickup at the clinic. Now please upload the FRONT side of your valid government-issued ID for verification.', [], false, false, [], true, 'Upload ID Front', 'image/*');
+        setChatStep(7);
       }, 500);
-    } else if (chatStep === '6.5') {
-      // Delivery method selection handled by option select
-      return;
     } else if (chatStep === 7) {
       // ID verification upload handled by file upload component
       return;
@@ -3682,14 +3660,13 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
        addBotMessage( 'Thank you! Here is a summary of your medical records request:');
         
         setTimeout(() => {
-          const deliveryText = medicalRecordForm.deliveryMethod === 'pickup' ? 'Pickup from Clinic' : 'Send via Email';
           const summary = `
             Record Type: ${medicalRecordForm.requestType}
             Patient Name: ${constructFullName(medicalRecordForm)}
             Date of Birth: ${medicalRecordForm.dateOfBirth}
             Email: ${medicalRecordForm.email}
             Phone: ${medicalRecordForm.phone}
-            Delivery Method: ${deliveryText}
+            Delivery Method: Pickup from Clinic
             ID Verification: ${medicalRecordForm.idVerificationFront && medicalRecordForm.idVerificationBack ? 'Both sides uploaded' : 'Not complete'}
             Additional Info: ${medicalRecordForm.additionalInfo || 'None'}
           `;

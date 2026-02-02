@@ -116,7 +116,7 @@ type SortField =
 type SortDirection = "asc" | "desc";
 
 const PrescriptionManagement: React.FC = () => {
-  const { currentUser, patients: clinicPatients } = useClinic();
+  const { currentUser, patients: clinicPatients, fetchPatients } = useClinic();
   const [requests, setRequests] = useState<PrescriptionRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] =
@@ -210,8 +210,12 @@ const PrescriptionManagement: React.FC = () => {
 
   useEffect(() => {
     fetchRequests();
-    fetchPatients();
-  }, []);
+    fetchPatientsLocal();
+    // Fetch clinic patients to ensure we have the latest data including archived status
+    if (fetchPatients) {
+      fetchPatients();
+    }
+  }, [fetchPatients]);
 
   // Ensure patients are fetched for soft delete checks
   useEffect(() => {
@@ -241,7 +245,7 @@ const PrescriptionManagement: React.FC = () => {
     }
   };
 
-  const fetchPatients = async () => {
+  const fetchPatientsLocal = async () => {
     try {
       const response = await axiosInstance.get("/patients/");
       setPatients(Array.isArray(response.data) ? response.data : []);
@@ -309,7 +313,10 @@ const PrescriptionManagement: React.FC = () => {
       const matchesStatus =
         filterStatus === "all" || request.status === filterStatus;
 
-      return matchesSearch && matchesStatus;
+      // Exclude archived patients
+      const isPatientArchived = isRequestPatientSoftDeleted(request);
+
+      return matchesSearch && matchesStatus && !isPatientArchived;
     }),
   );
 
@@ -650,6 +657,7 @@ const PrescriptionManagement: React.FC = () => {
     request: PrescriptionRequest,
   ): boolean => {
     if (!Array.isArray(clinicPatients) || clinicPatients.length === 0) {
+      console.log("No patients available for archived check");
       return false;
     }
 
@@ -663,10 +671,31 @@ const PrescriptionManagement: React.FC = () => {
       const patientDOB = p.date_of_birth;
       const requestDOB = request.date_of_birth;
 
-      return patientName === requestName && patientDOB === requestDOB;
+      const nameMatches = patientName === requestName;
+      const dobMatches = patientDOB === requestDOB;
+
+      return nameMatches && dobMatches;
     });
 
-    return patient?.is_deleted === true;
+    // If patient not found in list, assume they are archived
+    if (!patient) {
+      console.log(`Patient not found in list (likely archived): ${request.patient_name}`);
+      return true; // Treat as deleted/archived
+    }
+
+    const isDeleted = patient?.is_deleted === true;
+    
+    // Debug logging
+    if (request.patient_name.toLowerCase().includes('ana')) {
+      console.log('=== CHECKING ANA BETZ (Prescription) ===');
+      console.log('Request patient:', request.patient_name);
+      console.log('Request DOB:', request.date_of_birth);
+      console.log('Found patient:', patient);
+      console.log('Is deleted:', isDeleted);
+      console.log('Available patients:', clinicPatients.map(p => ({ name: p.name, dob: p.date_of_birth, is_deleted: p.is_deleted })));
+    }
+
+    return isDeleted;
   };
 
   return (

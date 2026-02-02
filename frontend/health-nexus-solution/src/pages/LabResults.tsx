@@ -985,8 +985,27 @@ const LabResults = () => {
     );
   };
 
+  // Helper function to check if a lab result's patient is archived
+  const isLabResultPatientArchived = (result: LabResult): boolean => {
+    if (!Array.isArray(patients) || patients.length === 0) {
+      return false;
+    }
+    // Find patient by name
+    const patient = patients.find((p) => {
+      const patientName = (p.name || '').toLowerCase().trim();
+      const resultPatientName = (result.patientName || '').toLowerCase().trim();
+      return patientName === resultPatientName;
+    });
+    return patient?.is_deleted === true;
+  };
+
   const filteredResults = labResults
     .filter((result) => {
+      // Exclude archived patients
+      if (isLabResultPatientArchived(result)) {
+        return false;
+      }
+
       // Enhanced search functionality across multiple fields
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch =

@@ -142,7 +142,7 @@ type SortField =
 type SortDirection = "asc" | "desc";
 
 const MedicalCertificateManagement: React.FC = () => {
-  const { currentUser, patients } = useClinic();
+  const { currentUser, patients, fetchPatients } = useClinic();
   const navigate = useNavigate();
   const [requests, setRequests] = useState<MedicalCertificateRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -263,29 +263,24 @@ const MedicalCertificateManagement: React.FC = () => {
     fetchRequests();
     fetchClinicInfo();
     fetchDoctorInfo();
-  }, []);
+    // Fetch patients to ensure we have the latest data including archived status
+    if (fetchPatients) {
+      fetchPatients();
+    }
+  }, [fetchPatients]);
 
   // Add effect to periodically refresh data
   useEffect(() => {
     const interval = setInterval(() => {
       fetchRequests();
+      // Also refresh patients data to catch any archived changes
+      if (fetchPatients) {
+        fetchPatients();
+      }
     }, 30000); // Refresh every 30 seconds
 
     return () => clearInterval(interval);
-  }, []);
-
-  // Fetch patients to ensure we have the latest patient data including soft delete status
-  useEffect(() => {
-    const fetchPatientsData = async () => {
-      try {
-        const response = await axiosInstance.get("patients/");
-        // The patient data will be automatically updated in the clinic context
-      } catch (error) {
-        console.error("Error fetching patients for soft delete check:", error);
-      }
-    };
-    fetchPatientsData();
-  }, []);
+  }, [fetchPatients]);
 
   const fetchClinicInfo = async () => {
     try {
@@ -424,6 +419,52 @@ const MedicalCertificateManagement: React.FC = () => {
     );
   };
 
+  // Helper function to check if a patient is soft-deleted based on name and DOB
+  const isRequestPatientSoftDeleted = (
+    request: MedicalCertificateRequest,
+  ): boolean => {
+    if (!Array.isArray(patients) || patients.length === 0) {
+      console.log("No patients available for archived check");
+      return false;
+    }
+
+    // Find the patient by name and date of birth
+    const patient = patients.find((p) => {
+      // Compare name (handle various name formats)
+      const patientName = (p.name || "").toLowerCase().trim();
+      const requestName = (request.patient_name || "").toLowerCase().trim();
+
+      // Compare date of birth
+      const patientDOB = p.date_of_birth;
+      const requestDOB = request.date_of_birth;
+
+      const nameMatches = patientName === requestName;
+      const dobMatches = patientDOB === requestDOB;
+
+      return nameMatches && dobMatches;
+    });
+
+    // If patient not found in list, assume they are archived
+    if (!patient) {
+      console.log(`Patient not found in list (likely archived): ${request.patient_name}`);
+      return true; // Treat as deleted/archived
+    }
+
+    const isDeleted = patient?.is_deleted === true;
+    
+    // Debug logging
+    if (request.patient_name.toLowerCase().includes('ana')) {
+      console.log('=== CHECKING ANA BETZ ===');
+      console.log('Request patient:', request.patient_name);
+      console.log('Request DOB:', request.date_of_birth);
+      console.log('Found patient:', patient);
+      console.log('Is deleted:', isDeleted);
+      console.log('Available patients:', patients.map(p => ({ name: p.name, dob: p.date_of_birth, is_deleted: p.is_deleted })));
+    }
+
+    return isDeleted;
+  };
+
   // Filter and sort requests
   const filteredAndSortedRequests = sortData(
     (requests || []).filter((request) => {
@@ -441,7 +482,10 @@ const MedicalCertificateManagement: React.FC = () => {
         filterDeliveryMethod === "all" ||
         request.delivery_method === filterDeliveryMethod;
 
-      return matchesSearch && matchesStatus && matchesDeliveryMethod;
+      // Exclude archived patients
+      const isPatientArchived = isRequestPatientSoftDeleted(request);
+
+      return matchesSearch && matchesStatus && matchesDeliveryMethod && !isPatientArchived;
     }),
   );
 
@@ -838,30 +882,6 @@ const MedicalCertificateManagement: React.FC = () => {
   const filteredRequests = paginatedRequests;
 
   const currentUserRole = currentUser?.role;
-
-  // Helper function to check if a patient is soft-deleted based on name and DOB
-  const isRequestPatientSoftDeleted = (
-    request: MedicalCertificateRequest,
-  ): boolean => {
-    if (!Array.isArray(patients) || patients.length === 0) {
-      return false;
-    }
-
-    // Find the patient by name and date of birth
-    const patient = patients.find((p) => {
-      // Compare name (handle various name formats)
-      const patientName = (p.name || "").toLowerCase().trim();
-      const requestName = (request.patient_name || "").toLowerCase().trim();
-
-      // Compare date of birth
-      const patientDOB = p.date_of_birth;
-      const requestDOB = request.date_of_birth;
-
-      return patientName === requestName && patientDOB === requestDOB;
-    });
-
-    return patient?.is_deleted === true;
-  };
 
   return (
     <div className="space-y-4 md:space-y-6 p-3 md:p-6">

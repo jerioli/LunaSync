@@ -1375,6 +1375,15 @@ def get_clinic_settings():
         from clinic.models import ClinicSettings
         clinic_settings = ClinicSettings.objects.first()
         if clinic_settings:
+            # Get logo URL if available
+            logo_url = None
+            if clinic_settings.logo:
+                from django.conf import settings
+                # Construct absolute URL for email compatibility
+                # Get the base URL from settings or construct it
+                base_url = getattr(settings, 'BASE_URL', 'http://localhost:8000')
+                logo_url = f"{base_url}{settings.MEDIA_URL}{clinic_settings.logo}"
+            
             return {
                 'clinic_name': clinic_settings.clinic_name,
                 'address': clinic_settings.address,
@@ -1385,6 +1394,7 @@ def get_clinic_settings():
                 'email': clinic_settings.email,
                 'website': clinic_settings.website,
                 'primary_color': clinic_settings.primary_color,
+                'logo': logo_url,
             }
     except Exception:
         pass
@@ -1400,6 +1410,7 @@ def get_clinic_settings():
         'email': 'info@healthnexus.com',
         'website': 'www.healthnexus.com',
         'primary_color': '#1976d2',
+        'logo': None,
     }
 
 def create_email_template(notification_type, patient_name, clinic_settings, rejection_reason=None):
@@ -1414,6 +1425,7 @@ def create_email_template(notification_type, patient_name, clinic_settings, reje
     clinic_state = clinic_settings.get('state', 'California')
     clinic_zip = clinic_settings.get('zip', '12345')
     full_address = f"{clinic_address}, {clinic_city}, {clinic_state} {clinic_zip}"
+    logo_url = clinic_settings.get('logo', None)
     
     # Define notification content based on type
     content_map = {
@@ -1485,6 +1497,7 @@ def create_email_template(notification_type, patient_name, clinic_settings, reje
     <body>
         <div class="container">
             <div class="header">
+                {f'<img src="{logo_url}" alt="{clinic_name} Logo" style="max-width: 150px; height: auto; margin-bottom: 15px;">' if logo_url else ''}
                 <h1>{content['icon']} {content['title']}</h1>
                 <div class="clinic-name">{clinic_name}</div>
             </div>

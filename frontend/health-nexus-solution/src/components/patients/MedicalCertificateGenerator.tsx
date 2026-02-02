@@ -337,8 +337,23 @@ const MedicalCertificateGenerator: React.FC<
         return "fitness";
       })();
 
+      // Ensure patient ID is available
+      const patientId = patient.id || patient.patient_id;
+      
+      console.log("Patient object:", patient);
+      console.log("Patient ID:", patientId);
+      
+      if (!patientId) {
+        const { toast } = await import("sonner");
+        toast.error("Patient ID Required", {
+          description: "This patient must be saved to the database before generating a certificate. Please ensure the patient is properly registered first.",
+        });
+        setLoading(false);
+        return;
+      }
+
       const apiData = {
-        patient: patient.id,
+        patient: patientId,
         title: `Medical Certificate - ${getPatientFullName()}`,
         description: `${certificateType
           .replace("_", " ")
@@ -377,7 +392,7 @@ Fitness Status: ${certificateData.fitForWork}
         id: response.data.id || Date.now(),
         type: "Medical Certificate",
         dateCreated: new Date().toISOString(),
-        patientId: patient.id,
+        patientId: patientId,
         data: certificateData,
         content: generateCertificateHTML(), // HTML content for PDF conversion
         dbRecord: response.data, // Store the database record
@@ -434,8 +449,18 @@ Fitness Status: ${certificateData.fitForWork}
         return "fitness";
       })();
 
+      // Ensure patient ID is available
+      const patientId = patient.id || patient.patient_id;
+      if (!patientId) {
+        const { toast } = await import("sonner");
+        toast.error("Patient ID is required", {
+          description: "Cannot send certificate via email without a valid patient ID",
+        });
+        return;
+      }
+
       const apiData = {
-        patient: patient.id,
+        patient: patientId,
         title: `Medical Certificate - ${getPatientFullName()}`,
         description: `${certificateType
           .replace("_", " ")
@@ -473,7 +498,7 @@ Fitness Status: ${certificateData.fitForWork}
         id: dbResponse.data.id || Date.now(),
         type: "Medical Certificate",
         dateCreated: new Date().toISOString(),
-        patientId: patient.id,
+        patientId: patientId,
         data: certificateData,
         content: generateCertificateHTML(),
         dbRecord: dbResponse.data, // Store the database record
