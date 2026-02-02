@@ -21,6 +21,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.core.exceptions import ValidationError
 from django.db import models
+from systemlogs.audit_logger import AuditLogger
 
 logger = logging.getLogger(__name__)
 
@@ -107,6 +108,32 @@ class AppointmentCreateView(APIView):
             try:
                 appointment = serializer.save()
                 logger.info(f"Appointment created successfully: {appointment.id}")
+                
+                # Check if this is a follow-up appointment
+                is_follow_up = appointment.appointment_type == 'Follow-up' and appointment.status == 'scheduled' and appointment.patient
+                
+                # Audit log for appointment creation
+                patient_name = appointment.patient.name if appointment.patient else \
+                             f"{request.data.get('firstName', '')} {request.data.get('lastName', '')}".strip() or 'Unknown'
+                
+                if is_follow_up:
+                    AuditLogger.log_action(
+                        user=request.user if request.user.is_authenticated else None,
+                        action='CREATE FOLLOW-UP APPOINTMENT',
+                        resource_type='APPOINTMENT',
+                        resource_id=str(appointment.id),
+                        description=f"Created follow-up appointment for {patient_name} on {appointment.date} at {appointment.time}",
+                        request=request
+                    )
+                else:
+                    AuditLogger.log_action(
+                        user=request.user if request.user.is_authenticated else None,
+                        action='CREATE APPOINTMENT',
+                        resource_type='APPOINTMENT',
+                        resource_id=str(appointment.id),
+                        description=f"Created appointment for {patient_name} on {appointment.date} at {appointment.time} (Status: {appointment.status})",
+                        request=request
+                    )
                 
                 # Check if SMS confirmation is requested
                 confirmation_method = request.data.get('confirmation_method', 'email')
@@ -478,6 +505,17 @@ class AppointmentUpdateStatusView(APIView):
                 appointment.status = new_status
                 appointment.save(skip_validation=True)  # Skip validation for status updates
                 
+                # Audit log for confirming appointment
+                patient_name = appointment.patient.name if appointment.patient else getattr(appointment, 'patient_name', 'Unknown')
+                AuditLogger.log_action(
+                    user=request.user if request.user.is_authenticated else None,
+                    action='CONFIRM APPOINTMENT',
+                    resource_type='APPOINTMENT',
+                    resource_id=str(appointment.id),
+                    description=f"Confirmed appointment for {patient_name} on {appointment.date} at {appointment.time}",
+                    request=request
+                )
+                
                 serializer = AppointmentSerializer(appointment, context={'request': request})
                 response_data = serializer.data
                 response_data['email_sent'] = email_sent
@@ -491,8 +529,23 @@ class AppointmentUpdateStatusView(APIView):
                     appointment, new_status, notification_type
                 )
                 
+                old_status = appointment.status
                 appointment.status = new_status
                 appointment.save(skip_validation=True)
+                
+                # Audit log for declining/cancelling/no-show
+                patient_name = appointment.patient.name if appointment.patient else getattr(appointment, 'patient_name', 'Unknown')
+                action_text = 'DECLINE APPOINTMENT' if old_status == 'pending' and new_status == 'cancelled' else \
+                             'MARK PATIENT AS NO-SHOW' if new_status == 'no-show' else \
+                             'CANCEL APPOINTMENT'
+                AuditLogger.log_action(
+                    user=request.user if request.user.is_authenticated else None,
+                    action=action_text,
+                    resource_type='APPOINTMENT',
+                    resource_id=str(appointment.id),
+                    description=f"{action_text.title().replace('Appointment', 'appointment for')} {patient_name} on {appointment.date} at {appointment.time}",
+                    request=request
+                )
                 
                 serializer = AppointmentSerializer(appointment, context={'request': request})
                 response_data = serializer.data
@@ -502,8 +555,23 @@ class AppointmentUpdateStatusView(APIView):
                 return Response(response_data)
             else:
                 # Regular status update
+                old_status = appointment.status
                 appointment.status = new_status
                 appointment.save(skip_validation=True)  # Skip validation for status updates
+                
+                # Audit log for other status changes
+                patient_name = appointment.patient.name if appointment.patient else getattr(appointment, 'patient_name', 'Unknown')
+                action_text = 'CHECK-IN PATIENT' if new_status == 'ongoing' else \
+                             'COMPLETE APPOINTMENT' if new_status == 'completed' else \
+                             'UPDATE APPOINTMENT STATUS'
+                AuditLogger.log_action(
+                    user=request.user if request.user.is_authenticated else None,
+                    action=action_text,
+                    resource_type='APPOINTMENT',
+                    resource_id=str(appointment.id),
+                    description=f"{action_text.title().replace('Appointment', 'appointment for').replace('Patient', 'patient')} {patient_name} on {appointment.date} at {appointment.time} (Status: {old_status} → {new_status})",
+                    request=request
+                )
                 
                 serializer = AppointmentSerializer(appointment, context={'request': request})
                 return Response(serializer.data)
@@ -687,17 +755,19 @@ Phone: {clinic_settings.phone if clinic_settings else '(123) 456-7890'}"""
             return False, False
     
     def _handle_appointment_confirmation(self, appointment):
-        """Handle patient creation and email sending when confirming a pending appointment"""
+        """Handle patient creation and email/SMS sending when confirming a pending appointment"""
         try:
             # Check if appointment has patient details in different formats
             patient = None
             email_sent = False
+            sms_sent = False
             
             # Debug logging
             logger.info(f"=== APPOINTMENT CONFIRMATION DEBUG ===")
             logger.info(f"Appointment ID: {appointment.id}")
             logger.info(f"Patient Name: {getattr(appointment, 'patient_name', 'NOT SET')}")
             logger.info(f"Patient Email: {getattr(appointment, 'patient_email', 'NOT SET')}")
+            logger.info(f"Confirmation Method: {getattr(appointment, 'confirmation_method', 'NOT SET')}")
             logger.info(f"Current Patient: {appointment.patient}")
             logger.info(f"Appointment already has patient assigned: {appointment.patient is not None}")
             
@@ -851,21 +921,70 @@ Phone: {clinic_settings.phone if clinic_settings else '(123) 456-7890'}"""
                 except (json.JSONDecodeError, KeyError) as parse_error:
                     logger.error(f"Error parsing patient details from notes: {str(parse_error)}")
             
-            # Send confirmation email if we have a patient
+            # Send confirmation via preferred method if we have a patient
             if patient:
-                try:
-                    email_sent = send_appointment_confirmation_email(appointment, patient)
-                    if email_sent:
-                        logger.info(f"Confirmation email sent to {patient.email} for appointment {appointment.id}")
-                    else:
-                        logger.warning(f"Failed to send confirmation email for appointment {appointment.id}")
-                except Exception as email_error:
-                    logger.error(f"Error sending confirmation email: {str(email_error)}")
-                    email_sent = False
+                # Check confirmation method preference
+                confirmation_method = getattr(appointment, 'confirmation_method', 'email')
+                logger.info(f"Using confirmation method: {confirmation_method}")
+                
+                if confirmation_method == 'sms':
+                    # Send SMS confirmation
+                    try:
+                        from accounts.iprog_sms_service import iprog_sms_service
+                        from clinic.models import ClinicSettings
+                        
+                        patient_phone = patient.phone
+                        if patient_phone:
+                            clinic_settings = ClinicSettings.objects.first()
+                            clinic_name = clinic_settings.clinic_name if clinic_settings else 'Healthcare Center'
+                            
+                            appointment_date = appointment.date.strftime('%B %d, %Y')
+                            appointment_time = appointment.time.strftime('%I:%M %p')
+                            doctor_name = appointment.doctor.get_full_name() if appointment.doctor else 'Doctor'
+                            patient_name = patient.name if hasattr(patient, 'name') else patient.get_full_name()
+                            
+                            sms_message = f"""Appointment Confirmed
+
+Patient: {patient_name}
+Date: {appointment_date}
+Time: {appointment_time}
+Doctor: {doctor_name}
+Type: {appointment.appointment_type}
+
+{clinic_name}"""
+                            
+                            success, message, reference_id = iprog_sms_service.send_sms(
+                                patient_phone,
+                                sms_message
+                            )
+                            
+                            if success:
+                                sms_sent = True
+                                logger.info(f"SMS confirmation sent to {patient_phone} for appointment {appointment.id}")
+                                if reference_id:
+                                    logger.info(f"SMS Reference ID: {reference_id}")
+                            else:
+                                logger.warning(f"Failed to send SMS confirmation: {message}")
+                        else:
+                            logger.warning(f"No phone number available for SMS confirmation")
+                    except Exception as sms_error:
+                        logger.error(f"Error sending SMS confirmation: {str(sms_error)}")
+                        sms_sent = False
+                else:
+                    # Send email confirmation (default)
+                    try:
+                        email_sent = send_appointment_confirmation_email(appointment, patient)
+                        if email_sent:
+                            logger.info(f"Confirmation email sent to {patient.email} for appointment {appointment.id}")
+                        else:
+                            logger.warning(f"Failed to send confirmation email for appointment {appointment.id}")
+                    except Exception as email_error:
+                        logger.error(f"Error sending confirmation email: {str(email_error)}")
+                        email_sent = False
             else:
-                logger.warning(f"No patient found for appointment {appointment.id}, cannot send confirmation email")
+                logger.warning(f"No patient found for appointment {appointment.id}, cannot send confirmation")
             
-            return email_sent
+            return email_sent or sms_sent
             
         except Exception as e:
             logger.error(f"Error handling appointment confirmation: {str(e)}")

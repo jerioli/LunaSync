@@ -38,6 +38,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
     date = serializers.DateField(required=True)
     time = serializers.TimeField(required=True)
     status = serializers.ChoiceField(choices=Appointment.STATUS_CHOICES, required=False, default='pending')
+    confirmation_method = serializers.ChoiceField(choices=[('sms', 'SMS'), ('email', 'Email')], required=False, default='email')
     
     # Display fields for better data representation
     display_patient_name = serializers.SerializerMethodField(read_only=True)
@@ -53,7 +54,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
             'patient_name', 'patient_id', 'patient_email', 'patient_phone',
             'date_of_birth', 'gender', 'address', 'marital_status',
             'appointment_type', 'doctor_id', 'date', 'time',
-            'status', 'created_at',
+            'status', 'confirmation_method', 'created_at',
             'display_patient_name', 'display_doctor_name',
             'display_time', 'display_date', 'patient_is_deleted'
         ]

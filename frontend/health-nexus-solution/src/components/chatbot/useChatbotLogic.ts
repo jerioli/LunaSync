@@ -156,7 +156,8 @@ export const useChatbotLogic = () => {
     address: '',
     maritalStatus: '',
     termsAgreed: false,
-    patient_id: ''
+    patient_id: '',
+    confirmationMethod: 'email' // Default to email
   });
 
   // Form state for medical record requests
@@ -3244,7 +3245,7 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
         patient_id: appointmentForm.patient_id || null, // Include Patient ID for returning patients
         patient_email: formDataToUse.email || appointmentForm.email,
         patient_phone: formDataToUse.phone || appointmentForm.phone,
-        confirmation_method: appointmentForm.confirmationMethod || 'email', // Add confirmation method
+        confirmation_method: appointmentForm.confirmationMethod, // Use the confirmation method set by user
         date_of_birth: (() => {
           const dobValue = formDataToUse.dateOfBirth || appointmentForm.dateOfBirth;
           console.log(`[DEBUG] Processing date_of_birth - dobValue:`, dobValue, 'type:', typeof dobValue);
@@ -3323,6 +3324,8 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       console.log('[DEBUG] Gender value:', appointmentData.gender);
       console.log('[DEBUG] Marital status value:', appointmentData.marital_status);
       console.log('[DEBUG] Address value:', appointmentData.address);
+      console.log('[DEBUG] Confirmation method from appointmentForm:', appointmentForm.confirmationMethod);
+      console.log('[DEBUG] Confirmation method being sent:', appointmentData.confirmation_method);
 
       const response = await api.appointments.create(appointmentData);
      
@@ -3929,7 +3932,8 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       address: '',
       maritalStatus: '',
       termsAgreed: false,
-      patient_id: ''
+      patient_id: '',
+      confirmationMethod: 'email' // Default to email
     });
     setMedicalRecordForm({
       requestType: 'Medical Certificate',

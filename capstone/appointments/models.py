@@ -50,6 +50,9 @@ class Appointment(models.Model):
     address = EncryptedTextField(blank=True, null=True)
     marital_status = EncryptedCharField(max_length=100, blank=True, null=True)
     religion = EncryptedCharField(max_length=100, blank=True, null=True)
+    
+    # Notification preference (sms or email)
+    confirmation_method = models.CharField(max_length=10, choices=[('sms', 'SMS'), ('email', 'Email')], default='email')
 
     class Meta:
         db_table = 'appointments'
