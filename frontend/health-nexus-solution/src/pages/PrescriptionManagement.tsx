@@ -298,6 +298,61 @@ const PrescriptionManagement: React.FC = () => {
     );
   };
 
+  // Helper function to check if a patient is soft-deleted based on name and DOB
+  const isRequestPatientSoftDeleted = (
+    request: PrescriptionRequest,
+  ): boolean => {
+    if (!Array.isArray(clinicPatients) || clinicPatients.length === 0) {
+      console.log("No patients available for archived check");
+      return false;
+    }
+
+    // Find the patient by name and date of birth
+    const patient = clinicPatients.find((p) => {
+      // Compare name (handle various name formats)
+      const patientName = (p.name || "").toLowerCase().trim();
+      const requestName = (request.patient_name || "").toLowerCase().trim();
+
+      // Compare date of birth
+      const patientDOB = p.date_of_birth;
+      const requestDOB = request.date_of_birth;
+
+      const nameMatches = patientName === requestName;
+      const dobMatches = patientDOB === requestDOB;
+
+      return nameMatches && dobMatches;
+    });
+
+    // If patient not found in list, assume they are archived
+    if (!patient) {
+      console.log(
+        `Patient not found in list (likely archived): ${request.patient_name}`,
+      );
+      return true; // Treat as deleted/archived
+    }
+
+    const isDeleted = patient?.is_deleted === true;
+
+    // Debug logging
+    if (request.patient_name.toLowerCase().includes("ana")) {
+      console.log("=== CHECKING ANA BETZ (Prescription) ===");
+      console.log("Request patient:", request.patient_name);
+      console.log("Request DOB:", request.date_of_birth);
+      console.log("Found patient:", patient);
+      console.log("Is deleted:", isDeleted);
+      console.log(
+        "Available patients:",
+        clinicPatients.map((p) => ({
+          name: p.name,
+          dob: p.date_of_birth,
+          is_deleted: p.is_deleted,
+        })),
+      );
+    }
+
+    return isDeleted;
+  };
+
   // Filter and sort requests
   const filteredAndSortedRequests = sortData(
     (requests || []).filter((request) => {
@@ -651,61 +706,6 @@ const PrescriptionManagement: React.FC = () => {
   const filteredRequests = paginatedRequests;
 
   const currentUserRole = currentUser?.role;
-
-  // Helper function to check if a patient is soft-deleted based on name and DOB
-  const isRequestPatientSoftDeleted = (
-    request: PrescriptionRequest,
-  ): boolean => {
-    if (!Array.isArray(clinicPatients) || clinicPatients.length === 0) {
-      console.log("No patients available for archived check");
-      return false;
-    }
-
-    // Find the patient by name and date of birth
-    const patient = clinicPatients.find((p) => {
-      // Compare name (handle various name formats)
-      const patientName = (p.name || "").toLowerCase().trim();
-      const requestName = (request.patient_name || "").toLowerCase().trim();
-
-      // Compare date of birth
-      const patientDOB = p.date_of_birth;
-      const requestDOB = request.date_of_birth;
-
-      const nameMatches = patientName === requestName;
-      const dobMatches = patientDOB === requestDOB;
-
-      return nameMatches && dobMatches;
-    });
-
-    // If patient not found in list, assume they are archived
-    if (!patient) {
-      console.log(
-        `Patient not found in list (likely archived): ${request.patient_name}`,
-      );
-      return true; // Treat as deleted/archived
-    }
-
-    const isDeleted = patient?.is_deleted === true;
-
-    // Debug logging
-    if (request.patient_name.toLowerCase().includes("ana")) {
-      console.log("=== CHECKING ANA BETZ (Prescription) ===");
-      console.log("Request patient:", request.patient_name);
-      console.log("Request DOB:", request.date_of_birth);
-      console.log("Found patient:", patient);
-      console.log("Is deleted:", isDeleted);
-      console.log(
-        "Available patients:",
-        clinicPatients.map((p) => ({
-          name: p.name,
-          dob: p.date_of_birth,
-          is_deleted: p.is_deleted,
-        })),
-      );
-    }
-
-    return isDeleted;
-  };
 
   return (
     <div className="space-y-4 md:space-y-6 p-3 md:p-6">
