@@ -343,8 +343,11 @@ class PatientDetailView(APIView):
         patient = self.get_object(pk)
         patient_name = patient.name
         
-        # Perform soft delete instead of hard delete
-        patient.soft_delete()
+        # Get archive reason from request body (optional)
+        archive_reason = request.data.get('reason', 'Archived by user')
+        
+        # Perform soft delete instead of hard delete, passing user and reason
+        patient.soft_delete(user=request.user, reason=archive_reason)
         
         # Log patient soft deletion
         AuditLogger.log_patient_action(
@@ -352,8 +355,12 @@ class PatientDetailView(APIView):
             action='SOFT_DELETE',
             patient_id=patient.id,
             patient_name=patient_name,
-            description=f"Soft deleted patient: {patient_name}",
-            details={'deleted_at': patient.deleted_at.isoformat() if patient.deleted_at else None},
+            description=f"Archived patient: {patient_name}",
+            details={
+                'deleted_at': patient.deleted_at.isoformat() if patient.deleted_at else None,
+                'deleted_by': request.user.email if request.user.is_authenticated else None,
+                'reason': archive_reason
+            },
             request=request
         )
         
@@ -848,3 +855,133 @@ class PatientRedFlagView(APIView):
             'message': 'Patient flag cleared successfully',
             'patient': serializer.data
         })
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ArchivedPatientsView(APIView):
+    """View to list all archived (soft-deleted) patients"""
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Only admins can view archived patients
+        if request.user.role not in ['admin', 'superadmin']:
+            return Response({
+                'error': 'Permission denied',
+                'message': 'Only administrators can view archived patients'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        # Get all soft-deleted patients
+        archived_patients = Patient.objects.deleted_only()
+        serializer = PatientSerializer(archived_patients, many=True, context={'request': request})
+        
+        # Log the action
+        AuditLogger.log_action(
+            user=request.user,
+            action='READ',
+            resource_type='PATIENT_ARCHIVE',
+            description='Viewed archived patients list',
+            details={'count': len(archived_patients)},
+            request=request
+        )
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class RestorePatientView(APIView):
+    """View to restore an archived patient"""
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        # Only admins can restore patients
+        if request.user.role not in ['admin', 'superadmin']:
+            return Response({
+                'error': 'Permission denied',
+                'message': 'Only administrators can restore archived patients'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            # Get the soft-deleted patient
+            patient = Patient.objects.all_including_deleted().get(id=pk)
+            
+            if not patient.is_deleted:
+                return Response({
+                    'error': 'Patient not archived',
+                    'message': 'This patient is not archived'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Restore the patient
+            patient.restore()
+            
+            # Log the action
+            AuditLogger.log_patient_action(
+                user=request.user,
+                action='RESTORE',
+                patient_id=patient.id,
+                patient_name=patient.name,
+                description=f"Restored archived patient: {patient.name}",
+                request=request
+            )
+            
+            return Response({
+                'success': True,
+                'message': f'Patient {patient.name} has been restored successfully'
+            }, status=status.HTTP_200_OK)
+            
+        except Patient.DoesNotExist:
+            return Response({
+                'error': 'Patient not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class PermanentDeletePatientView(APIView):
+    """View to permanently delete an archived patient"""
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        # Only admins can permanently delete patients
+        if request.user.role not in ['admin', 'superadmin']:
+            return Response({
+                'error': 'Permission denied',
+                'message': 'Only administrators can permanently delete patients'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            # Get the soft-deleted patient
+            patient = Patient.objects.all_including_deleted().get(id=pk)
+            
+            if not patient.is_deleted:
+                return Response({
+                    'error': 'Patient not archived',
+                    'message': 'Only archived patients can be permanently deleted'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            patient_name = patient.name
+            patient_id = patient.id
+            
+            # Log before permanent deletion
+            AuditLogger.log_patient_action(
+                user=request.user,
+                action='PERMANENT_ARCHIVE',
+                patient_id=patient_id,
+                patient_name=patient_name,
+                description=f"Permanently archived patient: {patient_name}",
+                request=request
+            )
+            
+            # Permanently delete the patient
+            patient.delete()
+            
+            return Response({
+                'success': True,
+                'message': f'Patient {patient_name} has been permanently archived'
+            }, status=status.HTTP_200_OK)
+            
+        except Patient.DoesNotExist:
+            return Response({
+                'error': 'Patient not found'
+            }, status=status.HTTP_404_NOT_FOUND)

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import PatientListCreateView, PatientListView, PatientDetailView, CheckPatientByEmailView, CheckPatientByPatientIdView, DeletedPatientsView, RestorePatientView, PatientLookupView, PatientDetailByPatientIdView, PatientRedFlagView
+from .views import PatientListCreateView, PatientListView, PatientDetailView, CheckPatientByEmailView, CheckPatientByPatientIdView, DeletedPatientsView, RestorePatientView, PatientLookupView, PatientDetailByPatientIdView, PatientRedFlagView, ArchivedPatientsView, PermanentDeletePatientView
 
 urlpatterns = [
     path('patients/', PatientListCreateView.as_view(), name='patient-list-create'),  # GET/POST
@@ -11,5 +11,7 @@ urlpatterns = [
     path('patients/check-patient-id/', CheckPatientByPatientIdView.as_view(), name='patient-check-patient-id'),  # Check if patient exists by Patient ID
     path('patients/lookup-patient/', PatientLookupView.as_view(), name='patient-lookup'),  # Patient lookup by details
     path('patients/deleted/', DeletedPatientsView.as_view(), name='deleted-patients'),  # View deleted patients (admin only)
-    path('patients/<int:pk>/restore/', RestorePatientView.as_view(), name='restore-patient'),  # Restore deleted patient (admin only)
+    path('patients/archived/', ArchivedPatientsView.as_view(), name='archived-patients'),  # View archived patients (admin only)
+    path('patients/<int:pk>/restore/', RestorePatientView.as_view(), name='restore-patient'),  # Restore archived patient (admin only)
+    path('patients/<int:pk>/permanent/', PermanentDeletePatientView.as_view(), name='permanent-delete-patient'),  # Permanently delete archived patient (admin only)
 ]

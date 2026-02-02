@@ -58,6 +58,7 @@ import {
 import { formatPatientNameWithFullMiddle } from "@/utils/patientNameUtils";
 import { format } from "date-fns";
 import {
+  Archive,
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
@@ -704,6 +705,10 @@ const PatientManagement = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+
+  // Archive reason dialog state
+  const [archiveReasonDialogOpen, setArchiveReasonDialogOpen] = useState(false);
+  const [archiveReason, setArchiveReason] = useState("");
 
   // Medical History states
   const [medicalHistory, setMedicalHistory] = useState({
@@ -4063,25 +4068,35 @@ const PatientManagement = () => {
     if (!canDelete) {
       toast({
         title: "Access Denied",
-        description: "You do not have permission to delete patient records.",
+        description: "You do not have permission to archive patient records.",
         variant: "destructive",
       });
       return;
     }
 
-    // Add confirmation dialog
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete ${getFullName(
-        patientData,
-      )}'s record? This action cannot be undone.`,
-    );
+    // Open the archive reason dialog
+    setArchiveReason("");
+    setArchiveReasonDialogOpen(true);
+  };
 
-    if (!confirmDelete) return;
+  const confirmArchivePatient = async () => {
+    if (!patientData) return;
+
+    if (!archiveReason.trim()) {
+      toast({
+        title: "Reason required",
+        description: "Please provide a reason for archiving this patient.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsDeleting(true);
 
     try {
-      await axiosInstance.delete(`patients/${patientData.id}/`);
+      await axiosInstance.delete(`patients/${patientData.id}/`, {
+        data: { reason: archiveReason },
+      });
 
       // Update the context state
       deletePatient(patientData.id);
@@ -4097,18 +4112,20 @@ const PatientManagement = () => {
       }
 
       toast({
-        title: "Patient record deleted",
-        description: "Patient information has been successfully deleted.",
+        title: "Patient archived",
+        description: "Patient information has been successfully archived.",
       });
 
+      setArchiveReasonDialogOpen(false);
+      setArchiveReason("");
       navigate("/patients");
     } catch (error) {
-      console.error("Error deleting patient:", error);
+      console.error("Error archiving patient:", error);
 
       // Use the error handler utility to get a better error message
       const parsedError = parseApiError(
         error,
-        "Failed to delete patient. Please try again later.",
+        "Failed to archive patient. Please try again later.",
       );
 
       toast({
@@ -5856,8 +5873,8 @@ const PatientManagement = () => {
                     size="sm"
                     className="text-xs sm:text-sm"
                   >
-                    <Trash2 className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                    {isDeleting ? "Deleting..." : "Delete"}
+                    <Archive className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                    {isDeleting ? "Archiving..." : "Archive"}
                   </Button>
                 )}
                 {canEdit && activeTab !== "overview" && (
@@ -7217,6 +7234,71 @@ const PatientManagement = () => {
               Print
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Archive Reason Dialog */}
+      <Dialog
+        open={archiveReasonDialogOpen}
+        onOpenChange={setArchiveReasonDialogOpen}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Archive className="h-5 w-5 text-orange-500" />
+              Archive Patient Confirmation
+            </DialogTitle>
+          </DialogHeader>
+
+          {patientData && (
+            <div className="space-y-4 mt-4">
+              <div className="bg-muted p-3 rounded-lg">
+                <p className="text-sm font-medium">
+                  Patient: {getFullName(patientData)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  ID: {patientData.patient_id}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Reason for archiving{" "}
+                  <span className="text-destructive">*</span>
+                </label>
+                <Textarea
+                  placeholder="Please provide a detailed reason for archiving this patient record..."
+                  value={archiveReason}
+                  onChange={(e) => setArchiveReason(e.target.value)}
+                  rows={4}
+                  className="resize-none"
+                />
+                <p className="text-xs text-muted-foreground">
+                  This reason will be logged for compliance and audit purposes.
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setArchiveReasonDialogOpen(false);
+                    setArchiveReason("");
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={confirmArchivePatient}
+                  disabled={!archiveReason.trim() || isDeleting}
+                >
+                  <Archive className="mr-2 h-4 w-4" />
+                  {isDeleting ? "Archiving..." : "Confirm Archive"}
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

@@ -10,6 +10,22 @@ class PatientSerializer(SecureBaseSerializer):
     # Red flag related read-only fields
     red_flagged_by_name = serializers.CharField(source='red_flagged_by.get_full_name', read_only=True)
     
+    # Archive traceability fields
+    deleted_by_name = serializers.SerializerMethodField()
+    deleted_by_email = serializers.SerializerMethodField()
+    
+    def get_deleted_by_name(self, obj):
+        """Get the name of the user who archived the patient"""
+        if obj.deleted_by:
+            return obj.deleted_by.get_full_name() if hasattr(obj.deleted_by, 'get_full_name') else str(obj.deleted_by)
+        return None
+    
+    def get_deleted_by_email(self, obj):
+        """Get the email of the user who archived the patient"""
+        if obj.deleted_by:
+            return obj.deleted_by.email if hasattr(obj.deleted_by, 'email') else None
+        return None
+    
     class Meta:
         model = Patient
         fields = [
@@ -31,6 +47,11 @@ class PatientSerializer(SecureBaseSerializer):
             'physical_examination',
             'registration_date',
             'is_deleted',  # Include soft delete status
+            'deleted_at',
+            'deleted_by',
+            'deleted_by_name',
+            'deleted_by_email',
+            'deleted_reason',
             # Red flag fields
             'is_red_flagged',
             'red_flag_reason',
@@ -38,7 +59,7 @@ class PatientSerializer(SecureBaseSerializer):
             'red_flagged_by_name',
             'red_flagged_date',
         ]
-        read_only_fields = ['red_flagged_by', 'red_flagged_date']
+        read_only_fields = ['red_flagged_by', 'red_flagged_date', 'deleted_by', 'deleted_at', 'deleted_by_name', 'deleted_by_email']
         # Remove json_fields since we're using custom fields now
     
     def validate(self, data):

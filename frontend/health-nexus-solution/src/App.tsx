@@ -24,6 +24,7 @@ import MedicalCertificateManagement from "./pages/MedicalCertificateManagement";
 import NotFound from "./pages/NotFound";
 import PatientManagement from "./pages/PatientManagement";
 import PatientPortal from "./pages/PatientPortal";
+import PatientArchives from "./pages/PatientArchives";
 
 import { Toaster } from "./components/ui/toaster";
 import PatientsList from "./pages/PatientsList";
@@ -194,7 +195,10 @@ const App = () => {
                 <Route path="/portal" element={<PatientPortal />} />
 
                 {/* Terms and Privacy Policy - Public routes */}
-                <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+                <Route
+                  path="/terms-and-conditions"
+                  element={<TermsAndConditions />}
+                />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
                 {/* Patient requests page */}
@@ -284,6 +288,17 @@ const App = () => {
                     <ProtectedRoute>
                       <AppLayout>
                         <PatientsList />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/patient-archives"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <PatientArchives />
                       </AppLayout>
                     </ProtectedRoute>
                   }

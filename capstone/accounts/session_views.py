@@ -4,6 +4,7 @@ Handles session creation, validation, and cleanup
 """
 
 from django.contrib.auth import authenticate, login, logout
+from systemlogs.audit_logger import AuditLogger
 from django.contrib.sessions.models import Session
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -478,6 +479,20 @@ class SessionLogoutView(APIView):
         try:
             session_key = request.session.session_key
             user_id = getattr(request.user, 'id', None) if request.user.is_authenticated else None
+            
+            # Capture user info BEFORE logout (important for audit log)
+            user_for_audit = request.user if request.user.is_authenticated else None
+            user_email = request.user.email if request.user.is_authenticated else 'Unknown'
+            
+            # Manually log the logout action BEFORE calling logout()
+            # This ensures the audit log captures the actual user
+            if user_for_audit:
+                AuditLogger.log_auth_action(
+                    user=user_for_audit,
+                    action='LOGOUT',
+                    description=f'User {user_email} logged out',
+                    request=request
+                )
             
             # Logout user
             logout(request)

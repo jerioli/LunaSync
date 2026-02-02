@@ -1,25 +1,34 @@
-import BulkImportModal from "@/components/bulk/BulkImportModal";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import {
+  Archive,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  ChevronDown,
+  ArrowUpDown,
+  RotateCcw,
+  Trash2,
+  FileText,
+  ChevronRight as ChevronRightIcon,
+  Eye,
+  User,
+  Calendar,
+  Info,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -28,30 +37,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useClinic } from "@/contexts/ClinicContext";
-import { useToast } from "@/hooks/use-toast";
-// Import sessionManager to ensure global axios configuration is applied
 import {
-  formatPatientNameWithInitial,
-  getPatientInitial,
-} from "@/utils/patientNameUtils";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
+import { useClinic } from "@/contexts/ClinicContext";
 import "@/utils/sessionManager";
 import axios from "axios";
-import { format } from "date-fns";
-import {
-  Archive,
-  ArrowUpDown,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronUp,
-  FileText,
-  Flag,
-  Search,
-  UserPlus,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 type SortField =
   | "name"
@@ -59,17 +57,37 @@ type SortField =
   | "date_of_birth"
   | "email"
   | "phone"
-  | "marital_status";
+  | "deleted_at";
 type SortDirection = "asc" | "desc";
 
-const PatientsList = () => {
+interface ArchivedPatient {
+  id: string;
+  patient_id: string;
+  name: string;
+  email: string;
+  phone: string;
+  date_of_birth: string;
+  gender: string;
+  marital_status?: string;
+  address?: string;
+  deleted_at: string;
+  deleted_by?: string;
+  deleted_by_email?: string;
+  deleted_reason?: string;
+}
+
+const PatientArchives = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { currentUser } = useClinic();
 
-  const { patients, fetchPatients, currentUser } = useClinic();
+  const [archivedPatients, setArchivedPatients] = useState<ArchivedPatient[]>(
+    [],
+  );
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortField, setSortField] = useState<SortField>("name");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [sortField, setSortField] = useState<SortField>("deleted_at");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [isLoading, setIsLoading] = useState(true);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -79,27 +97,15 @@ const PatientsList = () => {
   const [selectedPatients, setSelectedPatients] = useState<Set<string>>(
     new Set(),
   );
-  const [isArchiving, setIsArchiving] = useState(false);
-
-  // Red flag dialog states
-  const [showRedFlagDialog, setShowRedFlagDialog] = useState(false);
-  const [selectedRedFlag, setSelectedRedFlag] = useState<{
-    reason: string;
-    flaggedBy?: string;
-    flaggedDate?: string;
-  } | null>(null);
-
-  // Role-based access control - admin, receptionist, and doctor can use bulk import
-  const canUseBulkImport =
-    currentUser?.role === "admin" ||
-    currentUser?.role === "receptionist" ||
-    currentUser?.role === "doctor";
-
-  // Only admin can view archives
-  const isAdmin = currentUser?.role === "admin";
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Expanded rows state for mobile view
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  // View patient details dialog state
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [selectedPatient, setSelectedPatient] =
+    useState<ArchivedPatient | null>(null);
 
   const toggleRowExpansion = (patientId: string) => {
     const newExpanded = new Set(expandedRows);
@@ -111,10 +117,49 @@ const PatientsList = () => {
     setExpandedRows(newExpanded);
   };
 
-  // Fetch patients when component mounts
+  const handleViewPatient = (patient: ArchivedPatient) => {
+    setSelectedPatient(patient);
+    setViewDialogOpen(true);
+  };
+
+  // Only admin can access archives
+  const isAdmin = currentUser?.role === "admin";
+
+  // Redirect if not admin
   useEffect(() => {
-    fetchPatients();
-  }, [fetchPatients]);
+    if (currentUser && !isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "Only administrators can access patient archives.",
+        variant: "destructive",
+      });
+      navigate("/patients");
+    }
+  }, [currentUser, isAdmin, navigate, toast]);
+
+  // Fetch archived patients
+  const fetchArchivedPatients = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get("patients/archived/");
+      setArchivedPatients(response.data);
+    } catch (error) {
+      console.error("Error fetching archived patients:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load archived patients.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchArchivedPatients();
+    }
+  }, [isAdmin]);
 
   // Handle sorting
   const handleSort = (field: SortField) => {
@@ -127,12 +172,12 @@ const PatientsList = () => {
   };
 
   // Sort patients
-  const sortedPatients = [...patients].sort((a, b) => {
+  const sortedPatients = [...archivedPatients].sort((a, b) => {
     let aValue: any = a[sortField];
     let bValue: any = b[sortField];
 
     // Handle different data types
-    if (sortField === "date_of_birth") {
+    if (sortField === "date_of_birth" || sortField === "deleted_at") {
       aValue = aValue ? new Date(aValue).getTime() : 0;
       bValue = bValue ? new Date(bValue).getTime() : 0;
     } else if (typeof aValue === "string") {
@@ -154,9 +199,8 @@ const PatientsList = () => {
       (patient.email &&
         patient.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (patient.phone && patient.phone.includes(searchQuery)) ||
-      (patient.marital_status || "")
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()),
+      (patient.patient_id &&
+        patient.patient_id.toLowerCase().includes(searchQuery.toLowerCase())),
   );
 
   // Pagination logic
@@ -235,50 +279,119 @@ const PatientsList = () => {
     paginatedPatients.some((patient) => selectedPatients.has(patient.id)) &&
     !isAllSelected;
 
-  // Handle bulk archive
-  const handleBulkArchive = async () => {
+  // Handle bulk restore
+  const handleBulkRestore = async () => {
     if (selectedPatients.size === 0) {
       toast({
         title: "No patients selected",
-        description: "Please select at least one patient to archive.",
+        description: "Please select at least one patient to restore.",
         variant: "destructive",
       });
       return;
     }
 
-    const confirmArchive = window.confirm(
-      `Are you sure you want to archive ${selectedPatients.size} patient(s)? They will be moved to the archives.`,
+    const confirmRestore = window.confirm(
+      `Are you sure you want to restore ${selectedPatients.size} patient(s)? They will be moved back to the active patient list.`,
     );
 
-    if (!confirmArchive) return;
+    if (!confirmRestore) return;
 
-    setIsArchiving(true);
+    setIsProcessing(true);
     const selectedIds = Array.from(selectedPatients);
     let successCount = 0;
     let failCount = 0;
 
     try {
-      // Archive patients one by one
       for (const patientId of selectedIds) {
         try {
-          await axios.delete(`patients/${patientId}/`);
+          await axios.post(`patients/${patientId}/restore/`);
           successCount++;
         } catch (error) {
-          console.error(`Failed to archive patient ${patientId}:`, error);
+          console.error(`Failed to restore patient ${patientId}:`, error);
           failCount++;
         }
       }
 
-      // Show result toast
       if (successCount > 0) {
         toast({
-          title: "Patients archived",
+          title: "Patients restored",
+          description: `Successfully restored ${successCount} patient(s).${
+            failCount > 0 ? ` Failed to restore ${failCount} patient(s).` : ""
+          }`,
+        });
+        fetchArchivedPatients();
+        setSelectedPatients(new Set());
+      } else {
+        toast({
+          title: "Restore failed",
+          description: "Failed to restore selected patients.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while restoring patients.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Handle bulk permanent delete
+  const handleBulkPermanentDelete = async () => {
+    if (selectedPatients.size === 0) {
+      toast({
+        title: "No patients selected",
+        description:
+          "Please select at least one patient to permanently archive.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      `⚠️ WARNING: Are you sure you want to PERMANENTLY archive ${selectedPatients.size} patient(s)? This action CANNOT be undone and all patient data will be lost forever.`,
+    );
+
+    if (!confirmDelete) return;
+
+    // Double confirmation for permanent deletion
+    const doubleConfirm = window.confirm(
+      "This is your final warning. Type 'ARCHIVE' in the next prompt to confirm permanent archiving.",
+    );
+
+    if (!doubleConfirm) return;
+
+    setIsProcessing(true);
+    const selectedIds = Array.from(selectedPatients);
+    let successCount = 0;
+    let failCount = 0;
+
+    try {
+      for (const patientId of selectedIds) {
+        try {
+          await axios.delete(`patients/${patientId}/permanent/`);
+          successCount++;
+        } catch (error) {
+          console.error(
+            `Failed to permanently archive patient ${patientId}:`,
+            error,
+          );
+          failCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        toast({
+          title: "Patients permanently archived",
           description: `Successfully archived ${successCount} patient(s).${
             failCount > 0 ? ` Failed to archive ${failCount} patient(s).` : ""
           }`,
         });
-        fetchPatients(); // Refresh the list
-        setSelectedPatients(new Set()); // Clear selections
+        fetchArchivedPatients();
+        setSelectedPatients(new Set());
       } else {
         toast({
           title: "Archive failed",
@@ -293,69 +406,64 @@ const PatientsList = () => {
         variant: "destructive",
       });
     } finally {
-      setIsArchiving(false);
+      setIsProcessing(false);
     }
   };
 
-  // Handle showing red flag reason
-  const handleShowRedFlagReason = (patient: any) => {
-    if (patient.is_red_flagged && patient.red_flag_reason) {
-      setSelectedRedFlag({
-        reason: patient.red_flag_reason,
-        flaggedBy: patient.red_flagged_by_name,
-        flaggedDate: patient.red_flagged_date,
-      });
-      setShowRedFlagDialog(true);
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 md:space-y-6 p-3 md:p-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">
-          Patient Records
-        </h1>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/patients")}
+            className="text-xs sm:text-sm"
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back to Patients
+          </Button>
+          <div>
+            <h1 className="text-xl md:text-2xl lg:text-3xl font-bold flex items-center gap-2">
+              <Archive className="h-6 w-6" />
+              Patient Archives
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+              View and manage archived patient records
+            </p>
+          </div>
+        </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           {selectedPatients.size > 0 && (
-            <Button
-              variant="outline"
-              onClick={handleBulkArchive}
-              disabled={isArchiving}
-              className="w-full sm:w-auto text-xs sm:text-sm"
-            >
-              <Archive className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">Archive Selected</span>
-              <span className="sm:hidden">Archive</span> (
-              {selectedPatients.size})
-            </Button>
+            <>
+              <Button
+                variant="default"
+                onClick={handleBulkRestore}
+                disabled={isProcessing}
+                className="w-full sm:w-auto text-xs sm:text-sm"
+              >
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Restore ({selectedPatients.size})
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleBulkPermanentDelete}
+                disabled={isProcessing}
+                className="w-full sm:w-auto text-xs sm:text-sm"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Archive ({selectedPatients.size})
+              </Button>
+            </>
           )}
-          {canUseBulkImport && (
-            <BulkImportModal
-              type="patients"
-              onUploadComplete={() => {
-                fetchPatients(); // Refresh the patient list after successful upload
-              }}
-            />
-          )}
-          {isAdmin && (
-            <Button
-              variant="outline"
-              onClick={() => navigate("/patient-archives")}
-              className="w-full sm:w-auto text-xs sm:text-sm"
-            >
-              <Archive className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">View Archives</span>
-              <span className="sm:hidden">Archives</span>
-            </Button>
-          )}
-          <Button
-            onClick={() => navigate("/patients/add")}
-            className="w-full sm:w-auto text-xs sm:text-sm"
-          >
-            <UserPlus className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Add New Patient</span>
-            <span className="sm:hidden">Add Patient</span>
-          </Button>
         </div>
       </div>
 
@@ -365,7 +473,7 @@ const PatientsList = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <p className="text-xs sm:text-sm text-muted-foreground">
                 Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of{" "}
-                {totalItems} patients
+                {totalItems} archived patients
                 {sortField && (
                   <span className="ml-2">
                     • Sorted by {sortField.replace("_", " ")} (
@@ -378,23 +486,23 @@ const PatientsList = () => {
               <div className="relative flex-1 sm:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search patients..."
+                  placeholder="Search archived patients..."
                   className="pl-8 text-xs sm:text-sm"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
               {(searchQuery ||
-                sortField !== "name" ||
-                sortDirection !== "asc") && (
+                sortField !== "deleted_at" ||
+                sortDirection !== "desc") && (
                 <Button
                   variant="outline"
                   size="sm"
                   className="text-xs sm:text-sm whitespace-nowrap"
                   onClick={() => {
                     setSearchQuery("");
-                    setSortField("name");
-                    setSortDirection("asc");
+                    setSortField("deleted_at");
+                    setSortDirection("desc");
                   }}
                 >
                   Reset
@@ -408,10 +516,7 @@ const PatientsList = () => {
             <Table className="w-full">
               <TableHeader>
                 <TableRow>
-                  {/* Expand header - show when any column is hidden */}
                   <TableHead className="w-8 p-0 xl:hidden"></TableHead>
-
-                  {/* Desktop checkbox header */}
                   <TableHead className="w-12 hidden md:table-cell">
                     <Checkbox
                       checked={isAllSelected}
@@ -422,7 +527,6 @@ const PatientsList = () => {
                       }
                     />
                   </TableHead>
-
                   <TableHead>
                     <Button
                       variant="ghost"
@@ -433,8 +537,6 @@ const PatientsList = () => {
                       {renderSortIcon("name")}
                     </Button>
                   </TableHead>
-
-                  {/* Progressively hidden columns on smaller screens */}
                   <TableHead className="hidden md:table-cell">
                     <Button
                       variant="ghost"
@@ -449,10 +551,10 @@ const PatientsList = () => {
                     <Button
                       variant="ghost"
                       className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
-                      onClick={() => handleSort("date_of_birth")}
+                      onClick={() => handleSort("deleted_at")}
                     >
-                      Date of Birth
-                      {renderSortIcon("date_of_birth")}
+                      Archived Date
+                      {renderSortIcon("deleted_at")}
                     </Button>
                   </TableHead>
                   <TableHead className="hidden lg:table-cell">
@@ -465,16 +567,6 @@ const PatientsList = () => {
                       {renderSortIcon("email")}
                     </Button>
                   </TableHead>
-                  <TableHead className="hidden xl:table-cell">
-                    <Button
-                      variant="ghost"
-                      className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
-                      onClick={() => handleSort("marital_status")}
-                    >
-                      Marital Status
-                      {renderSortIcon("marital_status")}
-                    </Button>
-                  </TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -485,7 +577,6 @@ const PatientsList = () => {
                     return (
                       <>
                         <TableRow key={patient.id}>
-                          {/* Expand button - show when any column is hidden */}
                           <TableCell className="xl:hidden w-8 p-0">
                             <Button
                               variant="ghost"
@@ -496,12 +587,10 @@ const PatientsList = () => {
                               {isExpanded ? (
                                 <ChevronDown className="h-3 w-3" />
                               ) : (
-                                <ChevronRight className="h-3 w-3" />
+                                <ChevronRightIcon className="h-3 w-3" />
                               )}
                             </Button>
                           </TableCell>
-
-                          {/* Desktop checkbox */}
                           <TableCell className="hidden md:table-cell">
                             <Checkbox
                               checked={selectedPatients.has(patient.id)}
@@ -514,48 +603,34 @@ const PatientsList = () => {
                               aria-label={`Select ${patient.name}`}
                             />
                           </TableCell>
-
                           <TableCell className="max-w-[180px]">
                             <div className="flex items-center gap-2">
                               <Avatar className="h-7 w-7 md:h-8 md:w-8 flex-shrink-0">
-                                <AvatarFallback className="text-[10px] md:text-xs">
-                                  {getPatientInitial(patient)}
+                                <AvatarFallback className="text-[10px] md:text-xs bg-gray-200">
+                                  {patient.name
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")
+                                    .toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
                               <div className="min-w-0 flex-1">
-                                <div className="font-medium text-[11px] md:text-sm flex items-center gap-1 flex-wrap">
-                                  <span className="truncate">
-                                    {formatPatientNameWithInitial(patient) ||
-                                      patient.name}
-                                  </span>
-                                  {patient.is_red_flagged && (
-                                    <Badge
-                                      variant="destructive"
-                                      className="cursor-pointer text-[9px] px-1 py-0 h-4 flex-shrink-0"
-                                      onClick={() =>
-                                        handleShowRedFlagReason(patient)
-                                      }
-                                    >
-                                      <Flag className="h-2 w-2 mr-0.5" />
-                                      FLAG
-                                    </Badge>
-                                  )}
+                                <div className="font-medium text-[11px] md:text-sm">
+                                  {patient.name}
                                 </div>
                                 <div className="text-[10px] md:text-xs text-muted-foreground md:hidden truncate">
-                                  ID: {patient.patient_id || patient.id}
+                                  ID: {patient.patient_id}
                                 </div>
                               </div>
                             </div>
                           </TableCell>
-
-                          {/* Desktop columns - hidden on mobile */}
                           <TableCell className="capitalize text-xs sm:text-sm hidden md:table-cell">
                             {patient.gender}
                           </TableCell>
                           <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                            {patient.date_of_birth
+                            {patient.deleted_at
                               ? format(
-                                  new Date(patient.date_of_birth),
+                                  new Date(patient.deleted_at),
                                   "MMM d, yyyy",
                                 )
                               : "N/A"}
@@ -566,33 +641,49 @@ const PatientsList = () => {
                               {patient.phone}
                             </div>
                           </TableCell>
-                          <TableCell className="capitalize text-xs sm:text-sm hidden xl:table-cell">
-                            {patient.marital_status || "N/A"}
-                          </TableCell>
-
-                          <TableCell className="text-right w-20">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-[10px] md:text-sm h-7 md:h-8 px-2 md:px-3"
-                              onClick={() =>
-                                navigate(
-                                  `/patients/${
-                                    patient.patient_id || patient.id
-                                  }`,
-                                )
-                              }
-                            >
-                              <FileText className="h-3 w-3 md:h-4 md:w-4 md:mr-2" />
-                              <span className="hidden md:inline">
-                                View Record
-                              </span>
-                              <span className="md:hidden ml-1">View</span>
-                            </Button>
+                          <TableCell className="text-right">
+                            <div className="flex gap-2 justify-end">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-[10px] md:text-sm h-7 md:h-8 px-2 md:px-3"
+                                onClick={() => handleViewPatient(patient)}
+                              >
+                                <Eye className="h-3 w-3 md:h-4 md:w-4 md:mr-2" />
+                                <span className="hidden md:inline">View</span>
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-[10px] md:text-sm h-7 md:h-8 px-2 md:px-3"
+                                onClick={async () => {
+                                  try {
+                                    await axios.post(
+                                      `patients/${patient.id}/restore/`,
+                                    );
+                                    toast({
+                                      title: "Patient restored",
+                                      description: `${patient.name} has been restored successfully.`,
+                                    });
+                                    fetchArchivedPatients();
+                                  } catch (error) {
+                                    toast({
+                                      title: "Error",
+                                      description: "Failed to restore patient.",
+                                      variant: "destructive",
+                                    });
+                                  }
+                                }}
+                              >
+                                <RotateCcw className="h-3 w-3 md:h-4 md:w-4 md:mr-2" />
+                                <span className="hidden md:inline">
+                                  Restore
+                                </span>
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
 
-                        {/* Expandable row - shows hidden columns based on screen size */}
                         {isExpanded && (
                           <TableRow className="xl:hidden bg-muted/50">
                             <TableCell colSpan={3} className="py-3">
@@ -601,9 +692,7 @@ const PatientsList = () => {
                                   <span className="font-medium text-muted-foreground">
                                     ID:
                                   </span>
-                                  <span>
-                                    {patient.patient_id || patient.id}
-                                  </span>
+                                  <span>{patient.patient_id}</span>
                                 </div>
                                 <div className="flex justify-between md:hidden">
                                   <span className="font-medium text-muted-foreground">
@@ -615,12 +704,12 @@ const PatientsList = () => {
                                 </div>
                                 <div className="flex justify-between lg:hidden">
                                   <span className="font-medium text-muted-foreground">
-                                    Date of Birth:
+                                    Archived Date:
                                   </span>
                                   <span>
-                                    {patient.date_of_birth
+                                    {patient.deleted_at
                                       ? format(
-                                          new Date(patient.date_of_birth),
+                                          new Date(patient.deleted_at),
                                           "MMM d, yyyy",
                                         )
                                       : "N/A"}
@@ -630,23 +719,13 @@ const PatientsList = () => {
                                   <span className="font-medium text-muted-foreground">
                                     Email:
                                   </span>
-                                  <span className="text-right">
-                                    {patient.email}
-                                  </span>
+                                  <span>{patient.email}</span>
                                 </div>
                                 <div className="flex justify-between lg:hidden">
                                   <span className="font-medium text-muted-foreground">
                                     Phone:
                                   </span>
-                                  <span>{patient.phone || "N/A"}</span>
-                                </div>
-                                <div className="flex justify-between xl:hidden">
-                                  <span className="font-medium text-muted-foreground">
-                                    Marital Status:
-                                  </span>
-                                  <span className="capitalize">
-                                    {patient.marital_status || "N/A"}
-                                  </span>
+                                  <span>{patient.phone}</span>
                                 </div>
                                 <div className="flex items-center gap-2 pt-2 md:hidden">
                                   <Checkbox
@@ -661,7 +740,7 @@ const PatientsList = () => {
                                   />
                                   <label
                                     htmlFor={`mobile-select-${patient.id}`}
-                                    className="text-xs font-medium cursor-pointer"
+                                    className="text-sm font-medium"
                                   >
                                     Select for bulk action
                                   </label>
@@ -680,7 +759,7 @@ const PatientsList = () => {
                         {searchQuery ? (
                           <>
                             <p className="text-sm sm:text-base md:text-lg font-medium">
-                              No patients found
+                              No archived patients found
                             </p>
                             <p className="text-xs sm:text-sm">
                               Try adjusting your search term "{searchQuery}"
@@ -689,10 +768,10 @@ const PatientsList = () => {
                         ) : (
                           <>
                             <p className="text-sm sm:text-base md:text-lg font-medium">
-                              No patients registered yet
+                              No archived patients
                             </p>
                             <p className="text-xs sm:text-sm">
-                              Click "Add New Patient" to get started
+                              Archived patients will appear here
                             </p>
                           </>
                         )}
@@ -704,7 +783,6 @@ const PatientsList = () => {
             </Table>
           </div>
 
-          {/* Pagination Controls */}
           {totalItems > 0 && (
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-2 sm:px-4 py-4">
               <div className="flex items-center space-x-2">
@@ -760,56 +838,194 @@ const PatientsList = () => {
         </CardContent>
       </Card>
 
-      {/* Red Flag Reason Dialog */}
-      <Dialog open={showRedFlagDialog} onOpenChange={setShowRedFlagDialog}>
-        <DialogContent className="sm:max-w-md">
+      {/* Patient Details Dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Flag className="h-5 w-5 text-red-500" />
-              Red Flag Details
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Archive className="h-5 w-5" />
+              Archived Patient Details
             </DialogTitle>
+            <DialogDescription>
+              View complete information and archive traceability
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label className="text-sm font-medium text-gray-600">
-                Reason:
-              </Label>
-              <div className="p-3 bg-red-50 border border-red-200 rounded-md mt-1">
-                <p className="text-sm">{selectedRedFlag?.reason}</p>
+
+          {selectedPatient && (
+            <div className="space-y-6 mt-4">
+              {/* Personal Information Section */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold border-b pb-2">
+                  Personal Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Patient ID
+                    </label>
+                    <p className="text-sm mt-1">{selectedPatient.patient_id}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Full Name
+                    </label>
+                    <p className="text-sm mt-1 font-medium">
+                      {selectedPatient.name}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Date of Birth
+                    </label>
+                    <p className="text-sm mt-1">
+                      {selectedPatient.date_of_birth
+                        ? format(
+                            new Date(selectedPatient.date_of_birth),
+                            "MMMM d, yyyy",
+                          )
+                        : "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Gender
+                    </label>
+                    <p className="text-sm mt-1 capitalize">
+                      {selectedPatient.gender}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Email
+                    </label>
+                    <p className="text-sm mt-1">
+                      {selectedPatient.email || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Phone
+                    </label>
+                    <p className="text-sm mt-1">
+                      {selectedPatient.phone || "N/A"}
+                    </p>
+                  </div>
+                  {selectedPatient.marital_status && (
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Marital Status
+                      </label>
+                      <p className="text-sm mt-1 capitalize">
+                        {selectedPatient.marital_status}
+                      </p>
+                    </div>
+                  )}
+                  {selectedPatient.address && (
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Address
+                      </label>
+                      <p className="text-sm mt-1">{selectedPatient.address}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Archive Traceability Section */}
+              <div className="space-y-3 bg-muted/50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Info className="h-5 w-5" />
+                  Archive Traceability
+                </h3>
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="flex items-start gap-3">
+                    <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div className="flex-1">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Archived Date
+                      </label>
+                      <p className="text-sm mt-1 font-medium">
+                        {selectedPatient.deleted_at
+                          ? format(
+                              new Date(selectedPatient.deleted_at),
+                              "MMMM d, yyyy 'at' h:mm a",
+                            )
+                          : "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <User className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div className="flex-1">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Archived By
+                      </label>
+                      <p className="text-sm mt-1 font-medium">
+                        {selectedPatient.deleted_by || "Unknown"}
+                      </p>
+                      {selectedPatient.deleted_by_email && (
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {selectedPatient.deleted_by_email}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  {selectedPatient.deleted_reason && (
+                    <div className="flex items-start gap-3">
+                      <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+                      <div className="flex-1">
+                        <label className="text-sm font-medium text-muted-foreground">
+                          Archive Reason
+                        </label>
+                        <p className="text-sm mt-1">
+                          {selectedPatient.deleted_reason}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setViewDialogOpen(false)}
+                >
+                  Close
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={async () => {
+                    try {
+                      await axios.post(
+                        `patients/${selectedPatient.id}/restore/`,
+                      );
+                      toast({
+                        title: "Patient restored",
+                        description: `${selectedPatient.name} has been restored successfully.`,
+                      });
+                      setViewDialogOpen(false);
+                      fetchArchivedPatients();
+                    } catch (error) {
+                      toast({
+                        title: "Error",
+                        description: "Failed to restore patient.",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
+                >
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  Restore Patient
+                </Button>
               </div>
             </div>
-            {selectedRedFlag?.flaggedBy && (
-              <div>
-                <Label className="text-sm font-medium text-gray-600">
-                  Flagged by:
-                </Label>
-                <p className="text-sm mt-1">{selectedRedFlag.flaggedBy}</p>
-              </div>
-            )}
-            {selectedRedFlag?.flaggedDate && (
-              <div>
-                <Label className="text-sm font-medium text-gray-600">
-                  Date flagged:
-                </Label>
-                <p className="text-sm mt-1">
-                  {new Date(selectedRedFlag.flaggedDate).toLocaleString()}
-                </p>
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowRedFlagDialog(false)}
-            >
-              Close
-            </Button>
-          </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
     </div>
   );
 };
 
-export default PatientsList;
+export default PatientArchives;

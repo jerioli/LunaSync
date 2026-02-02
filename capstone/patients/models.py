@@ -48,6 +48,8 @@ class Patient(models.Model):
     
     is_deleted = models.BooleanField(default=False)  # Soft delete field
     deleted_at = models.DateTimeField(null=True, blank=True)  # When the patient was deleted
+    deleted_by = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='deleted_patients', help_text="User who archived this patient")
+    deleted_reason = EncryptedTextField(blank=True, null=True, help_text="Reason for archiving this patient")
 
     # Custom manager
     objects = PatientManager()
@@ -55,16 +57,22 @@ class Patient(models.Model):
     class Meta:
         db_table = 'patients'
 
-    def soft_delete(self):
+    def soft_delete(self, user=None, reason=None):
         """Soft delete the patient"""
         self.is_deleted = True
         self.deleted_at = timezone.now()
+        if user:
+            self.deleted_by = user
+        if reason:
+            self.deleted_reason = reason
         self.save()
     
     def restore(self):
         """Restore a soft-deleted patient"""
         self.is_deleted = False
         self.deleted_at = None
+        self.deleted_by = None
+        self.deleted_reason = None
         self.save()
     
     def set_red_flag(self, reason, user):
