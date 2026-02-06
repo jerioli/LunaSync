@@ -650,16 +650,101 @@ const StaffPage = () => {
 
       // Refresh the staff lists without reloading the page
       await refreshStaffLists();
-    } catch (error) {
+    } catch (error: any) {
       console.error(
         "Error adding staff:",
         error.response?.data || error.message,
       );
+
+      let errorTitle = "Error";
+      let errorDescription = "Failed to add staff member. Please try again.";
+
+      if (error.response?.data) {
+        const errorData = error.response.data;
+
+        // Handle specific error cases
+        if (errorData.email) {
+          errorTitle = "Email Error";
+          errorDescription = Array.isArray(errorData.email)
+            ? errorData.email[0]
+            : errorData.email;
+          setEmailValidationError(errorDescription);
+
+          // Check for specific email already exists message
+          if (
+            errorDescription.toLowerCase().includes("already") ||
+            errorDescription.toLowerCase().includes("exists") ||
+            errorDescription.toLowerCase().includes("in use")
+          ) {
+            errorTitle = "Email Already Exists";
+            errorDescription =
+              "This email address is already registered in the system.";
+          }
+        } else if (errorData.username) {
+          errorTitle = "Username Error";
+          errorDescription = Array.isArray(errorData.username)
+            ? errorData.username[0]
+            : errorData.username;
+
+          // Check for username already exists
+          if (
+            errorDescription.toLowerCase().includes("already") ||
+            errorDescription.toLowerCase().includes("exists")
+          ) {
+            errorTitle = "Username Already Exists";
+            errorDescription =
+              "This username is already taken. Please choose a different username.";
+          }
+        } else if (errorData.phone) {
+          errorTitle = "Phone Number Error";
+          errorDescription = Array.isArray(errorData.phone)
+            ? errorData.phone[0]
+            : errorData.phone;
+        } else if (errorData.first_name || errorData.last_name) {
+          errorTitle = "Name Validation Error";
+          const nameError = errorData.first_name || errorData.last_name;
+          errorDescription = Array.isArray(nameError)
+            ? nameError[0]
+            : nameError;
+        } else if (errorData.error) {
+          errorDescription = errorData.error;
+        } else if (errorData.detail) {
+          errorDescription = errorData.detail;
+        } else if (errorData.message) {
+          errorDescription = errorData.message;
+        } else {
+          // Try to extract any field errors
+          const fieldErrors = Object.entries(errorData)
+            .filter(
+              ([key, value]) =>
+                typeof value === "string" || Array.isArray(value),
+            )
+            .map(([key, value]) => {
+              const errorMsg = Array.isArray(value) ? value[0] : value;
+              const fieldName = key
+                .replace(/_/g, " ")
+                .replace(/\b\w/g, (l) => l.toUpperCase());
+              return `${fieldName}: ${errorMsg}`;
+            });
+
+          if (fieldErrors.length > 0) {
+            errorTitle = "Validation Error";
+            errorDescription = fieldErrors.join(". ");
+          }
+        }
+      } else if (error.message) {
+        if (error.message.toLowerCase().includes("network")) {
+          errorTitle = "Network Error";
+          errorDescription =
+            "Unable to connect to the server. Please check your internet connection.";
+        } else {
+          errorDescription = error.message;
+        }
+      }
+
       toast({
-        title: "Error",
-        description: `Failed to add staff member: ${
-          error.response?.data?.error || error.message
-        }`,
+        title: errorTitle,
+        description: errorDescription,
         variant: "destructive",
       });
     } finally {
