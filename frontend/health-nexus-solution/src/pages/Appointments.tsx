@@ -55,7 +55,20 @@ const Appointments = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [appointments, setAppointments] = useState([]);
-  const [activeTab, setActiveTab] = useState("pending");
+
+  const isReceptionist = currentUser?.role === "receptionist";
+  const isDoctor = currentUser?.role === "doctor";
+  const isAdmin = currentUser?.role === "admin";
+  const canManageAppointments = isReceptionist || isAdmin; // Both receptionists and admins can manage appointments
+
+  // Set default tab based on user role - doctors default to "upcoming", others to "pending"
+  const defaultTab = isDoctor
+    ? "upcoming"
+    : canManageAppointments
+      ? "pending"
+      : "upcoming";
+  const [activeTab, setActiveTab] = useState(defaultTab);
+
   const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false);
   const [showFollowUpModal, setShowFollowUpModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
@@ -71,11 +84,6 @@ const Appointments = () => {
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
 
-  const isReceptionist = currentUser?.role === "receptionist";
-  const isDoctor = currentUser?.role === "doctor";
-  const isAdmin = currentUser?.role === "admin";
-  const canManageAppointments = isReceptionist || isAdmin; // Both receptionists and admins can manage appointments
-
   // Set active tab from URL query parameter when component mounts or when navigating back
   useEffect(() => {
     const tabParam = searchParams.get("tab");
@@ -86,8 +94,11 @@ const Appointments = () => {
       )
     ) {
       setActiveTab(tabParam);
+    } else {
+      // Reset to default tab when no URL param is present (e.g., when clicking navigation link)
+      setActiveTab(defaultTab);
     }
-  }, [searchParams]);
+  }, [searchParams, defaultTab]);
 
   // Consistent button class for all action buttons
   const buttonClass = "h-8 px-3 text-xs";
