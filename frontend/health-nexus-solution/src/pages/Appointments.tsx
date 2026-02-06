@@ -44,7 +44,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import { FollowUpModal } from "@/components/FollowUpModal";
@@ -53,6 +53,7 @@ const Appointments = () => {
   const { currentUser, patients, users } = useClinic();
   const { colors } = useBranding();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [appointments, setAppointments] = useState([]);
   const [activeTab, setActiveTab] = useState("pending");
   const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false);
@@ -74,6 +75,19 @@ const Appointments = () => {
   const isDoctor = currentUser?.role === "doctor";
   const isAdmin = currentUser?.role === "admin";
   const canManageAppointments = isReceptionist || isAdmin; // Both receptionists and admins can manage appointments
+
+  // Set active tab from URL query parameter when component mounts or when navigating back
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (
+      tabParam &&
+      ["pending", "upcoming", "ongoing", "completed", "cancelled"].includes(
+        tabParam,
+      )
+    ) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   // Consistent button class for all action buttons
   const buttonClass = "h-8 px-3 text-xs";
@@ -1205,7 +1219,7 @@ const Appointments = () => {
                 const patientIdentifier =
                   patient?.patient_id || appointment.patientId;
                 navigate(
-                  `/patients/${patientIdentifier}?from=ongoing&appointmentId=${appointment.id}`,
+                  `/patients/${patientIdentifier}?from=appointments&tab=ongoing&appointmentId=${appointment.id}`,
                 );
               }}
             >
@@ -1234,7 +1248,9 @@ const Appointments = () => {
                 );
                 const patientIdentifier =
                   patient?.patient_id || appointment.patientId;
-                navigate(`/patients/${patientIdentifier}`);
+                navigate(
+                  `/patients/${patientIdentifier}?from=appointments&tab=ongoing`,
+                );
               }}
             >
               View Record
@@ -1266,7 +1282,9 @@ const Appointments = () => {
                 );
                 const patientIdentifier =
                   patient?.patient_id || appointment.patientId;
-                navigate(`/patients/${patientIdentifier}`);
+                navigate(
+                  `/patients/${patientIdentifier}?from=appointments&tab=completed`,
+                );
               }}
             >
               View Record
@@ -1286,7 +1304,9 @@ const Appointments = () => {
                 );
                 const patientIdentifier =
                   patient?.patient_id || appointment.patientId;
-                navigate(`/patients/${patientIdentifier}`);
+                navigate(
+                  `/patients/${patientIdentifier}?from=appointments&tab=completed`,
+                );
               }}
             >
               View Record

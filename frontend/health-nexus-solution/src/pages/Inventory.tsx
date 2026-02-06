@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useClinic } from "@/contexts/ClinicContext";
 import {
   Package,
@@ -85,7 +85,6 @@ type SortDirection = "asc" | "desc";
 
 const Inventory = () => {
   const { currentUser } = useClinic();
-  const { toast } = useToast();
 
   // State management
   const [medicineRecords, setMedicineRecords] = useState<MedicineRecord[]>([]);
@@ -164,16 +163,19 @@ const Inventory = () => {
 
       // Show toast notifications for critical items
       if (expiredMedicines.length > 0) {
-        toast({
-          title: "⚠️ Expired Medicines",
-          description: `${expiredMedicines.length} medicine(s) have expired and need attention`,
-          variant: "destructive",
-        });
+        toast.error(
+          `${expiredMedicines.length} medicine(s) have expired and need attention`,
+          {
+            duration: 5000,
+          },
+        );
       } else if (expiringMedicines.length > 0) {
-        toast({
-          title: "📅 Expiration Alert",
-          description: `${expiringMedicines.length} medicine(s) are nearing expiration`,
-        });
+        toast.warning(
+          `${expiringMedicines.length} medicine(s) are nearing expiration`,
+          {
+            duration: 5000,
+          },
+        );
       }
     }
   }, [medicineRecords, toast]);
@@ -196,10 +198,8 @@ const Inventory = () => {
       }
     } catch (error) {
       console.error("Error fetching medicine records:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch medicine records",
-        variant: "destructive",
+      toast.error("Failed to fetch medicine records", {
+        duration: 5000,
       });
     } finally {
       setLoading(false);
@@ -259,10 +259,8 @@ const Inventory = () => {
     // Validate form
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
-      toast({
-        title: "Validation Error",
-        description: validationErrors.join(", "),
-        variant: "destructive",
+      toast.error(validationErrors.join(", "), {
+        duration: 5000,
       });
       return;
     }
@@ -279,14 +277,15 @@ const Inventory = () => {
       });
 
       if (response.data.success) {
-        toast({
-          title: "Success",
-          description:
-            response.data.message ||
+        toast.success(
+          response.data.message ||
             (selectedItem
               ? "Medicine updated successfully"
               : "Medicine added successfully"),
-        });
+          {
+            duration: 5000,
+          },
+        );
         fetchMedicineRecords();
         setIsAddModalOpen(false);
         setIsEditModalOpen(false);
@@ -306,10 +305,8 @@ const Inventory = () => {
         errorMessage = error.response.data.message;
       }
 
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
+      toast.error(errorMessage, {
+        duration: 5000,
       });
     } finally {
       setIsSubmitting(false);
@@ -327,17 +324,14 @@ const Inventory = () => {
       });
 
       if (response.data.success) {
-        toast({
-          title: "Success",
-          description: "Medicine record deleted successfully",
+        toast.success("Medicine record deleted successfully", {
+          duration: 5000,
         });
         fetchMedicineRecords();
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.response?.data?.error || "Delete failed",
-        variant: "destructive",
+      toast.error(error.response?.data?.error || "Delete failed", {
+        duration: 5000,
       });
     }
   };
@@ -648,260 +642,288 @@ const Inventory = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedItems.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">
-                      <div>{item.name}</div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-medium text-blue-600">
-                        {item.dosage}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="capitalize text-sm bg-gray-100 px-2 py-1 rounded">
-                        {item.category}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <span
-                          className={`${
-                            item.is_low_stock
-                              ? "text-orange-600 font-semibold"
-                              : "text-gray-600"
-                          }`}
-                        >
-                          {item.stock_quantity ?? "N/A"}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {item.expiration_date ? (
-                          <span
-                            className={`${
-                              item.is_expired
-                                ? "text-red-600 font-semibold"
-                                : item.is_near_expiration
-                                  ? "text-amber-600 font-semibold"
-                                  : "text-gray-600"
-                            }`}
-                          >
-                            {format(
-                              new Date(item.expiration_date),
-                              "MMM dd, yyyy",
-                            )}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">Not set</span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {item.is_expired && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            <AlertTriangle className="h-3 w-3 mr-1" />
-                            Expired
-                          </span>
-                        )}
-                        {item.is_near_expiration && !item.is_expired && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                            <Clock className="h-3 w-3 mr-1" />
-                            Near Expiry
-                          </span>
-                        )}
-                        {!item.is_near_expiration &&
-                          !item.is_expired &&
-                          item.expiration_date && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              OK
-                            </span>
-                          )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-600">
-                        {item.description || "No description"}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {format(new Date(item.created_at), "MMM dd, yyyy")}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(item)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDelete(item.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                {paginatedItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={9} className="h-32 text-center">
+                      <div className="flex flex-col items-center justify-center text-muted-foreground">
+                        <Search className="h-8 w-8 mb-2 opacity-50" />
+                        <p className="text-sm font-medium">No results found</p>
+                        <p className="text-xs mt-1">
+                          Try adjusting your search or filters
+                        </p>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  paginatedItems.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium">
+                        <div>{item.name}</div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-medium text-blue-600">
+                          {item.dosage}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="capitalize text-sm bg-gray-100 px-2 py-1 rounded">
+                          {item.category}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          <span
+                            className={`${
+                              item.is_low_stock
+                                ? "text-orange-600 font-semibold"
+                                : "text-gray-600"
+                            }`}
+                          >
+                            {item.stock_quantity ?? "N/A"}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {item.expiration_date ? (
+                            <span
+                              className={`${
+                                item.is_expired
+                                  ? "text-red-600 font-semibold"
+                                  : item.is_near_expiration
+                                    ? "text-amber-600 font-semibold"
+                                    : "text-gray-600"
+                              }`}
+                            >
+                              {format(
+                                new Date(item.expiration_date),
+                                "MMM dd, yyyy",
+                              )}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">Not set</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {item.is_expired && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                              <AlertTriangle className="h-3 w-3 mr-1" />
+                              Expired
+                            </span>
+                          )}
+                          {item.is_near_expiration && !item.is_expired && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                              <Clock className="h-3 w-3 mr-1" />
+                              Near Expiry
+                            </span>
+                          )}
+                          {!item.is_near_expiration &&
+                            !item.is_expired &&
+                            item.expiration_date && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                OK
+                              </span>
+                            )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-gray-600">
+                          {item.description || "No description"}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {format(new Date(item.created_at), "MMM dd, yyyy")}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(item)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDelete(item.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
 
           {/* Mobile Card View with Accordion */}
           <div className="lg:hidden space-y-3">
-            {paginatedItems.map((item) => (
-              <details key={item.id} className="group border rounded-lg">
-                <summary className="cursor-pointer p-3 sm:p-4 hover:bg-muted/50 transition-colors list-none">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-semibold text-sm sm:text-base">
-                          {item.name}
-                        </h3>
-                        <span className="text-xs sm:text-sm font-medium text-blue-600">
-                          {item.dosage}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <span className="capitalize text-xs bg-gray-100 px-2 py-0.5 rounded">
-                          {item.category}
-                        </span>
-                        {item.is_expired && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            Expired
-                          </span>
-                        )}
-                        {item.is_near_expiration && !item.is_expired && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                            Near Expiry
-                          </span>
-                        )}
-                        {item.is_low_stock && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                            Low Stock
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-gray-400 transition-transform group-open:rotate-90 flex-shrink-0" />
+            {paginatedItems.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 pb-6">
+                  <div className="flex flex-col items-center justify-center text-muted-foreground">
+                    <Search className="h-10 w-10 mb-3 opacity-50" />
+                    <p className="text-sm font-medium">No results found</p>
+                    <p className="text-xs mt-1 text-center">
+                      Try adjusting your search or filters
+                    </p>
                   </div>
-                </summary>
-
-                <div className="border-t p-3 sm:p-4 space-y-3 bg-muted/20">
-                  <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
-                    <div>
-                      <span className="text-gray-600 font-medium">
-                        Stock Quantity:
-                      </span>
-                      <p
-                        className={`mt-1 ${
-                          item.is_low_stock
-                            ? "text-orange-600 font-semibold"
-                            : "text-gray-900"
-                        }`}
-                      >
-                        {item.stock_quantity ?? "N/A"}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-600 font-medium">
-                        Expiration:
-                      </span>
-                      <p
-                        className={`mt-1 ${
-                          item.is_expired
-                            ? "text-red-600 font-semibold"
-                            : item.is_near_expiration
-                              ? "text-amber-600 font-semibold"
-                              : "text-gray-900"
-                        }`}
-                      >
-                        {item.expiration_date
-                          ? format(
-                              new Date(item.expiration_date),
-                              "MMM dd, yyyy",
-                            )
-                          : "Not set"}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-600 font-medium">
-                        Alert Status:
-                      </span>
-                      <div className="mt-1">
-                        {item.is_expired && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            <AlertTriangle className="h-3 w-3 mr-1" />
-                            Expired
+                </CardContent>
+              </Card>
+            ) : (
+              paginatedItems.map((item) => (
+                <details key={item.id} className="group border rounded-lg">
+                  <summary className="cursor-pointer p-3 sm:p-4 hover:bg-muted/50 transition-colors list-none">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-semibold text-sm sm:text-base">
+                            {item.name}
+                          </h3>
+                          <span className="text-xs sm:text-sm font-medium text-blue-600">
+                            {item.dosage}
                           </span>
-                        )}
-                        {item.is_near_expiration && !item.is_expired && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                            <Clock className="h-3 w-3 mr-1" />
-                            Near Expiry
+                        </div>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <span className="capitalize text-xs bg-gray-100 px-2 py-0.5 rounded">
+                            {item.category}
                           </span>
-                        )}
-                        {!item.is_near_expiration &&
-                          !item.is_expired &&
-                          item.expiration_date && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              OK
+                          {item.is_expired && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                              Expired
                             </span>
                           )}
+                          {item.is_near_expiration && !item.is_expired && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                              Near Expiry
+                            </span>
+                          )}
+                          {item.is_low_stock && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                              Low Stock
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <ChevronRight className="h-5 w-5 text-gray-400 transition-transform group-open:rotate-90 flex-shrink-0" />
+                    </div>
+                  </summary>
+
+                  <div className="border-t p-3 sm:p-4 space-y-3 bg-muted/20">
+                    <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
+                      <div>
+                        <span className="text-gray-600 font-medium">
+                          Stock Quantity:
+                        </span>
+                        <p
+                          className={`mt-1 ${
+                            item.is_low_stock
+                              ? "text-orange-600 font-semibold"
+                              : "text-gray-900"
+                          }`}
+                        >
+                          {item.stock_quantity ?? "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600 font-medium">
+                          Expiration:
+                        </span>
+                        <p
+                          className={`mt-1 ${
+                            item.is_expired
+                              ? "text-red-600 font-semibold"
+                              : item.is_near_expiration
+                                ? "text-amber-600 font-semibold"
+                                : "text-gray-900"
+                          }`}
+                        >
+                          {item.expiration_date
+                            ? format(
+                                new Date(item.expiration_date),
+                                "MMM dd, yyyy",
+                              )
+                            : "Not set"}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600 font-medium">
+                          Alert Status:
+                        </span>
+                        <div className="mt-1">
+                          {item.is_expired && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                              <AlertTriangle className="h-3 w-3 mr-1" />
+                              Expired
+                            </span>
+                          )}
+                          {item.is_near_expiration && !item.is_expired && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                              <Clock className="h-3 w-3 mr-1" />
+                              Near Expiry
+                            </span>
+                          )}
+                          {!item.is_near_expiration &&
+                            !item.is_expired &&
+                            item.expiration_date && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                OK
+                              </span>
+                            )}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-gray-600 font-medium">
+                          Date Added:
+                        </span>
+                        <p className="text-gray-900 mt-1">
+                          {format(new Date(item.created_at), "MMM dd, yyyy")}
+                        </p>
                       </div>
                     </div>
-                    <div>
-                      <span className="text-gray-600 font-medium">
-                        Date Added:
-                      </span>
-                      <p className="text-gray-900 mt-1">
-                        {format(new Date(item.created_at), "MMM dd, yyyy")}
-                      </p>
+
+                    {item.description && (
+                      <div>
+                        <span className="text-gray-600 font-medium text-xs sm:text-sm">
+                          Description:
+                        </span>
+                        <p className="text-gray-700 mt-1 text-xs sm:text-sm">
+                          {item.description}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(item)}
+                        className="flex-1 text-xs sm:text-sm"
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDelete(item.id)}
+                        className="flex-1 text-xs sm:text-sm"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
+                      </Button>
                     </div>
                   </div>
-
-                  {item.description && (
-                    <div>
-                      <span className="text-gray-600 font-medium text-xs sm:text-sm">
-                        Description:
-                      </span>
-                      <p className="text-gray-700 mt-1 text-xs sm:text-sm">
-                        {item.description}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(item)}
-                      className="flex-1 text-xs sm:text-sm"
-                    >
-                      <Edit className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDelete(item.id)}
-                      className="flex-1 text-xs sm:text-sm"
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-              </details>
-            ))}
+                </details>
+              ))
+            )}
           </div>
 
           {/* Pagination */}

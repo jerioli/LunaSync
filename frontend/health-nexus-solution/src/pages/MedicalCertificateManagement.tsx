@@ -845,7 +845,32 @@ const MedicalCertificateManagement: React.FC = () => {
         payload,
       );
 
-      toast.success(response.data.message);
+      // Show specific success messages based on action
+      if (action === "receptionist_approve") {
+        toast.success(
+          "✅ Medical Certificate Request Confirmed Successfully!",
+          {
+            description:
+              "The request has been moved to the next stage for doctor approval.",
+            duration: 5000,
+          },
+        );
+      } else if (action === "doctor_approve") {
+        toast.success("✅ Medical Certificate Approved Successfully!", {
+          description:
+            "The certificate has been generated and sent to the patient.",
+          duration: 5000,
+        });
+      } else if (action === "reject") {
+        toast.success("Medical Certificate Request Rejected", {
+          description: "The patient will be notified of the rejection.",
+          duration: 5000,
+        });
+      } else {
+        toast.success(response.data.message || "Request updated successfully", {
+          duration: 5000,
+        });
+      }
 
       // Refresh the requests list to show updated data
       setTimeout(() => {
@@ -1282,22 +1307,6 @@ const MedicalCertificateManagement: React.FC = () => {
                                           </p>
                                         </div>
                                       )}
-
-                                      {/* Rejection Reason - Show for rejected requests */}
-                                      {selectedRequest.status === "rejected" &&
-                                        selectedRequest.rejection_reason && (
-                                          <div>
-                                            <Label className="font-medium text-xs text-muted-foreground">
-                                              Rejection Reason
-                                            </Label>
-                                            <p className="text-sm mt-1 p-3 bg-red-50 border border-red-200 rounded text-red-700">
-                                              <span className="font-medium">
-                                                Rejected:{" "}
-                                              </span>
-                                              {selectedRequest.rejection_reason}
-                                            </p>
-                                          </div>
-                                        )}
 
                                       {/* Doctor Notes - Show for doctor approved requests */}
                                       {selectedRequest.status ===

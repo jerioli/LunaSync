@@ -334,8 +334,9 @@ const NewAppointmentModal = ({
             id: doctor.id.toString(),
             name: `Dr. ${doctor.first_name} ${doctor.last_name}`,
           }));
-          setAllDoctors(formattedDoctors); // Store all doctors for searching
-          setDoctors([]); // Initially empty for searchable display
+          setAllDoctors(formattedDoctors); // Store all doctors
+          setDoctors(formattedDoctors); // Display all doctors immediately
+          setHasDoctorSearched(true); // Mark as searched to show doctors
         } catch (error) {
           console.error("Error fetching doctors:", error);
           toast({
@@ -1570,74 +1571,10 @@ const NewAppointmentModal = ({
                 </FormControl>
               </PopoverTrigger>
               <PopoverContent className="w-full p-0" align="start">
-                <Command shouldFilter={false}>
-                  <CommandInput
-                    placeholder="Type doctor name to search..."
-                    value={doctorSearchTerm}
-                    onValueChange={(value) => {
-                      console.log("Doctor search term changed:", value);
-                      setDoctorSearchTerm(value);
-                      if (value.trim().length >= 2) {
-                        setIsSearchingDoctors(true);
-                      }
-                    }}
-                    className="h-9"
-                  />
+                <Command shouldFilter={true}>
                   <CommandList>
-                    {/* Debug logging */}
-                    {(() => {
-                      console.log("Doctor render conditions:", {
-                        isSearchingDoctors,
-                        hasDoctorSearched,
-                        doctorsLength: doctors.length,
-                        doctorSearchTermLength: doctorSearchTerm.length,
-                        doctors: doctors,
-                      });
-                      return null;
-                    })()}
-
-                    {isSearchingDoctors && (
-                      <CommandEmpty>
-                        <div className="flex items-center justify-center py-6">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                          <span className="ml-2">Searching doctors...</span>
-                        </div>
-                      </CommandEmpty>
-                    )}
-
-                    {!isSearchingDoctors &&
-                      doctorSearchTerm &&
-                      doctorSearchTerm.length < 2 && (
-                        <CommandEmpty>
-                          Type at least 2 characters to search doctors
-                        </CommandEmpty>
-                      )}
-
-                    {!isSearchingDoctors &&
-                      hasDoctorSearched &&
-                      doctors.length === 0 &&
-                      doctorSearchTerm.length >= 2 && (
-                        <CommandEmpty>
-                          No doctors found for "{doctorSearchTerm}"
-                        </CommandEmpty>
-                      )}
-
-                    {!isSearchingDoctors &&
-                      !hasDoctorSearched &&
-                      doctorSearchTerm.length < 2 && (
-                        <CommandEmpty>
-                          <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
-                            <Search className="h-8 w-8 mb-2" />
-                            <p>Start typing to search doctors</p>
-                            <p className="text-xs">Search by doctor name</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Available doctors: {allDoctors.length} total
-                            </p>
-                          </div>
-                        </CommandEmpty>
-                      )}
-
-                    {!isSearchingDoctors && doctors.length > 0 && (
+                    <CommandEmpty>No doctors found</CommandEmpty>
+                    {doctors.length > 0 && (
                       <CommandGroup>
                         {doctors.map((doctor) => (
                           <CommandItem
@@ -1670,17 +1607,10 @@ const NewAppointmentModal = ({
               </PopoverContent>
             </Popover>
             <FormDescription>
-              {hasDoctorSearched && doctors.length > 0 && (
-                <span className="text-sm text-muted-foreground">
-                  Found {doctors.length} doctor{doctors.length !== 1 ? "s" : ""}{" "}
-                  matching "{doctorSearchTerm}"
-                </span>
-              )}
-              {!hasDoctorSearched && (
-                <span className="text-sm text-muted-foreground">
-                  Start typing to search for available doctors
-                </span>
-              )}
+              <span className="text-sm text-muted-foreground">
+                {doctors.length} doctor{doctors.length !== 1 ? "s" : ""}{" "}
+                available
+              </span>
             </FormDescription>
             <FormMessage />
           </FormItem>

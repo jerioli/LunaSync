@@ -719,249 +719,213 @@ export const TopBar: React.FC = () => {
             </div>
           </div>
 
-          <div className="relative notification-dropdown">
-            {/* Notification button with dynamic primary color */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative hover:bg-opacity-10"
-              onClick={handleNotificationClick}
-              title={`${
-                totalNotificationCount > 0
-                  ? `${totalNotificationCount} notification${
-                      totalNotificationCount > 1 ? "s" : ""
-                    }${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`
-                  : "No notifications"
-              }`}
-              style={
-                {
-                  color: colors.primaryColor,
-                  "--hover-bg": `${colors.primaryColor}1a`,
-                } as any
-              }
-            >
-              <Bell className="h-5 w-5" />
-              {unreadCount > 0 && (
-                <span
-                  className="absolute -top-1 -right-1 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center animate-pulse"
-                  style={{ backgroundColor: colors.primaryColor }}
-                >
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              )}
-            </Button>
+          {/* Notification button removed */}
+          {false && showNotifications && (
+            <div className="absolute right-0 mt-2 w-[380px] bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-[80vh] overflow-hidden">
+              {/* Header */}
+              <div className="p-4 border-b border-gray-100">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Notifications
+                </h3>
 
-            {/* Notification Dropdown */}
-            {showNotifications && (
-              <div className="absolute right-0 mt-2 w-[380px] bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-[80vh] overflow-hidden">
-                {/* Header */}
-                <div className="p-4 border-b border-gray-100">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Notifications
-                  </h3>
-
-                  {/* Tabs */}
-                  <div className="flex mt-3 bg-gray-100 rounded-lg p-1">
-                    <button
-                      className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                        activeTab === "all"
-                          ? "bg-white text-blue-600 shadow-sm"
-                          : "text-gray-600 hover:text-gray-900"
-                      }`}
-                      onClick={() => {
-                        setActiveTab("all");
-                        setCurrentPage(1);
-                      }}
-                    >
-                      All
-                    </button>
-                    <button
-                      className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors relative ${
-                        activeTab === "unread"
-                          ? "bg-white text-blue-600 shadow-sm"
-                          : "text-gray-600 hover:text-gray-900"
-                      }`}
-                      onClick={() => {
-                        setActiveTab("unread");
-                        setCurrentPage(1);
-                      }}
-                    >
-                      Unread
-                      {unreadCount > 0 && (
-                        <span className="ml-1 bg-blue-500 text-white text-xs rounded-full px-1.5 py-0.5">
-                          {unreadCount > 9 ? "9+" : unreadCount}
-                        </span>
-                      )}
-                    </button>
-                  </div>
+                {/* Tabs */}
+                <div className="flex mt-3 bg-gray-100 rounded-lg p-1">
+                  <button
+                    className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                      activeTab === "all"
+                        ? "bg-white text-blue-600 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                    onClick={() => {
+                      setActiveTab("all");
+                      setCurrentPage(1);
+                    }}
+                  >
+                    All
+                  </button>
+                  <button
+                    className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors relative ${
+                      activeTab === "unread"
+                        ? "bg-white text-blue-600 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                    onClick={() => {
+                      setActiveTab("unread");
+                      setCurrentPage(1);
+                    }}
+                  >
+                    Unread
+                    {unreadCount > 0 && (
+                      <span className="ml-1 bg-blue-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                  </button>
                 </div>
+              </div>
 
-                {/* Content */}
-                <div
-                  className="max-h-[400px] overflow-y-auto"
-                  onScroll={handleScroll}
-                >
-                  {loadingNotifications ? (
-                    <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto mb-2"></div>
-                      <p className="text-sm text-gray-500">
-                        Loading notifications...
-                      </p>
-                    </div>
-                  ) : (
-                    (() => {
-                      if (displayedNotifications.length === 0) {
-                        return (
-                          <div className="text-center py-8">
-                            <Bell className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                            <p className="text-sm text-gray-500">
-                              {activeTab === "unread"
-                                ? "No unread notifications"
-                                : "No notifications"}
-                            </p>
-                          </div>
-                        );
-                      }
-
+              {/* Content */}
+              <div
+                className="max-h-[400px] overflow-y-auto"
+                onScroll={handleScroll}
+              >
+                {loadingNotifications ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                    <p className="text-sm text-gray-500">
+                      Loading notifications...
+                    </p>
+                  </div>
+                ) : (
+                  (() => {
+                    if (displayedNotifications.length === 0) {
                       return (
-                        <>
-                          {displayedNotifications.map((notification) => {
-                            const IconComponent = notification.icon;
-                            const isRead = readNotifications.has(
-                              notification.id,
-                            );
-                            const showAsUnread =
-                              notification.isUnread && !isRead;
+                        <div className="text-center py-8">
+                          <Bell className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-500">
+                            {activeTab === "unread"
+                              ? "No unread notifications"
+                              : "No notifications"}
+                          </p>
+                        </div>
+                      );
+                    }
 
-                            return (
-                              <div
-                                key={notification.id}
-                                className={`p-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors ${
-                                  showAsUnread ? "bg-blue-50" : ""
-                                }`}
-                                onClick={() =>
-                                  handleNotificationItemClick(notification)
-                                }
-                              >
-                                <div className="flex items-start space-x-3">
-                                  {/* Icon */}
-                                  <div
-                                    className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
-                                    style={{
-                                      backgroundColor: `${notification.iconColor}15`,
-                                    }}
-                                  >
-                                    <IconComponent
-                                      className="w-5 h-5"
-                                      style={{ color: notification.iconColor }}
-                                    />
-                                  </div>
+                    return (
+                      <>
+                        {displayedNotifications.map((notification) => {
+                          const IconComponent = notification.icon;
+                          const isRead = readNotifications.has(notification.id);
+                          const showAsUnread = notification.isUnread && !isRead;
 
-                                  {/* Content */}
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-start justify-between">
-                                      <div className="flex-1">
-                                        <p
-                                          className={`text-sm leading-tight ${
-                                            showAsUnread
-                                              ? "font-semibold text-gray-900"
-                                              : "font-medium text-gray-700"
-                                          }`}
-                                        >
-                                          {notification.title}
+                          return (
+                            <div
+                              key={notification.id}
+                              className={`p-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors ${
+                                showAsUnread ? "bg-blue-50" : ""
+                              }`}
+                              onClick={() =>
+                                handleNotificationItemClick(notification)
+                              }
+                            >
+                              <div className="flex items-start space-x-3">
+                                {/* Icon */}
+                                <div
+                                  className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
+                                  style={{
+                                    backgroundColor: `${notification.iconColor}15`,
+                                  }}
+                                >
+                                  <IconComponent
+                                    className="w-5 h-5"
+                                    style={{ color: notification.iconColor }}
+                                  />
+                                </div>
+
+                                {/* Content */}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                      <p
+                                        className={`text-sm leading-tight ${
+                                          showAsUnread
+                                            ? "font-semibold text-gray-900"
+                                            : "font-medium text-gray-700"
+                                        }`}
+                                      >
+                                        {notification.title}
+                                      </p>
+                                      <p
+                                        className={`text-sm mt-1 leading-tight ${
+                                          showAsUnread
+                                            ? "text-gray-700"
+                                            : "text-gray-500"
+                                        }`}
+                                      >
+                                        {notification.message}
+                                      </p>
+
+                                      {/* Additional details for appointments */}
+                                      {(notification.date ||
+                                        notification.appointmentTime) && (
+                                        <div className="flex items-center space-x-3 mt-2 text-xs text-gray-500">
+                                          {notification.date && (
+                                            <div className="flex items-center space-x-1">
+                                              <Calendar className="w-3 h-3" />
+                                              <span>
+                                                {new Date(
+                                                  notification.date,
+                                                ).toLocaleDateString()}
+                                              </span>
+                                            </div>
+                                          )}
+                                          {notification.appointmentTime && (
+                                            <div className="flex items-center space-x-1">
+                                              <Clock className="w-3 h-3" />
+                                              <span>
+                                                {notification.appointmentTime}
+                                              </span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
+
+                                      {notification.appointmentType && (
+                                        <p className="text-xs text-gray-500 mt-1">
+                                          Type: {notification.appointmentType}
                                         </p>
-                                        <p
-                                          className={`text-sm mt-1 leading-tight ${
-                                            showAsUnread
-                                              ? "text-gray-700"
-                                              : "text-gray-500"
-                                          }`}
-                                        >
-                                          {notification.message}
-                                        </p>
+                                      )}
+                                    </div>
 
-                                        {/* Additional details for appointments */}
-                                        {(notification.date ||
-                                          notification.appointmentTime) && (
-                                          <div className="flex items-center space-x-3 mt-2 text-xs text-gray-500">
-                                            {notification.date && (
-                                              <div className="flex items-center space-x-1">
-                                                <Calendar className="w-3 h-3" />
-                                                <span>
-                                                  {new Date(
-                                                    notification.date,
-                                                  ).toLocaleDateString()}
-                                                </span>
-                                              </div>
-                                            )}
-                                            {notification.appointmentTime && (
-                                              <div className="flex items-center space-x-1">
-                                                <Clock className="w-3 h-3" />
-                                                <span>
-                                                  {notification.appointmentTime}
-                                                </span>
-                                              </div>
-                                            )}
-                                          </div>
-                                        )}
-
-                                        {notification.appointmentType && (
-                                          <p className="text-xs text-gray-500 mt-1">
-                                            Type: {notification.appointmentType}
-                                          </p>
-                                        )}
-                                      </div>
-
-                                      {/* Time and unread indicator */}
-                                      <div className="flex flex-col items-end ml-2">
-                                        <span className="text-xs text-gray-400">
-                                          {notification.time}
-                                        </span>
-                                        {showAsUnread && (
-                                          <div
-                                            className="w-2 h-2 rounded-full mt-1"
-                                            style={{
-                                              backgroundColor:
-                                                colors.primaryColor,
-                                            }}
-                                          />
-                                        )}
-                                      </div>
+                                    {/* Time and unread indicator */}
+                                    <div className="flex flex-col items-end ml-2">
+                                      <span className="text-xs text-gray-400">
+                                        {notification.time}
+                                      </span>
+                                      {showAsUnread && (
+                                        <div
+                                          className="w-2 h-2 rounded-full mt-1"
+                                          style={{
+                                            backgroundColor:
+                                              colors.primaryColor,
+                                          }}
+                                        />
+                                      )}
                                     </div>
                                   </div>
                                 </div>
                               </div>
-                            );
-                          })}
+                            </div>
+                          );
+                        })}
 
-                          {/* Loading more indicator */}
-                          {loadingMore && (
+                        {/* Loading more indicator */}
+                        {loadingMore && (
+                          <div className="text-center py-4">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mx-auto mb-1"></div>
+                            <p className="text-xs text-gray-500">
+                              Loading more...
+                            </p>
+                          </div>
+                        )}
+
+                        {/* End of list indicator */}
+                        {!hasMoreNotifications &&
+                          displayedNotifications.length >
+                            NOTIFICATIONS_PER_PAGE && (
                             <div className="text-center py-4">
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mx-auto mb-1"></div>
-                              <p className="text-xs text-gray-500">
-                                Loading more...
+                              <p className="text-xs text-gray-400">
+                                You've seen all notifications
                               </p>
                             </div>
                           )}
-
-                          {/* End of list indicator */}
-                          {!hasMoreNotifications &&
-                            displayedNotifications.length >
-                              NOTIFICATIONS_PER_PAGE && (
-                              <div className="text-center py-4">
-                                <p className="text-xs text-gray-400">
-                                  You've seen all notifications
-                                </p>
-                              </div>
-                            )}
-                        </>
-                      );
-                    })()
-                  )}
-                </div>
+                      </>
+                    );
+                  })()
+                )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* User Profile Dropdown */}
           <DropdownMenu>

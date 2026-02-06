@@ -2,21 +2,33 @@ import AppointmentCalendar from "@/components/ui/AppointmentCalendar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { useClinic } from "@/contexts/ClinicContext";
 import { axiosInstance } from "@/services/api";
-import { getPatientNameFromAppointment } from "@/utils/patientNameUtils";
+import {
+  getPatientNameFromAppointment,
+  isPatientSoftDeletedById,
+} from "@/utils/patientNameUtils";
+import {
+  Users,
+  Calendar,
+  CalendarCheck,
+  Package,
+  AlertTriangle,
+  FileCheck,
+  FileText,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -29,6 +41,12 @@ const ReceptionistDashboard = () => {
   const [localPatients, setLocalPatients] = useState([]);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+  const [inventoryCount, setInventoryCount] = useState(0);
+  const [lowStockCount, setLowStockCount] = useState(0);
+  const [expiredCount, setExpiredCount] = useState(0);
+  const [nearExpirationCount, setNearExpirationCount] = useState(0);
+  const [medCertRequestCount, setMedCertRequestCount] = useState(0);
+  const [prescriptionRequestCount, setPrescriptionRequestCount] = useState(0);
   const navigate = useNavigate();
 
   // Helper function to format time
@@ -60,7 +78,7 @@ const ReceptionistDashboard = () => {
           (appointment) =>
             appointment.status !== "completed" &&
             appointment.status !== "cancelled" &&
-            appointment.status !== "no show"
+            appointment.status !== "no show",
         );
         setAppointments(filteredAppointments);
       } catch (error) {
@@ -75,7 +93,7 @@ const ReceptionistDashboard = () => {
       try {
         const response = await axiosInstance.get("patients/");
         setPatientsCount(
-          Array.isArray(response.data) ? response.data.length : 0
+          Array.isArray(response.data) ? response.data.length : 0,
         );
         setLocalPatients(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
@@ -86,6 +104,131 @@ const ReceptionistDashboard = () => {
     };
     fetchPatients();
   }, []);
+
+  // Fetch inventory metrics
+  useEffect(() => {
+    const fetchInventoryMetrics = async () => {
+      try {
+        const response = await axiosInstance.get("/inventory/medicines/");
+        if (response.data.success) {
+          const medicines = response.data.data;
+          setInventoryCount(medicines.length);
+
+          // Count low stock items
+          const lowStock = medicines.filter((med) => med.is_low_stock).length;
+          setLowStockCount(lowStock);
+        }
+      } catch (error) {
+        console.error("Error fetching inventory metrics:", error);
+      }
+    };
+    fetchInventoryMetrics();
+  }, []);
+
+  // Fetch expired and near expiration items
+  useEffect(() => {
+    const fetchMedicineStats = async () => {
+      try {
+        const response = await axiosInstance.get("inventory/medicines/stats/");
+        if (response.data && response.data.success) {
+          setExpiredCount(response.data.stats.expired_count || 0);
+          setNearExpirationCount(
+            response.data.stats.near_expiration_count || 0,
+          );
+        } else {
+          setExpiredCount(0);
+          setNearExpirationCount(0);
+        }
+      } catch (error) {
+        console.error("Error fetching medicine stats:", error);
+        setExpiredCount(0);
+        setNearExpirationCount(0);
+      }
+    };
+    fetchMedicineStats();
+  }, []);
+
+  // Fetch medical certificate requests count
+  useEffect(() => {
+    const fetchMedCertRequests = async () => {
+      try {
+        const response = await axiosInstance.get("/medical-certificates/");
+        console.log(
+          "[Receptionist] Medical Cert Requests - All data:",
+          response.data,
+        );
+        const pendingRequests = response.data.filter((req: any) => {
+          const isPending =
+            req.status === "pending" || req.status === "on_process";
+
+          // Check if patient is archived by matching name and DOB
+          const patient = localPatients.find((p) => {
+            const patientName = (p.name || "").toLowerCase().trim();
+            const requestName = (req.patient_name || "").toLowerCase().trim();
+            const patientDOB = p.date_of_birth;
+            const requestDOB = req.date_of_birth;
+            return patientName === requestName && patientDOB === requestDOB;
+          });
+
+          // If patient not found or is_deleted is true, exclude the request
+          const isPatientActive = patient && !patient.is_deleted;
+
+          return isPending && isPatientActive;
+        });
+        console.log(
+          "[Receptionist] Medical Cert Requests - Pending/On Process (Active Patients):",
+          pendingRequests,
+        );
+        setMedCertRequestCount(pendingRequests.length);
+      } catch (error) {
+        console.error("Error fetching medical cert requests:", error);
+        setMedCertRequestCount(0);
+      }
+    };
+    fetchMedCertRequests();
+  }, [localPatients]);
+
+  // Fetch prescription requests count
+  useEffect(() => {
+    const fetchPrescriptionRequests = async () => {
+      try {
+        const response = await axiosInstance.get(
+          "/medical-documents/prescription-requests/",
+        );
+        console.log(
+          "[Receptionist] Prescription Requests - All data:",
+          response.data,
+        );
+        const pendingRequests = response.data.filter((req: any) => {
+          const isPending =
+            req.status === "pending" || req.status === "on_process";
+
+          // Check if patient is archived by matching name and DOB
+          const patient = localPatients.find((p) => {
+            const patientName = (p.name || "").toLowerCase().trim();
+            const requestName = (req.patient_name || "").toLowerCase().trim();
+            const patientDOB = p.date_of_birth;
+            const requestDOB = req.date_of_birth;
+            return patientName === requestName && patientDOB === requestDOB;
+          });
+
+          // If patient not found or is_deleted is true, exclude the request
+          const isPatientActive = patient && !patient.is_deleted;
+
+          return isPending && isPatientActive;
+        });
+        console.log(
+          "[Receptionist] Prescription Requests - Pending/On Process (Active Patients):",
+          pendingRequests,
+        );
+        setPrescriptionRequestCount(pendingRequests.length);
+      } catch (error) {
+        console.error("Error fetching prescription requests:", error);
+        setPrescriptionRequestCount(0);
+      }
+    };
+    fetchPrescriptionRequests();
+  }, [localPatients]);
 
   // Helper to fetch patient details by ID if not found in local patients
   const fetchPatientById = async (id) => {
@@ -112,11 +255,11 @@ const ReceptionistDashboard = () => {
       (appointment) =>
         appointment.date === today &&
         appointment.status !== "completed" &&
-        appointment.status !== "cancelled"
+        appointment.status !== "cancelled",
     )
     .filter(
       (appointment, index, self) =>
-        index === self.findIndex((a) => a.id === appointment.id)
+        index === self.findIndex((a) => a.id === appointment.id),
     )
     .sort((a, b) => a.time.localeCompare(b.time));
 
@@ -141,7 +284,7 @@ const ReceptionistDashboard = () => {
   useEffect(() => {
     localStorage.setItem(
       "pendingAppointmentsCount",
-      pendingAppointments.length.toString()
+      pendingAppointments.length.toString(),
     );
   }, [pendingAppointments.length]);
 
@@ -189,14 +332,14 @@ const ReceptionistDashboard = () => {
     try {
       const response = await axiosInstance.post(
         `appointments/update-status/${appointmentId}/`,
-        { status: "ongoing" }
+        { status: "ongoing" },
       );
 
       // Update the appointments list
       setAppointments((prev) =>
         prev.map((appt) =>
-          appt.id === appointmentId ? { ...appt, status: "ongoing" } : appt
-        )
+          appt.id === appointmentId ? { ...appt, status: "ongoing" } : appt,
+        ),
       );
 
       // Update selected appointment if it's the one being checked in
@@ -221,98 +364,180 @@ const ReceptionistDashboard = () => {
         </p>
       </div>
 
-      {/* Main Layout: Stats on Left, Calendar on Right */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Left Side - Stats (With Subtle Borders) */}
-        <div className="lg:col-span-1 space-y-6">
-          {/* Registered Patients */}
-          <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
-            <h3 className="text-lg font-semibold mb-1">Registered Patients</h3>
-            <p className="text-sm text-muted-foreground mb-2">
-              Manage patient appointments, check-ins, and payments.
-            </p>
-            <div className="text-3xl font-bold mb-3">{patientsCount}</div>
-            <p className="text-sm text-muted-foreground mb-4">
+      {/* Stats Cards at Top (Horizontal Layout) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => navigate("/patients")}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
+            <CardTitle className="text-xs font-medium">
+              Registered Patients
+            </CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pt-1">
+            <div className="text-xl font-bold">{patientsCount}</div>
+            <p className="text-xs text-muted-foreground mt-0.5">
               Total patient count
             </p>
-            <Button
-              variant="ghost"
-              className="text-blue-600 p-0 h-auto"
-              onClick={() => navigate("/patients")}
-            >
-              View all patients
-            </Button>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Today's Appointments */}
-          <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
-            <h3 className="text-lg font-semibold mb-1">Today's Appointments</h3>
-            <p className="text-sm text-muted-foreground mb-2">
-              Check in patients and manage today's schedule
-            </p>
-            <div className="text-3xl font-bold mb-3">
-              {todaysAppointments.length}
-            </div>
-            <p className="text-sm text-muted-foreground mb-4">
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => navigate("/appointments")}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
+            <CardTitle className="text-xs font-medium">
+              Today's Appointments
+            </CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pt-1">
+            <div className="text-xl font-bold">{todaysAppointments.length}</div>
+            <p className="text-xs text-muted-foreground mt-0.5">
               {todaysAppointments.length === 0
-                ? "No appointments scheduled for today"
+                ? "No appointments today"
                 : `${
                     todaysAppointments.filter((a) => a.status === "scheduled")
                       .length
                   } awaiting check-in`}
             </p>
-            <Button
-              variant="ghost"
-              className="text-blue-600 p-0 h-auto"
-              onClick={() => navigate("/appointments")}
-            >
-              View all appointments
-            </Button>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Upcoming Appointments */}
-          <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
-            <h3 className="text-lg font-semibold mb-1">
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => navigate("/appointments")}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
+            <CardTitle className="text-xs font-medium">
               Upcoming Appointments
-            </h3>
-            <p className="text-sm text-muted-foreground mb-2">
-              Next scheduled appointments
-            </p>
-            <div className="text-3xl font-bold mb-3">
+            </CardTitle>
+            <CalendarCheck className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pt-1">
+            <div className="text-xl font-bold">
               {upcomingAppointments.length}
             </div>
-            <p className="text-sm text-muted-foreground mb-4">Next 7 days</p>
-            <Button
-              variant="ghost"
-              className="text-blue-600 p-0 h-auto"
-              onClick={() => navigate("/appointments")}
-            >
-              View all appointments
-            </Button>
-          </div>
-        </div>
+            <p className="text-xs text-muted-foreground mt-0.5">Next 7 days</p>
+          </CardContent>
+        </Card>
 
-        {/* Right Side - Calendar */}
-        <div className="lg:col-span-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Appointment Calendar</CardTitle>
-              <CardDescription>
-                View and manage patient appointments
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AppointmentCalendar
-                appointments={appointments}
-                onAppointmentClick={handleAppointmentClick}
-                onDateClick={handleDateClick}
-                patientDetails={patientDetails}
-                patients={patients}
-              />
-            </CardContent>
-          </Card>
-        </div>
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => navigate("/inventory")}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              Inventory Items
+            </CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pt-1">
+            <div className="text-xl font-bold">{inventoryCount}</div>
+            <div className="flex items-center gap-1 mt-0.5">
+              {(lowStockCount > 0 ||
+                expiredCount > 0 ||
+                nearExpirationCount > 0) && (
+                <AlertTriangle className="h-3.5 w-3.5 text-red-600" />
+              )}
+              <p
+                className={`text-xs ${lowStockCount > 0 || expiredCount > 0 || nearExpirationCount > 0 ? "text-red-600 font-medium" : "text-muted-foreground"}`}
+              >
+                {lowStockCount > 0 ||
+                expiredCount > 0 ||
+                nearExpirationCount > 0 ? (
+                  <>
+                    {expiredCount > 0 && `${expiredCount} expired`}
+                    {expiredCount > 0 &&
+                      (lowStockCount > 0 || nearExpirationCount > 0) &&
+                      ", "}
+                    {nearExpirationCount > 0 &&
+                      `${nearExpirationCount} near expiry`}
+                    {nearExpirationCount > 0 && lowStockCount > 0 && ", "}
+                    {lowStockCount > 0 && `${lowStockCount} low stock`}
+                  </>
+                ) : (
+                  "All items sufficiently stocked"
+                )}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => navigate("/medical-certificates")}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              Medical Cert Requests
+            </CardTitle>
+            <FileCheck className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pt-1">
+            <div className="text-xl font-bold">{medCertRequestCount}</div>
+            <p
+              className={`text-xs mt-0.5 ${
+                medCertRequestCount > 0
+                  ? "text-orange-600 font-medium"
+                  : "text-muted-foreground"
+              }`}
+            >
+              {medCertRequestCount > 0
+                ? `${medCertRequestCount} pending approval`
+                : "No pending requests"}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => navigate("/prescription-requests")}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              Prescription Refills
+            </CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pt-1">
+            <div className="text-xl font-bold">{prescriptionRequestCount}</div>
+            <p
+              className={`text-xs mt-0.5 ${
+                prescriptionRequestCount > 0
+                  ? "text-orange-600 font-medium"
+                  : "text-muted-foreground"
+              }`}
+            >
+              {prescriptionRequestCount > 0
+                ? `${prescriptionRequestCount} pending approval`
+                : "No pending requests"}
+            </p>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Calendar Below */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Appointment Calendar</CardTitle>
+          <CardDescription>
+            View and manage patient appointments
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AppointmentCalendar
+            appointments={appointments}
+            onAppointmentClick={handleAppointmentClick}
+            onDateClick={handleDateClick}
+            patientDetails={patientDetails}
+            patients={patients}
+          />
+        </CardContent>
+      </Card>
       {/* Appointment Details Modal */}
       <Dialog
         open={isAppointmentModalOpen}
@@ -333,7 +558,7 @@ const ReceptionistDashboard = () => {
                     {getPatientName(
                       selectedAppointment.patientId ||
                         selectedAppointment.patient,
-                      selectedAppointment
+                      selectedAppointment,
                     )}
                   </p>
                 </div>
@@ -359,7 +584,7 @@ const ReceptionistDashboard = () => {
                         year: "numeric",
                         month: "long",
                         day: "numeric",
-                      }
+                      },
                     )}
                   </p>
                 </div>
@@ -381,19 +606,19 @@ const ReceptionistDashboard = () => {
                         selectedAppointment.status === "scheduled"
                           ? "outline"
                           : selectedAppointment.status === "pending"
-                          ? "secondary"
-                          : selectedAppointment.status === "completed"
-                          ? "default"
-                          : "destructive"
+                            ? "secondary"
+                            : selectedAppointment.status === "completed"
+                              ? "default"
+                              : "destructive"
                       }
                       className={
                         selectedAppointment.status === "scheduled"
                           ? "bg-blue-50 text-blue-700 border-blue-200"
                           : selectedAppointment.status === "pending"
-                          ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-                          : selectedAppointment.status === "cancelled"
-                          ? "bg-red-50 text-red-700 border-red-200"
-                          : ""
+                            ? "bg-yellow-50 text-yellow-700 border-yellow-200"
+                            : selectedAppointment.status === "cancelled"
+                              ? "bg-red-50 text-red-700 border-red-200"
+                              : ""
                       }
                     >
                       {selectedAppointment.status.charAt(0).toUpperCase() +
@@ -424,7 +649,7 @@ const ReceptionistDashboard = () => {
 
               <div className="flex justify-end space-x-2 pt-4 border-t">
                 {selectedAppointment.status === "scheduled" && (
-                  <Button 
+                  <Button
                     size="sm"
                     onClick={() => handleCheckIn(selectedAppointment.id)}
                   >
@@ -440,10 +665,10 @@ const ReceptionistDashboard = () => {
                       selectedAppointment.patient;
                     const patient =
                       localPatients.find(
-                        (p) => String(p.id) === String(patientId)
+                        (p) => String(p.id) === String(patientId),
                       ) ||
                       patients.find(
-                        (p) => String(p.id) === String(patientId)
+                        (p) => String(p.id) === String(patientId),
                       ) ||
                       patientDetails[patientId];
                     if (patient?.id) {

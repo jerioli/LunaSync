@@ -16,8 +16,18 @@ import {
 } from "@/components/ui/dialog";
 import { useClinic } from "@/contexts/ClinicContext";
 import { axiosInstance } from "@/services/api";
-import { getPatientNameFromAppointment } from "@/utils/patientNameUtils";
-import { Bell, Calendar as CalendarIcon, Users } from "lucide-react";
+import {
+  getPatientNameFromAppointment,
+  isPatientSoftDeletedById,
+} from "@/utils/patientNameUtils";
+import {
+  Bell,
+  Calendar as CalendarIcon,
+  Users,
+  FileText,
+  FileCheck,
+  AlertTriangle,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -28,10 +38,16 @@ const DoctorDashboard = () => {
   const [patientDetails, setPatientDetails] = useState({});
   const [localPatients, setLocalPatients] = useState([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    new Date()
+    new Date(),
   );
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+  const [inventoryCount, setInventoryCount] = useState(0);
+  const [lowStockCount, setLowStockCount] = useState(0);
+  const [expiredCount, setExpiredCount] = useState(0);
+  const [nearExpirationCount, setNearExpirationCount] = useState(0);
+  const [medCertRequestCount, setMedCertRequestCount] = useState(0);
+  const [prescriptionRequestCount, setPrescriptionRequestCount] = useState(0);
   const navigate = useNavigate();
 
   // Helper function to format time
@@ -65,13 +81,151 @@ const DoctorDashboard = () => {
     };
     fetchAppointments();
   }, []);
+
+  // Fetch inventory count
+  useEffect(() => {
+    const fetchInventory = async () => {
+      try {
+        const response = await axiosInstance.get("inventory/medicines/");
+        if (response.data.success) {
+          setInventoryCount(
+            Array.isArray(response.data.data) ? response.data.data.length : 0,
+          );
+        } else {
+          setInventoryCount(0);
+        }
+      } catch (error) {
+        console.error("Error fetching inventory:", error);
+        setInventoryCount(0);
+      }
+    };
+    fetchInventory();
+  }, []);
+
+  // Fetch low stock items
+  useEffect(() => {
+    const fetchLowStock = async () => {
+      try {
+        const response = await axiosInstance.get("inventory/low-stock/");
+        if (response.data) {
+          setLowStockCount(response.data.count || 0);
+        } else {
+          setLowStockCount(0);
+        }
+      } catch (error) {
+        console.error("Error fetching low stock items:", error);
+        setLowStockCount(0);
+      }
+    };
+    fetchLowStock();
+  }, []);
+
+  // Fetch expired and near expiration items
+  useEffect(() => {
+    const fetchMedicineStats = async () => {
+      try {
+        const response = await axiosInstance.get("inventory/medicines/stats/");
+        if (response.data && response.data.success) {
+          setExpiredCount(response.data.stats.expired_count || 0);
+          setNearExpirationCount(
+            response.data.stats.near_expiration_count || 0,
+          );
+        } else {
+          setExpiredCount(0);
+          setNearExpirationCount(0);
+        }
+      } catch (error) {
+        console.error("Error fetching medicine stats:", error);
+        setExpiredCount(0);
+        setNearExpirationCount(0);
+      }
+    };
+    fetchMedicineStats();
+  }, []);
+
+  // Fetch medical certificate requests count
+  useEffect(() => {
+    const fetchMedCertRequests = async () => {
+      try {
+        const response = await axiosInstance.get("/medical-certificates/");
+        console.log("Medical Cert Requests - All data:", response.data);
+        const pendingRequests = response.data.filter((req: any) => {
+          const isPending =
+            req.status === "pending" || req.status === "on_process";
+
+          // Check if patient is archived by matching name and DOB
+          const patient = localPatients.find((p) => {
+            const patientName = (p.name || "").toLowerCase().trim();
+            const requestName = (req.patient_name || "").toLowerCase().trim();
+            const patientDOB = p.date_of_birth;
+            const requestDOB = req.date_of_birth;
+            return patientName === requestName && patientDOB === requestDOB;
+          });
+
+          // If patient not found or is_deleted is true, exclude the request
+          const isPatientActive = patient && !patient.is_deleted;
+
+          return isPending && isPatientActive;
+        });
+        console.log(
+          "Medical Cert Requests - Pending/On Process (Active Patients):",
+          pendingRequests,
+        );
+        setMedCertRequestCount(pendingRequests.length);
+      } catch (error) {
+        console.error("Error fetching medical cert requests:", error);
+        setMedCertRequestCount(0);
+      }
+    };
+    fetchMedCertRequests();
+  }, [localPatients]);
+
+  // Fetch prescription requests count
+  useEffect(() => {
+    const fetchPrescriptionRequests = async () => {
+      try {
+        const response = await axiosInstance.get(
+          "/medical-documents/prescription-requests/",
+        );
+        console.log("Prescription Requests - All data:", response.data);
+        const pendingRequests = response.data.filter((req: any) => {
+          const isPending =
+            req.status === "pending" || req.status === "on_process";
+
+          // Check if patient is archived by matching name and DOB
+          const patient = localPatients.find((p) => {
+            const patientName = (p.name || "").toLowerCase().trim();
+            const requestName = (req.patient_name || "").toLowerCase().trim();
+            const patientDOB = p.date_of_birth;
+            const requestDOB = req.date_of_birth;
+            return patientName === requestName && patientDOB === requestDOB;
+          });
+
+          // If patient not found or is_deleted is true, exclude the request
+          const isPatientActive = patient && !patient.is_deleted;
+
+          return isPending && isPatientActive;
+        });
+        console.log(
+          "Prescription Requests - Pending/On Process (Active Patients):",
+          pendingRequests,
+        );
+        setPrescriptionRequestCount(pendingRequests.length);
+      } catch (error) {
+        console.error("Error fetching prescription requests:", error);
+        setPrescriptionRequestCount(0);
+      }
+    };
+    fetchPrescriptionRequests();
+  }, [localPatients]);
+
   // Fetch patients count from backend
   useEffect(() => {
     const fetchPatients = async () => {
       try {
         const response = await axiosInstance.get("patients/");
         setPatientsCount(
-          Array.isArray(response.data) ? response.data.length : 0
+          Array.isArray(response.data) ? response.data.length : 0,
         );
         setLocalPatients(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
@@ -138,11 +292,11 @@ const DoctorDashboard = () => {
         appointment.date === today &&
         appointment.status !== "completed" &&
         appointment.status !== "cancelled" &&
-        appointment.status !== "no-show"
+        appointment.status !== "no-show",
     )
     .filter(
       (appointment, index, self) =>
-        index === self.findIndex((a) => a.id === appointment.id)
+        index === self.findIndex((a) => a.id === appointment.id),
     )
     .sort((a, b) => a.time.localeCompare(b.time));
 
@@ -153,7 +307,7 @@ const DoctorDashboard = () => {
         appointment.status === "scheduled" &&
         (appointment.appointment_type?.toLowerCase().includes("follow") ||
           appointment.type?.toLowerCase().includes("follow")) &&
-        new Date(appointment.date) > new Date()
+        new Date(appointment.date) > new Date(),
     )
     .slice(0, 3);
 
@@ -224,121 +378,216 @@ const DoctorDashboard = () => {
         </p>
       </div>
 
-      {/* Main Layout: Stats on Left, Calendar on Right */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Left Side - Stats Cards (Vertical Layout) */}
-        <div className="lg:col-span-1 space-y-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                Registered Patients
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalPatients}</div>
-              <p className="text-xs text-muted-foreground">Total in system</p>
-            </CardContent>
-          </Card>
+      {/* Stats Cards at Top (Horizontal Layout) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => navigate("/patients")}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
+            <CardTitle className="text-xs font-medium">
+              Registered Patients
+            </CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pt-1">
+            <div className="text-xl font-bold">{totalPatients}</div>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Total in system
+            </p>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                Today's Appointments
-              </CardTitle>
-              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {totalTodaysAppointments}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {
-                  todaysAppointments.filter((a) => a.status === "scheduled")
-                    .length
-                }{" "}
-                scheduled
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => navigate("/appointments")}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
+            <CardTitle className="text-xs font-medium">
+              Today's Appointments
+            </CardTitle>
+            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pt-1">
+            <div className="text-xl font-bold">{totalTodaysAppointments}</div>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {
+                todaysAppointments.filter((a) => a.status === "scheduled")
+                  .length
+              }{" "}
+              scheduled
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => navigate("/appointments")}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
+            <CardTitle className="text-xs font-medium">
+              Upcoming Appointments
+            </CardTitle>
+            <Bell className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pt-1">
+            <div className="text-xl font-bold">
+              {upcomingAppointments.length}
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">Next 7 days</p>
+          </CardContent>
+        </Card>
+
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => navigate("/inventory")}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              Inventory Items
+            </CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pt-1">
+            <div className="text-xl font-bold">{inventoryCount}</div>
+            <div className="flex items-center gap-1 mt-0.5">
+              {(lowStockCount > 0 ||
+                expiredCount > 0 ||
+                nearExpirationCount > 0) && (
+                <AlertTriangle className="h-3.5 w-3.5 text-red-600" />
+              )}
+              <p
+                className={`text-xs ${lowStockCount > 0 || expiredCount > 0 || nearExpirationCount > 0 ? "text-red-600 font-medium" : "text-muted-foreground"}`}
+              >
+                {lowStockCount > 0 ||
+                expiredCount > 0 ||
+                nearExpirationCount > 0 ? (
+                  <>
+                    {expiredCount > 0 && `${expiredCount} expired`}
+                    {expiredCount > 0 &&
+                      (lowStockCount > 0 || nearExpirationCount > 0) &&
+                      ", "}
+                    {nearExpirationCount > 0 &&
+                      `${nearExpirationCount} near expiry`}
+                    {nearExpirationCount > 0 && lowStockCount > 0 && ", "}
+                    {lowStockCount > 0 && `${lowStockCount} low stock`}
+                  </>
+                ) : (
+                  "All items sufficiently stocked"
+                )}
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                Upcoming Appointments
-              </CardTitle>
-              <Bell className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {upcomingAppointments.length}
-              </div>
-              <p className="text-xs text-muted-foreground">Next 7 days</p>
-            </CardContent>
-          </Card>
-        </div>
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => navigate("/medical-certificates")}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              Medical Cert Requests
+            </CardTitle>
+            <FileCheck className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pt-1">
+            <div className="text-xl font-bold">{medCertRequestCount}</div>
+            <p
+              className={`text-xs mt-0.5 ${
+                medCertRequestCount > 0
+                  ? "text-orange-600 font-medium"
+                  : "text-muted-foreground"
+              }`}
+            >
+              {medCertRequestCount > 0
+                ? `${medCertRequestCount} pending approval`
+                : "No pending requests"}
+            </p>
+          </CardContent>
+        </Card>
 
-        {/* Right Side - Calendar */}
-        <div className="lg:col-span-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Appointment Calendar</CardTitle>
-              <CardDescription>
-                View and manage your appointment schedule
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AppointmentCalendar
-                appointments={appointmentsForDoctor.filter((appointment) => {
-                  // Debug: Log appointment details
-                  console.log("Calendar filter - Appointment:", {
-                    id: appointment.id,
-                    status: appointment.status,
-                    date: appointment.date,
-                    time: appointment.time,
-                    patient: appointment.patient || appointment.patientId,
-                  });
-
-                  // Explicitly include scheduled appointments
-                  const status = appointment.status?.toLowerCase() || "";
-
-                  // Always include scheduled appointments
-                  if (status === "scheduled") {
-                    console.log(
-                      "Including scheduled appointment:",
-                      appointment.id
-                    );
-                    return true;
-                  }
-
-                  // Exclude completed, cancelled, no-show, and pending to keep calendar clean
-                  const excludedStatuses = [
-                    "completed",
-                    "cancelled",
-                    "no-show",
-                    "pending",
-                  ];
-                  const shouldInclude = !excludedStatuses.includes(status);
-
-                  console.log(
-                    "Should include appointment:",
-                    shouldInclude,
-                    "Status:",
-                    appointment.status,
-                    "Lowercase status:",
-                    status
-                  );
-                  return shouldInclude;
-                })}
-                onAppointmentClick={handleAppointmentClick}
-                onDateClick={handleDateClick}
-                patientDetails={patientDetails}
-                patients={patients}
-              />
-            </CardContent>
-          </Card>
-        </div>
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => navigate("/prescription-requests")}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              Prescription Refills
+            </CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pt-1">
+            <div className="text-xl font-bold">{prescriptionRequestCount}</div>
+            <p
+              className={`text-xs mt-0.5 ${
+                prescriptionRequestCount > 0
+                  ? "text-orange-600 font-medium"
+                  : "text-muted-foreground"
+              }`}
+            >
+              {prescriptionRequestCount > 0
+                ? `${prescriptionRequestCount} pending approval`
+                : "No pending requests"}
+            </p>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Calendar Below */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Appointment Calendar</CardTitle>
+          <CardDescription>
+            View and manage your appointment schedule
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AppointmentCalendar
+            appointments={appointmentsForDoctor.filter((appointment) => {
+              // Debug: Log appointment details
+              console.log("Calendar filter - Appointment:", {
+                id: appointment.id,
+                status: appointment.status,
+                date: appointment.date,
+                time: appointment.time,
+                patient: appointment.patient || appointment.patientId,
+              });
+
+              // Explicitly include scheduled appointments
+              const status = appointment.status?.toLowerCase() || "";
+
+              // Always include scheduled appointments
+              if (status === "scheduled") {
+                console.log("Including scheduled appointment:", appointment.id);
+                return true;
+              }
+
+              // Exclude completed, cancelled, no-show, and pending to keep calendar clean
+              const excludedStatuses = [
+                "completed",
+                "cancelled",
+                "no-show",
+                "pending",
+              ];
+              const shouldInclude = !excludedStatuses.includes(status);
+
+              console.log(
+                "Should include appointment:",
+                shouldInclude,
+                "Status:",
+                appointment.status,
+                "Lowercase status:",
+                status,
+              );
+              return shouldInclude;
+            })}
+            onAppointmentClick={handleAppointmentClick}
+            onDateClick={handleDateClick}
+            patientDetails={patientDetails}
+            patients={patients}
+          />
+        </CardContent>
+      </Card>
 
       {/* Appointment Details Modal */}
       <Dialog
@@ -360,7 +609,7 @@ const DoctorDashboard = () => {
                     {getPatientName(
                       selectedAppointment.patientId ||
                         selectedAppointment.patient,
-                      selectedAppointment
+                      selectedAppointment,
                     )}
                   </p>
                 </div>
@@ -381,7 +630,7 @@ const DoctorDashboard = () => {
                   <p className="text-sm">
                     {new Date(selectedAppointment.date).toLocaleDateString(
                       "en-US",
-                      { year: "numeric", month: "long", day: "numeric" }
+                      { year: "numeric", month: "long", day: "numeric" },
                     )}
                   </p>
                 </div>
@@ -444,7 +693,7 @@ const DoctorDashboard = () => {
                       selectedAppointment.patientId ||
                       selectedAppointment.patient;
                     let patient = patients.find(
-                      (p) => String(p.id) === String(patientId)
+                      (p) => String(p.id) === String(patientId),
                     );
                     if (!patient && patientDetails[patientId]) {
                       patient = patientDetails[patientId];

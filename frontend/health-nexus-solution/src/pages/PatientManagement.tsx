@@ -103,8 +103,10 @@ const PatientManagement = () => {
     clinicCustomization,
   } = useClinic();
 
-  // Check if coming from ongoing appointments
-  const fromOngoing = searchParams.get("from") === "ongoing";
+  // Check if coming from appointments page
+  const fromAppointments = searchParams.get("from") === "appointments";
+  const fromTab = searchParams.get("tab"); // Get the specific tab (ongoing, completed, etc.)
+  const fromOngoing = searchParams.get("from") === "ongoing"; // Keep for backwards compatibility
   const appointmentId = searchParams.get("appointmentId");
 
   // State for confirmation dialog
@@ -5801,7 +5803,18 @@ const PatientManagement = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate("/patients")}
+              onClick={() => {
+                // If coming from appointments page, navigate back to appointments with the specific tab
+                if (fromAppointments && fromTab) {
+                  navigate(`/appointments?tab=${fromTab}`);
+                } else if (fromOngoing) {
+                  // Backwards compatibility for old from=ongoing parameter
+                  navigate("/appointments?tab=ongoing");
+                } else {
+                  // Default: go back to patients list
+                  navigate("/patients");
+                }
+              }}
               className="self-start sm:self-auto"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />

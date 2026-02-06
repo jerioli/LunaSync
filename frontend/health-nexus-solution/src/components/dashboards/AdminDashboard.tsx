@@ -8,8 +8,17 @@ import {
 import { useClinic } from "@/contexts/ClinicContext";
 import { useSecurity } from "@/hooks/useSecurity";
 import { axiosInstance } from "@/services/api";
-import { getPatientNameFromAppointment } from "@/utils/patientNameUtils";
-import { AlertTriangle, Calendar, FileText, Users } from "lucide-react";
+import {
+  getPatientNameFromAppointment,
+  isPatientSoftDeletedById,
+} from "@/utils/patientNameUtils";
+import {
+  AlertTriangle,
+  Calendar,
+  FileCheck,
+  FileText,
+  Users,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -39,6 +48,8 @@ const AdminDashboard = () => {
   const [lowStockCount, setLowStockCount] = useState(0);
   const [expiredCount, setExpiredCount] = useState(0);
   const [nearExpirationCount, setNearExpirationCount] = useState(0);
+  const [medCertRequestCount, setMedCertRequestCount] = useState(0);
+  const [prescriptionRequestCount, setPrescriptionRequestCount] = useState(0);
 
   // Helper function to get patient name from appointment data
   const getPatientName = (patientId, appointment) => {
@@ -112,6 +123,82 @@ const AdminDashboard = () => {
     };
     fetchMedicineStats();
   }, []);
+
+  // Fetch medical certificate requests count
+  useEffect(() => {
+    const fetchMedCertRequests = async () => {
+      try {
+        const response = await axiosInstance.get("/medical-certificates/");
+        console.log("[Admin] Medical Cert Requests - All data:", response.data);
+        const pendingRequests = response.data.filter((req: any) => {
+          const isPending =
+            req.status === "pending" || req.status === "on_process";
+
+          // Check if patient is archived by matching name and DOB
+          const patient = localPatients.find((p) => {
+            const patientName = (p.name || "").toLowerCase().trim();
+            const requestName = (req.patient_name || "").toLowerCase().trim();
+            const patientDOB = p.date_of_birth;
+            const requestDOB = req.date_of_birth;
+            return patientName === requestName && patientDOB === requestDOB;
+          });
+
+          // If patient not found or is_deleted is true, exclude the request
+          const isPatientActive = patient && !patient.is_deleted;
+
+          return isPending && isPatientActive;
+        });
+        console.log(
+          "[Admin] Medical Cert Requests - Pending/On Process (Active Patients):",
+          pendingRequests,
+        );
+        setMedCertRequestCount(pendingRequests.length);
+      } catch (error) {
+        console.error("Error fetching medical cert requests:", error);
+        setMedCertRequestCount(0);
+      }
+    };
+    fetchMedCertRequests();
+  }, [localPatients]);
+
+  // Fetch prescription requests count
+  useEffect(() => {
+    const fetchPrescriptionRequests = async () => {
+      try {
+        const response = await axiosInstance.get(
+          "/medical-documents/prescription-requests/",
+        );
+        console.log("[Admin] Prescription Requests - All data:", response.data);
+        const pendingRequests = response.data.filter((req: any) => {
+          const isPending =
+            req.status === "pending" || req.status === "on_process";
+
+          // Check if patient is archived by matching name and DOB
+          const patient = localPatients.find((p) => {
+            const patientName = (p.name || "").toLowerCase().trim();
+            const requestName = (req.patient_name || "").toLowerCase().trim();
+            const patientDOB = p.date_of_birth;
+            const requestDOB = req.date_of_birth;
+            return patientName === requestName && patientDOB === requestDOB;
+          });
+
+          // If patient not found or is_deleted is true, exclude the request
+          const isPatientActive = patient && !patient.is_deleted;
+
+          return isPending && isPatientActive;
+        });
+        console.log(
+          "[Admin] Prescription Requests - Pending/On Process (Active Patients):",
+          pendingRequests,
+        );
+        setPrescriptionRequestCount(pendingRequests.length);
+      } catch (error) {
+        console.error("Error fetching prescription requests:", error);
+        setPrescriptionRequestCount(0);
+      }
+    };
+    fetchPrescriptionRequests();
+  }, [localPatients]);
 
   // Fetch staff from backend
   useEffect(() => {
@@ -346,20 +433,20 @@ const AdminDashboard = () => {
       </div>
 
       {/* Top Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <Card
           className="cursor-pointer hover:shadow-lg transition-shadow"
           onClick={() => navigate("/patients")}
         >
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
               Total Patients
             </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{patientsCount}</div>
-            <p className="text-xs text-green-600 mt-1">
+          <CardContent className="pt-1">
+            <div className="text-xl font-bold">{patientsCount}</div>
+            <p className="text-xs text-green-600 mt-0.5">
               {newPatientsThisWeek > 0
                 ? `+${newPatientsThisWeek} new this week`
                 : "No new patients this week"}
@@ -371,15 +458,15 @@ const AdminDashboard = () => {
           className="cursor-pointer hover:shadow-lg transition-shadow"
           onClick={() => navigate("/appointments")}
         >
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
               Today's Appointments
             </CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{todayAppointments}</div>
-            <p className="text-xs text-blue-600 mt-1">
+          <CardContent className="pt-1">
+            <div className="text-xl font-bold">{todayAppointments}</div>
+            <p className="text-xs text-blue-600 mt-0.5">
               {pendingConfirmations > 0
                 ? `${pendingConfirmations} pending confirmation${pendingConfirmations !== 1 ? "s" : ""}`
                 : "No pending confirmations"}
@@ -391,15 +478,15 @@ const AdminDashboard = () => {
           className="cursor-pointer hover:shadow-lg transition-shadow"
           onClick={() => navigate("/inventory")}
         >
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
               Inventory Items
             </CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{inventoryCount}</div>
-            <div className="flex items-center gap-1 mt-1">
+          <CardContent className="pt-1">
+            <div className="text-xl font-bold">{inventoryCount}</div>
+            <div className="flex items-center gap-1 mt-0.5">
               {(lowStockCount > 0 ||
                 expiredCount > 0 ||
                 nearExpirationCount > 0) && (
@@ -433,16 +520,68 @@ const AdminDashboard = () => {
           className="cursor-pointer hover:shadow-lg transition-shadow"
           onClick={() => navigate("/staff")}
         >
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
               Available Doctors
             </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{staffCounts.doctors}</div>
-            <p className="text-xs text-muted-foreground mt-1">
+          <CardContent className="pt-1">
+            <div className="text-xl font-bold">{staffCounts.doctors}</div>
+            <p className="text-xs text-muted-foreground mt-0.5">
               All on duty today
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => navigate("/medical-certificates")}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              Medical Cert Requests
+            </CardTitle>
+            <FileCheck className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pt-1">
+            <div className="text-xl font-bold">{medCertRequestCount}</div>
+            <p
+              className={`text-xs mt-0.5 ${
+                medCertRequestCount > 0
+                  ? "text-orange-600 font-medium"
+                  : "text-muted-foreground"
+              }`}
+            >
+              {medCertRequestCount > 0
+                ? `${medCertRequestCount} pending approval`
+                : "No pending requests"}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => navigate("/prescription-requests")}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              Prescription Refills
+            </CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pt-1">
+            <div className="text-xl font-bold">{prescriptionRequestCount}</div>
+            <p
+              className={`text-xs mt-0.5 ${
+                prescriptionRequestCount > 0
+                  ? "text-orange-600 font-medium"
+                  : "text-muted-foreground"
+              }`}
+            >
+              {prescriptionRequestCount > 0
+                ? `${prescriptionRequestCount} pending approval`
+                : "No pending requests"}
             </p>
           </CardContent>
         </Card>

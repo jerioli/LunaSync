@@ -160,7 +160,7 @@ const AddPatient = () => {
   const handleHistoryChange = (
     field: string,
     value: string | boolean | undefined,
-    isCategory = false
+    isCategory = false,
   ) => {
     setMedicalHistory((prev) => {
       if (field === "chiefComplaint") {
@@ -406,7 +406,7 @@ const AddPatient = () => {
   const scrollTo = (ref: any) =>
     ref.current?.scrollIntoView({ behavior: "smooth" });
   const [activeTab, setActiveTab] = useState<"personal" | "exam" | "history">(
-    "personal"
+    "personal",
   );
 
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -451,35 +451,6 @@ const AddPatient = () => {
       toast({
         title: "Validation Error",
         description: "Please enter a valid email address.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Check for duplicate patients
-    const existingEmailPatient = patients.find(
-      (patient) =>
-        patient.email &&
-        patient.email.toLowerCase() === form.email.toLowerCase()
-    );
-
-    if (existingEmailPatient) {
-      toast({
-        title: "Duplicate Patient",
-        description: `A patient with email "${form.email}" already exists. Please use a different email address.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const existingPhonePatient = patients.find(
-      (patient) => patient.phone && patient.phone === form.phone
-    );
-
-    if (existingPhonePatient) {
-      toast({
-        title: "Duplicate Patient",
-        description: `A patient with phone number "${form.phone}" already exists. Please use a different phone number.`,
         variant: "destructive",
       });
       return;
@@ -586,7 +557,7 @@ const AddPatient = () => {
       // Save clinical notes to database if any
       const clinicalNotesToSave = templates.filter(
         (template) =>
-          template.type === "Clinical Notes" && template.data.saveToDatabase
+          template.type === "Clinical Notes" && template.data.saveToDatabase,
       );
 
       if (clinicalNotesToSave.length > 0 && savedPatient?.id) {
@@ -633,7 +604,7 @@ const AddPatient = () => {
       // Use the error handler utility to get a better error message
       const parsedError = parseApiError(
         error,
-        "Failed to save patient. Please try again."
+        "Failed to save patient. Please try again.",
       );
 
       toast({
@@ -979,7 +950,7 @@ const AddPatient = () => {
                           onChange={(e) =>
                             handlePhysicalExamChange(
                               "bloodPressure",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                         />
@@ -999,7 +970,7 @@ const AddPatient = () => {
                           onChange={(e) =>
                             handlePhysicalExamChange(
                               "temperature",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                         />
@@ -1014,7 +985,7 @@ const AddPatient = () => {
                           onChange={(e) =>
                             handlePhysicalExamChange(
                               "pulseRate",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                         />
@@ -1031,7 +1002,7 @@ const AddPatient = () => {
                           onChange={(e) =>
                             handlePhysicalExamChange(
                               "respiratoryRate",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                         />
@@ -1092,14 +1063,14 @@ const AddPatient = () => {
                                 onChange={(e) =>
                                   handlePrescriptionChange(
                                     field,
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 placeholder={placeholders[field]}
                                 rows={3}
                               />
                             </div>
-                          )
+                          ),
                         )}
                         <div className="flex justify-end gap-2">
                           <Button
@@ -1131,7 +1102,7 @@ const AddPatient = () => {
                               onChange={(e) =>
                                 handleClinicalNoteChange(
                                   "title",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               placeholder="Enter clinical note title (e.g., Follow-up Visit, Initial Assessment)"
@@ -1148,7 +1119,7 @@ const AddPatient = () => {
                               onChange={(e) =>
                                 handleClinicalNoteChange(
                                   "notes",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               placeholder="Enter your clinical notes here..."
@@ -1163,7 +1134,7 @@ const AddPatient = () => {
                               onChange={(e) =>
                                 handleClinicalNoteChange(
                                   "findings",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               placeholder="Enter clinical findings..."
@@ -1178,7 +1149,7 @@ const AddPatient = () => {
                               onChange={(e) =>
                                 handleClinicalNoteChange(
                                   "recommendations",
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               placeholder="Enter recommendations and treatment plan..."
@@ -1195,7 +1166,7 @@ const AddPatient = () => {
                                 onChange={(e) =>
                                   handleClinicalNoteChange(
                                     "followUpRequired",
-                                    e.target.checked
+                                    e.target.checked,
                                   )
                                 }
                               />
@@ -1216,7 +1187,7 @@ const AddPatient = () => {
                                   onChange={(e) =>
                                     handleClinicalNoteChange(
                                       "followUpDate",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                 />
@@ -1260,7 +1231,7 @@ const AddPatient = () => {
                               >
                                 {tab}
                               </Button>
-                            )
+                            ),
                           )}
                         </div>
 
@@ -1283,7 +1254,7 @@ const AddPatient = () => {
                                       onChange={() =>
                                         handleMedicationChange(
                                           "nameType",
-                                          "Generic"
+                                          "Generic",
                                         )
                                       }
                                     />
@@ -1299,7 +1270,7 @@ const AddPatient = () => {
                                       onChange={() =>
                                         handleMedicationChange(
                                           "nameType",
-                                          "Brand"
+                                          "Brand",
                                         )
                                       }
                                     />
@@ -1314,7 +1285,7 @@ const AddPatient = () => {
                                     onChange={(e) =>
                                       handleMedicationChange(
                                         "name",
-                                        e.target.value
+                                        e.target.value,
                                       )
                                     }
                                   />
@@ -1324,7 +1295,7 @@ const AddPatient = () => {
                                     onChange={(e) =>
                                       handleMedicationChange(
                                         "dose",
-                                        e.target.value
+                                        e.target.value,
                                       )
                                     }
                                   />
@@ -1338,7 +1309,7 @@ const AddPatient = () => {
                                       if (/^\d*$/.test(e.target.value))
                                         handleMedicationChange(
                                           "quantity",
-                                          e.target.value
+                                          e.target.value,
                                         );
                                     }}
                                   />
@@ -1383,7 +1354,7 @@ const AddPatient = () => {
                                       onChange={(e) =>
                                         handleMedicationChange(
                                           "startDate",
-                                          e.target.value
+                                          e.target.value,
                                         )
                                       }
                                     />
@@ -1396,7 +1367,7 @@ const AddPatient = () => {
                                       onChange={(e) =>
                                         handleMedicationChange(
                                           "endDate",
-                                          e.target.value
+                                          e.target.value,
                                         )
                                       }
                                     />
@@ -1409,7 +1380,7 @@ const AddPatient = () => {
                                   onChange={(e) =>
                                     handleMedicationChange(
                                       "notes",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   rows={2}
@@ -1529,7 +1500,7 @@ const AddPatient = () => {
                                 onChange={(e) =>
                                   handlePrescriptionChange(
                                     "generalNotes",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 rows={3}
@@ -1646,7 +1617,7 @@ const AddPatient = () => {
                                               {item.data.medications.map(
                                                 (
                                                   med: any,
-                                                  medIndex: number
+                                                  medIndex: number,
                                                 ) => (
                                                   <tr
                                                     key={medIndex}
@@ -1681,7 +1652,7 @@ const AddPatient = () => {
                                                       {med.notes || "-"}
                                                     </td>
                                                   </tr>
-                                                )
+                                                ),
                                               )}
                                             </tbody>
                                           </table>
@@ -1785,7 +1756,7 @@ const AddPatient = () => {
                             handleHistoryChange(
                               "illnesses",
                               e.target.checked,
-                              true
+                              true,
                             )
                           }
                         />
@@ -1819,7 +1790,7 @@ const AddPatient = () => {
                             handleHistoryChange(
                               "surgeries",
                               e.target.checked,
-                              true
+                              true,
                             )
                           }
                         />
@@ -1853,7 +1824,7 @@ const AddPatient = () => {
                             handleHistoryChange(
                               "medications",
                               e.target.checked,
-                              true
+                              true,
                             )
                           }
                         />
@@ -1890,7 +1861,7 @@ const AddPatient = () => {
                             handleHistoryChange(
                               "familyHistory",
                               e.target.checked,
-                              true
+                              true,
                             )
                           }
                         />
@@ -1924,7 +1895,7 @@ const AddPatient = () => {
                             handleHistoryChange(
                               "socialHistory",
                               e.target.checked,
-                              true
+                              true,
                             )
                           }
                         />
@@ -1958,7 +1929,7 @@ const AddPatient = () => {
                             handleHistoryChange(
                               "allergies",
                               e.target.checked,
-                              true
+                              true,
                             )
                           }
                         />
@@ -1995,8 +1966,8 @@ const AddPatient = () => {
               {loading
                 ? "Saving..."
                 : isDoctor || isAdmin
-                ? "Save Patient Record"
-                : "Save Patient (Personal Info Only)"}
+                  ? "Save Patient Record"
+                  : "Save Patient (Personal Info Only)"}
             </Button>
             <Button
               variant="outline"

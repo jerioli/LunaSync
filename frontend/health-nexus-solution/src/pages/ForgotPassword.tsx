@@ -64,13 +64,89 @@ const ForgotPassword = () => {
       if (response.data.success) {
         toast.success(`Verification code sent to your ${activeTab}`);
         setIsOtpMode(true);
+      } else {
+        // Handle unsuccessful response
+        toast.error(
+          response.data.message || "Failed to send verification code",
+        );
       }
     } catch (error: any) {
-      console.error("Password reset error:", error.response?.data);
-      toast.error(
+      console.error("Password reset error:", error);
+      console.error("Error response:", error.response);
+      console.error("Error status:", error.response?.status);
+      console.error("Error data:", error.response?.data);
+
+      // Check for specific error messages
+      const errorMessage =
+        error.response?.data?.error ||
         error.response?.data?.message ||
-          "Failed to send verification code. Please try again.",
-      );
+        error.response?.data?.detail;
+
+      console.log("Extracted error message:", errorMessage);
+      console.log("Active tab:", activeTab);
+
+      // Handle different error scenarios
+      if (error.response?.status === 404) {
+        // User not found - be specific based on the identifier type
+        console.log("404 error detected - showing user not found message");
+        if (activeTab === "email") {
+          toast.error(
+            "This email address is not registered in our system. Please check the email address.",
+            { duration: 5000 },
+          );
+        } else {
+          toast.error(
+            "This phone number is not registered in our system. Please check the number.",
+            { duration: 5000 },
+          );
+        }
+      } else if (
+        errorMessage &&
+        (errorMessage.toLowerCase().includes("no user found") ||
+          errorMessage.toLowerCase().includes("not found"))
+      ) {
+        // Backend returned "no user found" message
+        console.log("'No user found' message detected");
+        if (activeTab === "email") {
+          toast.error(
+            "This email address is not registered. Please verify your email or sign up for a new account.",
+            { duration: 5000 },
+          );
+        } else {
+          toast.error(
+            "This phone number is not registered. Please verify your number or sign up for a new account.",
+            { duration: 5000 },
+          );
+        }
+      } else if (
+        errorMessage &&
+        errorMessage.toLowerCase().includes("invalid")
+      ) {
+        console.log("Invalid format detected");
+        toast.error(
+          `Invalid ${activeTab} format. Please enter a valid ${activeTab === "email" ? "email address" : "phone number"}.`,
+          { duration: 5000 },
+        );
+      } else if (error.response?.status === 400) {
+        // Bad request - could be missing fields or validation error
+        console.log("400 error detected");
+        toast.error(
+          errorMessage ||
+            `Please enter a valid ${activeTab === "email" ? "email address" : "phone number"}.`,
+          { duration: 5000 },
+        );
+      } else if (errorMessage) {
+        // Any other error message from backend
+        console.log("Showing backend error message:", errorMessage);
+        toast.error(errorMessage, { duration: 5000 });
+      } else {
+        // Generic fallback error - this should always show if nothing else does
+        console.log("Showing generic fallback error");
+        toast.error(
+          "Failed to send verification code. Please try again or contact support.",
+          { duration: 5000 },
+        );
+      }
     } finally {
       setIsLoading(false);
     }

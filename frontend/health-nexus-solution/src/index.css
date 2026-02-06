@@ -88,10 +88,35 @@
 @layer base {
   * {
     @apply border-border;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
     @apply bg-background text-foreground;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Fix for Edge and IE */
+  @supports (-ms-ime-align: auto) {
+    body {
+      overflow-x: hidden;
+    }
+  }
+
+  /* Fix for Edge Chromium */
+  @supports (-webkit-appearance: none) and (not (-ms-ime-align: auto)) {
+    body {
+      -webkit-font-smoothing: antialiased;
+    }
   }
 }
 
@@ -115,5 +140,36 @@
   
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Enhanced responsive fixes for all browsers */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Prevent zoom on input focus in mobile browsers */
+  input, select, textarea {
+    font-size: 16px;
+  }
+
+  /* Fix for Edge flexbox issues */
+  @supports (-ms-ime-align: auto) {
+    .flex, [class*="flex"] {
+      min-height: 0;
+      min-width: 0;
+    }
+  }
+
+  /* Smooth scrolling for all browsers */
+  * {
+    scroll-behavior: smooth;
+  }
+
+  /* Fix Edge grid issues */
+  @supports (-ms-ime-align: auto) {
+    .grid, [class*="grid"] {
+      display: -ms-grid;
+    }
   }
 }

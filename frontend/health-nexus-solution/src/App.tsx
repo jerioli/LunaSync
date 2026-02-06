@@ -27,6 +27,7 @@ import PatientPortal from "./pages/PatientPortal";
 import PatientArchives from "./pages/PatientArchives";
 
 import { Toaster } from "./components/ui/toaster";
+import { Toaster as SonnerToaster } from "sonner";
 import PatientsList from "./pages/PatientsList";
 import PermissionManagement from "./pages/PermissionManagement";
 import PrescriptionManagement from "./pages/PrescriptionManagement";
@@ -186,6 +187,7 @@ const App = () => {
         <BrandingProvider>
           <ClinicProvider>
             <Toaster />
+            <SonnerToaster position="top-center" richColors />
             <BrowserRouter>
               <Routes>
                 {/* Initial landing/routing page */}

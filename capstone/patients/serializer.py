@@ -73,32 +73,6 @@ class PatientSerializer(SecureBaseSerializer):
         # Check if this is an update (instance exists) or create (no instance)
         instance = getattr(self, 'instance', None)
         
-        if email:
-            # Check for duplicate email
-            existing_patients = Patient.objects.all()
-            for patient in existing_patients:
-                # Skip self if updating
-                if instance and patient.id == instance.id:
-                    continue
-                    
-                if patient.email and patient.email.lower() == email.lower():
-                    raise serializers.ValidationError({
-                        'email': 'A patient with this email address already exists.'
-                    })
-        
-        if phone:
-            # Check for duplicate phone
-            existing_patients = Patient.objects.all()
-            for patient in existing_patients:
-                # Skip self if updating
-                if instance and patient.id == instance.id:
-                    continue
-                    
-                if patient.phone and patient.phone == phone:
-                    raise serializers.ValidationError({
-                        'phone': 'A patient with this phone number already exists.'
-                    })
-        
         # Check for duplicate patient based on name and date of birth
         if first_name and last_name and date_of_birth:
             existing_patients = Patient.objects.all()

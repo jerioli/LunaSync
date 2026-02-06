@@ -577,7 +577,29 @@ const PrescriptionManagement: React.FC = () => {
         payload,
       );
 
-      toast.success(response.data.message);
+      // Show specific success messages based on action
+      if (action === "receptionist_approve") {
+        toast.success("✅ Prescription Request Confirmed Successfully!", {
+          description:
+            "The request has been moved to the next stage for doctor approval.",
+          duration: 5000,
+        });
+      } else if (action === "doctor_approve") {
+        toast.success("✅ Prescription Approved Successfully!", {
+          description:
+            "The prescription has been generated and sent to the patient.",
+          duration: 5000,
+        });
+      } else if (action === "reject") {
+        toast.success("Prescription Request Rejected", {
+          description: "The patient will be notified of the rejection.",
+          duration: 5000,
+        });
+      } else {
+        toast.success(response.data.message || "Request updated successfully", {
+          duration: 5000,
+        });
+      }
       fetchRequests();
       setSelectedRequest(null);
       setPrescriptionContent("");
@@ -1192,20 +1214,6 @@ const PrescriptionManagement: React.FC = () => {
                                                 </Button>
                                               </div>
                                             )}
-
-                                          {/* Compact rejection reason input */}
-                                          <Textarea
-                                            value={rejectionReason}
-                                            onChange={(e) =>
-                                              setRejectionReason(e.target.value)
-                                            }
-                                            placeholder="Rejection reason (if rejecting)..."
-                                            rows={2}
-                                            className="text-sm"
-                                            disabled={isRequestPatientSoftDeleted(
-                                              selectedRequest,
-                                            )}
-                                          />
                                         </div>
                                       )}
                                     </div>
