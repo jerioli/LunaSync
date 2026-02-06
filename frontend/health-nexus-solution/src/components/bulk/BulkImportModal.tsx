@@ -314,7 +314,7 @@ export default function BulkImportModal({
         </Button>
       </DialogTrigger>
       {/* ✅ Centered modal with fixed header */}
-      <DialogContent className="w-full h-[90vh] sm:h-[700px] max-w-[95vw] sm:max-w-[1400px] flex flex-col">
+      <DialogContent className="w-full h-[75vh] sm:h-[600px] max-w-[85vw] sm:max-w-[900px] flex flex-col">
         <DialogHeader className="flex-shrink-0 border-b pb-3 sm:pb-4">
           <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
             {type === "patients" ? (

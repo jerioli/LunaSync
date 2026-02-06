@@ -2037,8 +2037,8 @@ const NewAppointmentModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-[95vw] sm:max-w-[800px] max-h-[95vh] overflow-y-auto">
-        <DialogHeader className="pb-2 sm:pb-4">
+      <DialogContent className="w-full max-w-[95vw] sm:max-w-[800px] max-h-[90vh] flex flex-col">
+        <DialogHeader className="pb-2 sm:pb-3 flex-shrink-0">
           <DialogTitle className="text-base sm:text-lg">
             Schedule New Appointment
           </DialogTitle>
@@ -2049,7 +2049,7 @@ const NewAppointmentModal = ({
         </DialogHeader>
 
         {/* Step Progress Indicator */}
-        <div className="flex items-center justify-between mb-4 sm:mb-6 px-2 sm:px-0">
+        <div className="flex items-center justify-between mb-3 sm:mb-4 px-2 sm:px-0 flex-shrink-0">
           {STEPS.map((step, index) => {
             const Icon = step.icon;
             const isActive = index === currentStep;
@@ -2133,11 +2133,11 @@ const NewAppointmentModal = ({
                 return false;
               }
             }}
-            className="space-y-6"
+            className="flex-1 flex flex-col overflow-hidden"
             noValidate
           >
             {/* Step Content */}
-            <div className="min-h-[300px] sm:min-h-[400px] px-1 sm:px-0">
+            <div className="flex-1 overflow-y-auto px-1 sm:px-0 py-2">
               {currentStep === 0 && renderPatientSelection()}
               {currentStep === 1 && renderDoctorAndType()}
               {currentStep === 2 && renderDateAndTimeSelection()}
@@ -2146,7 +2146,7 @@ const NewAppointmentModal = ({
             </div>
 
             {/* Navigation Footer */}
-            <DialogFooter className="pt-4 sm:pt-6 border-t">
+            <DialogFooter className="pt-3 sm:pt-4 border-t flex-shrink-0 mt-auto">
               <div className="flex justify-between w-full gap-2">
                 <Button
                   type="button"

@@ -259,71 +259,28 @@ select {
   }
 }
 
-/* Modal and Dialog Specific Fixes */
-[role="dialog"],
-[role="alertdialog"],
-dialog,
-.modal,
-[data-radix-popper-content-wrapper],
-[data-state="open"] {
-  font-size: 0.85rem;
-  max-width: 95vw;
-  max-height: 95vh;
+/* Modal and Dialog Background Overlay Fix */
+[data-radix-dialog-overlay] {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(2px);
 }
 
-/* Scale down modal content */
-[role="dialog"] *,
-dialog * {
-  font-size: inherit;
+/* Edge-specific modal zoom fix */
+@supports (-ms-ime-align: auto) {
+  [role="dialog"],
+  [data-radix-dialog-content],
+  dialog {
+    zoom: 0.95;
+  }
 }
 
-/* Dialog headers and titles */
-[role="dialog"] h1,
-[role="dialog"] h2,
-[role="dialog"] h3,
-dialog h1,
-dialog h2,
-dialog h3 {
-  font-size: 1.2rem;
-  line-height: 1.3;
-}
-
-/* Dialog content text */
-[role="dialog"] p,
-[role="dialog"] label,
-[role="dialog"] span,
-dialog p,
-dialog label,
-dialog span {
-  font-size: 0.85rem;
-}
-
-/* Dialog buttons */
-[role="dialog"] button,
-dialog button {
-  font-size: 0.85rem;
-  padding: 0.4rem 0.8rem;
-}
-
-/* Form inputs inside dialogs */
-[role="dialog"] input,
-[role="dialog"] select,
-[role="dialog"] textarea,
-dialog input,
-dialog select,
-dialog textarea {
-  font-size: 0.85rem;
-}
-
-/* Ensure proper scaling for shadcn/ui Dialog components */
-[data-radix-dialog-content] {
-  font-size: 0.85rem;
-  width: fit-content;
-  max-width: min(90vw, 800px);
-}
-
-/* Scale down card components in modals */
-[role="dialog"] [class*="card"],
-dialog [class*="card"] {
-  font-size: inherit;
+/* Edge Chromium modal zoom fix */
+@supports (-webkit-appearance: none) and (stroke-color: transparent) {
+  @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+    [role="dialog"],
+    [data-radix-dialog-content],
+    dialog {
+      zoom: 0.95;
+    }
+  }
 }
