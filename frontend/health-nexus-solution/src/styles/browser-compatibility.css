@@ -46,7 +46,7 @@
 
 /* Universal fixes for all browsers */
 html {
-  font-size: 16px;
+  font-size: 11px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -85,7 +85,7 @@ input,
 select,
 textarea,
 button {
-  font-size: 16px;
+  font-size: 14px;
   font-family: inherit;
 }
 
@@ -94,7 +94,7 @@ button {
   select,
   textarea,
   input {
-    font-size: 16px;
+    font-size: 14px;
   }
 }
 
@@ -198,19 +198,19 @@ select {
 /* Responsive breakpoints fixes */
 @media (max-width: 640px) {
   html {
-    font-size: 14px;
+    font-size: 10px;
   }
 }
 
 @media (min-width: 641px) and (max-width: 1024px) {
   html {
-    font-size: 15px;
+    font-size: 10.5px;
   }
 }
 
 @media (min-width: 1025px) {
   html {
-    font-size: 16px;
+    font-size: 11px;
   }
 }
 
@@ -257,4 +257,73 @@ select {
     min-height: 44px;
     min-width: 44px;
   }
+}
+
+/* Modal and Dialog Specific Fixes */
+[role="dialog"],
+[role="alertdialog"],
+dialog,
+.modal,
+[data-radix-popper-content-wrapper],
+[data-state="open"] {
+  font-size: 0.85rem;
+  max-width: 95vw;
+  max-height: 95vh;
+}
+
+/* Scale down modal content */
+[role="dialog"] *,
+dialog * {
+  font-size: inherit;
+}
+
+/* Dialog headers and titles */
+[role="dialog"] h1,
+[role="dialog"] h2,
+[role="dialog"] h3,
+dialog h1,
+dialog h2,
+dialog h3 {
+  font-size: 1.2rem;
+  line-height: 1.3;
+}
+
+/* Dialog content text */
+[role="dialog"] p,
+[role="dialog"] label,
+[role="dialog"] span,
+dialog p,
+dialog label,
+dialog span {
+  font-size: 0.85rem;
+}
+
+/* Dialog buttons */
+[role="dialog"] button,
+dialog button {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.8rem;
+}
+
+/* Form inputs inside dialogs */
+[role="dialog"] input,
+[role="dialog"] select,
+[role="dialog"] textarea,
+dialog input,
+dialog select,
+dialog textarea {
+  font-size: 0.85rem;
+}
+
+/* Ensure proper scaling for shadcn/ui Dialog components */
+[data-radix-dialog-content] {
+  font-size: 0.85rem;
+  width: fit-content;
+  max-width: min(90vw, 800px);
+}
+
+/* Scale down card components in modals */
+[role="dialog"] [class*="card"],
+dialog [class*="card"] {
+  font-size: inherit;
 }
