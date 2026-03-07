@@ -375,19 +375,13 @@ WHERE id > 0;`);
             className="w-full justify-start font-mono text-xs"
             onClick={() => {
               setQuery(`UPDATE patients 
-SET registration_date = date(
-  '2025-11-18',
-  '+' || (abs(random()) % 54) || ' days'
-)
+SET registration_date = DATE '2025-11-18' + (floor(random() * 54)::int)
 WHERE registration_date NOT IN (
   '2025-12-24', '2025-12-25', '2025-12-26',  -- Christmas
   '2025-12-31', '2026-01-01',                -- New Year
   '2026-01-09'                                -- Araw ng Maynila (optional)
 )
-AND date(
-  '2025-11-18',
-  '+' || (abs(random()) % 54) || ' days'
-) NOT IN (
+AND (DATE '2025-11-18' + (floor(random() * 54)::int)) NOT IN (
   '2025-12-24', '2025-12-25', '2025-12-26',
   '2025-12-31', '2026-01-01',
   '2026-01-09'
@@ -441,15 +435,12 @@ SELECT
   p.id,
   (SELECT id FROM Users WHERE role = 'doctor' LIMIT 1),
   p.registration_date,
-  time(printf('%02d:%02d:00', 
-    CAST(9 + (abs(random()) % 9) AS INTEGER), 
-    CAST(abs(random()) % 60 AS INTEGER)
-  )),
+  (TIME '09:00:00' + (random() * INTERVAL '9 hours'))::time,
   'completed',
   'Consultation',
   'email',
-  datetime(p.registration_date, '+' || CAST(9 + (abs(random()) % 9) AS TEXT) || ' hours'),
-  datetime(p.registration_date, '+' || CAST(9 + (abs(random()) % 9) AS TEXT) || ' hours')
+  (p.registration_date::timestamp + INTERVAL '9 hours' + (random() * INTERVAL '9 hours'))::timestamp,
+  (p.registration_date::timestamp + INTERVAL '9 hours' + (random() * INTERVAL '9 hours'))::timestamp
 FROM patients p
 WHERE NOT EXISTS (
   SELECT 1 FROM appointments a 
@@ -473,35 +464,35 @@ SELECT
   p.id,
   (SELECT id FROM Users WHERE role = 'doctor' LIMIT 1),
   p.registration_date,
-  CASE (abs(random()) % 22)
-    WHEN 0 THEN '09:00:00'
-    WHEN 1 THEN '09:20:00'
-    WHEN 2 THEN '09:40:00'
-    WHEN 3 THEN '10:00:00'
-    WHEN 4 THEN '10:20:00'
-    WHEN 5 THEN '10:40:00'
-    WHEN 6 THEN '11:00:00'
-    WHEN 7 THEN '11:20:00'
-    WHEN 8 THEN '11:40:00'
-    WHEN 9 THEN '13:00:00'
-    WHEN 10 THEN '13:20:00'
-    WHEN 11 THEN '13:40:00'
-    WHEN 12 THEN '14:00:00'
-    WHEN 13 THEN '14:20:00'
-    WHEN 14 THEN '14:40:00'
-    WHEN 15 THEN '15:00:00'
-    WHEN 16 THEN '15:20:00'
-    WHEN 17 THEN '15:40:00'
-    WHEN 18 THEN '16:00:00'
-    WHEN 19 THEN '16:20:00'
-    WHEN 20 THEN '16:40:00'
-    ELSE '17:00:00'
+  CASE (floor(random() * 22)::int)
+    WHEN 0 THEN '09:00:00'::time
+    WHEN 1 THEN '09:20:00'::time
+    WHEN 2 THEN '09:40:00'::time
+    WHEN 3 THEN '10:00:00'::time
+    WHEN 4 THEN '10:20:00'::time
+    WHEN 5 THEN '10:40:00'::time
+    WHEN 6 THEN '11:00:00'::time
+    WHEN 7 THEN '11:20:00'::time
+    WHEN 8 THEN '11:40:00'::time
+    WHEN 9 THEN '13:00:00'::time
+    WHEN 10 THEN '13:20:00'::time
+    WHEN 11 THEN '13:40:00'::time
+    WHEN 12 THEN '14:00:00'::time
+    WHEN 13 THEN '14:20:00'::time
+    WHEN 14 THEN '14:40:00'::time
+    WHEN 15 THEN '15:00:00'::time
+    WHEN 16 THEN '15:20:00'::time
+    WHEN 17 THEN '15:40:00'::time
+    WHEN 18 THEN '16:00:00'::time
+    WHEN 19 THEN '16:20:00'::time
+    WHEN 20 THEN '16:40:00'::time
+    ELSE '17:00:00'::time
   END,
   'completed',
   'Consultation',
   'email',
-  datetime(p.registration_date, '+14 hours'),
-  datetime(p.registration_date, '+14 hours')
+  (p.registration_date::timestamp + INTERVAL '14 hours')::timestamp,
+  (p.registration_date::timestamp + INTERVAL '14 hours')::timestamp
 FROM patients p
 WHERE NOT EXISTS (
   SELECT 1 FROM appointments a 
@@ -537,7 +528,7 @@ WHERE NOT EXISTS (
             onClick={() => {
               setQuery(`INSERT INTO audit_logs (timestamp, user_email, action, resource_type, resource_id, resource_name, description, details, old_values, new_values, ip_address, user_agent, session_key, user_id)
 SELECT 
-  datetime(p.registration_date, '+14 hours'),
+  (p.registration_date::timestamp + INTERVAL '14 hours')::timestamp,
   COALESCE(u.email, ''),
   'CREATE',
   'APPOINTMENT',
@@ -609,7 +600,7 @@ WHERE NOT EXISTS (
             onClick={() => {
               setQuery(`INSERT INTO audit_logs (timestamp, user_email, action, resource_type, resource_id, resource_name, description, details, old_values, new_values, ip_address, user_agent, session_key, user_id)
 SELECT 
-  datetime(p.registration_date, '+' || (3 + abs(random()) % 5) || ' hours'),
+  (p.registration_date::timestamp + INTERVAL '3 hours' + (random() * INTERVAL '5 hours'))::timestamp,
   COALESCE(u.email, ''),
   'UPDATE',
   'PATIENT',
