@@ -433,7 +433,7 @@ ORDER BY registration_date;`);
               setQuery(`INSERT INTO appointments (patient_id, doctor_id, date, time, status, appointment_type, confirmation_method, created_at, updated_at)
 SELECT 
   p.id,
-  (SELECT id FROM "Users" WHERE id IN (32, 33) ORDER BY random() LIMIT 1),
+  (SELECT id FROM "Users" WHERE username IN ('doctan_admin', 'edejose') ORDER BY random() LIMIT 1),
   p.registration_date,
   (TIME '09:00:00' + (random() * INTERVAL '9 hours'))::time,
   'completed',
@@ -462,7 +462,7 @@ WHERE NOT EXISTS (
               setQuery(`INSERT INTO appointments (patient_id, doctor_id, date, time, status, appointment_type, confirmation_method, created_at, updated_at)
 SELECT 
   p.id,
-  (SELECT id FROM "Users" WHERE id IN (32, 33) ORDER BY random() LIMIT 1),
+  (SELECT id FROM "Users" WHERE username IN ('doctan_admin', 'edejose') ORDER BY random() LIMIT 1),
   p.registration_date,
   CASE (floor(random() * 22)::int)
     WHEN 0 THEN TIME '09:00:00'
