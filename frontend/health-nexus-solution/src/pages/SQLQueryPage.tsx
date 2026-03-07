@@ -27,7 +27,7 @@ interface QueryLog {
 
 interface QueryResult {
   success: boolean;
-  query_type: string;
+  type: string;
   columns?: string[];
   results?: any[];
   rows_affected?: number;
@@ -90,7 +90,7 @@ export default function SQLQueryPage() {
 
       if (response.data.success) {
         toast.success(
-          response.data.query_type === "SELECT"
+          response.data.type === "SELECT"
             ? `Query executed successfully! ${response.data.rows_affected} rows returned.`
             : `Query executed successfully! ${response.data.rows_affected} rows affected.`,
         );
@@ -106,7 +106,7 @@ export default function SQLQueryPage() {
       toast.error(error.response?.data?.error || "Failed to execute query");
       setResult({
         success: false,
-        query_type: "ERROR",
+        type: "ERROR",
         error: error.response?.data?.error || "Failed to execute query",
         executed_at: new Date().toISOString(),
         executed_by: "Unknown",
@@ -672,11 +672,11 @@ AND resource_id IN (
             size="sm"
             className="w-full justify-start font-mono text-xs"
             onClick={() => {
-              setQuery(`SELECT id, username, role, first_name, last_name 
+              setQuery(`SELECT id, username, role 
 FROM "Users" 
-WHERE role = 'doctor' 
-ORDER BY id;`);
-              toast.success("Query copied! List all doctors with their IDs.");
+ORDER BY id 
+LIMIT 20;`);
+              toast.success("Query copied! List all users with their IDs.");
             }}
           >
             List All Doctors (Check IDs)
@@ -804,7 +804,7 @@ ORDER BY id;`);
           <CardContent>
             {result.success ? (
               <>
-                {result.query_type === "SELECT" &&
+                {result.type === "SELECT" &&
                 result.columns &&
                 result.results ? (
                   <div className="space-y-4">
@@ -850,11 +850,11 @@ ORDER BY id;`);
                         {result.rows_affected} row(s) returned
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Type: {result.query_type}
+                        Type: {result.type}
                       </p>
                     </div>
                   </div>
-                ) : result.query_type === "MODIFICATION" ? (
+                ) : result.type === "MODIFICATION" ? (
                   <div className="space-y-2">
                     <div className="bg-green-50 border border-green-200 rounded-md p-4">
                       <p className="text-lg font-semibold text-green-700">
@@ -868,7 +868,7 @@ ORDER BY id;`);
                           {result.rows_affected}
                         </span>
                       </p>
-                      <p>Type: {result.query_type}</p>
+                      <p>Type: {result.type}</p>
                     </div>
                   </div>
                 ) : (
