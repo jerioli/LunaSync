@@ -667,6 +667,20 @@ AND resource_id IN (
           >
             Delete Audit Logs for Archived Patients
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start font-mono text-xs"
+            onClick={() => {
+              setQuery(`SELECT id, username, role, first_name, last_name 
+FROM "Users" 
+WHERE role = 'doctor' 
+ORDER BY id;`);
+              toast.success("Query copied! List all doctors with their IDs.");
+            }}
+          >
+            List All Doctors (Check IDs)
+          </Button>
         </CardContent>
       </Card>
 
