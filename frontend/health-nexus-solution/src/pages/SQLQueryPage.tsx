@@ -433,7 +433,7 @@ ORDER BY registration_date;`);
               setQuery(`INSERT INTO appointments (patient_id, doctor_id, date, time, status, appointment_type, confirmation_method, created_at, updated_at)
 SELECT 
   p.id,
-  (SELECT id FROM "Users" WHERE email IN ('dejoseeiryll@gmail.com', 'rogz_04@yahoo.com') ORDER BY random() LIMIT 1),
+  (SELECT id FROM "Users" WHERE role = 'doctor' ORDER BY random() LIMIT 1),
   p.registration_date,
   (TIME '09:00:00' + (random() * INTERVAL '9 hours'))::time,
   'completed',
@@ -462,7 +462,7 @@ WHERE NOT EXISTS (
               setQuery(`INSERT INTO appointments (patient_id, doctor_id, date, time, status, appointment_type, confirmation_method, created_at, updated_at)
 SELECT 
   p.id,
-  (SELECT id FROM "Users" WHERE email IN ('dejoseeiryll@gmail.com', 'rogz_04@yahoo.com') ORDER BY random() LIMIT 1),
+  (SELECT id FROM "Users" WHERE role = 'doctor' ORDER BY random() LIMIT 1),
   p.registration_date,
   CASE (floor(random() * 22)::int)
     WHEN 0 THEN TIME '09:00:00'
@@ -672,14 +672,44 @@ AND resource_id IN (
             size="sm"
             className="w-full justify-start font-mono text-xs"
             onClick={() => {
-              setQuery(`SELECT id, username, role 
+              setQuery(`SELECT id, username, role, date_joined, last_login
 FROM "Users" 
 ORDER BY id 
 LIMIT 20;`);
-              toast.success("Query copied! List all users with their IDs.");
+              toast.success("Query copied! Check which IDs belong to Eiryll and Doc Tan.");
             }}
           >
-            List All Doctors (Check IDs)
+            List All Users (To Find Doctor IDs)
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start font-mono text-xs bg-yellow-50"
+            onClick={() => {
+              setQuery(`-- MODIFY THIS: Change IDs 7 and 8 to the correct doctor IDs for Eiryll and Doc Tan
+-- After identifying the IDs from the list above, update the IN clause below
+
+INSERT INTO appointments (patient_id, doctor_id, date, time, status, appointment_type, confirmation_method, created_at, updated_at)
+SELECT 
+  p.id,
+  (SELECT id FROM "Users" WHERE id IN (7, 8) ORDER BY random() LIMIT 1),  -- ⚠️ CHANGE IDs HERE
+  p.registration_date,
+  (TIME '09:00:00' + (random() * INTERVAL '9 hours'))::time,
+  'completed',
+  'Consultation',
+  'email',
+  (p.registration_date::timestamp + INTERVAL '9 hours' + (random() * INTERVAL '9 hours'))::timestamp,
+  (p.registration_date::timestamp + INTERVAL '9 hours' + (random() * INTERVAL '9 hours'))::timestamp
+FROM patients p
+WHERE NOT EXISTS (
+  SELECT 1 FROM appointments a 
+  WHERE a.patient_id = p.id
+  AND a.date = p.registration_date
+);`);
+              toast.info("Remember to change the doctor IDs (7, 8) to match Eiryll and Doc Tan!");
+            }}
+          >
+            🔧 Template: Modify Doctor IDs (Step 1 - Custom Doctors)
           </Button>
         </CardContent>
       </Card>
