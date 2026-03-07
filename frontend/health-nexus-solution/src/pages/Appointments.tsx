@@ -1160,11 +1160,11 @@ const Appointments = () => {
 
     if (activeTab === "upcoming" && canManageAppointments) {
       return (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-end">
           <Button
             variant="default"
             size="sm"
-            className={buttonClass}
+            className="h-8 px-2 sm:px-3 text-[10px] sm:text-xs whitespace-nowrap"
             onClick={() => handleCheckInClick(appointment)}
           >
             Check In
@@ -1172,7 +1172,7 @@ const Appointments = () => {
           <Button
             variant="outline"
             size="sm"
-            className={buttonClass}
+            className="h-8 px-2 sm:px-3 text-[10px] sm:text-xs whitespace-nowrap"
             onClick={() => handleNoShowClick(appointment)}
           >
             No Show
@@ -1180,7 +1180,7 @@ const Appointments = () => {
           <Button
             variant="destructive"
             size="sm"
-            className={buttonClass}
+            className="h-8 px-2 sm:px-3 text-[10px] sm:text-xs whitespace-nowrap"
             onClick={() => handleCancelClick(appointment)}
           >
             Cancel
@@ -1192,11 +1192,11 @@ const Appointments = () => {
     if (activeTab === "pending" && canManageAppointments) {
       const isLoading = loadingAppointments.has(appointment.id);
       return (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-end">
           <Button
             variant="default"
             size="sm"
-            className={buttonClass}
+            className="h-8 px-2 sm:px-3 text-[10px] sm:text-xs whitespace-nowrap"
             onClick={() => handleConfirmClick(appointment)}
             disabled={isLoading}
           >
@@ -1205,7 +1205,7 @@ const Appointments = () => {
           <Button
             variant="destructive"
             size="sm"
-            className={buttonClass}
+            className="h-8 px-2 sm:px-3 text-[10px] sm:text-xs whitespace-nowrap"
             onClick={() => handleDeclineClick(appointment)}
             disabled={isLoading}
           >
@@ -1218,11 +1218,11 @@ const Appointments = () => {
     if (activeTab === "ongoing") {
       if (isDoctor || isAdmin) {
         return (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-end">
             <Button
               variant="outline"
               size="sm"
-              className={buttonClass}
+              className="h-8 px-2 sm:px-3 text-[10px] sm:text-xs whitespace-nowrap"
               onClick={() => {
                 const patient = patients.find(
                   (p) => p.id === appointment.patientId,
@@ -1239,7 +1239,7 @@ const Appointments = () => {
             <Button
               variant="default"
               size="sm"
-              className={`${buttonClass} bg-green-600 hover:bg-green-700`}
+              className="h-8 px-2 sm:px-3 text-[10px] sm:text-xs whitespace-nowrap bg-green-600 hover:bg-green-700"
               onClick={() => handleCompleteClick(appointment)}
             >
               Complete
@@ -1248,11 +1248,11 @@ const Appointments = () => {
         );
       } else if (isReceptionist) {
         return (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-end">
             <Button
               variant="outline"
               size="sm"
-              className={buttonClass}
+              className="h-8 px-2 sm:px-3 text-[10px] sm:text-xs whitespace-nowrap"
               onClick={() => {
                 const patient = patients.find(
                   (p) => p.id === appointment.patientId,
@@ -1269,7 +1269,7 @@ const Appointments = () => {
             <Button
               variant="destructive"
               size="sm"
-              className={buttonClass}
+              className="h-8 px-2 sm:px-3 text-[10px] sm:text-xs whitespace-nowrap"
               onClick={() => handleCancelClick(appointment)}
             >
               Cancel
@@ -1282,11 +1282,11 @@ const Appointments = () => {
     if (activeTab === "completed") {
       if (isDoctor) {
         return (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-end">
             <Button
               variant="outline"
               size="sm"
-              className={buttonClass}
+              className="h-8 px-2 sm:px-3 text-[10px] sm:text-xs whitespace-nowrap"
               onClick={() => {
                 const patient = patients.find(
                   (p) => p.id === appointment.patientId,
@@ -1304,11 +1304,11 @@ const Appointments = () => {
         );
       } else if (canManageAppointments) {
         return (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-end">
             <Button
               variant="outline"
               size="sm"
-              className={buttonClass}
+              className="h-8 px-2 sm:px-3 text-[10px] sm:text-xs whitespace-nowrap"
               onClick={() => {
                 const patient = patients.find(
                   (p) => p.id === appointment.patientId,
@@ -1325,7 +1325,7 @@ const Appointments = () => {
             <Button
               variant="default"
               size="sm"
-              className={`${buttonClass} bg-blue-600 hover:bg-blue-700`}
+              className="h-8 px-2 sm:px-3 text-[10px] sm:text-xs whitespace-nowrap bg-blue-600 hover:bg-blue-700"
               onClick={() => handleScheduleFollowUp(appointment)}
             >
               Follow-up
@@ -1354,11 +1354,11 @@ const Appointments = () => {
           <div className="flex space-x-2">
             <Button
               onClick={() => setShowNewAppointmentModal(true)}
-              className="w-full sm:w-auto text-sm"
+              className="w-full sm:w-auto text-sm whitespace-nowrap px-3 sm:px-4"
             >
-              <CalendarCheck className="mr-2 h-4 w-4" />
-              <span className="hidden xs:inline">Schedule New Appointment</span>
-              <span className="xs:hidden">New Appointment</span>
+              <CalendarCheck className="mr-1.5 sm:mr-2 h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Schedule New Appointment</span>
+              <span className="sm:hidden truncate">New Appointment</span>
             </Button>
           </div>
         )}
@@ -1372,14 +1372,14 @@ const Appointments = () => {
             onValueChange={setActiveTab}
           >
             <TabsList
-              className={`grid mb-4 w-full gap-1 sm:gap-2 ${
+              className={`grid mb-8 sm:mb-6 w-full gap-1 sm:gap-2 overflow-hidden relative z-10 ${
                 canManageAppointments ? "grid-cols-5" : "grid-cols-4"
               }`}
             >
               {canManageAppointments && (
                 <TabsTrigger
                   value="pending"
-                  className="hover:bg-primary/10 transition-colors text-xs sm:text-sm px-1 sm:px-2 py-2"
+                  className="hover:bg-primary/10 transition-colors text-[10px] sm:text-xs md:text-sm px-0.5 sm:px-1 md:px-2 py-1 sm:py-1.5 whitespace-nowrap truncate"
                   style={{
                     backgroundColor:
                       activeTab === "pending" ? colors.primaryColor : undefined,
@@ -1391,7 +1391,7 @@ const Appointments = () => {
               )}
               <TabsTrigger
                 value="upcoming"
-                className="hover:bg-primary/10 transition-colors text-xs sm:text-sm px-1 sm:px-2 py-2"
+                className="hover:bg-primary/10 transition-colors text-[10px] sm:text-xs md:text-sm px-0.5 sm:px-1 md:px-2 py-1 sm:py-1.5 whitespace-nowrap truncate"
                 style={{
                   backgroundColor:
                     activeTab === "upcoming" ? colors.primaryColor : undefined,
@@ -1402,7 +1402,7 @@ const Appointments = () => {
               </TabsTrigger>
               <TabsTrigger
                 value="ongoing"
-                className="hover:bg-primary/10 transition-colors text-xs sm:text-sm px-1 sm:px-2 py-2"
+                className="hover:bg-primary/10 transition-colors text-[10px] sm:text-xs md:text-sm px-0.5 sm:px-1 md:px-2 py-1 sm:py-1.5 whitespace-nowrap truncate"
                 style={{
                   backgroundColor:
                     activeTab === "ongoing" ? colors.primaryColor : undefined,
@@ -1413,7 +1413,7 @@ const Appointments = () => {
               </TabsTrigger>
               <TabsTrigger
                 value="completed"
-                className="hover:bg-primary/10 transition-colors text-xs sm:text-sm px-1 sm:px-2 py-2"
+                className="hover:bg-primary/10 transition-colors text-[10px] sm:text-xs md:text-sm px-0.5 sm:px-1 md:px-2 py-1 sm:py-1.5 whitespace-nowrap truncate"
                 style={{
                   backgroundColor:
                     activeTab === "completed" ? colors.primaryColor : undefined,
@@ -1424,7 +1424,7 @@ const Appointments = () => {
               </TabsTrigger>
               <TabsTrigger
                 value="cancelled"
-                className="hover:bg-primary/10 transition-colors text-xs sm:text-sm px-1 sm:px-2 py-2"
+                className="hover:bg-primary/10 transition-colors text-[10px] sm:text-xs md:text-sm px-0.5 sm:px-1 md:px-2 py-1 sm:py-1.5 whitespace-nowrap truncate"
                 style={{
                   backgroundColor:
                     activeTab === "cancelled" ? colors.primaryColor : undefined,

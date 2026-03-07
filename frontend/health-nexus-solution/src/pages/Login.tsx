@@ -44,7 +44,7 @@ const Login = () => {
   // 2FA states
   const [otpIdentifier, setOtpIdentifier] = useState("");
   const [identifierType, setIdentifierType] = useState<"email" | "phone">(
-    "email",
+    "email"
   );
   const [isOtpMode, setIsOtpMode] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -54,7 +54,7 @@ const Login = () => {
 
   // Clear error state when user starts typing
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value.replace(/\s/g, ""));
+    setEmail(e.target.value.replace(/\s/g, ''));
     if (hasLoginError) {
       setHasLoginError(false);
       setLoginError("");
@@ -62,7 +62,7 @@ const Login = () => {
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value.replace(/\s/g, ""));
+    setPassword(e.target.value.replace(/\s/g, ''));
     if (hasLoginError) {
       setHasLoginError(false);
       setLoginError("");
@@ -143,7 +143,7 @@ const Login = () => {
     if (userData.sessionId || userData.session_id) {
       localStorage.setItem(
         "sessionId",
-        userData.sessionId || userData.session_id,
+        userData.sessionId || userData.session_id
       );
     }
     // ClinicContext will automatically detect the localStorage change and refresh
@@ -194,7 +194,7 @@ const Login = () => {
           identifier_type: identifierType,
           otp: otpValue,
         },
-        { withCredentials: true },
+        { withCredentials: true }
       );
       const result = response.data;
       if (result.success) {
@@ -230,7 +230,7 @@ const Login = () => {
         }
       } else {
         toast.error(
-          result.error || "Invalid OTP. Please check your code and try again.",
+          result.error || "Invalid OTP. Please check your code and try again."
         );
         // Don't redirect back to login, let user try again
       }
@@ -312,7 +312,7 @@ const Login = () => {
                         value={password}
                         onChange={handlePasswordChange}
                         required
-                        className={`focus-visible:ring-[#79c942] focus-visible:ring-2 focus-visible:ring-offset-2 ${
+                        className={`pr-12 focus-visible:ring-[#79c942] focus-visible:ring-2 focus-visible:ring-offset-2 ${
                           hasLoginError
                             ? "border-red-500 focus-visible:ring-red-500"
                             : ""
@@ -321,12 +321,13 @@ const Login = () => {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#79c942] transition-colors"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#79c942] transition-colors p-2 touch-manipulation"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
                       >
                         {showPassword ? (
-                          <EyeOff className="h-4 w-4" />
+                          <EyeOff className="h-5 w-5 sm:h-4 sm:w-4" />
                         ) : (
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-5 w-5 sm:h-4 sm:w-4" />
                         )}
                       </button>
                     </div>

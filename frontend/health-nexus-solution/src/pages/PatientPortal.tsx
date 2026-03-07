@@ -1274,6 +1274,15 @@ const PatientPortal = () => {
         setForgotIdSubmitting(false);
         return;
       }
+      if (!forgotIdForm.email.trim()) {
+        toast({
+          title: "Error",
+          description: "Email is required",
+          variant: "destructive",
+        });
+        setForgotIdSubmitting(false);
+        return;
+      }
       if (!forgotIdForm.phone.trim()) {
         toast({
           title: "Error",
@@ -4884,7 +4893,7 @@ const PatientPortal = () => {
                               </div>
                               <div>
                                 <label className="block text-sm font-medium mb-1">
-                                  Middle Initial
+                                  Middle Initial (if any)
                                 </label>
                                 <Input
                                   placeholder="Optional"
@@ -4914,10 +4923,10 @@ const PatientPortal = () => {
                               </div>
                               <div>
                                 <label className="block text-sm font-medium mb-1">
-                                  Suffix
+                                  Suffix (if any)
                                 </label>
                                 <Input
-                                  placeholder="Jr, Sr, III, etc."
+                                  placeholder="Jr., Sr., III, etc. (optional)"
                                   value={forgotIdForm.suffix}
                                   onChange={(e) =>
                                     setForgotIdForm({
@@ -4944,11 +4953,11 @@ const PatientPortal = () => {
                               </div>
                               <div>
                                 <label className="block text-sm font-medium mb-1">
-                                  Registered Email
+                                  Registered Email *
                                 </label>
                                 <Input
                                   type="email"
-                                  placeholder="Optional"
+                                  placeholder="Enter your registered email"
                                   value={forgotIdForm.email}
                                   onChange={(e) =>
                                     setForgotIdForm({
@@ -5611,164 +5620,6 @@ const PatientPortal = () => {
                         </div>
                       </div>
 
-                      {/* Forgot Patient ID Form */}
-                      {showMedCertForgotPatientId && (
-                        <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
-                          <div className="space-y-4">
-                            <h4 className="font-semibold text-gray-900">
-                              Forgot Patient ID? Let's help you find it
-                            </h4>
-                            <p className="text-sm text-gray-600">
-                              Please provide the following information to lookup
-                              your Patient ID:
-                            </p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <label className="block text-sm font-medium mb-1">
-                                  First Name *
-                                </label>
-                                <Input
-                                  placeholder="Enter your first name"
-                                  value={medCertForgotIdForm.firstName}
-                                  onChange={(e) =>
-                                    setMedCertForgotIdForm({
-                                      ...medCertForgotIdForm,
-                                      firstName: e.target.value,
-                                    })
-                                  }
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium mb-1">
-                                  Middle Initial
-                                </label>
-                                <Input
-                                  placeholder="Optional"
-                                  value={medCertForgotIdForm.middleInitial}
-                                  onChange={(e) =>
-                                    setMedCertForgotIdForm({
-                                      ...medCertForgotIdForm,
-                                      middleInitial: e.target.value,
-                                    })
-                                  }
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium mb-1">
-                                  Last Name *
-                                </label>
-                                <Input
-                                  placeholder="Enter your last name"
-                                  value={medCertForgotIdForm.lastName}
-                                  onChange={(e) =>
-                                    setMedCertForgotIdForm({
-                                      ...medCertForgotIdForm,
-                                      lastName: e.target.value,
-                                    })
-                                  }
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium mb-1">
-                                  Suffix
-                                </label>
-                                <Input
-                                  placeholder="Jr, Sr, III, etc."
-                                  value={medCertForgotIdForm.suffix}
-                                  onChange={(e) =>
-                                    setMedCertForgotIdForm({
-                                      ...medCertForgotIdForm,
-                                      suffix: e.target.value,
-                                    })
-                                  }
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium mb-1">
-                                  Date of Birth *
-                                </label>
-                                <Input
-                                  type="date"
-                                  value={medCertForgotIdForm.dateOfBirth}
-                                  onChange={(e) =>
-                                    setMedCertForgotIdForm({
-                                      ...medCertForgotIdForm,
-                                      dateOfBirth: e.target.value,
-                                    })
-                                  }
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium mb-1">
-                                  Registered Email *
-                                </label>
-                                <Input
-                                  type="email"
-                                  placeholder="Enter your registered email"
-                                  value={medCertForgotIdForm.email}
-                                  onChange={(e) =>
-                                    setMedCertForgotIdForm({
-                                      ...medCertForgotIdForm,
-                                      email: e.target.value,
-                                    })
-                                  }
-                                />
-                              </div>
-                              <div className="md:col-span-2">
-                                <label className="block text-sm font-medium mb-1">
-                                  Registered Phone Number *
-                                </label>
-                                <Input
-                                  placeholder="Enter your registered phone number"
-                                  value={medCertForgotIdForm.phone}
-                                  maxLength={11}
-                                  onChange={(e) => {
-                                    const value = e.target.value.replace(
-                                      /\D/g,
-                                      "",
-                                    );
-                                    setMedCertForgotIdForm({
-                                      ...medCertForgotIdForm,
-                                      phone: value,
-                                    });
-                                  }}
-                                />
-                              </div>
-                            </div>
-                            <div className="flex gap-2 justify-end">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => {
-                                  setShowMedCertForgotPatientId(false);
-                                  setMedCertForgotIdForm({
-                                    firstName: "",
-                                    middleInitial: "",
-                                    lastName: "",
-                                    suffix: "",
-                                    dateOfBirth: "",
-                                    email: "",
-                                    phone: "",
-                                  });
-                                }}
-                              >
-                                Cancel
-                              </Button>
-                              <Button
-                                type="button"
-                                onClick={submitMedCertForgotPatientId}
-                                disabled={medCertForgotIdSubmitting}
-                                className="bg-[#79c942] hover:bg-[#6bb33a]"
-                              >
-                                {medCertForgotIdSubmitting
-                                  ? "Looking up..."
-                                  : "Find Patient ID"}
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
                       {/* Pickup Notice */}
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                         <div className="flex items-start space-x-2">
@@ -5788,18 +5639,151 @@ const PatientPortal = () => {
                 ) : (
                   <>
                     <h3 className="text-lg font-semibold text-center mb-4">
-                      Enter your information
+                      Forgot Patient ID? Let's help you find it
                     </h3>
-                    <div className="space-y-4">
+                    <p className="text-sm text-gray-600 text-center mb-4">
+                      Please provide the following information to lookup your
+                      Patient ID:
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Enter your information to create new patient
+                        <label className="block text-sm font-medium mb-1">
+                          First Name *
                         </label>
-                        <div className="text-sm text-gray-600">
-                          Since you don't have a Patient ID, please provide your
-                          details
-                        </div>
+                        <Input
+                          placeholder="Enter your first name"
+                          value={medCertForgotIdForm.firstName}
+                          onChange={(e) =>
+                            setMedCertForgotIdForm({
+                              ...medCertForgotIdForm,
+                              firstName: e.target.value,
+                            })
+                          }
+                        />
                       </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Middle Initial (if any)
+                        </label>
+                        <Input
+                          placeholder="Optional"
+                          value={medCertForgotIdForm.middleInitial}
+                          onChange={(e) =>
+                            setMedCertForgotIdForm({
+                              ...medCertForgotIdForm,
+                              middleInitial: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Last Name *
+                        </label>
+                        <Input
+                          placeholder="Enter your last name"
+                          value={medCertForgotIdForm.lastName}
+                          onChange={(e) =>
+                            setMedCertForgotIdForm({
+                              ...medCertForgotIdForm,
+                              lastName: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Suffix (if any)
+                        </label>
+                        <Input
+                          placeholder="Jr., Sr., III, etc. (optional)"
+                          value={medCertForgotIdForm.suffix}
+                          onChange={(e) =>
+                            setMedCertForgotIdForm({
+                              ...medCertForgotIdForm,
+                              suffix: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Date of Birth *
+                        </label>
+                        <Input
+                          type="date"
+                          value={medCertForgotIdForm.dateOfBirth}
+                          onChange={(e) =>
+                            setMedCertForgotIdForm({
+                              ...medCertForgotIdForm,
+                              dateOfBirth: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">
+                          Registered Email *
+                        </label>
+                        <Input
+                          type="email"
+                          placeholder="Enter your registered email"
+                          value={medCertForgotIdForm.email}
+                          onChange={(e) =>
+                            setMedCertForgotIdForm({
+                              ...medCertForgotIdForm,
+                              email: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium mb-1">
+                          Registered Phone Number *
+                        </label>
+                        <Input
+                          placeholder="Enter your registered phone number"
+                          value={medCertForgotIdForm.phone}
+                          maxLength={11}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, "");
+                            setMedCertForgotIdForm({
+                              ...medCertForgotIdForm,
+                              phone: value,
+                            });
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 justify-end mt-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setShowMedCertForgotPatientId(false);
+                          setMedCertForgotIdForm({
+                            firstName: "",
+                            middleInitial: "",
+                            lastName: "",
+                            suffix: "",
+                            dateOfBirth: "",
+                            email: "",
+                            phone: "",
+                          });
+                        }}
+                      >
+                        Back
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={submitMedCertForgotPatientId}
+                        disabled={medCertForgotIdSubmitting}
+                        className="bg-[#79c942] hover:bg-[#6bb33a]"
+                      >
+                        {medCertForgotIdSubmitting
+                          ? "Looking up..."
+                          : "Find Patient ID"}
+                      </Button>
                     </div>
                   </>
                 )}
@@ -6180,53 +6164,122 @@ const PatientPortal = () => {
                       Find Your Patient ID
                     </h3>
                     <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          First Name *
-                        </label>
-                        <Input
-                          placeholder="Enter your first name"
-                          value={prescriptionForgotIdForm.firstName}
-                          onChange={(e) =>
-                            setPrescriptionForgotIdForm({
-                              ...prescriptionForgotIdForm,
-                              firstName: e.target.value,
-                            })
-                          }
-                          className="w-full"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Last Name *
-                        </label>
-                        <Input
-                          placeholder="Enter your last name"
-                          value={prescriptionForgotIdForm.lastName}
-                          onChange={(e) =>
-                            setPrescriptionForgotIdForm({
-                              ...prescriptionForgotIdForm,
-                              lastName: e.target.value,
-                            })
-                          }
-                          className="w-full"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          Date of Birth *
-                        </label>
-                        <Input
-                          type="date"
-                          value={prescriptionForgotIdForm.dateOfBirth}
-                          onChange={(e) =>
-                            setPrescriptionForgotIdForm({
-                              ...prescriptionForgotIdForm,
-                              dateOfBirth: e.target.value,
-                            })
-                          }
-                          className="w-full"
-                        />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            First Name *
+                          </label>
+                          <Input
+                            placeholder="Enter your first name"
+                            value={prescriptionForgotIdForm.firstName}
+                            onChange={(e) =>
+                              setPrescriptionForgotIdForm({
+                                ...prescriptionForgotIdForm,
+                                firstName: e.target.value,
+                              })
+                            }
+                            className="w-full"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Middle Initial (if any)
+                          </label>
+                          <Input
+                            placeholder="Optional"
+                            value={prescriptionForgotIdForm.middleInitial}
+                            onChange={(e) =>
+                              setPrescriptionForgotIdForm({
+                                ...prescriptionForgotIdForm,
+                                middleInitial: e.target.value,
+                              })
+                            }
+                            className="w-full"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Last Name *
+                          </label>
+                          <Input
+                            placeholder="Enter your last name"
+                            value={prescriptionForgotIdForm.lastName}
+                            onChange={(e) =>
+                              setPrescriptionForgotIdForm({
+                                ...prescriptionForgotIdForm,
+                                lastName: e.target.value,
+                              })
+                            }
+                            className="w-full"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Suffix (if any)
+                          </label>
+                          <Input
+                            placeholder="Jr., Sr., III, etc. (optional)"
+                            value={prescriptionForgotIdForm.suffix}
+                            onChange={(e) =>
+                              setPrescriptionForgotIdForm({
+                                ...prescriptionForgotIdForm,
+                                suffix: e.target.value,
+                              })
+                            }
+                            className="w-full"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Date of Birth *
+                          </label>
+                          <Input
+                            type="date"
+                            value={prescriptionForgotIdForm.dateOfBirth}
+                            onChange={(e) =>
+                              setPrescriptionForgotIdForm({
+                                ...prescriptionForgotIdForm,
+                                dateOfBirth: e.target.value,
+                              })
+                            }
+                            className="w-full"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            Registered Email *
+                          </label>
+                          <Input
+                            type="email"
+                            placeholder="Enter your registered email"
+                            value={prescriptionForgotIdForm.email}
+                            onChange={(e) =>
+                              setPrescriptionForgotIdForm({
+                                ...prescriptionForgotIdForm,
+                                email: e.target.value,
+                              })
+                            }
+                            className="w-full"
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium mb-2">
+                            Registered Phone Number *
+                          </label>
+                          <Input
+                            placeholder="Enter your registered phone number"
+                            value={prescriptionForgotIdForm.phone}
+                            maxLength={11}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, "");
+                              setPrescriptionForgotIdForm({
+                                ...prescriptionForgotIdForm,
+                                phone: value,
+                              });
+                            }}
+                            className="w-full"
+                          />
+                        </div>
                       </div>
                       <div className="flex space-x-2">
                         <Button

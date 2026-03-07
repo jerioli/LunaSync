@@ -116,7 +116,7 @@ type SortField =
 type SortDirection = "asc" | "desc";
 
 const PrescriptionManagement: React.FC = () => {
-  const { currentUser, patients: clinicPatients, fetchPatients } = useClinic();
+  const { currentUser, patients: clinicPatients } = useClinic();
   const [requests, setRequests] = useState<PrescriptionRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] =
@@ -210,12 +210,8 @@ const PrescriptionManagement: React.FC = () => {
 
   useEffect(() => {
     fetchRequests();
-    fetchPatientsLocal();
-    // Fetch clinic patients to ensure we have the latest data including archived status
-    if (fetchPatients) {
-      fetchPatients();
-    }
-  }, [fetchPatients]);
+    fetchPatients();
+  }, []);
 
   // Ensure patients are fetched for soft delete checks
   useEffect(() => {
@@ -245,7 +241,7 @@ const PrescriptionManagement: React.FC = () => {
     }
   };
 
-  const fetchPatientsLocal = async () => {
+  const fetchPatients = async () => {
     try {
       const response = await axiosInstance.get("/patients/");
       setPatients(Array.isArray(response.data) ? response.data : []);
@@ -298,61 +294,6 @@ const PrescriptionManagement: React.FC = () => {
     );
   };
 
-  // Helper function to check if a patient is soft-deleted based on name and DOB
-  const isRequestPatientSoftDeleted = (
-    request: PrescriptionRequest,
-  ): boolean => {
-    if (!Array.isArray(clinicPatients) || clinicPatients.length === 0) {
-      console.log("No patients available for archived check");
-      return false;
-    }
-
-    // Find the patient by name and date of birth
-    const patient = clinicPatients.find((p) => {
-      // Compare name (handle various name formats)
-      const patientName = (p.name || "").toLowerCase().trim();
-      const requestName = (request.patient_name || "").toLowerCase().trim();
-
-      // Compare date of birth
-      const patientDOB = p.date_of_birth;
-      const requestDOB = request.date_of_birth;
-
-      const nameMatches = patientName === requestName;
-      const dobMatches = patientDOB === requestDOB;
-
-      return nameMatches && dobMatches;
-    });
-
-    // If patient not found in list, assume they are archived
-    if (!patient) {
-      console.log(
-        `Patient not found in list (likely archived): ${request.patient_name}`,
-      );
-      return true; // Treat as deleted/archived
-    }
-
-    const isDeleted = patient?.is_deleted === true;
-
-    // Debug logging
-    if (request.patient_name.toLowerCase().includes("ana")) {
-      console.log("=== CHECKING ANA BETZ (Prescription) ===");
-      console.log("Request patient:", request.patient_name);
-      console.log("Request DOB:", request.date_of_birth);
-      console.log("Found patient:", patient);
-      console.log("Is deleted:", isDeleted);
-      console.log(
-        "Available patients:",
-        clinicPatients.map((p) => ({
-          name: p.name,
-          dob: p.date_of_birth,
-          is_deleted: p.is_deleted,
-        })),
-      );
-    }
-
-    return isDeleted;
-  };
-
   // Filter and sort requests
   const filteredAndSortedRequests = sortData(
     (requests || []).filter((request) => {
@@ -368,10 +309,7 @@ const PrescriptionManagement: React.FC = () => {
       const matchesStatus =
         filterStatus === "all" || request.status === filterStatus;
 
-      // Exclude archived patients
-      const isPatientArchived = isRequestPatientSoftDeleted(request);
-
-      return matchesSearch && matchesStatus && !isPatientArchived;
+      return matchesSearch && matchesStatus;
     }),
   );
 
@@ -577,29 +515,7 @@ const PrescriptionManagement: React.FC = () => {
         payload,
       );
 
-      // Show specific success messages based on action
-      if (action === "receptionist_approve") {
-        toast.success("✅ Prescription Request Confirmed Successfully!", {
-          description:
-            "The request has been moved to the next stage for doctor approval.",
-          duration: 5000,
-        });
-      } else if (action === "doctor_approve") {
-        toast.success("✅ Prescription Approved Successfully!", {
-          description:
-            "The prescription has been generated and sent to the patient.",
-          duration: 5000,
-        });
-      } else if (action === "reject") {
-        toast.success("Prescription Request Rejected", {
-          description: "The patient will be notified of the rejection.",
-          duration: 5000,
-        });
-      } else {
-        toast.success(response.data.message || "Request updated successfully", {
-          duration: 5000,
-        });
-      }
+      toast.success(response.data.message);
       fetchRequests();
       setSelectedRequest(null);
       setPrescriptionContent("");
@@ -728,6 +644,30 @@ const PrescriptionManagement: React.FC = () => {
   const filteredRequests = paginatedRequests;
 
   const currentUserRole = currentUser?.role;
+
+  // Helper function to check if a patient is soft-deleted based on name and DOB
+  const isRequestPatientSoftDeleted = (
+    request: PrescriptionRequest,
+  ): boolean => {
+    if (!Array.isArray(clinicPatients) || clinicPatients.length === 0) {
+      return false;
+    }
+
+    // Find the patient by name and date of birth
+    const patient = clinicPatients.find((p) => {
+      // Compare name (handle various name formats)
+      const patientName = (p.name || "").toLowerCase().trim();
+      const requestName = (request.patient_name || "").toLowerCase().trim();
+
+      // Compare date of birth
+      const patientDOB = p.date_of_birth;
+      const requestDOB = request.date_of_birth;
+
+      return patientName === requestName && patientDOB === requestDOB;
+    });
+
+    return patient?.is_deleted === true;
+  };
 
   return (
     <div className="space-y-4 md:space-y-6 p-3 md:p-6">
@@ -1120,9 +1060,8 @@ const PrescriptionManagement: React.FC = () => {
                                             </div>
                                           )}
                                           <div className="flex gap-2">
-                                            {(currentUserRole ===
-                                              "receptionist" ||
-                                              currentUserRole === "admin") &&
+                                            {currentUserRole ===
+                                              "receptionist" &&
                                               selectedRequest.status ===
                                                 "pending" && (
                                                 <>
@@ -1214,6 +1153,20 @@ const PrescriptionManagement: React.FC = () => {
                                                 </Button>
                                               </div>
                                             )}
+
+                                          {/* Compact rejection reason input */}
+                                          <Textarea
+                                            value={rejectionReason}
+                                            onChange={(e) =>
+                                              setRejectionReason(e.target.value)
+                                            }
+                                            placeholder="Rejection reason (if rejecting)..."
+                                            rows={2}
+                                            className="text-sm"
+                                            disabled={isRequestPatientSoftDeleted(
+                                              selectedRequest,
+                                            )}
+                                          />
                                         </div>
                                       )}
                                     </div>

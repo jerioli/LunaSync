@@ -246,22 +246,6 @@ def send_appointment_confirmation_email(appointment, patient):
                     </p>
                 </div>
                 
-                <div style="background: #f0fdf4; border: 1px solid #10b981; border-radius: 8px; padding: 15px; margin: 25px 0;">
-                    <h4 style="margin-top: 0; color: #065f46;">📍 Contact Information</h4>
-                    <p style="margin: 5px 0; color: #047857;"><strong>Email:</strong> <a href="mailto:{clinic_email}" style="color: #047857;">{clinic_email}</a></p>
-                    {f'<p style="margin: 5px 0; color: #047857;"><strong>Website:</strong> <a href="{clinic_website}" style="color: #047857;">{clinic_website}</a></p>' if clinic_website else ''}
-                </div>
-                
-                <div style="background: #eff6ff; border: 1px solid #3b82f6; border-radius: 8px; padding: 15px; margin: 25px 0;">
-                    <h4 style="margin-top: 0; color: #1e40af;">📋 What to Bring</h4>
-                    <ul style="margin: 10px 0; color: #1e40af; padding-left: 20px;">
-                        <li>Valid government-issued ID</li>
-                        <li>Insurance card (if applicable)</li>
-                        <li>List of current medications</li>
-                        <li>Any relevant medical records</li>
-                    </ul>
-                </div>
-                
                 <div style="text-align: center; margin: 30px 0;">
                     <p style="color: #6b7280; font-size: 14px; margin-bottom: 15px;">
                         Need to reschedule or cancel? Please contact us at least 24 hours in advance.
@@ -305,12 +289,6 @@ Appointment Details:
 Please arrive 10 minutes before your scheduled appointment time.
 
 If you need to reschedule or cancel your appointment, please contact us at least 24 hours in advance.
-
-What to bring:
-- Valid government-issued ID
-- Insurance card (if applicable)
-- List of current medications
-- Any relevant medical records
 
 Location: {clinic_name}
 Address: {clinic_address}
