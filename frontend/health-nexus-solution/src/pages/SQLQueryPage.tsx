@@ -377,14 +377,14 @@ WHERE id > 0;`);
               setQuery(`UPDATE patients 
 SET registration_date = DATE '2025-11-18' + (floor(random() * 54)::int)
 WHERE registration_date NOT IN (
-  '2025-12-24', '2025-12-25', '2025-12-26',  -- Christmas
-  '2025-12-31', '2026-01-01',                -- New Year
-  '2026-01-09'                                -- Araw ng Maynila (optional)
+  DATE '2025-12-24', DATE '2025-12-25', DATE '2025-12-26',  -- Christmas
+  DATE '2025-12-31', DATE '2026-01-01',                     -- New Year
+  DATE '2026-01-09'                                         -- Araw ng Maynila (optional)
 )
 AND (DATE '2025-11-18' + (floor(random() * 54)::int)) NOT IN (
-  '2025-12-24', '2025-12-25', '2025-12-26',
-  '2025-12-31', '2026-01-01',
-  '2026-01-09'
+  DATE '2025-12-24', DATE '2025-12-25', DATE '2025-12-26',
+  DATE '2025-12-31', DATE '2026-01-01',
+  DATE '2026-01-09'
 );`);
               toast.success(
                 "Query copied! Updates registration dates Nov 18 - Jan 10, excluding holidays.",
@@ -400,8 +400,8 @@ AND (DATE '2025-11-18' + (floor(random() * 54)::int)) NOT IN (
             onClick={() => {
               setQuery(`SELECT id, patient_id, registration_date 
 FROM patients 
-WHERE registration_date BETWEEN '2025-11-18' AND '2026-01-10'
-AND registration_date IN ('2025-12-24', '2025-12-25', '2025-12-26', '2025-12-31', '2026-01-01', '2026-01-09')
+WHERE registration_date BETWEEN DATE '2025-11-18' AND DATE '2026-01-10'
+AND registration_date IN (DATE '2025-12-24', DATE '2025-12-25', DATE '2025-12-26', DATE '2025-12-31', DATE '2026-01-01', DATE '2026-01-09')
 ORDER BY registration_date;`);
               toast.success(
                 "Query copied! Check if any patients registered on holidays.",

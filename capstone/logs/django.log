@@ -35911,3 +35911,15 @@ INFO 2026-03-07 12:34:16,484 autoreload 51904 52216 Watching for file changes wi
 2026-03-07 13:10:48,422 - django.server - INFO - "GET /api/patients/ HTTP/1.1" 200 2819
 2026-03-07 13:10:48,426 - appointments.views - INFO - Successfully serialized all appointments. Count: 13
 2026-03-07 13:10:48,431 - django.server - INFO - "GET /api/appointments/list/ HTTP/1.1" 200 9286
+2026-03-07 13:19:25,790 - root - INFO - Request: {"method": "GET", "path": "/api/sql-query/logs/", "user_id": 14, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-03-07 13:19:25,842 - django.server - INFO - "GET /api/sql-query/logs/?limit=20 HTTP/1.1" 200 13408
+2026-03-07 13:19:30,031 - root - INFO - Request: {"method": "POST", "path": "/api/sql-query/execute/", "user_id": 14, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "content_length": 695, "has_body": true}
+2026-03-07 13:19:30,057 - django.request - WARNING - Bad Request: /api/sql-query/execute/
+2026-03-07 13:19:30,058 - django.server - WARNING - "POST /api/sql-query/execute/ HTTP/1.1" 400 143
+2026-03-07 13:19:58,858 - root - INFO - Request: {"method": "GET", "path": "/api/sql-query/logs/", "user_id": 14, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-03-07 13:19:58,880 - django.server - INFO - "GET /api/sql-query/logs/?limit=20 HTTP/1.1" 200 14017
+2026-03-07 13:20:03,865 - root - INFO - Request: {"method": "GET", "path": "/api/sql-query/logs/", "user_id": 14, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-03-07 13:20:03,892 - django.server - INFO - "GET /api/sql-query/logs/?limit=20 HTTP/1.1" 200 14017
+2026-03-07 13:20:58,708 - root - INFO - Request: {"method": "POST", "path": "/api/sql-query/execute/", "user_id": 14, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "content_length": 492, "has_body": true}
+2026-03-07 13:20:58,741 - django.request - WARNING - Bad Request: /api/sql-query/execute/
+2026-03-07 13:20:58,742 - django.server - WARNING - "POST /api/sql-query/execute/ HTTP/1.1" 400 145
