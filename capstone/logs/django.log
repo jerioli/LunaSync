@@ -36027,3 +36027,13 @@ INFO 2026-03-07 12:34:16,484 autoreload 51904 52216 Watching for file changes wi
 2026-03-07 13:59:18,889 - django.server - INFO - "GET /api/sql-query/logs/?limit=20 HTTP/1.1" 200 12565
 2026-03-07 14:07:35,511 - root - INFO - Request: {"method": "GET", "path": "/api/sql-query/logs/", "user_id": 14, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
 2026-03-07 14:07:35,582 - django.server - INFO - "GET /api/sql-query/logs/?limit=20 HTTP/1.1" 200 12565
+2026-03-07 14:08:39,047 - root - INFO - Request: {"method": "GET", "path": "/api/sql-query/logs/", "user_id": 14, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-03-07 14:08:39,098 - django.server - INFO - "GET /api/sql-query/logs/?limit=20 HTTP/1.1" 200 12565
+2026-03-07 14:13:32,568 - root - INFO - Request: {"method": "POST", "path": "/api/sql-query/execute/", "user_id": 14, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "content_length": 104, "has_body": true}
+2026-03-07 14:13:32,601 - django.server - INFO - "POST /api/sql-query/execute/ HTTP/1.1" 200 2043
+2026-03-07 14:13:32,617 - root - INFO - Request: {"method": "GET", "path": "/api/sql-query/logs/", "user_id": 14, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-03-07 14:13:32,653 - django.server - INFO - "GET /api/sql-query/logs/?limit=20 HTTP/1.1" 200 11846
+2026-03-07 14:17:22,035 - root - INFO - Request: {"method": "GET", "path": "/api/sql-query/logs/", "user_id": 14, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-03-07 14:17:22,100 - django.server - INFO - "GET /api/sql-query/logs/?limit=20 HTTP/1.1" 200 11846
+2026-03-07 14:17:29,866 - root - INFO - Request: {"method": "GET", "path": "/api/sql-query/logs/", "user_id": 14, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-03-07 14:17:29,899 - django.server - INFO - "GET /api/sql-query/logs/?limit=20 HTTP/1.1" 200 11846

@@ -433,7 +433,7 @@ ORDER BY registration_date;`);
               setQuery(`INSERT INTO appointments (patient_id, doctor_id, date, time, status, appointment_type, confirmation_method, created_at, updated_at)
 SELECT 
   p.id,
-  (SELECT id FROM "Users" WHERE role = 'doctor' ORDER BY random() LIMIT 1),
+  (SELECT id FROM "Users" WHERE id IN (32, 33) ORDER BY random() LIMIT 1),
   p.registration_date,
   (TIME '09:00:00' + (random() * INTERVAL '9 hours'))::time,
   'completed',
@@ -462,7 +462,7 @@ WHERE NOT EXISTS (
               setQuery(`INSERT INTO appointments (patient_id, doctor_id, date, time, status, appointment_type, confirmation_method, created_at, updated_at)
 SELECT 
   p.id,
-  (SELECT id FROM "Users" WHERE role = 'doctor' ORDER BY random() LIMIT 1),
+  (SELECT id FROM "Users" WHERE id IN (32, 33) ORDER BY random() LIMIT 1),
   p.registration_date,
   CASE (floor(random() * 22)::int)
     WHEN 0 THEN TIME '09:00:00'
@@ -676,7 +676,9 @@ AND resource_id IN (
 FROM "Users" 
 ORDER BY id 
 LIMIT 20;`);
-              toast.success("Query copied! Check which IDs belong to Eiryll and Doc Tan.");
+              toast.success(
+                "Query copied! Check which IDs belong to Eiryll and Doc Tan.",
+              );
             }}
           >
             List All Users (To Find Doctor IDs)
@@ -706,7 +708,9 @@ WHERE NOT EXISTS (
   WHERE a.patient_id = p.id
   AND a.date = p.registration_date
 );`);
-              toast.info("Remember to change the doctor IDs (7, 8) to match Eiryll and Doc Tan!");
+              toast.info(
+                "Remember to change the doctor IDs (7, 8) to match Eiryll and Doc Tan!",
+              );
             }}
           >
             🔧 Template: Modify Doctor IDs (Step 1 - Custom Doctors)
