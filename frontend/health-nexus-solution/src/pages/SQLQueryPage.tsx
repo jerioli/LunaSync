@@ -376,39 +376,42 @@ WHERE id > 0;`);
             onClick={() => {
               setQuery(`UPDATE patients 
 SET registration_date = DATE '2025-11-18' + (floor(random() * 54)::int)
-WHERE registration_date NOT IN (
-  DATE '2025-12-24', DATE '2025-12-25', DATE '2025-12-26',  -- Christmas
-  DATE '2025-12-31', DATE '2026-01-01',                     -- New Year
-  DATE '2026-01-09'                                         -- Araw ng Maynila (optional)
-)
-AND (DATE '2025-11-18' + (floor(random() * 54)::int)) NOT IN (
-  DATE '2025-12-24', DATE '2025-12-25', DATE '2025-12-26',
-  DATE '2025-12-31', DATE '2026-01-01',
-  DATE '2026-01-09'
-);`);
+WHERE id > 0;`);
               toast.success(
-                "Query copied! Updates registration dates Nov 18 - Jan 10, excluding holidays.",
+                "Query copied! Updates registration dates strictly Nov 18 - Jan 10.",
               );
             }}
           >
-            Update Patient Registration Dates (Nov 18 - Jan 10, No Holidays)
+            Update Patient Registration Dates (Nov 18 - Jan 10 Strict)
           </Button>
           <Button
             variant="outline"
             size="sm"
             className="w-full justify-start font-mono text-xs"
             onClick={() => {
-              setQuery(`SELECT id, patient_id, registration_date 
-FROM patients 
-WHERE registration_date BETWEEN DATE '2025-11-18' AND DATE '2026-01-10'
-AND registration_date IN (DATE '2025-12-24', DATE '2025-12-25', DATE '2025-12-26', DATE '2025-12-31', DATE '2026-01-01', DATE '2026-01-09')
-ORDER BY registration_date;`);
+              setQuery(`SELECT 
+  a.id,
+  a.patient_id,
+  p.patient_id as patient_number,
+  a.doctor_id,
+  u.username as doctor_name,
+  a.date,
+  a.time,
+  a.status,
+  a.appointment_type,
+  a.created_at
+FROM appointments a
+JOIN patients p ON a.patient_id = p.id
+LEFT JOIN "Users" u ON a.doctor_id = u.id
+WHERE a.status = 'completed'
+ORDER BY a.date DESC, a.time DESC
+LIMIT 100;`);
               toast.success(
-                "Query copied! Check if any patients registered on holidays.",
+                "Query copied! View completed appointments (newest to oldest).",
               );
             }}
           >
-            Check Patients Registered on Holidays
+            View Completed Appointments (Newest to Oldest)
           </Button>
           <Button
             variant="outline"
@@ -464,7 +467,7 @@ SELECT
   p.id,
   (SELECT id FROM "Users" WHERE username IN ('doctan_admin', 'edejose') ORDER BY random() LIMIT 1),
   p.registration_date,
-  CASE (floor(random() * 22)::int)
+  CASE (floor(random() * 25)::int)
     WHEN 0 THEN TIME '09:00:00'
     WHEN 1 THEN TIME '09:20:00'
     WHEN 2 THEN TIME '09:40:00'
@@ -486,7 +489,10 @@ SELECT
     WHEN 18 THEN TIME '16:00:00'
     WHEN 19 THEN TIME '16:20:00'
     WHEN 20 THEN TIME '16:40:00'
-    ELSE TIME '17:00:00'
+    WHEN 21 THEN TIME '17:00:00'
+    WHEN 22 THEN TIME '17:20:00'
+    WHEN 23 THEN TIME '17:40:00'
+    ELSE TIME '18:00:00'
   END,
   'completed',
   'Consultation',

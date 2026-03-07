@@ -170,8 +170,121 @@ export default function BulkImportModal({
               processedLines.push(processedLine);
             }
 
+            // Normalize headers to backend format (lowercase with underscores)
+            const headerMapping: { [key: string]: string } = {
+              "first name": "first_name",
+              "last name": "last_name",
+              mi: "middle_initial",
+              "middle initial": "middle_initial",
+              suffix: "suffix",
+              email: "email",
+              phone: "phone",
+              "birth date": "date_of_birth",
+              "date of birth": "date_of_birth",
+              sex: "sex",
+              gender: "sex",
+              "marital status": "marital_status",
+              religion: "religion",
+              address: "address",
+              role: "role",
+              department: "department",
+              "license number": "license_number",
+              "license #": "license_number",
+            };
+
+            // Normalize the header row
+            const originalHeaders = processedLines[0]
+              .split(",")
+              .map((h) => h.trim().replace(/^"|"$/g, ""));
+            const normalizedHeaders = originalHeaders.map((h) => {
+              const normalized = h
+                .toLowerCase()
+                .replace(/\s*\(required\)\s*/i, "")
+                .trim();
+              return headerMapping[normalized] || normalized;
+            });
+            processedLines[0] = normalizedHeaders.join(",");
+
             // Create a new file with processed data
             const processedCsv = processedLines.join("\n");
+            const processedBlob = new Blob([processedCsv], {
+              type: "text/csv",
+            });
+            const processedFile = new File([processedBlob], file.name, {
+              type: file.type,
+            });
+
+            const formData = new FormData();
+            formData.append("file", processedFile);
+
+            const response = await axios.post(
+              `bulk/${type}/upload/`,
+              formData,
+              {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              },
+            );
+
+            const result = response.data;
+            toast({
+              title: "Upload Successful",
+              description: `Successfully imported ${result.created_count} ${type}. ${
+                result.errors?.length || 0
+              } errors.`,
+            });
+            setIsOpen(false);
+            setUploadFile(null);
+
+            if (onUploadComplete) {
+              onUploadComplete();
+            }
+            return;
+          }
+        } else {
+          // For staff uploads, also normalize headers
+          const text = await file.text();
+          const lines = text.split("\n");
+
+          if (lines.length > 0) {
+            // Header normalization mapping
+            const headerMapping: { [key: string]: string } = {
+              "first name": "first_name",
+              "last name": "last_name",
+              mi: "middle_initial",
+              "middle initial": "middle_initial",
+              suffix: "suffix",
+              email: "email",
+              phone: "phone",
+              "birth date": "date_of_birth",
+              "date of birth": "date_of_birth",
+              sex: "sex",
+              gender: "sex",
+              "marital status": "marital_status",
+              religion: "religion",
+              address: "address",
+              role: "role",
+              department: "department",
+              "license number": "license_number",
+              "license #": "license_number",
+            };
+
+            // Normalize the header row
+            const originalHeaders = lines[0]
+              .split(",")
+              .map((h) => h.trim().replace(/^"|"$/g, ""));
+            const normalizedHeaders = originalHeaders.map((h) => {
+              const normalized = h
+                .toLowerCase()
+                .replace(/\s*\(required\)\s*/i, "")
+                .trim();
+              return headerMapping[normalized] || normalized;
+            });
+            lines[0] = normalizedHeaders.join(",");
+
+            // Create a new file with processed data
+            const processedCsv = lines.join("\n");
             const processedBlob = new Blob([processedCsv], {
               type: "text/csv",
             });
