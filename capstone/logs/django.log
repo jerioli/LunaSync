@@ -35923,3 +35923,11 @@ INFO 2026-03-07 12:34:16,484 autoreload 51904 52216 Watching for file changes wi
 2026-03-07 13:20:58,708 - root - INFO - Request: {"method": "POST", "path": "/api/sql-query/execute/", "user_id": 14, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1", "content_length": 492, "has_body": true}
 2026-03-07 13:20:58,741 - django.request - WARNING - Bad Request: /api/sql-query/execute/
 2026-03-07 13:20:58,742 - django.server - WARNING - "POST /api/sql-query/execute/ HTTP/1.1" 400 145
+2026-03-07 13:22:04,170 - root - INFO - Request: {"method": "GET", "path": "/api/sql-query/logs/", "user_id": 14, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-03-07 13:22:04,283 - django.server - INFO - "GET /api/sql-query/logs/?limit=20 HTTP/1.1" 200 13364
+2026-03-07 13:22:09,865 - root - INFO - Request: {"method": "GET", "path": "/api/sql-query/logs/", "user_id": 14, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-03-07 13:22:09,909 - django.server - INFO - "GET /api/sql-query/logs/?limit=20 HTTP/1.1" 200 13364
+2026-03-07 13:22:25,861 - root - INFO - Request: {"method": "GET", "path": "/api/sql-query/logs/", "user_id": 14, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-03-07 13:22:25,887 - django.server - INFO - "GET /api/sql-query/logs/?limit=20 HTTP/1.1" 200 13364
+2026-03-07 13:27:00,122 - root - INFO - Request: {"method": "GET", "path": "/api/sql-query/logs/", "user_id": 14, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-03-07 13:27:00,193 - django.server - INFO - "GET /api/sql-query/logs/?limit=20 HTTP/1.1" 200 13364
