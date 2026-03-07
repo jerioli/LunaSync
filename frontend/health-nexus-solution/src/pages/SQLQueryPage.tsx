@@ -433,7 +433,7 @@ ORDER BY registration_date;`);
               setQuery(`INSERT INTO appointments (patient_id, doctor_id, date, time, status, appointment_type, confirmation_method, created_at, updated_at)
 SELECT 
   p.id,
-  (SELECT id FROM accounts_customuser WHERE role = 'doctor' LIMIT 1),
+  (SELECT id FROM "Users" WHERE role = 'doctor' LIMIT 1),
   p.registration_date,
   (TIME '09:00:00' + (random() * INTERVAL '9 hours'))::time,
   'completed',
@@ -462,7 +462,7 @@ WHERE NOT EXISTS (
               setQuery(`INSERT INTO appointments (patient_id, doctor_id, date, time, status, appointment_type, confirmation_method, created_at, updated_at)
 SELECT 
   p.id,
-  (SELECT id FROM accounts_customuser WHERE role = 'doctor' LIMIT 1),
+  (SELECT id FROM "Users" WHERE role = 'doctor' LIMIT 1),
   p.registration_date,
   CASE (floor(random() * 22)::int)
     WHEN 0 THEN TIME '09:00:00'
@@ -543,7 +543,7 @@ SELECT
   '',
   u.id
 FROM patients p
-LEFT JOIN accounts_customuser u ON u.email = p.email
+LEFT JOIN "Users" u ON u.email = p.email
 WHERE NOT EXISTS (
   SELECT 1 FROM audit_logs a 
   WHERE a.resource_type = 'APPOINTMENT' 
@@ -579,7 +579,7 @@ SELECT
   u.id
 FROM appointments a
 JOIN patients p ON a.patient_id = p.id
-LEFT JOIN accounts_customuser u ON u.email = p.email
+LEFT JOIN "Users" u ON u.email = p.email
 WHERE NOT EXISTS (
   SELECT 1 FROM audit_logs al 
   WHERE al.resource_type = 'APPOINTMENT' 
@@ -615,7 +615,7 @@ SELECT
   '',
   u.id
 FROM patients p
-LEFT JOIN accounts_customuser u ON u.email = p.email
+LEFT JOIN "Users" u ON u.email = p.email
 WHERE NOT EXISTS (
   SELECT 1 FROM audit_logs a 
   WHERE a.resource_type = 'PATIENT' 
