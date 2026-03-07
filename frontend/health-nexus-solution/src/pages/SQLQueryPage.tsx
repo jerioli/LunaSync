@@ -441,6 +441,38 @@ SELECT
   p.id,
   (SELECT id FROM Users WHERE role = 'doctor' LIMIT 1),
   p.registration_date,
+  time(printf('%02d:%02d:00', 
+    CAST(9 + (abs(random()) % 9) AS INTEGER), 
+    CAST(abs(random()) % 60 AS INTEGER)
+  )),
+  'completed',
+  'Consultation',
+  'email',
+  datetime(p.registration_date, '+' || CAST(9 + (abs(random()) % 9) AS TEXT) || ' hours'),
+  datetime(p.registration_date, '+' || CAST(9 + (abs(random()) % 9) AS TEXT) || ' hours')
+FROM patients p
+WHERE NOT EXISTS (
+  SELECT 1 FROM appointments a 
+  WHERE a.patient_id = p.id
+  AND a.date = p.registration_date
+);`);
+              toast.success(
+                "Query copied! Execute this first, then run the audit log query.",
+              );
+            }}
+          >
+            Step 1: Create Completed Appointments (9am-6pm, Registration Date)
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start font-mono text-xs"
+            onClick={() => {
+              setQuery(`INSERT INTO appointments (patient_id, doctor_id, date, time, status, appointment_type, confirmation_method, created_at, updated_at)
+SELECT 
+  p.id,
+  (SELECT id FROM Users WHERE role = 'doctor' LIMIT 1),
+  p.registration_date,
   CASE (abs(random()) % 22)
     WHEN 0 THEN '09:00:00'
     WHEN 1 THEN '09:20:00'
@@ -481,8 +513,7 @@ WHERE NOT EXISTS (
               );
             }}
           >
-            Step 1: Create Completed Appointments (9am-5pm, 20-min slots,
-            Registration Date)
+            Step 1 (Alt): Create Appointments (20-min slots only)
           </Button>
           <Button
             variant="outline"
@@ -498,6 +529,41 @@ WHERE NOT EXISTS (
             }}
           >
             Clear Existing Appointment Audit Logs (from Registration Dates)
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start font-mono text-xs"
+            onClick={() => {
+              setQuery(`INSERT INTO audit_logs (timestamp, user_email, action, resource_type, resource_id, resource_name, description, details, old_values, new_values, ip_address, user_agent, session_key, user_id)
+SELECT 
+  datetime(p.registration_date, '+14 hours'),
+  COALESCE(u.email, ''),
+  'CREATE',
+  'APPOINTMENT',
+  CAST(p.id AS TEXT),
+  'Patient ' || COALESCE(p.patient_id, CAST(p.id AS TEXT)),
+  'Created appointment for patient ' || COALESCE(p.patient_id, CAST(p.id AS TEXT)),
+  '{}',
+  '{}',
+  '{}',
+  NULL,
+  'Mozilla/5.0',
+  '',
+  u.id
+FROM patients p
+LEFT JOIN Users u ON u.email = p.email
+WHERE NOT EXISTS (
+  SELECT 1 FROM audit_logs a 
+  WHERE a.resource_type = 'APPOINTMENT' 
+  AND a.action = 'CREATE' 
+  AND a.resource_id = CAST(p.id AS TEXT)
+  AND DATE(a.timestamp) = p.registration_date
+);`);
+              toast.success("Query copied!");
+            }}
+          >
+            Step 2: Create Appointment Audit Logs (Registration Date @ 2pm)
           </Button>
           <Button
             variant="outline"
@@ -534,8 +600,7 @@ WHERE NOT EXISTS (
               );
             }}
           >
-            Step 2: Create Detailed Appointment Audit Logs (with
-            date/time/status)
+            Step 2 (Alt): Create Detailed Audit Logs (with date/time/status)
           </Button>
           <Button
             variant="outline"
