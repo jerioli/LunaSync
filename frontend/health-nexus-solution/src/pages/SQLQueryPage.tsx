@@ -465,28 +465,28 @@ SELECT
   (SELECT id FROM users WHERE role = 'doctor' LIMIT 1),
   p.registration_date,
   CASE (floor(random() * 22)::int)
-    WHEN 0 THEN '09:00:00'::time
-    WHEN 1 THEN '09:20:00'::time
-    WHEN 2 THEN '09:40:00'::time
-    WHEN 3 THEN '10:00:00'::time
-    WHEN 4 THEN '10:20:00'::time
-    WHEN 5 THEN '10:40:00'::time
-    WHEN 6 THEN '11:00:00'::time
-    WHEN 7 THEN '11:20:00'::time
-    WHEN 8 THEN '11:40:00'::time
-    WHEN 9 THEN '13:00:00'::time
-    WHEN 10 THEN '13:20:00'::time
-    WHEN 11 THEN '13:40:00'::time
-    WHEN 12 THEN '14:00:00'::time
-    WHEN 13 THEN '14:20:00'::time
-    WHEN 14 THEN '14:40:00'::time
-    WHEN 15 THEN '15:00:00'::time
-    WHEN 16 THEN '15:20:00'::time
-    WHEN 17 THEN '15:40:00'::time
-    WHEN 18 THEN '16:00:00'::time
-    WHEN 19 THEN '16:20:00'::time
-    WHEN 20 THEN '16:40:00'::time
-    ELSE '17:00:00'::time
+    WHEN 0 THEN TIME '09:00:00'
+    WHEN 1 THEN TIME '09:20:00'
+    WHEN 2 THEN TIME '09:40:00'
+    WHEN 3 THEN TIME '10:00:00'
+    WHEN 4 THEN TIME '10:20:00'
+    WHEN 5 THEN TIME '10:40:00'
+    WHEN 6 THEN TIME '11:00:00'
+    WHEN 7 THEN TIME '11:20:00'
+    WHEN 8 THEN TIME '11:40:00'
+    WHEN 9 THEN TIME '13:00:00'
+    WHEN 10 THEN TIME '13:20:00'
+    WHEN 11 THEN TIME '13:40:00'
+    WHEN 12 THEN TIME '14:00:00'
+    WHEN 13 THEN TIME '14:20:00'
+    WHEN 14 THEN TIME '14:40:00'
+    WHEN 15 THEN TIME '15:00:00'
+    WHEN 16 THEN TIME '15:20:00'
+    WHEN 17 THEN TIME '15:40:00'
+    WHEN 18 THEN TIME '16:00:00'
+    WHEN 19 THEN TIME '16:20:00'
+    WHEN 20 THEN TIME '16:40:00'
+    ELSE TIME '17:00:00'
   END,
   'completed',
   'Consultation',
