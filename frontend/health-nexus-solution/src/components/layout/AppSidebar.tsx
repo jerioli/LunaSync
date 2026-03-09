@@ -143,10 +143,10 @@ export const AppSidebar = () => {
         ? { title: "Permission Management", icon: Shield, path: "/permissions" }
         : null,
 
-      // SQL Query Tester - Hidden
-      // currentUser.role === "superadmin"
-      //   ? { title: "SQL Query Tester", icon: Database, path: "/sql-query" }
-      //   : null,
+      // SQL Query Tester - Only for superadmin
+      currentUser.role === "superadmin"
+        ? { title: "SQL Query Tester", icon: Database, path: "/sql-query" }
+        : null,
 
       // Audit Logs - Show if user has permission
       currentUser.can_view_audit_logs

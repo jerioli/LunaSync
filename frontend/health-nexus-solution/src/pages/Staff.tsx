@@ -116,6 +116,26 @@ const StaffPage = () => {
   const [superAdminsList, setSuperAdminsList] = useState<StaffMember[]>([]);
   const [isLoadingSuperAdmins, setIsLoadingSuperAdmins] = useState(false);
 
+  // Archived staff lists
+  const [archivedDoctorsList, setArchivedDoctorsList] = useState<Doctor[]>([]);
+  const [isLoadingArchivedDoctors, setIsLoadingArchivedDoctors] =
+    useState(false);
+  const [archivedReceptionistsList, setArchivedReceptionistsList] = useState<
+    Receptionist[]
+  >([]);
+  const [isLoadingArchivedReceptionists, setIsLoadingArchivedReceptionists] =
+    useState(false);
+  const [archivedAdminsList, setArchivedAdminsList] = useState<Admin[]>([]);
+  const [isLoadingArchivedAdmins, setIsLoadingArchivedAdmins] = useState(false);
+  const [archivedSuperAdminsList, setArchivedSuperAdminsList] = useState<
+    StaffMember[]
+  >([]);
+  const [isLoadingArchivedSuperAdmins, setIsLoadingArchivedSuperAdmins] =
+    useState(false);
+
+  // View toggle state (active or archived)
+  const [viewMode, setViewMode] = useState<"active" | "archived">("active");
+
   // Tab state
   const [currentTab, setCurrentTab] = useState("doctors");
 
@@ -300,6 +320,71 @@ const StaffPage = () => {
     }
   }, [currentUser?.role, toast]);
 
+  // Fetch archived staff
+  useEffect(() => {
+    const fetchArchivedDoctors = async () => {
+      setIsLoadingArchivedDoctors(true);
+      try {
+        const response = await api.doctors.getArchived();
+        setArchivedDoctorsList(response);
+      } catch (error) {
+        console.error("Error fetching archived doctors:", error);
+      } finally {
+        setIsLoadingArchivedDoctors(false);
+      }
+    };
+    fetchArchivedDoctors();
+  }, []);
+
+  useEffect(() => {
+    const fetchArchivedReceptionists = async () => {
+      setIsLoadingArchivedReceptionists(true);
+      try {
+        const response = await api.receptionists.getArchived();
+        setArchivedReceptionistsList(response);
+      } catch (error) {
+        console.error("Error fetching archived receptionists:", error);
+      } finally {
+        setIsLoadingArchivedReceptionists(false);
+      }
+    };
+    fetchArchivedReceptionists();
+  }, []);
+
+  useEffect(() => {
+    const fetchArchivedAdmins = async () => {
+      setIsLoadingArchivedAdmins(true);
+      try {
+        const response = await api.admins.getArchived();
+        setArchivedAdminsList(response);
+      } catch (error) {
+        console.error("Error fetching archived admins:", error);
+      } finally {
+        setIsLoadingArchivedAdmins(false);
+      }
+    };
+    fetchArchivedAdmins();
+  }, []);
+
+  useEffect(() => {
+    if (currentUser?.role === "superadmin") {
+      const fetchArchivedSuperAdmins = async () => {
+        setIsLoadingArchivedSuperAdmins(true);
+        try {
+          const response = await axiosInstance.get(
+            "/staff/list/?role=superadmin&status=archived",
+          );
+          setArchivedSuperAdminsList(response.data);
+        } catch (error) {
+          console.error("Error fetching archived super admins:", error);
+        } finally {
+          setIsLoadingArchivedSuperAdmins(false);
+        }
+      };
+      fetchArchivedSuperAdmins();
+    }
+  }, [currentUser?.role]);
+
   if (!["admin", "superadmin"].includes(currentUser?.role || "")) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -403,7 +488,17 @@ const StaffPage = () => {
 
   const doctors = filterStaff("doctor");
   const filteredDoctors = sortData(
-    filterDoctors().map((doctor) => ({
+    (viewMode === "active"
+      ? filterDoctors()
+      : archivedDoctorsList.filter(
+          (doctor) =>
+            formatFullName(doctor)
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            (doctor.email &&
+              doctor.email.toLowerCase().includes(searchTerm.toLowerCase())),
+        )
+    ).map((doctor) => ({
       ...doctor,
       name: formatFullName(doctor),
     })),
@@ -411,7 +506,19 @@ const StaffPage = () => {
   );
   const receptionists = filterStaff("receptionist");
   const filteredReceptionists = sortData(
-    filterReceptionists().map((receptionist) => ({
+    (viewMode === "active"
+      ? filterReceptionists()
+      : archivedReceptionistsList.filter(
+          (receptionist) =>
+            formatFullName(receptionist)
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            (receptionist.email &&
+              receptionist.email
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase())),
+        )
+    ).map((receptionist) => ({
       ...receptionist,
       name: formatFullName(receptionist),
     })),
@@ -419,7 +526,17 @@ const StaffPage = () => {
   );
   const admins = filterStaff("admin");
   const filteredAdmins = sortData(
-    filterAdmins().map((admin) => ({
+    (viewMode === "active"
+      ? filterAdmins()
+      : archivedAdminsList.filter(
+          (admin) =>
+            formatFullName(admin)
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            (admin.email &&
+              admin.email.toLowerCase().includes(searchTerm.toLowerCase())),
+        )
+    ).map((admin) => ({
       ...admin,
       name: formatFullName(admin),
     })),
@@ -428,7 +545,7 @@ const StaffPage = () => {
 
   // Filter and sort super admins
   const filteredSuperAdmins = sortData(
-    superAdminsList
+    (viewMode === "active" ? superAdminsList : archivedSuperAdminsList)
       .filter(
         (admin) =>
           formatFullName(admin)
@@ -838,6 +955,86 @@ const StaffPage = () => {
     }
   };
 
+  // Handle staff reactivation
+  const handleReactivateStaff = async (
+    staffMember: Doctor | Receptionist | Admin | StaffMember,
+  ) => {
+    try {
+      await api.staff.reactivate(staffMember.id);
+
+      toast({
+        title: "Success",
+        description: "Staff member has been reactivated successfully.",
+        variant: "default",
+      });
+
+      // Refresh both active and archived staff lists
+      await refreshStaffLists();
+      await refreshArchivedStaffLists();
+    } catch (error: any) {
+      console.error("Error reactivating staff:", error);
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message ||
+          "Failed to reactivate staff member. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Refresh archived staff lists
+  const refreshArchivedStaffLists = async () => {
+    // Refresh archived doctors
+    setIsLoadingArchivedDoctors(true);
+    try {
+      const archivedDoctorsResponse = await api.doctors.getArchived();
+      setArchivedDoctorsList(archivedDoctorsResponse);
+    } catch (error) {
+      console.error("Error refreshing archived doctors:", error);
+    } finally {
+      setIsLoadingArchivedDoctors(false);
+    }
+
+    // Refresh archived receptionists
+    setIsLoadingArchivedReceptionists(true);
+    try {
+      const archivedReceptionistsResponse =
+        await api.receptionists.getArchived();
+      setArchivedReceptionistsList(archivedReceptionistsResponse);
+    } catch (error) {
+      console.error("Error refreshing archived receptionists:", error);
+    } finally {
+      setIsLoadingArchivedReceptionists(false);
+    }
+
+    // Refresh archived admins
+    setIsLoadingArchivedAdmins(true);
+    try {
+      const archivedAdminsResponse = await api.admins.getArchived();
+      setArchivedAdminsList(archivedAdminsResponse);
+    } catch (error) {
+      console.error("Error refreshing archived admins:", error);
+    } finally {
+      setIsLoadingArchivedAdmins(false);
+    }
+
+    // Refresh archived super admins if superadmin
+    if (currentUser?.role === "superadmin") {
+      setIsLoadingArchivedSuperAdmins(true);
+      try {
+        const response = await axiosInstance.get(
+          "/staff/list/?role=superadmin&status=archived",
+        );
+        setArchivedSuperAdminsList(response.data);
+      } catch (error) {
+        console.error("Error refreshing archived super admins:", error);
+      } finally {
+        setIsLoadingArchivedSuperAdmins(false);
+      }
+    }
+  };
+
   return (
     <div className="space-y-4 md:space-y-6 px-4 md:px-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
@@ -1138,7 +1335,7 @@ const StaffPage = () => {
                   <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                     Showing {doctorPagination.startIndex}-
                     {doctorPagination.endIndex} of {doctorPagination.totalItems}{" "}
-                    doctors
+                    {viewMode === "active" ? "active" : "archived"} doctors
                     {doctorSort.field && (
                       <span className="ml-2">
                         • Sorted by {doctorSort.field.replace("_", " ")} (
@@ -1148,6 +1345,36 @@ const StaffPage = () => {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
+                  <div className="flex gap-1 mr-2">
+                    <Button
+                      variant={viewMode === "active" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setViewMode("active")}
+                      style={{
+                        backgroundColor:
+                          viewMode === "active"
+                            ? colors.primaryColor
+                            : undefined,
+                        color: viewMode === "active" ? "white" : undefined,
+                      }}
+                    >
+                      Active
+                    </Button>
+                    <Button
+                      variant={viewMode === "archived" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setViewMode("archived")}
+                      style={{
+                        backgroundColor:
+                          viewMode === "archived"
+                            ? colors.primaryColor
+                            : undefined,
+                        color: viewMode === "archived" ? "white" : undefined,
+                      }}
+                    >
+                      Archived
+                    </Button>
+                  </div>
                   <div className="relative flex-1 sm:w-64">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -1325,24 +1552,38 @@ const StaffPage = () => {
                               >
                                 <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                               </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEditStaff(doctor)}
-                                title="Edit Staff"
-                                className="h-7 w-7 sm:h-8 sm:w-8 p-0"
-                              >
-                                <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDeleteClick(doctor)}
-                                title="Delete Staff"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50 h-7 w-7 sm:h-8 sm:w-8 p-0"
-                              >
-                                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                              </Button>
+                              {viewMode === "active" ? (
+                                <>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleEditStaff(doctor)}
+                                    title="Edit Staff"
+                                    className="h-7 w-7 sm:h-8 sm:w-8 p-0"
+                                  >
+                                    <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleDeleteClick(doctor)}
+                                    title="Archive Staff"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 h-7 w-7 sm:h-8 sm:w-8 p-0"
+                                  >
+                                    <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                                  </Button>
+                                </>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleReactivateStaff(doctor)}
+                                  title="Reactivate Staff"
+                                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                >
+                                  Reactivate
+                                </Button>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>

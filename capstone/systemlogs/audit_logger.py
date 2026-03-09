@@ -84,6 +84,14 @@ class AuditLogger:
                 session_key=session_key
             )
             
+            # Mark the request as already logged to prevent duplicates from middleware
+            if request:
+                if not hasattr(request, '_audit_logged'):
+                    request._audit_logged = set()
+                # Create a unique key for this specific log entry
+                log_key = f"{action}:{resource_type}:{resource_id or 'no-id'}"
+                request._audit_logged.add(log_key)
+            
             print(f"[AUDIT] {audit_log}")  # Optional: log to console for debugging
             return audit_log
             

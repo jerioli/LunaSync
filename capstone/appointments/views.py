@@ -113,8 +113,8 @@ class AppointmentCreateView(APIView):
                 is_follow_up = appointment.appointment_type == 'Follow-up' and appointment.status == 'scheduled' and appointment.patient
                 
                 # Audit log for appointment creation
-                patient_name = appointment.patient.name if appointment.patient else \
-                             f"{request.data.get('firstName', '')} {request.data.get('lastName', '')}".strip() or 'Unknown'
+                patient_id = appointment.patient.patient_id if appointment.patient else \
+                             request.data.get('patient_id', 'Unknown')
                 
                 if is_follow_up:
                     AuditLogger.log_action(
@@ -122,7 +122,7 @@ class AppointmentCreateView(APIView):
                         action='CREATE FOLLOW-UP APPOINTMENT',
                         resource_type='APPOINTMENT',
                         resource_id=str(appointment.id),
-                        description=f"Created follow-up appointment for {patient_name} on {appointment.date} at {appointment.time}",
+                        description=f"Created follow-up appointment for patient {patient_id} on {appointment.date} at {appointment.time}",
                         request=request
                     )
                 else:
@@ -131,7 +131,7 @@ class AppointmentCreateView(APIView):
                         action='CREATE APPOINTMENT',
                         resource_type='APPOINTMENT',
                         resource_id=str(appointment.id),
-                        description=f"Created appointment for {patient_name} on {appointment.date} at {appointment.time} (Status: {appointment.status})",
+                        description=f"Created appointment for patient {patient_id} on {appointment.date} at {appointment.time}",
                         request=request
                     )
                 
@@ -506,13 +506,13 @@ class AppointmentUpdateStatusView(APIView):
                 appointment.save(skip_validation=True)  # Skip validation for status updates
                 
                 # Audit log for confirming appointment
-                patient_name = appointment.patient.name if appointment.patient else getattr(appointment, 'patient_name', 'Unknown')
+                patient_id = appointment.patient.patient_id if appointment.patient else getattr(appointment, 'patient_id_lookup', 'Unknown')
                 AuditLogger.log_action(
                     user=request.user if request.user.is_authenticated else None,
                     action='CONFIRM APPOINTMENT',
                     resource_type='APPOINTMENT',
                     resource_id=str(appointment.id),
-                    description=f"Confirmed appointment for {patient_name} on {appointment.date} at {appointment.time}",
+                    description=f"Confirmed appointment for patient {patient_id} on {appointment.date} at {appointment.time}",
                     request=request
                 )
                 
@@ -534,7 +534,7 @@ class AppointmentUpdateStatusView(APIView):
                 appointment.save(skip_validation=True)
                 
                 # Audit log for declining/cancelling/no-show
-                patient_name = appointment.patient.name if appointment.patient else getattr(appointment, 'patient_name', 'Unknown')
+                patient_id = appointment.patient.patient_id if appointment.patient else getattr(appointment, 'patient_id_lookup', 'Unknown')
                 action_text = 'DECLINE APPOINTMENT' if old_status == 'pending' and new_status == 'cancelled' else \
                              'MARK PATIENT AS NO-SHOW' if new_status == 'no-show' else \
                              'CANCEL APPOINTMENT'
@@ -543,7 +543,7 @@ class AppointmentUpdateStatusView(APIView):
                     action=action_text,
                     resource_type='APPOINTMENT',
                     resource_id=str(appointment.id),
-                    description=f"{action_text.title().replace('Appointment', 'appointment for')} {patient_name} on {appointment.date} at {appointment.time}",
+                    description=f"{action_text.title().replace('Appointment', 'appointment for patient')} {patient_id} on {appointment.date} at {appointment.time}",
                     request=request
                 )
                 
@@ -560,7 +560,7 @@ class AppointmentUpdateStatusView(APIView):
                 appointment.save(skip_validation=True)  # Skip validation for status updates
                 
                 # Audit log for other status changes
-                patient_name = appointment.patient.name if appointment.patient else getattr(appointment, 'patient_name', 'Unknown')
+                patient_id = appointment.patient.patient_id if appointment.patient else getattr(appointment, 'patient_id_lookup', 'Unknown')
                 action_text = 'CHECK-IN PATIENT' if new_status == 'ongoing' else \
                              'COMPLETE APPOINTMENT' if new_status == 'completed' else \
                              'UPDATE APPOINTMENT STATUS'
@@ -569,7 +569,7 @@ class AppointmentUpdateStatusView(APIView):
                     action=action_text,
                     resource_type='APPOINTMENT',
                     resource_id=str(appointment.id),
-                    description=f"{action_text.title().replace('Appointment', 'appointment for').replace('Patient', 'patient')} {patient_name} on {appointment.date} at {appointment.time} (Status: {old_status} → {new_status})",
+                    description=f"{action_text.title().replace('Appointment', 'appointment for patient').replace('Patient', 'patient')} {patient_id} on {appointment.date} at {appointment.time} (Status: {old_status} → {new_status})",
                     request=request
                 )
                 

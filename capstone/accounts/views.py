@@ -334,6 +334,69 @@ class StaffDetailView(APIView):
             'message': 'Staff member deactivated successfully'
         })
 
+
+class StaffReactivateView(APIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, user_id):
+        # Check if user has permission to reactivate staff
+        if not request.user.is_authenticated:
+            return Response({
+                'error': 'Authentication required',
+                'message': 'You must be logged in to reactivate staff'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # Only allow admins and superadmins to reactivate staff
+        has_admin_role = request.user.role in ['admin', 'superadmin'] if hasattr(request.user, 'role') else False
+        
+        if not has_admin_role:
+            return Response({
+                'error': 'Permission denied',
+                'message': 'Only administrators can reactivate staff members'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        user = get_object_or_404(CustomUser, id=user_id)
+        
+        # Check if user is already active
+        if user.is_active:
+            return Response({
+                'error': 'Already active',
+                'message': 'This staff member is already active'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Reactivate - set is_active to True
+        user.is_active = True
+        user.save()
+        
+        # Log staff reactivation
+        AuditLogger.log_staff_action(
+            user=request.user,
+            action='REACTIVATE',
+            staff_id=user.id,
+            staff_name=f"{user.get_full_name()} ({user.username})",
+            description=f"Reactivated staff member: {user.get_full_name()}",
+            details={
+                'staff_role': user.role,
+                'staff_email': user.email,
+                'reactivated_by': request.user.email if request.user.is_authenticated else 'Unknown'
+            },
+            request=request
+        )
+        
+        return Response({
+            'success': True,
+            'message': 'Staff member reactivated successfully',
+            'data': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'role': user.role,
+                'is_active': user.is_active
+            }
+        })
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class StaffPermissionsView(APIView):
     permission_classes = [IsAuthenticated]
@@ -776,8 +839,18 @@ class DoctorListView(APIView):
     
     def get(self, request):
         # Allow public access to view doctors list (needed for chatbot and appointment booking)
-        # Only show active doctors
-        doctors = CustomUser.objects.filter(role='doctor', is_active=True)
+        # Check if status filter is provided (active/archived/all)
+        status_filter = request.query_params.get('status', 'active')  # Default to active
+        
+        doctors = CustomUser.objects.filter(role='doctor')
+        
+        # Apply status filter
+        if status_filter == 'archived':
+            doctors = doctors.filter(is_active=False)
+        elif status_filter == 'active':
+            doctors = doctors.filter(is_active=True)
+        # 'all' status returns both active and archived
+        
         serializer = CustomUserSerializer(doctors, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -787,8 +860,18 @@ class ReceptionistListView(APIView):
     
     def get(self, request):
         # Allow authenticated users to view receptionists list
-        # Only show active receptionists
-        receptionists = CustomUser.objects.filter(role='receptionist', is_active=True)
+        # Check if status filter is provided (active/archived/all)
+        status_filter = request.query_params.get('status', 'active')  # Default to active
+        
+        receptionists = CustomUser.objects.filter(role='receptionist')
+        
+        # Apply status filter
+        if status_filter == 'archived':
+            receptionists = receptionists.filter(is_active=False)
+        elif status_filter == 'active':
+            receptionists = receptionists.filter(is_active=True)
+        # 'all' status returns both active and archived
+        
         serializer = CustomUserSerializer(receptionists, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -798,8 +881,18 @@ class AdminListView(APIView):
     
     def get(self, request):
         # Allow authenticated users to view admins list
-        # Only show active admins
-        admins = CustomUser.objects.filter(role='admin', is_active=True)
+        # Check if status filter is provided (active/archived/all)
+        status_filter = request.query_params.get('status', 'active')  # Default to active
+        
+        admins = CustomUser.objects.filter(role='admin')
+        
+        # Apply status filter
+        if status_filter == 'archived':
+            admins = admins.filter(is_active=False)
+        elif status_filter == 'active':
+            admins = admins.filter(is_active=True)
+        # 'all' status returns both active and archived
+        
         serializer = CustomUserSerializer(admins, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -1472,14 +1565,21 @@ class UserListView(APIView):
     def get(self, request):
         # Check if role filter is provided
         role = request.query_params.get('role')
+        # Check if status filter is provided (active/archived/all)
+        status_filter = request.query_params.get('status', 'active')  # Default to active
         
+        # Build base queryset
         if role:
-            # Filter users by role if role parameter is provided
-            # Only show active users
-            users = CustomUser.objects.filter(role=role, is_active=True)
+            users = CustomUser.objects.filter(role=role)
         else:
-            # Return all active users if no role filter
-            users = CustomUser.objects.filter(is_active=True)
+            users = CustomUser.objects.all()
+        
+        # Apply status filter
+        if status_filter == 'archived':
+            users = users.filter(is_active=False)
+        elif status_filter == 'active':
+            users = users.filter(is_active=True)
+        # 'all' status returns both active and archived
             
         serializer = CustomUserSerializer(users, many=True, context={'request': request})
         return Response(serializer.data)

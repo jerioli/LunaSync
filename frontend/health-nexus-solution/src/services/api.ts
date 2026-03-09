@@ -331,11 +331,19 @@ export const api = {
     getAll: async (): Promise<Doctor[]> => {
       const response = await axiosInstance.get('/doctors/');
       return response.data;
+    },
+    getArchived: async (): Promise<Doctor[]> => {
+      const response = await axiosInstance.get('/doctors/?status=archived');
+      return response.data;
     }
   },
   receptionists: {
     getAll: async (): Promise<Receptionist[]> => {
       const response = await axiosInstance.get('/receptionists/');
+      return response.data;
+    },
+    getArchived: async (): Promise<Receptionist[]> => {
+      const response = await axiosInstance.get('/receptionists/?status=archived');
       return response.data;
     }
   },
@@ -343,12 +351,19 @@ export const api = {
     getAll: async (): Promise<Admin[]> => {
       const response = await axiosInstance.get('/admins/');
       return response.data;
+    },
+    getArchived: async (): Promise<Admin[]> => {
+      const response = await axiosInstance.get('/admins/?status=archived');
+      return response.data;
     }
   },
   staff: {
     getDetails: async (userId: number): Promise<StaffMember> => {
       const response = await axiosInstance.get(`/staff/${userId}/`);
       return response.data;
+    },
+    reactivate: async (userId: number): Promise<void> => {
+      await axiosInstance.post(`/staff/${userId}/reactivate/`);
     },
     update: async (userId: number, data: Partial<StaffMember>): Promise<StaffMember> => {
       const response = await axiosInstance.patch(`/staff/${userId}/`, data);

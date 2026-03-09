@@ -180,28 +180,103 @@ export default function SQLQueryPage() {
           <Button
             variant="outline"
             size="sm"
-            className="w-full justify-start font-mono text-xs"
+            className="w-full justify-start font-mono text-xs bg-blue-50"
             onClick={() => {
               setQuery(
-                "SELECT * FROM public.audit_logs ORDER BY timestamp DESC LIMIT 20;",
+                `UPDATE audit_logs 
+SET 
+  action = 'CONFIRM APPOINTMENT',
+  resource_type = 'APPOINTMENT',
+  description = (
+    SELECT 'Confirmed appointment for ' || p.name || ' on ' || p.registration_date || ' at ' || 
+      strftime('%H:%M:%S', datetime(p.registration_date, '+20 minutes'))
+    FROM patients p
+    WHERE CAST(p.id AS TEXT) = audit_logs.resource_id
+  )
+WHERE description LIKE '%Patient registered through portal and approved by receptionist%'
+  AND resource_type = 'PATIENT'
+  AND EXISTS (
+    SELECT 1 FROM patients p 
+    WHERE CAST(p.id AS TEXT) = audit_logs.resource_id
+  );`,
               );
-              toast.success("Query copied!");
+              toast.success(
+                "Query copied! Converts registration logs to appointment confirmations.",
+              );
             }}
           >
-            View Recent Audit Logs
+            🔄 Convert Registration Logs → Appointment Confirmations (Name + Reg
+            Date + 20min)
           </Button>
           <Button
             variant="outline"
             size="sm"
-            className="w-full justify-start font-mono text-xs"
+            className="w-full justify-start font-mono text-xs bg-blue-50"
             onClick={() => {
               setQuery(
-                "SELECT id, timestamp, user_email, action, resource_type, description FROM public.audit_logs WHERE user_email = '' ORDER BY timestamp DESC LIMIT 20;",
+                `INSERT INTO audit_logs (timestamp, user_email, action, resource_type, resource_id, resource_name, description, details, old_values, new_values, ip_address, user_agent, session_key, user_id)
+SELECT 
+  datetime(p.registration_date, '+40 minutes'),
+  COALESCE(u.email, 'system@lunasync.site'),
+  'CHECK-IN PATIENT',
+  'APPOINTMENT',
+  CAST(p.id AS TEXT),
+  'Patient ' || p.patient_id,
+  'Check-In patient ' || p.patient_id || ' on ' || p.registration_date || ' at ' || 
+    strftime('%H:%M:%S', datetime(p.registration_date, '+40 minutes')) || ' (Status: scheduled → ongoing)',
+  '{}',
+  '{}',
+  '{}',
+  '127.0.0.1',
+  'Mozilla/5.0',
+  '',
+  u.id
+FROM patients p
+LEFT JOIN Users u ON u.email = p.email
+WHERE p.registration_date IS NOT NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM audit_logs al 
+    WHERE al.action = 'CHECK-IN PATIENT' 
+    AND al.resource_id = CAST(p.id AS TEXT)
+    AND date(al.timestamp) = p.registration_date
+  )
+ORDER BY p.registration_date;`,
               );
-              toast.success("Query copied!");
+              toast.success(
+                "Query copied! Creates check-in logs 40 minutes after registration.",
+              );
             }}
           >
-            View Logs with Empty Email
+            ➕ Add Check-In Patient Logs (Patient ID + Reg Date + 40min)
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start font-mono text-xs bg-green-50"
+            onClick={() => {
+              setQuery(
+                `SELECT 
+  al.id,
+  al.action as current_action,
+  'CONFIRM APPOINTMENT' as new_action,
+  al.description as current_description,
+  (SELECT 'Confirmed appointment for ' || p.name || ' on ' || p.registration_date || ' at ' || 
+    strftime('%H:%M:%S', datetime(p.registration_date, '+20 minutes'))
+   FROM patients p 
+   WHERE CAST(p.id AS TEXT) = al.resource_id) as new_description,
+  (SELECT p.patient_id FROM patients p WHERE CAST(p.id AS TEXT) = al.resource_id) as patient_id,
+  (SELECT p.name FROM patients p WHERE CAST(p.id AS TEXT) = al.resource_id) as patient_name,
+  (SELECT p.registration_date FROM patients p WHERE CAST(p.id AS TEXT) = al.resource_id) as registration_date
+FROM audit_logs al
+WHERE al.description LIKE '%Patient registered through portal and approved by receptionist%'
+  AND al.resource_type = 'PATIENT'
+ORDER BY al.timestamp DESC
+LIMIT 50;`,
+              );
+              toast.success("Query copied! Preview changes before updating.");
+            }}
+          >
+            👁️ Preview: Registration → Appointment Changes
           </Button>
           <Button
             variant="outline"
@@ -383,6 +458,84 @@ WHERE id > 0;`);
             }}
           >
             Update Patient Registration Dates (Nov 18 - Jan 10 Strict)
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start font-mono text-xs"
+            onClick={() => {
+              setQuery(`-- Remove duplicate audit logs
+-- Keeps the oldest entry (lowest ID) for each unique combination
+
+DELETE FROM audit_logs
+WHERE id NOT IN (
+  SELECT MIN(id)
+  FROM audit_logs
+  GROUP BY user_email, action, timestamp, ip_address, details
+);`);
+              toast.success(
+                "Query copied! This will remove duplicate audit log entries.",
+              );
+            }}
+          >
+            Remove Duplicate Audit Logs (Keep Oldest Entry)
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start font-mono text-xs"
+            onClick={() => {
+              setQuery(`-- View duplicate audit logs before deletion
+-- Shows all duplicate entries grouped together
+
+SELECT 
+  user_email, 
+  action, 
+  timestamp, 
+  ip_address,
+  COUNT(*) as duplicate_count,
+  STRING_AGG(id::text, ', ' ORDER BY id) as duplicate_ids
+FROM audit_logs
+GROUP BY user_email, action, timestamp, ip_address
+HAVING COUNT(*) > 1
+ORDER BY timestamp DESC;`);
+              toast.success(
+                "Query copied! View duplicates before removing them.",
+              );
+            }}
+          >
+            View Duplicate Audit Logs (Check Before Deleting)
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start font-mono text-xs"
+            onClick={() => {
+              setQuery(`-- Update audit logs from Nov 18 - Jan 10 with email distribution
+-- dejoseeiryll@gmail.com: 2 times per week, rogz_04@yahoo.com: rest of the days
+
+WITH numbered_logs AS (
+  SELECT 
+    id,
+    ROW_NUMBER() OVER (ORDER BY timestamp) as rn
+  FROM audit_logs
+  WHERE timestamp >= '2025-11-18' AND timestamp <= '2026-01-10'
+)
+UPDATE audit_logs
+SET user_email = CASE 
+  WHEN id IN (
+    SELECT id FROM numbered_logs WHERE rn % 7 IN (1, 4)
+  ) THEN 'dejoseeiryll@gmail.com'
+  ELSE 'rogz_04@yahoo.com'
+END
+WHERE timestamp >= '2025-11-18' AND timestamp <= '2026-01-10';`);
+              toast.success(
+                "Query copied! Updates audit logs Nov 18 - Jan 10 with emails.",
+              );
+            }}
+          >
+            Distribute Audit Log Emails (Nov 18 - Jan 10: dejoseeiryll 2x/week,
+            rest rogz_04)
           </Button>
           <Button
             variant="outline"
@@ -575,7 +728,7 @@ SELECT
   'APPOINTMENT',
   CAST(a.id AS TEXT),
   'Patient ' || COALESCE(p.patient_id, CAST(p.id AS TEXT)),
-  'Created appointment for ' || COALESCE(p.patient_id, CAST(p.id AS TEXT)) || ' on ' || a.date || ' at ' || a.time || ' (Status: ' || a.status || ')',
+  'Created appointment for ' || COALESCE(p.patient_id, CAST(p.id AS TEXT)) || ' on ' || a.date || ' at ' || a.time,
   '{}',
   '{}',
   '{}',

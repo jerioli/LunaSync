@@ -3,7 +3,7 @@ from accounts.views import (
     StaffCreateView, DoctorListView, ReceptionistListView, AdminListView, 
     StaffLoginView, CompleteLoginView, PasswordResetRequestView, PasswordResetConfirmView,
     PasswordChangeView, UserProfileUpdateView, UserPreferencesView, Toggle2FAView,
-    StaffDetailView, StaffPermissionsView, UserListView, SendOTPView, VerifyOTPView,
+    StaffDetailView, StaffReactivateView, StaffPermissionsView, UserListView, SendOTPView, VerifyOTPView,
     ResetPasswordOTPView, login_view, DebugUserView, TestView,  # Import the debug and test views
     AuditLogsView,  # Superadmin views
     CurrentUserView, AccountActivationView,  # Add account activation view
@@ -22,6 +22,7 @@ urlpatterns = [
     path('staff/', StaffCreateView.as_view(), name='create-staff'),  # Matches /api/staff/
     path('staff/list/', UserListView.as_view(), name='staff-list'),  # Matches /api/staff/list/
     path('staff/<int:user_id>/', StaffDetailView.as_view(), name='staff-detail'),
+    path('staff/<int:user_id>/reactivate/', StaffReactivateView.as_view(), name='staff-reactivate'),
     path('staff/<int:user_id>/permissions/', StaffPermissionsView.as_view(), name='staff-permissions'),
     path('permissions/', StaffPermissionsView.as_view(), name='permissions-list'),  # GET all permissions
     path('permissions/<int:user_id>/', StaffPermissionsView.as_view(), name='user-permissions'),  # GET/PATCH user permissions
