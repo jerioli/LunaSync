@@ -6,7 +6,8 @@ from .views import (
     PhysicalExaminationViewSet, send_medical_certificate_email_endpoint,
     prescription_requests_endpoint, medical_certificates_endpoint,
     approve_prescription_endpoint, approve_medical_certificate_endpoint,
-    create_prescription_endpoint
+    create_prescription_endpoint, delete_prescription_request_endpoint,
+    delete_medical_certificate_endpoint
 )
 
 router = DefaultRouter()
@@ -22,7 +23,9 @@ urlpatterns = [
     path('', include(router.urls)),
     path('send-medical-certificate-email/', send_medical_certificate_email_endpoint, name='send-medical-certificate-email'),
     path('prescription-requests/', prescription_requests_endpoint, name='prescription-requests'),
-    path('medical-certificates/', medical_certificates_endpoint, name='medical-certificates'), 
+    path('prescription-requests/<int:request_id>/', delete_prescription_request_endpoint, name='delete-prescription-request'),
+    path('medical-certificates/', medical_certificates_endpoint, name='medical-certificates'),
+    path('medical-certificates/<int:request_id>/', delete_medical_certificate_endpoint, name='delete-medical-certificate'), 
     path('prescription-requests/<int:request_id>/approve/', approve_prescription_endpoint, name='approve-prescription'),
     path('medical-certificates/<int:request_id>/approve/', approve_medical_certificate_endpoint, name='approve-medical-certificate'),
     path('create-prescription/', create_prescription_endpoint, name='create-prescription'),

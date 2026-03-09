@@ -1614,3 +1614,57 @@ def send_status_notification(request, notification_type, patient_email, patient_
         logger.error(f"Error sending status notification: {str(e)}")
         import traceback
         logger.error(f"Notification error traceback: {traceback.format_exc()}")
+
+
+@csrf_exempt
+def delete_prescription_request_endpoint(request, request_id):
+    """
+    Handle deleting a specific prescription request
+    """
+    from medical_requests.models import PrescriptionRequest
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    
+    if request.method == 'DELETE':
+        try:
+            logger.info(f"Attempting to delete prescription request {request_id}")
+            prescription_request = PrescriptionRequest.objects.get(id=request_id)
+            prescription_request.delete()
+            logger.info(f"Successfully deleted prescription request {request_id}")
+            return JsonResponse({'message': 'Prescription request deleted successfully'}, status=200)
+        except PrescriptionRequest.DoesNotExist:
+            logger.error(f"Prescription request {request_id} not found")
+            return JsonResponse({'error': 'Prescription request not found'}, status=404)
+        except Exception as e:
+            logger.error(f"Error deleting prescription request {request_id}: {str(e)}")
+            return JsonResponse({'error': f'Failed to delete prescription request: {str(e)}'}, status=500)
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+def delete_medical_certificate_endpoint(request, request_id):
+    """
+    Handle deleting a specific medical certificate request
+    """
+    from medical_requests.models import MedicalCertificateRequest
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    
+    if request.method == 'DELETE':
+        try:
+            logger.info(f"Attempting to delete medical certificate request {request_id}")
+            certificate_request = MedicalCertificateRequest.objects.get(id=request_id)
+            certificate_request.delete()
+            logger.info(f"Successfully deleted medical certificate request {request_id}")
+            return JsonResponse({'message': 'Medical certificate request deleted successfully'}, status=200)
+        except MedicalCertificateRequest.DoesNotExist:
+            logger.error(f"Medical certificate request {request_id} not found")
+            return JsonResponse({'error': 'Medical certificate request not found'}, status=404)
+        except Exception as e:
+            logger.error(f"Error deleting medical certificate request {request_id}: {str(e)}")
+            return JsonResponse({'error': f'Failed to delete medical certificate request: {str(e)}'}, status=500)
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)

@@ -4482,18 +4482,30 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       setIsLoadingDoctors(true);
      
       
-      // First fetch all doctors
+      // Fetch all doctors
       const allDoctors = await api.doctors.getAll();
+      
+      // Fetch all admins
+      let allAdmins = [];
+      try {
+        const adminsResponse = await axiosInstance.get('/admins/');
+        allAdmins = adminsResponse.data || [];
+      } catch (error) {
+        console.error('Error fetching admins:', error);
+      }
+      
+      // Combine doctors and admins
+      const allStaff = [...allDoctors,...allAdmins];
      
       
-      // Check availability for each doctor
-      const doctorsWithAvailability = [];
+      // Check availability for each staff member
+      const staffWithAvailability = [];
       
-      for (const doctor of allDoctors) {
+      for (const staff of allStaff) {
         try {
-          const availableDates = await getAvailableDatesForDoctor(doctor.id.toString());
+          const availableDates = await getAvailableDatesForDoctor(staff.id.toString());
           if (availableDates.length > 0) {
-            doctorsWithAvailability.push(doctor);
+            staffWithAvailability.push(staff);
            
           } else {
            
@@ -4504,8 +4516,8 @@ Now please upload the FRONT side of your valid government-issued ID for verifica
       }
       
       
-      setDoctors(doctorsWithAvailability);
-      return doctorsWithAvailability;
+      setDoctors(staffWithAvailability);
+      return staffWithAvailability;
     } catch (error) {
       console.error('Error fetching doctors with availability:', error);
       toast({

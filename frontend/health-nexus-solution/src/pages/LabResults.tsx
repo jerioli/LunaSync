@@ -37,7 +37,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useClinic } from "@/contexts/ClinicContext";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { type LabResult } from "@/lib/mock-data";
 import { type LabTestResult } from "@/services/medicalDocumentsAPI";
 import { ENV } from "@/config/env";
@@ -208,10 +208,7 @@ const LabResults = () => {
           setMatchedPatientId(state.patientId);
         }
 
-        toast({
-          title: "Document Updated",
-          description: "Corrected text has been loaded successfully.",
-        });
+        toast.success("Corrected text has been loaded successfully.");
 
         // Clear the state to prevent re-triggering
         navigate("/lab-results", { replace: true });
@@ -230,11 +227,7 @@ const LabResults = () => {
     const isValidType =
       file.type.startsWith("image/") || file.type === "application/pdf";
     if (!isValidType) {
-      toast({
-        title: "Invalid File Type",
-        description: "Please upload an image file (JPG, PNG, etc.) or PDF",
-        variant: "destructive",
-      });
+      toast.error("Please upload an image file (JPG, PNG, etc.) or PDF");
       return;
     }
 
@@ -265,10 +258,7 @@ const LabResults = () => {
         setMatchedPatientId(patientId);
         const patient = patients.find((p) => p.id === patientId);
         if (patient) {
-          toast({
-            title: "Patient Identified",
-            description: `Automatically identified: ${patient.name}`,
-          });
+          toast.success(`Patient identified: ${patient.name}`);
         }
       }
 
@@ -282,27 +272,22 @@ const LabResults = () => {
       const testResults = extractTestResults(extractedText);
       setExtractedTestResults(testResults);
 
-      toast({
-        title: "Document Processed",
-        description: "Text extracted successfully using AWS Textract",
-      });
+      toast.success("Text extracted successfully using AWS Textract");
 
-      // Navigate to document comparison page
-      setTimeout(() => {
-        navigate("/document-comparison", {
-          state: {
-            originalFile: file,
-            extractedText: extractedText,
-            visualizationData: result.visualizationData,
-            patientId: patientId,
-            patientName: patientId
-              ? patients.find((p) => p.id === patientId)?.name
-              : undefined,
-            authorizedBy: doctorName, // Pass the extracted doctor name
-            returnPath: "/lab-results",
-          },
-        });
-      }, 1000); // Brief delay to show the toast
+      // Navigate to document comparison page immediately
+      navigate("/document-comparison", {
+        state: {
+          originalFile: file,
+          extractedText: extractedText,
+          visualizationData: result.visualizationData,
+          patientId: patientId,
+          patientName: patientId
+            ? patients.find((p) => p.id === patientId)?.name
+            : undefined,
+          authorizedBy: doctorName, // Pass the extracted doctor name
+          returnPath: "/lab-results",
+        },
+      });
     } catch (error) {
       console.error("Error processing document:", error);
 
@@ -317,11 +302,7 @@ const LabResults = () => {
         }
       }
 
-      toast({
-        title: "Processing Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      toast.error(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -492,10 +473,9 @@ const LabResults = () => {
         (p) => p.id === (finalPatientId || matchedPatientId),
       );
       if (matchedPatient) {
-        toast({
-          title: "Patient Identified",
-          description: `Patient automatically identified: ${matchedPatient.name}`,
-        });
+        toast.success(
+          `Patient automatically identified: ${matchedPatient.name}`,
+        );
       }
     }
   };
@@ -900,12 +880,9 @@ const LabResults = () => {
         console.log("Falling back to original PDF URL");
         window.open(result.resultUrl, "_blank");
       } else {
-        toast({
-          title: "PDF Not Available",
-          description:
-            "Failed to generate logo-free PDF. Please try again later.",
-          variant: "destructive",
-        });
+        toast.error(
+          "Failed to generate logo-free PDF. Please try again later.",
+        );
       }
     }
   };
@@ -936,12 +913,11 @@ const LabResults = () => {
       );
 
       if (response.ok) {
-        toast({
-          title: "Lab Result Deleted",
-          description: `Lab result for ${
+        toast.success(
+          `Lab result for ${
             labResultToDelete.patientName || "patient"
           } has been deleted successfully.`,
-        });
+        );
 
         // Refresh the lab results list
         if (fetchLabResults) {
@@ -952,11 +928,7 @@ const LabResults = () => {
       }
     } catch (error) {
       console.error("Error deleting lab result:", error);
-      toast({
-        title: "Delete Failed",
-        description: "Failed to delete lab result. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Failed to delete lab result. Please try again.");
     } finally {
       setDeleteConfirmOpen(false);
       setLabResultToDelete(null);
@@ -1100,17 +1072,10 @@ const LabResults = () => {
       setIsLoadingResults(true);
       try {
         await fetchLabResults();
-        toast({
-          title: "Results Updated",
-          description: "Lab results have been refreshed successfully.",
-        });
+        toast.success("Lab results have been refreshed successfully.");
       } catch (error) {
         console.error("Error refreshing lab results:", error);
-        toast({
-          title: "Refresh Failed",
-          description: "Failed to refresh lab results. Please try again.",
-          variant: "destructive",
-        });
+        toast.error("Failed to refresh lab results. Please try again.");
       } finally {
         setIsLoadingResults(false);
       }
@@ -1507,10 +1472,10 @@ const LabResults = () => {
 
       {/* OCR Processing Dialog */}
       <Dialog
-        open={isProcessing || ocrExtractedText !== null}
+        open={isProcessing}
         onOpenChange={(open) => {
           if (!open && !isProcessing) {
-            startNewScan();
+            resetForm();
           }
         }}
       >

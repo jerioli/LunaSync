@@ -31,10 +31,11 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 
 const ReceptionistDashboard = () => {
   const { patients } = useClinic();
+  const { toast } = useToast();
   const [appointments, setAppointments] = useState([]);
   const [patientsCount, setPatientsCount] = useState(0);
   const [patientDetails, setPatientDetails] = useState({});
@@ -158,25 +159,10 @@ const ReceptionistDashboard = () => {
           response.data,
         );
         const pendingRequests = response.data.filter((req: any) => {
-          const isPending =
-            req.status === "pending" || req.status === "on_process";
-
-          // Check if patient is archived by matching name and DOB
-          const patient = localPatients.find((p) => {
-            const patientName = (p.name || "").toLowerCase().trim();
-            const requestName = (req.patient_name || "").toLowerCase().trim();
-            const patientDOB = p.date_of_birth;
-            const requestDOB = req.date_of_birth;
-            return patientName === requestName && patientDOB === requestDOB;
-          });
-
-          // If patient not found or is_deleted is true, exclude the request
-          const isPatientActive = patient && !patient.is_deleted;
-
-          return isPending && isPatientActive;
+          return req.status === "pending" || req.status === "on_process";
         });
         console.log(
-          "[Receptionist] Medical Cert Requests - Pending/On Process (Active Patients):",
+          "[Receptionist] Medical Cert Requests - Pending/On Process:",
           pendingRequests,
         );
         setMedCertRequestCount(pendingRequests.length);
@@ -200,25 +186,10 @@ const ReceptionistDashboard = () => {
           response.data,
         );
         const pendingRequests = response.data.filter((req: any) => {
-          const isPending =
-            req.status === "pending" || req.status === "on_process";
-
-          // Check if patient is archived by matching name and DOB
-          const patient = localPatients.find((p) => {
-            const patientName = (p.name || "").toLowerCase().trim();
-            const requestName = (req.patient_name || "").toLowerCase().trim();
-            const patientDOB = p.date_of_birth;
-            const requestDOB = req.date_of_birth;
-            return patientName === requestName && patientDOB === requestDOB;
-          });
-
-          // If patient not found or is_deleted is true, exclude the request
-          const isPatientActive = patient && !patient.is_deleted;
-
-          return isPending && isPatientActive;
+          return req.status === "pending" || req.status === "on_process";
         });
         console.log(
-          "[Receptionist] Prescription Requests - Pending/On Process (Active Patients):",
+          "[Receptionist] Prescription Requests - Pending/On Process:",
           pendingRequests,
         );
         setPrescriptionRequestCount(pendingRequests.length);
@@ -347,11 +318,18 @@ const ReceptionistDashboard = () => {
         setSelectedAppointment((prev) => ({ ...prev, status: "ongoing" }));
       }
 
-      toast.success("🏥 Patient has been checked in successfully");
+      toast({
+        title: "Success",
+        description: "🏥 Patient has been checked in successfully",
+      });
       setIsAppointmentModalOpen(false);
     } catch (error) {
       console.error("Error checking in patient:", error);
-      toast.error("Failed to check in patient. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to check in patient. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

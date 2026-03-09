@@ -149,7 +149,7 @@ const Schedule: React.FC = () => {
     for (let hour = 8; hour <= 18; hour++) {
       for (let minute = 0; minute < 60; minute += 20) {
         const timeStr = `${String(hour).padStart(2, "0")}:${String(
-          minute
+          minute,
         ).padStart(2, "0")}`;
         slots.push(timeStr);
       }
@@ -162,7 +162,7 @@ const Schedule: React.FC = () => {
   const generateScheduleSlots = (
     date: string,
     start: string,
-    end: string
+    end: string,
   ): ScheduleSlot[] => {
     const slots: ScheduleSlot[] = [];
     const [startHour, startMinute] = start.split(":").map(Number);
@@ -183,7 +183,7 @@ const Schedule: React.FC = () => {
       }
 
       const timeStr = `${String(currentHour).padStart(2, "0")}:${String(
-        currentMinute
+        currentMinute,
       ).padStart(2, "0")}`;
       const formattedTime = formatTime(timeStr);
 
@@ -290,7 +290,7 @@ const Schedule: React.FC = () => {
 
     console.log("Generating time slots for each date...");
     const generatedSlots = dates.flatMap((date) =>
-      generateScheduleSlots(date, startTime, endTime)
+      generateScheduleSlots(date, startTime, endTime),
     );
     console.log("Generated slots:", generatedSlots);
 
@@ -312,33 +312,69 @@ const Schedule: React.FC = () => {
     try {
       setIsLoadingExisting(true);
 
-      // Get doctor's ID from database
-      const doctorsResponse = await axios.get(`${API_BASE_URL}/doctors/`);
-      const doctors: any[] = doctorsResponse.data;
+      // Get user's ID from database (doctor or admin)
+      let userRecord;
+      if (currentUser.role === "doctor") {
+        const doctorsResponse = await axios.get(`${API_BASE_URL}/doctors/`);
+        const doctors: any[] = doctorsResponse.data;
 
-      // Try multiple ways to find the doctor - ID first (most reliable), then username, then email
-      let doctor = doctors.find((d) => d.id === currentUser.id);
+        // Try multiple ways to find the doctor - ID first (most reliable), then username, then email
+        userRecord = doctors.find((d) => d.id === currentUser.id);
 
-      if (!doctor && currentUser.username) {
-        doctor = doctors.find((d) => d.username === currentUser.username);
+        if (!userRecord && currentUser.username) {
+          userRecord = doctors.find((d) => d.username === currentUser.username);
+        }
+
+        if (!userRecord && currentUser.email) {
+          userRecord = doctors.find(
+            (d) => d.email && d.email === currentUser.email,
+          );
+        }
+
+        if (!userRecord) {
+          console.error("Doctor lookup failed:", {
+            currentUser: currentUser,
+            doctorsFound: doctors.length,
+            searchCriteria: {
+              id: currentUser.id,
+              username: currentUser.username,
+              email: currentUser.email,
+            },
+          });
+          throw new Error("Doctor not found in database");
+        }
+      } else if (currentUser.role === "admin") {
+        const adminsResponse = await axios.get(`${API_BASE_URL}/admins/`);
+        const admins: any[] = adminsResponse.data;
+
+        // Try multiple ways to find the admin
+        userRecord = admins.find((a) => a.id === currentUser.id);
+
+        if (!userRecord && currentUser.username) {
+          userRecord = admins.find((a) => a.username === currentUser.username);
+        }
+
+        if (!userRecord && currentUser.email) {
+          userRecord = admins.find(
+            (a) => a.email && a.email === currentUser.email,
+          );
+        }
+
+        if (!userRecord) {
+          console.error("Admin lookup failed:", {
+            currentUser: currentUser,
+            adminsFound: admins.length,
+            searchCriteria: {
+              id: currentUser.id,
+              username: currentUser.username,
+              email: currentUser.email,
+            },
+          });
+          throw new Error("Admin not found in database");
+        }
       }
 
-      if (!doctor && currentUser.email) {
-        doctor = doctors.find((d) => d.email && d.email === currentUser.email);
-      }
-
-      if (!doctor) {
-        console.error("Doctor lookup failed:", {
-          currentUser: currentUser,
-          doctorsFound: doctors.length,
-          searchCriteria: {
-            id: currentUser.id,
-            username: currentUser.username,
-            email: currentUser.email,
-          },
-        });
-        throw new Error("Doctor not found in database");
-      }
+      const doctor = userRecord;
 
       // Fetch paginated availability
       const response = await axios.get(`${API_BASE_URL}/availability/`, {
@@ -359,7 +395,7 @@ const Schedule: React.FC = () => {
         data.results.forEach((availability: any) => {
           console.log(
             `Date: ${availability.date}, Time Slots:`,
-            availability.time_slots
+            availability.time_slots,
           );
           availability.time_slots.forEach((slot: any) => {
             console.log(
@@ -369,7 +405,7 @@ const Schedule: React.FC = () => {
                 slot.appointment_status
                   ? ` (Status: ${slot.appointment_status})`
                   : ""
-              }`
+              }`,
             );
           });
         });
@@ -428,11 +464,11 @@ const Schedule: React.FC = () => {
   // Check if availability already exists for a specific date
   const checkExistingAvailability = async (
     date: string,
-    doctorId: number
+    doctorId: number,
   ): Promise<boolean> => {
     try {
       console.log(
-        `🔍 Checking availability for date: ${date}, doctor_id: ${doctorId}`
+        `🔍 Checking availability for date: ${date}, doctor_id: ${doctorId}`,
       );
 
       // Use the same API call as loadExistingAvailability but check for specific date
@@ -456,15 +492,15 @@ const Schedule: React.FC = () => {
 
       // Check if any record matches the specific date
       const existsForDate = availabilityRecords.some(
-        (record: any) => record.date === date
+        (record: any) => record.date === date,
       );
       console.log(
-        `📊 Date ${date} exists: ${existsForDate} (found ${availabilityRecords.length} total records)`
+        `📊 Date ${date} exists: ${existsForDate} (found ${availabilityRecords.length} total records)`,
       );
 
       if (existsForDate) {
         const matchingRecord = availabilityRecords.find(
-          (record: any) => record.date === date
+          (record: any) => record.date === date,
         );
         console.log(`📋 Matching record for ${date}:`, matchingRecord);
       }
@@ -557,46 +593,96 @@ const Schedule: React.FC = () => {
       console.log("✅ All fields present and valid, starting save process...");
       setIsLoading(true);
 
-      // Get doctor's ID
-      console.log("Fetching doctor information...");
-      const doctorsResponse = await axios.get(`${API_BASE_URL}/doctors/`);
-      console.log("Doctors API response:", doctorsResponse.data);
-      const doctors = doctorsResponse.data;
+      // Get user's ID (doctor or admin)
+      let userRecord;
+      if (currentUser.role === "doctor") {
+        console.log("Fetching doctor information...");
+        const doctorsResponse = await axios.get(`${API_BASE_URL}/doctors/`);
+        console.log("Doctors API response:", doctorsResponse.data);
+        const doctors = doctorsResponse.data;
 
-      // Try multiple identification strategies due to encrypted emails
-      console.log("Looking for doctor with currentUser:", {
-        id: currentUser.id,
-        username: currentUser.username,
-        email: currentUser.email,
-      });
-
-      let doctor = doctors.find((d) => d.id === currentUser.id);
-      if (!doctor) {
-        console.log("Doctor not found by ID, trying username...");
-        doctor = doctors.find((d) => d.username === currentUser.username);
-      }
-      if (!doctor && currentUser.email) {
-        console.log("Doctor not found by username, trying email...");
-        doctor = doctors.find((d) => d.email && d.email === currentUser.email);
-      }
-
-      if (!doctor) {
-        console.log("❌ Doctor not found using any method");
-        console.log(
-          "Available doctors:",
-          doctors.map((d) => ({
-            id: d.id,
-            username: d.username,
-            email: d.email,
-          }))
-        );
-        console.log("Searching for:", {
+        // Try multiple identification strategies due to encrypted emails
+        console.log("Looking for doctor with currentUser:", {
           id: currentUser.id,
           username: currentUser.username,
           email: currentUser.email,
         });
-        throw new Error("Doctor not found in database");
+
+        userRecord = doctors.find((d) => d.id === currentUser.id);
+        if (!userRecord) {
+          console.log("Doctor not found by ID, trying username...");
+          userRecord = doctors.find((d) => d.username === currentUser.username);
+        }
+        if (!userRecord && currentUser.email) {
+          console.log("Doctor not found by username, trying email...");
+          userRecord = doctors.find(
+            (d) => d.email && d.email === currentUser.email,
+          );
+        }
+
+        if (!userRecord) {
+          console.log("❌ Doctor not found using any method");
+          console.log(
+            "Available doctors:",
+            doctors.map((d) => ({
+              id: d.id,
+              username: d.username,
+              email: d.email,
+            })),
+          );
+          console.log("Searching for:", {
+            id: currentUser.id,
+            username: currentUser.username,
+            email: currentUser.email,
+          });
+          throw new Error("Doctor not found in database");
+        }
+      } else if (currentUser.role === "admin") {
+        console.log("Fetching admin information...");
+        const adminsResponse = await axios.get(`${API_BASE_URL}/admins/`);
+        console.log("Admins API response:", adminsResponse.data);
+        const admins = adminsResponse.data;
+
+        // Try multiple identification strategies
+        console.log("Looking for admin with currentUser:", {
+          id: currentUser.id,
+          username: currentUser.username,
+          email: currentUser.email,
+        });
+
+        userRecord = admins.find((a) => a.id === currentUser.id);
+        if (!userRecord) {
+          console.log("Admin not found by ID, trying username...");
+          userRecord = admins.find((a) => a.username === currentUser.username);
+        }
+        if (!userRecord && currentUser.email) {
+          console.log("Admin not found by username, trying email...");
+          userRecord = admins.find(
+            (a) => a.email && a.email === currentUser.email,
+          );
+        }
+
+        if (!userRecord) {
+          console.log("❌ Admin not found using any method");
+          console.log(
+            "Available admins:",
+            admins.map((a) => ({
+              id: a.id,
+              username: a.username,
+              email: a.email,
+            })),
+          );
+          console.log("Searching for:", {
+            id: currentUser.id,
+            username: currentUser.username,
+            email: currentUser.email,
+          });
+          throw new Error("Admin not found in database");
+        }
       }
+
+      // Use the generic variable name for both doctors and admins
+      const doctor = userRecord;
 
       console.log("✅ Found doctor:", doctor);
 
@@ -648,7 +734,7 @@ const Schedule: React.FC = () => {
       }
 
       console.log(
-        `✅ Creating availability for ${newDates.length} new dates...`
+        `✅ Creating availability for ${newDates.length} new dates...`,
       );
       // Create availability and time slots for new dates only
       let successCount = 0;
@@ -666,7 +752,7 @@ const Schedule: React.FC = () => {
           console.log("Posting availability data:", availabilityData);
           const availabilityResponse = await axios.post(
             `${API_BASE_URL}/availability/`,
-            availabilityData
+            availabilityData,
           );
           console.log("Availability response:", availabilityResponse.data);
           const createdAvailability = availabilityResponse.data;
@@ -680,13 +766,13 @@ const Schedule: React.FC = () => {
           }
 
           console.log(
-            `✅ Created availability ${createdAvailability.id} for ${date}`
+            `✅ Created availability ${createdAvailability.id} for ${date}`,
           );
           // Generate time slots for this date
           const daySlots = generateScheduleSlots(date, startTime, endTime);
           console.log(
             `Generated ${daySlots.length} time slots for ${date}:`,
-            daySlots
+            daySlots,
           );
 
           // Create time slots
@@ -712,7 +798,7 @@ const Schedule: React.FC = () => {
             console.log("Posting time slot data:", timeSlotData);
             const timeSlotResponse = await axios.post(
               `${API_BASE_URL}/availability/${createdAvailability.id}/create_time_slot/`,
-              timeSlotData
+              timeSlotData,
             );
             console.log("Time slot response:", timeSlotResponse.data);
           }
@@ -722,13 +808,13 @@ const Schedule: React.FC = () => {
         } catch (dateError) {
           console.error(
             `❌ Failed to create availability for ${date}:`,
-            dateError
+            dateError,
           );
         }
       }
 
       console.log(
-        `✅ Completed creation process. Success count: ${successCount}/${newDates.length}`
+        `✅ Completed creation process. Success count: ${successCount}/${newDates.length}`,
       );
       // Refresh the existing availability list
       console.log("Refreshing existing availability list...");
@@ -759,19 +845,19 @@ const Schedule: React.FC = () => {
 
   // Load existing availability on component mount
   useEffect(() => {
-    if (currentUser?.role === "doctor") {
+    if (currentUser?.role === "doctor" || currentUser?.role === "admin") {
       loadExistingAvailability(1);
     }
   }, [currentUser]);
 
-  if (currentUser?.role !== "doctor") {
+  if (currentUser?.role !== "doctor" && currentUser?.role !== "admin") {
     return (
       <div className="flex items-center justify-center h-full">
         <Card className="w-[400px]">
           <CardHeader>
             <CardTitle>Access Denied</CardTitle>
             <CardDescription>
-              Only doctors can access the schedule management page.
+              Only doctors and admins can access the schedule management page.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -782,7 +868,9 @@ const Schedule: React.FC = () => {
   return (
     <div className="w-full max-w-6xl mx-auto mt-4 md:mt-8 space-y-4 md:space-y-6 px-3 md:px-0">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold mb-1">My Schedule</h1>
+        <h1 className="text-2xl md:text-3xl font-bold mb-1">
+          Set Availability
+        </h1>
         <p className="text-sm md:text-base text-muted-foreground mb-4 md:mb-6">
           Set your availability, recurring patterns, and manage slots. Desktop
           shows calendar grid, mobile shows list view.
@@ -851,7 +939,7 @@ const Schedule: React.FC = () => {
                                       day: "2-digit",
                                       month: "2-digit",
                                       year: "numeric",
-                                    }
+                                    },
                                   )}
                                 </span>
                               </div>
@@ -869,8 +957,8 @@ const Schedule: React.FC = () => {
                                     setViewDate(
                                       new Date(
                                         viewDate.getFullYear(),
-                                        viewDate.getMonth() - 1
-                                      )
+                                        viewDate.getMonth() - 1,
+                                      ),
                                     )
                                   }
                                   className="h-8 w-8 p-0"
@@ -890,8 +978,8 @@ const Schedule: React.FC = () => {
                                     setViewDate(
                                       new Date(
                                         viewDate.getFullYear(),
-                                        viewDate.getMonth() + 1
-                                      )
+                                        viewDate.getMonth() + 1,
+                                      ),
                                     )
                                   }
                                   className="h-8 w-8 p-0"
@@ -936,7 +1024,7 @@ const Schedule: React.FC = () => {
                                         <div
                                           key={`empty-${i}`}
                                           className="h-8"
-                                        />
+                                        />,
                                       );
                                     }
 
@@ -947,9 +1035,9 @@ const Schedule: React.FC = () => {
                                       day++
                                     ) {
                                       const dateStr = `${year}-${String(
-                                        month + 1
+                                        month + 1,
                                       ).padStart(2, "0")}-${String(
-                                        day
+                                        day,
                                       ).padStart(2, "0")}`;
                                       const isSelected = dateStr === startDate;
                                       const isToday = dateStr === todayStr;
@@ -963,10 +1051,10 @@ const Schedule: React.FC = () => {
                                             isSelected
                                               ? "bg-blue-500 text-white hover:bg-blue-600"
                                               : isToday
-                                              ? "bg-blue-100 text-blue-600"
-                                              : isPast
-                                              ? "text-gray-300 cursor-not-allowed hover:bg-transparent"
-                                              : "hover:bg-gray-100"
+                                                ? "bg-blue-100 text-blue-600"
+                                                : isPast
+                                                  ? "text-gray-300 cursor-not-allowed hover:bg-transparent"
+                                                  : "hover:bg-gray-100"
                                           }`}
                                           onClick={() => {
                                             if (!isPast) {
@@ -977,7 +1065,7 @@ const Schedule: React.FC = () => {
                                           disabled={isPast}
                                         >
                                           {day}
-                                        </Button>
+                                        </Button>,
                                       );
                                     }
 
@@ -1032,7 +1120,7 @@ const Schedule: React.FC = () => {
                                       day: "2-digit",
                                       month: "2-digit",
                                       year: "numeric",
-                                    }
+                                    },
                                   )}
                                 </span>
                               </div>
@@ -1050,8 +1138,8 @@ const Schedule: React.FC = () => {
                                     setViewDate(
                                       new Date(
                                         viewDate.getFullYear(),
-                                        viewDate.getMonth() - 1
-                                      )
+                                        viewDate.getMonth() - 1,
+                                      ),
                                     )
                                   }
                                   className="h-8 w-8 p-0"
@@ -1071,8 +1159,8 @@ const Schedule: React.FC = () => {
                                     setViewDate(
                                       new Date(
                                         viewDate.getFullYear(),
-                                        viewDate.getMonth() + 1
-                                      )
+                                        viewDate.getMonth() + 1,
+                                      ),
                                     )
                                   }
                                   className="h-8 w-8 p-0"
@@ -1112,7 +1200,7 @@ const Schedule: React.FC = () => {
                                         <div
                                           key={`empty-${i}`}
                                           className="h-8"
-                                        />
+                                        />,
                                       );
                                     }
 
@@ -1122,9 +1210,9 @@ const Schedule: React.FC = () => {
                                       day++
                                     ) {
                                       const dateStr = `${year}-${String(
-                                        month + 1
+                                        month + 1,
                                       ).padStart(2, "0")}-${String(
-                                        day
+                                        day,
                                       ).padStart(2, "0")}`;
                                       const isSelected = dateStr === endDate;
                                       const isToday = dateStr === todayStr;
@@ -1138,10 +1226,10 @@ const Schedule: React.FC = () => {
                                             isSelected
                                               ? "bg-blue-500 text-white hover:bg-blue-600"
                                               : isToday
-                                              ? "bg-blue-100 text-blue-600"
-                                              : isPast
-                                              ? "text-gray-300 cursor-not-allowed hover:bg-transparent"
-                                              : "hover:bg-gray-100"
+                                                ? "bg-blue-100 text-blue-600"
+                                                : isPast
+                                                  ? "text-gray-300 cursor-not-allowed hover:bg-transparent"
+                                                  : "hover:bg-gray-100"
                                           }`}
                                           onClick={() => {
                                             if (!isPast) {
@@ -1152,7 +1240,7 @@ const Schedule: React.FC = () => {
                                           disabled={isPast}
                                         >
                                           {day}
-                                        </Button>
+                                        </Button>,
                                       );
                                     }
 
@@ -1497,11 +1585,11 @@ const Schedule: React.FC = () => {
                                 month: "short",
                                 day: "numeric",
                                 year: "numeric",
-                              }
+                              },
                             );
 
                             const bookedSlots = availability.time_slots.filter(
-                              (slot) => isSlotBooked(slot)
+                              (slot) => isSlotBooked(slot),
                             ).length;
                             const totalSlots = availability.time_slots.length;
 
@@ -1586,11 +1674,11 @@ const Schedule: React.FC = () => {
                                                     />
                                                     <span className="text-sm font-mono">
                                                       {formatTime(
-                                                        slot.start_time
+                                                        slot.start_time,
                                                       )}{" "}
                                                       -{" "}
                                                       {formatTime(
-                                                        slot.end_time
+                                                        slot.end_time,
                                                       )}
                                                     </span>
                                                   </div>
@@ -1603,11 +1691,11 @@ const Schedule: React.FC = () => {
                                                     className="text-xs"
                                                   >
                                                     {getBookingStatusDisplay(
-                                                      slot
+                                                      slot,
                                                     )}
                                                   </Badge>
                                                 </div>
-                                              )
+                                              ),
                                             )}
                                           </div>
 
@@ -1687,7 +1775,7 @@ const Schedule: React.FC = () => {
                           to{" "}
                           {Math.min(
                             pagination.currentPage * pagination.itemsPerPage,
-                            pagination.totalItems
+                            pagination.totalItems,
                           )}{" "}
                           of {pagination.totalItems} slots
                         </div>
@@ -1698,7 +1786,7 @@ const Schedule: React.FC = () => {
                             size="sm"
                             onClick={() =>
                               loadExistingAvailability(
-                                pagination.currentPage - 1
+                                pagination.currentPage - 1,
                               )
                             }
                             disabled={pagination.currentPage <= 1}
@@ -1733,7 +1821,7 @@ const Schedule: React.FC = () => {
                                   );
                                 }
                                 return null;
-                              }
+                              },
                             )}
                           </div>
 
@@ -1742,7 +1830,7 @@ const Schedule: React.FC = () => {
                             size="sm"
                             onClick={() =>
                               loadExistingAvailability(
-                                pagination.currentPage + 1
+                                pagination.currentPage + 1,
                               )
                             }
                             disabled={

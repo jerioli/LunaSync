@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
@@ -48,6 +49,7 @@ import {
   Mail,
   Plus,
   Search,
+  Trash2,
   XCircle,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -160,6 +162,12 @@ const PrescriptionManagement: React.FC = () => {
   // Accordion state for mobile view
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
 
+  // Bulk operations states
+  const [selectedRequests, setSelectedRequests] = useState<Set<number>>(
+    new Set(),
+  );
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Helper function to get image URL - similar to how clinic logo is handled
   const getImageUrl = (imagePath: string) => {
     console.log("=== GET IMAGE URL DEBUG ===");
@@ -225,6 +233,104 @@ const PrescriptionManagement: React.FC = () => {
     };
     fetchPatientsData();
   }, []);
+
+  // Handle select all on current page
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const newSelected = new Set(selectedRequests);
+      paginatedRequests.forEach((request) => {
+        newSelected.add(request.id);
+      });
+      setSelectedRequests(newSelected);
+    } else {
+      // Deselect all on current page
+      const newSelected = new Set(selectedRequests);
+      paginatedRequests.forEach((request) => {
+        newSelected.delete(request.id);
+      });
+      setSelectedRequests(newSelected);
+    }
+  };
+
+  // Handle individual request selection
+  const handleSelectRequest = (requestId: number, checked: boolean) => {
+    const newSelected = new Set(selectedRequests);
+    if (checked) {
+      newSelected.add(requestId);
+    } else {
+      newSelected.delete(requestId);
+    }
+    setSelectedRequests(newSelected);
+  };
+
+  // Handle bulk delete
+  const handleBulkDelete = async () => {
+    if (selectedRequests.size === 0) {
+      toast.error(
+        "No requests selected. Please select at least one request to delete.",
+      );
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${selectedRequests.size} prescription request(s)? This action cannot be undone.`,
+    );
+
+    if (!confirmDelete) return;
+
+    setIsDeleting(true);
+    const selectedIds = Array.from(selectedRequests);
+    let successCount = 0;
+    let failCount = 0;
+
+    try {
+      // Delete requests one by one
+      for (const requestId of selectedIds) {
+        try {
+          await axiosInstance.delete(`/prescription-requests/${requestId}/`);
+          successCount++;
+        } catch (error) {
+          console.error(`Failed to delete request ${requestId}:`, error);
+          failCount++;
+        }
+      }
+
+      // Show result toast
+      if (successCount > 0) {
+        toast.success(
+          `Successfully deleted ${successCount} request(s).${
+            failCount > 0 ? ` Failed to delete ${failCount} request(s).` : ""
+          }`,
+        );
+        fetchRequests(); // Refresh the list
+        setSelectedRequests(new Set()); // Clear selections
+      } else {
+        toast.error("Failed to delete selected requests.");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred while deleting requests.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Handle individual delete
+  const handleDeleteRequest = async (requestId: number) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this prescription request? This action cannot be undone.",
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      await axiosInstance.delete(`/prescription-requests/${requestId}/`);
+      toast.success("Request deleted successfully");
+      fetchRequests(); // Refresh the list
+    } catch (error) {
+      console.error("Error deleting request:", error);
+      toast.error("Failed to delete request");
+    }
+  };
 
   const fetchRequests = async () => {
     try {
@@ -323,10 +429,25 @@ const PrescriptionManagement: React.FC = () => {
     endIndex,
   );
 
+  // Check if all requests on current page are selected
+  const isAllSelected =
+    paginatedRequests.length > 0 &&
+    paginatedRequests.every((request) => selectedRequests.has(request.id));
+
+  // Check if some (but not all) requests are selected
+  const isSomeSelected =
+    paginatedRequests.some((request) => selectedRequests.has(request.id)) &&
+    !isAllSelected;
+
   // Reset current page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, filterStatus, sortField, sortDirection]);
+
+  // Clear selections when page or filters change
+  useEffect(() => {
+    setSelectedRequests(new Set());
+  }, [currentPage, searchQuery, filterStatus, sortField, sortDirection]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -742,6 +863,19 @@ const PrescriptionManagement: React.FC = () => {
                   Reset
                 </Button>
               )}
+
+              {selectedRequests.size > 0 && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleBulkDelete}
+                  disabled={isDeleting}
+                  className="text-xs sm:text-sm"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Selected ({selectedRequests.size})
+                </Button>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -779,6 +913,18 @@ const PrescriptionManagement: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12 hidden md:table-cell">
+                      <Checkbox
+                        checked={isAllSelected}
+                        onCheckedChange={handleSelectAll}
+                        aria-label="Select all requests"
+                        className={
+                          isSomeSelected && !isAllSelected
+                            ? "data-[state=checked]:bg-primary"
+                            : ""
+                        }
+                      />
+                    </TableHead>
                     <TableHead>
                       <Button
                         variant="ghost"
@@ -822,6 +968,18 @@ const PrescriptionManagement: React.FC = () => {
                     return (
                       <React.Fragment key={request.id}>
                         <TableRow className="md:hover:bg-muted/50">
+                          <TableCell className="hidden md:table-cell">
+                            <Checkbox
+                              checked={selectedRequests.has(request.id)}
+                              onCheckedChange={(checked) =>
+                                handleSelectRequest(
+                                  request.id,
+                                  checked as boolean,
+                                )
+                              }
+                              aria-label={`Select request for ${request.patient_name}`}
+                            />
+                          </TableCell>
                           <TableCell className="font-medium">
                             <div className="flex items-center justify-between">
                               <div>
@@ -1051,14 +1209,6 @@ const PrescriptionManagement: React.FC = () => {
                                         selectedRequest.status ===
                                           "on_process") && (
                                         <div className="flex flex-col gap-2 pt-3 border-t">
-                                          {isRequestPatientSoftDeleted(
-                                            selectedRequest,
-                                          ) && (
-                                            <div className="text-sm text-red-600 font-medium p-2 bg-red-50 border border-red-200 rounded">
-                                              ⚠️ This patient has been deleted.
-                                              Actions are disabled.
-                                            </div>
-                                          )}
                                           <div className="flex gap-2">
                                             {currentUserRole ===
                                               "receptionist" &&
@@ -1074,16 +1224,7 @@ const PrescriptionManagement: React.FC = () => {
                                                     }
                                                     className="bg-blue-600 hover:bg-blue-700 flex-1"
                                                     size="sm"
-                                                    disabled={isRequestPatientSoftDeleted(
-                                                      selectedRequest,
-                                                    )}
-                                                    title={
-                                                      isRequestPatientSoftDeleted(
-                                                        selectedRequest,
-                                                      )
-                                                        ? "Cannot approve - patient has been deleted"
-                                                        : "Approve prescription request"
-                                                    }
+                                                    title="Approve prescription request"
                                                   >
                                                     <CheckCircle className="h-4 w-4 mr-1" />
                                                     Approve
@@ -1106,16 +1247,7 @@ const PrescriptionManagement: React.FC = () => {
                                                     }}
                                                     size="sm"
                                                     className="flex-1"
-                                                    disabled={isRequestPatientSoftDeleted(
-                                                      selectedRequest,
-                                                    )}
-                                                    title={
-                                                      isRequestPatientSoftDeleted(
-                                                        selectedRequest,
-                                                      )
-                                                        ? "Cannot reject - patient has been deleted"
-                                                        : "Reject prescription request"
-                                                    }
+                                                    title="Reject prescription request"
                                                   >
                                                     <XCircle className="h-4 w-4 mr-1" />
                                                     Reject
@@ -1137,16 +1269,7 @@ const PrescriptionManagement: React.FC = () => {
                                                     )
                                                   }
                                                   className="w-full bg-green-600 hover:bg-green-700"
-                                                  disabled={isRequestPatientSoftDeleted(
-                                                    selectedRequest,
-                                                  )}
-                                                  title={
-                                                    isRequestPatientSoftDeleted(
-                                                      selectedRequest,
-                                                    )
-                                                      ? "Cannot review - patient has been deleted"
-                                                      : "Review and approve prescription"
-                                                  }
+                                                  title="Review and approve prescription"
                                                 >
                                                   <Mail className="h-4 w-4 mr-1" />
                                                   Review & Approve Prescription
@@ -1163,9 +1286,6 @@ const PrescriptionManagement: React.FC = () => {
                                             placeholder="Rejection reason (if rejecting)..."
                                             rows={2}
                                             className="text-sm"
-                                            disabled={isRequestPatientSoftDeleted(
-                                              selectedRequest,
-                                            )}
                                           />
                                         </div>
                                       )}
@@ -1173,6 +1293,20 @@ const PrescriptionManagement: React.FC = () => {
                                   )}
                                 </DialogContent>
                               </Dialog>
+
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDeleteRequest(request.id)}
+                                disabled={isDeleting}
+                                title="Delete this request"
+                                className="h-7 w-7 sm:h-8 sm:w-auto p-0 sm:px-3"
+                              >
+                                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                                <span className="hidden sm:inline ml-1">
+                                  Delete
+                                </span>
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>

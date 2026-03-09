@@ -641,23 +641,38 @@ const PatientPortal = () => {
         const day = String(date.getDate()).padStart(2, "0");
         const dateString = `${year}-${month}-${day}`;
 
-        console.log("Fetching doctors available on date:", dateString);
+        console.log(
+          "Fetching doctors and admins available on date:",
+          dateString,
+        );
 
         // Get all doctors first
         const doctorsResponse = await axiosInstance.get("doctors/");
         const allDoctors = doctorsResponse.data;
 
-        // Filter doctors who have availability on this date
-        const availableDoctors = [];
+        // Get all admins
+        let allAdmins = [];
+        try {
+          const adminsResponse = await axiosInstance.get("admins/");
+          allAdmins = adminsResponse.data || [];
+        } catch (error) {
+          console.error("Error fetching admins:", error);
+        }
 
-        for (const doctor of allDoctors) {
+        // Combine doctors and admins
+        const allStaff = [...allDoctors, ...allAdmins];
+
+        // Filter staff who have availability on this date
+        const availableStaff = [];
+
+        for (const staff of allStaff) {
           try {
             const response = await api.availability.getTimeSlots(
-              doctor.id,
+              staff.id,
               dateString,
             );
 
-            // Check if doctor has any available slots on this date
+            // Check if staff has any available slots on this date
             if (Array.isArray(response) && response.length > 0) {
               const availability = response[0];
               if (
@@ -687,23 +702,23 @@ const PatientPortal = () => {
                 );
 
                 if (availableSlots.length > 0) {
-                  availableDoctors.push(doctor);
+                  availableStaff.push(staff);
                 }
               }
             }
           } catch (error) {
             console.error(
-              `Error checking availability for doctor ${doctor.id}:`,
+              `Error checking availability for staff ${staff.id}:`,
               error,
             );
-            // Continue to next doctor if there's an error
+            // Continue to next staff if there's an error
           }
         }
 
-        console.log("Available doctors on", dateString, ":", availableDoctors);
-        setFilteredDoctors(availableDoctors);
+        console.log("Available staff on", dateString, ":", availableStaff);
+        setFilteredDoctors(availableStaff);
       } catch (error) {
-        console.error("Error fetching doctors available on date:", error);
+        console.error("Error fetching staff available on date:", error);
         // Fallback to all doctors if there's an error
         setFilteredDoctors(doctors);
       }
@@ -715,13 +730,26 @@ const PatientPortal = () => {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const response = await axiosInstance.get("doctors/");
-        setDoctors(response.data);
+        const doctorsResponse = await axiosInstance.get("doctors/");
+        const doctors = doctorsResponse.data;
+
+        // Also fetch admins
+        let admins = [];
+        try {
+          const adminsResponse = await axiosInstance.get("admins/");
+          admins = adminsResponse.data || [];
+        } catch (error) {
+          console.error("Error fetching admins:", error);
+        }
+
+        // Combine doctors and admins
+        const allStaff = [...doctors, ...admins];
+        setDoctors(allStaff);
       } catch (error) {
-        console.error("Error fetching doctors:", error);
+        console.error("Error fetching doctors and admins:", error);
         toast({
           title: "Error",
-          description: "Failed to load doctors",
+          description: "Failed to load doctors and admins",
           variant: "destructive",
         });
       }

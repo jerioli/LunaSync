@@ -150,25 +150,10 @@ const DoctorDashboard = () => {
         const response = await axiosInstance.get("/medical-certificates/");
         console.log("Medical Cert Requests - All data:", response.data);
         const pendingRequests = response.data.filter((req: any) => {
-          const isPending =
-            req.status === "pending" || req.status === "on_process";
-
-          // Check if patient is archived by matching name and DOB
-          const patient = localPatients.find((p) => {
-            const patientName = (p.name || "").toLowerCase().trim();
-            const requestName = (req.patient_name || "").toLowerCase().trim();
-            const patientDOB = p.date_of_birth;
-            const requestDOB = req.date_of_birth;
-            return patientName === requestName && patientDOB === requestDOB;
-          });
-
-          // If patient not found or is_deleted is true, exclude the request
-          const isPatientActive = patient && !patient.is_deleted;
-
-          return isPending && isPatientActive;
+          return req.status === "pending" || req.status === "on_process";
         });
         console.log(
-          "Medical Cert Requests - Pending/On Process (Active Patients):",
+          "Medical Cert Requests - Pending/On Process:",
           pendingRequests,
         );
         setMedCertRequestCount(pendingRequests.length);
@@ -189,25 +174,10 @@ const DoctorDashboard = () => {
         );
         console.log("Prescription Requests - All data:", response.data);
         const pendingRequests = response.data.filter((req: any) => {
-          const isPending =
-            req.status === "pending" || req.status === "on_process";
-
-          // Check if patient is archived by matching name and DOB
-          const patient = localPatients.find((p) => {
-            const patientName = (p.name || "").toLowerCase().trim();
-            const requestName = (req.patient_name || "").toLowerCase().trim();
-            const patientDOB = p.date_of_birth;
-            const requestDOB = req.date_of_birth;
-            return patientName === requestName && patientDOB === requestDOB;
-          });
-
-          // If patient not found or is_deleted is true, exclude the request
-          const isPatientActive = patient && !patient.is_deleted;
-
-          return isPending && isPatientActive;
+          return req.status === "pending" || req.status === "on_process";
         });
         console.log(
-          "Prescription Requests - Pending/On Process (Active Patients):",
+          "Prescription Requests - Pending/On Process:",
           pendingRequests,
         );
         setPrescriptionRequestCount(pendingRequests.length);

@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import { useClinic } from "@/contexts/ClinicContext";
 import {
   Package,
@@ -85,6 +85,7 @@ type SortDirection = "asc" | "desc";
 
 const Inventory = () => {
   const { currentUser } = useClinic();
+  const { toast } = useToast();
 
   // State management
   const [medicineRecords, setMedicineRecords] = useState<MedicineRecord[]>([]);
@@ -163,19 +164,17 @@ const Inventory = () => {
 
       // Show toast notifications for critical items
       if (expiredMedicines.length > 0) {
-        toast.error(
-          `${expiredMedicines.length} medicine(s) have expired and need attention`,
-          {
-            duration: 5000,
-          },
-        );
+        toast({
+          title: "Expired Medicines",
+          description: `${expiredMedicines.length} medicine(s) have expired and need attention`,
+          variant: "destructive",
+        });
       } else if (expiringMedicines.length > 0) {
-        toast.warning(
-          `${expiringMedicines.length} medicine(s) are nearing expiration`,
-          {
-            duration: 5000,
-          },
-        );
+        toast({
+          title: "Expiring Soon",
+          description: `${expiringMedicines.length} medicine(s) are nearing expiration`,
+          variant: "destructive",
+        });
       }
     }
   }, [medicineRecords, toast]);
@@ -198,8 +197,10 @@ const Inventory = () => {
       }
     } catch (error) {
       console.error("Error fetching medicine records:", error);
-      toast.error("Failed to fetch medicine records", {
-        duration: 5000,
+      toast({
+        title: "Error",
+        description: "Failed to fetch medicine records",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -259,8 +260,10 @@ const Inventory = () => {
     // Validate form
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
-      toast.error(validationErrors.join(", "), {
-        duration: 5000,
+      toast({
+        title: "Validation Error",
+        description: validationErrors.join(", "),
+        variant: "destructive",
       });
       return;
     }
@@ -277,15 +280,14 @@ const Inventory = () => {
       });
 
       if (response.data.success) {
-        toast.success(
-          response.data.message ||
+        toast({
+          title: "Success",
+          description:
+            response.data.message ||
             (selectedItem
               ? "Medicine updated successfully"
               : "Medicine added successfully"),
-          {
-            duration: 5000,
-          },
-        );
+        });
         fetchMedicineRecords();
         setIsAddModalOpen(false);
         setIsEditModalOpen(false);
@@ -305,8 +307,10 @@ const Inventory = () => {
         errorMessage = error.response.data.message;
       }
 
-      toast.error(errorMessage, {
-        duration: 5000,
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -324,14 +328,17 @@ const Inventory = () => {
       });
 
       if (response.data.success) {
-        toast.success("Medicine record deleted successfully", {
-          duration: 5000,
+        toast({
+          title: "Success",
+          description: "Medicine record deleted successfully",
         });
         fetchMedicineRecords();
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Delete failed", {
-        duration: 5000,
+      toast({
+        title: "Error",
+        description: error.response?.data?.error || "Delete failed",
+        variant: "destructive",
       });
     }
   };

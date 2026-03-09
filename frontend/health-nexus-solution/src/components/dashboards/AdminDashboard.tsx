@@ -124,6 +124,26 @@ const AdminDashboard = () => {
     fetchMedicineStats();
   }, []);
 
+  // Helper function to check if a request's patient is soft-deleted
+  const isRequestPatientDeleted = (request: any): boolean => {
+    if (!Array.isArray(localPatients) || localPatients.length === 0) {
+      return false;
+    }
+
+    // Find the patient by name and date of birth
+    const patient = localPatients.find((p) => {
+      const patientName = (p.name || "").toLowerCase().trim();
+      const requestName = (request.patient_name || "").toLowerCase().trim();
+      const patientDOB = p.date_of_birth;
+      const requestDOB = request.date_of_birth;
+
+      return patientName === requestName && patientDOB === requestDOB;
+    });
+
+    // If patient not found or is_deleted is true, consider as deleted
+    return !patient || patient.is_deleted === true;
+  };
+
   // Fetch medical certificate requests count
   useEffect(() => {
     const fetchMedCertRequests = async () => {
@@ -133,19 +153,7 @@ const AdminDashboard = () => {
         const pendingRequests = response.data.filter((req: any) => {
           const isPending =
             req.status === "pending" || req.status === "on_process";
-
-          // Check if patient is archived by matching name and DOB
-          const patient = localPatients.find((p) => {
-            const patientName = (p.name || "").toLowerCase().trim();
-            const requestName = (req.patient_name || "").toLowerCase().trim();
-            const patientDOB = p.date_of_birth;
-            const requestDOB = req.date_of_birth;
-            return patientName === requestName && patientDOB === requestDOB;
-          });
-
-          // If patient not found or is_deleted is true, exclude the request
-          const isPatientActive = patient && !patient.is_deleted;
-
+          const isPatientActive = !isRequestPatientDeleted(req);
           return isPending && isPatientActive;
         });
         console.log(
@@ -172,19 +180,7 @@ const AdminDashboard = () => {
         const pendingRequests = response.data.filter((req: any) => {
           const isPending =
             req.status === "pending" || req.status === "on_process";
-
-          // Check if patient is archived by matching name and DOB
-          const patient = localPatients.find((p) => {
-            const patientName = (p.name || "").toLowerCase().trim();
-            const requestName = (req.patient_name || "").toLowerCase().trim();
-            const patientDOB = p.date_of_birth;
-            const requestDOB = req.date_of_birth;
-            return patientName === requestName && patientDOB === requestDOB;
-          });
-
-          // If patient not found or is_deleted is true, exclude the request
-          const isPatientActive = patient && !patient.is_deleted;
-
+          const isPatientActive = !isRequestPatientDeleted(req);
           return isPending && isPatientActive;
         });
         console.log(
