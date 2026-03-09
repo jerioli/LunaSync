@@ -40627,3 +40627,5 @@ INFO 2026-03-10 04:22:27,465 autoreload 57736 12912 Watching for file changes wi
 2026-03-10 04:23:48,720 - django.server - WARNING - "POST /api/sql-query/execute/ HTTP/1.1" 400 143
 2026-03-10 04:24:19,091 - django.utils.autoreload - INFO - C:\Users\Cheliza Rose\LunaSync-1\capstone\accounts\urls.py changed, reloading.
 INFO 2026-03-10 04:24:22,350 autoreload 11320 52492 Watching for file changes with StatReloader
+2026-03-10 04:29:06,739 - root - INFO - Request: {"method": "GET", "path": "/api/sql-query/logs/", "user_id": 14, "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36", "remote_addr": "127.0.0.1"}
+2026-03-10 04:29:06,798 - django.server - INFO - "GET /api/sql-query/logs/?limit=20 HTTP/1.1" 200 15683

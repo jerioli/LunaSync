@@ -189,7 +189,7 @@ SET
   resource_type = 'APPOINTMENT',
   description = (
     SELECT 'Confirmed appointment for ' || p.name || ' on ' || p.registration_date || ' at ' || 
-      strftime('%H:%M:%S', datetime(p.registration_date, '+20 minutes'))
+      TO_CHAR((p.registration_date::timestamp + INTERVAL '20 minutes')::time, 'HH24:MI:SS')
     FROM patients p
     WHERE CAST(p.id AS TEXT) = audit_logs.resource_id
   )
@@ -216,14 +216,14 @@ WHERE description LIKE '%Patient registered through portal and approved by recep
               setQuery(
                 `INSERT INTO audit_logs (timestamp, user_email, action, resource_type, resource_id, resource_name, description, details, old_values, new_values, ip_address, user_agent, session_key, user_id)
 SELECT 
-  datetime(p.registration_date, '+40 minutes'),
+  (p.registration_date::timestamp + INTERVAL '40 minutes'),
   COALESCE(u.email, 'system@lunasync.site'),
   'CHECK-IN PATIENT',
   'APPOINTMENT',
   CAST(p.id AS TEXT),
   'Patient ' || p.patient_id,
   'Check-In patient ' || p.patient_id || ' on ' || p.registration_date || ' at ' || 
-    strftime('%H:%M:%S', datetime(p.registration_date, '+40 minutes')) || ' (Status: scheduled → ongoing)',
+    TO_CHAR((p.registration_date::timestamp + INTERVAL '40 minutes')::time, 'HH24:MI:SS') || ' (Status: scheduled → ongoing)',
   '{}',
   '{}',
   '{}',
@@ -232,13 +232,13 @@ SELECT
   '',
   u.id
 FROM patients p
-LEFT JOIN Users u ON u.email = p.email
+LEFT JOIN "Users" u ON u.email = p.email
 WHERE p.registration_date IS NOT NULL
   AND NOT EXISTS (
     SELECT 1 FROM audit_logs al 
     WHERE al.action = 'CHECK-IN PATIENT' 
     AND al.resource_id = CAST(p.id AS TEXT)
-    AND date(al.timestamp) = p.registration_date
+    AND DATE(al.timestamp) = p.registration_date
   )
 ORDER BY p.registration_date;`,
               );
@@ -261,7 +261,7 @@ ORDER BY p.registration_date;`,
   'CONFIRM APPOINTMENT' as new_action,
   al.description as current_description,
   (SELECT 'Confirmed appointment for ' || p.name || ' on ' || p.registration_date || ' at ' || 
-    strftime('%H:%M:%S', datetime(p.registration_date, '+20 minutes'))
+    TO_CHAR((p.registration_date::timestamp + INTERVAL '20 minutes')::time, 'HH24:MI:SS')
    FROM patients p 
    WHERE CAST(p.id AS TEXT) = al.resource_id) as new_description,
   (SELECT p.patient_id FROM patients p WHERE CAST(p.id AS TEXT) = al.resource_id) as patient_id,
